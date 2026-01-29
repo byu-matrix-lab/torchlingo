@@ -68,9 +68,4 @@ data/
 !data/example_en_subset.txt
 !data/example_es_subset.txt
 
-old_assignments/
-assignments/
 docs/site/
-outputs/test.translated.sp
-scripts/inspect_checkpoint.py
-scripts/run_inference.py

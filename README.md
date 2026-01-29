@@ -1,6 +1,6 @@
 # TorchLingo
 
-[![PyPI version](https://badge.fury.io/py/torchlingo.svg)](https://badge.fury.io/py/torchlingo)
+[![PyPI version](https://img.shields.io/pypi/v/torchlingo.svg?color=0073b7)](https://pypi.org/project/torchlingo/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.en.html)
 
