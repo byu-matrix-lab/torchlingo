@@ -1,0 +1,132 @@
+name: Test, Build, and Publish Python package
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  tests:
+    name: Run tests
+    runs-on: ubuntu-slim
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
+
+      - name: Install project with dev+asian extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install --extra-index-url https://download.pytorch.org/whl/cpu ".[dev,asian]" pyarrow
+
+      - name: Create SentencePiece test models
+        run: |
+          python scripts/generate_sentencepiece_models.py --example data/example.tsv --n 2000
+
+      - name: Run test suite
+        run: |
+          python -m unittest discover tests
+
+  build:
+    name: Build wheels and sdist
+    needs: tests
+    runs-on: ubuntu-slim
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
+
+      - name: Install build tool
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Build wheel
+        run: |
+          python -m build --wheel -o dist
+
+      - name: Build sdist
+        run: |
+          python -m build --sdist -o dist
+
+      - name: Upload built artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ github.ref_name }} \
+            --title "Release ${{ github.ref_name }}" \
+            --generate-notes
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-slim
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
+
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Install packaging tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install twine
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          python -m twine upload --non-interactive dist/*

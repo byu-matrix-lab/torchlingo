@@ -1,0 +1,157 @@
+site_name: TorchLingo
+site_description: A beginner-friendly PyTorch library for learning Neural Machine Translation
+site_url: https://commanderjcc.github.io/torchlingo
+repo_url: https://github.com/commanderjcc/torchlingo
+repo_name: commanderjcc/torchlingo
+
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+
+plugins:
+  - search:
+      lang: en
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [../src]
+          options:
+            docstring_style: google
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            heading_level: 2
+            members_order: source
+            separate_signature: true
+            signature_crossrefs: true
+            show_signature_annotations: true
+  - mkdocs-jupyter:
+      include_source: true
+      execute: false
+      allow_errors: true
+      include_requirejs: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - assets/javascripts/mermaid-init.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - Your First Translation: getting-started/first-translation.md
+  - Concepts:
+    - What is NMT?: concepts/what-is-nmt.md
+    - Data Pipeline: concepts/data-pipeline.md
+    - Vocabulary & Tokenization: concepts/vocabulary.md
+    - Model Architectures: concepts/models.md
+    - Training Loop: concepts/training.md
+  - Tutorials:
+    - tutorials/index.md
+    - Data and Vocabulary: tutorials/01-data-and-vocab.ipynb
+    - Training a Tiny Model: tutorials/02-train-tiny-model.ipynb
+    - Inference and Beam Search: tutorials/03-inference-and-beamsearch.ipynb
+  - API Reference:
+    - reference/index.md
+    - Config: reference/config.md
+    - Data Processing:
+      - reference/data_processing/index.md
+      - Dataset: reference/data_processing/dataset.md
+      - Vocabulary: reference/data_processing/vocab.md
+      - Batching: reference/data_processing/batching.md
+    - Models:
+      - reference/models/index.md
+      - Transformer: reference/models/transformer.md
+      - LSTM: reference/models/lstm.md
+      - Positional Encoding: reference/models/positional.md
+    - Preprocessing:
+      - reference/preprocessing/index.md
+      - Base Utilities: reference/preprocessing/base.md
+      - SentencePiece: reference/preprocessing/sentencepiece.md
+      - Multilingual: reference/preprocessing/multilingual.md
+  - Contributing: contributing.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/commanderjcc/torchlingo
+  generator: false

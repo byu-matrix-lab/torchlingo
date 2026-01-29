@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Data files (except sample)
+data/*.txt
+data/*.en
+data/*.x
+data/*.sp
+data/*.model
+data/*.vocab
+data/tokenized/
+!data/sample_data.txt
+
+# Checkpoints and outputs
+*.pt
+outputs/*.txt
+outputs/*.log
+
+# TensorBoard
+runs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+
+# Data
+data/
+!data/example.tsv
+!data/example_en_subset.txt
+!data/example_es_subset.txt
+
+old_assignments/
+assignments/
+docs/site/
+outputs/test.translated.sp
+scripts/inspect_checkpoint.py
+scripts/run_inference.py
