@@ -1,0 +1,26 @@
+# Configuration for auto-generated release notes
+# See: https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+  categories:
+    - title: "🚀 New Features"
+      labels:
+        - enhancement
+        - feature
+    - title: "🐛 Bug Fixes"
+      labels:
+        - bug
+        - bugfix
+    - title: "📖 Documentation"
+      labels:
+        - documentation
+    - title: "🧹 Maintenance"
+      labels:
+        - chore
+        - maintenance
+    - title: "Other Changes"
+      labels:
+        - "*"

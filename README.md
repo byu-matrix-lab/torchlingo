@@ -40,3 +40,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgements
+
+This project was initially developed by [Josh Christensen](https://josh.christen.se) as part of his undergraduate work at BYU.
+
+> *"I hope that TorchLingo will be a valuable resource for students learning about neural machine translation, and that they will consider improving this project and the entire world with the knowledge they gain."*  
+> — Josh Christensen

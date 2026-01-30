@@ -3,9 +3,23 @@ name: Test, Build, and Publish Python package
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'pyproject.toml'
+      - 'MANIFEST.in'
+      - '.github/workflows/tests_and_build.yml'
     tags: ['v*']
   pull_request:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'pyproject.toml'
+      - 'MANIFEST.in'
+      - '.github/workflows/tests_and_build.yml'
   workflow_dispatch: {}
 
 permissions:
@@ -88,13 +102,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"  # Strip leading 'v'
+          cat << EOF > release_body.md
+          ## 📦 Installation
+
+          ### Quick Install (Recommended)
+          \`\`\`bash
+          pip install torchlingo==${VERSION}
+          \`\`\`
+
+          ### Google Colab
+          \`\`\`python
+          %pip install torchlingo==${VERSION}
+          \`\`\`
+
+          ## 📚 Resources
+
+          - 📖 [Documentation](https://byu-matrix-lab.github.io/torchlingo/)
+          - 🚀 [Quick Start Guide](https://byu-matrix-lab.github.io/torchlingo/getting-started/quickstart/)
+          - 📓 [Tutorials](https://byu-matrix-lab.github.io/torchlingo/tutorials/)
+
+          ---
+          EOF
+
           gh release create ${{ github.ref_name }} \
             --title "Release ${{ github.ref_name }}" \
-            --generate-notes
+            --notes-file release_body.md \
+            --generate-notes \
+            dist/*
 
   publish:
     name: Publish to PyPI

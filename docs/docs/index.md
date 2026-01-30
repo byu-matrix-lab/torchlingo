@@ -125,6 +125,15 @@ Read more about our [design philosophy](concepts/what-is-nmt.md).
 
 ---
 
+## 🙏 Acknowledgements
+
+This project was initially developed by [Josh Christensen](https://josh.christen.se) as part of his undergraduate work at BYU.
+
+> *"I hope that TorchLingo will be a valuable resource for students learning about neural machine translation, and that they will consider improving this project and the entire world with the knowledge they gain."*  
+> — Josh Christensen
+
+---
+
 <div align="center" markdown>
 
 **Ready to translate?** :fontawesome-solid-language:
