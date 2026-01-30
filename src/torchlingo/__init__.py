@@ -5,7 +5,7 @@ preprocessing) so codebases/tests can import `torchlingo` rather than top-level
 module names. It mirrors the project layout used in the repository.
 """
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 from . import config
 from . import models
