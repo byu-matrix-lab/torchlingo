@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -32,6 +32,9 @@ except Exception:  # pragma: no cover - optional dependency
 
 
 from .config import Config, get_default_config
+
+if TYPE_CHECKING:
+    from .checkpoint import ColabCheckpointer
 
 
 @dataclass
@@ -71,6 +74,7 @@ def train_model(
     save_dir: Optional[Path] = None,
     use_amp: bool = False,
     log_every: int = 0,
+    checkpointer: Optional["ColabCheckpointer"] = None,
 ) -> TrainResult:
     """Train a seq2seq model with optional validation and checkpointing.
 
@@ -88,6 +92,12 @@ def train_model(
         save_dir: If provided, best model (lowest val loss) is saved here.
         use_amp: Enable automatic mixed precision for speed on GPUs.
         log_every: If >0, prints running train loss every log_every steps.
+        checkpointer: Optional checkpointer for auto-saving during training.
+            If not provided but config.use_colab_checkpointing is True,
+            a checkpointer will be auto-created (ColabCheckpointer in Colab,
+            LocalCheckpointer otherwise). When a checkpointer is active,
+            checkpoints are automatically saved at configured intervals
+            to prevent loss of progress. See :mod:`torchlingo.checkpoint`.
 
     Returns:
         TrainResult containing per-epoch losses and optional checkpoint path.
@@ -96,6 +106,12 @@ def train_model(
     cfg = config if config is not None else get_default_config()
     device = _resolve_device(device)
     model = model.to(device)
+
+    # Auto-create checkpointer from config if enabled and none provided
+    if checkpointer is None and cfg.use_colab_checkpointing:
+        from .checkpoint import create_checkpointer_from_config
+
+        checkpointer = create_checkpointer_from_config(cfg)
 
     opt = (
         optimizer
@@ -118,6 +134,24 @@ def train_model(
     global_step = 0
     stop_training = False
     no_improve_steps = 0
+    start_epoch = 0
+
+    # Auto-resume from checkpointer if configured and checkpoint exists
+    if checkpointer is not None and cfg.colab_auto_resume:
+        if checkpointer.has_checkpoint():
+            try:
+                state = checkpointer.load(model, opt, scheduler)
+                start_epoch = state.epoch + 1
+                global_step = state.global_step
+                best_val = state.best_val_loss
+                train_losses = state.train_losses.copy()
+                val_losses = state.val_losses.copy()
+                print(
+                    f"Resumed training from epoch {start_epoch}, "
+                    f"step {global_step}, best_val_loss={best_val:.4f}"
+                )
+            except Exception as e:
+                print(f"Could not resume from checkpoint: {e}")
 
     # Initialize TensorBoard writer if enabled
     writer = None
@@ -126,7 +160,7 @@ def train_model(
         tb_dir.mkdir(parents=True, exist_ok=True)
         writer = SummaryWriter(log_dir=str(tb_dir))
 
-    for epoch in range(num_epochs):
+    for epoch in range(start_epoch, num_epochs):
         model.train()
         total_train = 0.0
         steps_in_epoch = 0
@@ -223,6 +257,20 @@ def train_model(
                 else:
                     torch.save(model.state_dict(), cfg.last_checkpoint_path)
 
+            # ColabCheckpointer auto-save (time or step based)
+            if checkpointer is not None:
+                checkpointer.step_callback(
+                    model=model,
+                    optimizer=opt,
+                    scheduler=scheduler,
+                    step=global_step,
+                    epoch=epoch,
+                    metrics={
+                        "train_loss": loss.item(),
+                        "val_loss": best_val if best_val < float("inf") else None,
+                    },
+                )
+
             if stop_training:
                 break
 
@@ -285,6 +333,21 @@ def train_model(
                 print("  -> Saved best checkpoint")
             else:
                 torch.save(model.state_dict(), cfg.checkpoint_path)
+
+            # Also save with checkpointer as "best"
+            if checkpointer is not None:
+                ckpt_path = checkpointer.save(
+                    model=model,
+                    optimizer=opt,
+                    scheduler=scheduler,
+                    epoch=epoch,
+                    step=global_step,
+                    metrics={"train_loss": avg_train, "val_loss": avg_val},
+                    is_best=True,
+                    checkpoint_type="best",
+                )
+                if best_path is None:
+                    best_path = ckpt_path
         else:
             no_improve_steps += 1
             if no_improve_steps >= getattr(cfg, "patience", 0):
@@ -298,6 +361,25 @@ def train_model(
 
     if writer is not None:
         writer.close()
+
+    # Final checkpoint save with checkpointer
+    if checkpointer is not None:
+        checkpointer.save(
+            model=model,
+            optimizer=opt,
+            scheduler=scheduler,
+            epoch=epoch if "epoch" in dir() else num_epochs - 1,
+            step=global_step,
+            metrics={
+                "train_loss": train_losses[-1] if train_losses else None,
+                "val_loss": val_losses[-1] if val_losses else None,
+            },
+            checkpoint_type="latest",
+        )
+        checkpointer.update_state(
+            train_loss=train_losses[-1] if train_losses else None,
+            val_loss=val_losses[-1] if val_losses else None,
+        )
 
     return TrainResult(
         train_losses=train_losses, val_losses=val_losses, best_checkpoint=best_path
