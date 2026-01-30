@@ -141,13 +141,56 @@ TorchLingo has a few key dependencies that are automatically installed:
 | `tensorboard` | Training visualization                 |
 | `sacrebleu`   | Translation quality metrics            |
 
+### Optional: Language-Specific Dependencies
+
+TorchLingo supports specialized tokenizers for Asian languages. Install based on your needs:
+
+=== "Japanese"
+
+    ```bash
+    pip install torchlingo[japanese]
+    ```
+    
+    Installs [fugashi](https://github.com/polm/fugashi) and [unidic-lite](https://github.com/polm/unidic-lite) for Japanese morphological analysis.
+
+=== "Chinese"
+
+    ```bash
+    pip install torchlingo[chinese]
+    ```
+    
+    Installs [jieba](https://github.com/fxsjy/jieba) for Chinese word segmentation.
+
+=== "All Asian Languages"
+
+    ```bash
+    pip install torchlingo[asian]
+    ```
+    
+    Installs tokenizers for both Japanese and Chinese.
+
+| Extra       | Packages Installed                  | Use Case                          |
+| ----------- | ----------------------------------- | --------------------------------- |
+| `japanese`  | fugashi, unidic-lite                | Japanese tokenization             |
+| `chinese`   | jieba                               | Chinese word segmentation         |
+| `asian`     | fugashi, unidic-lite, jieba         | Both Japanese and Chinese support |
+
 ### Optional: Development Dependencies
 
-If you want to run tests or contribute:
+If you want to run tests, lint code, or contribute to TorchLingo:
 
 ```bash
-pip install -e ".[dev,test]"
+pip install -e ".[dev]"
 ```
+
+This installs:
+
+| Package | Purpose                              |
+| ------- | ------------------------------------ |
+| `ruff`  | Fast Python linter and formatter     |
+| `isort` | Import sorting                       |
+| `build` | Building distribution packages       |
+| `twine` | Publishing to PyPI                   |
 
 ### Optional: Documentation Dependencies
 

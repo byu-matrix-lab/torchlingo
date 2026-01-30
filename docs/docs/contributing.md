@@ -30,13 +30,13 @@ source .venv/bin/activate  # macOS/Linux
 ### 3. Install in Development Mode
 
 ```bash
-pip install -e ".[dev,test,docs]"
+pip install -e ".[dev,docs]"
 ```
 
 ### 4. Run Tests
 
 ```bash
-pytest tests/ -v
+python -m unittest discover tests -v
 ```
 
 ## Code Style
@@ -83,32 +83,32 @@ def encode(self, sentence: str, add_special_tokens: bool = True) -> List[int]:
 
 ```bash
 # All tests
-pytest
+python -m unittest discover tests -v
 
 # Specific file
-pytest tests/test_vocab.py
+python -m unittest tests.test_vocab -v
 
-# With coverage
-pytest --cov=torchlingo --cov-report=html
+# Specific test case or method
+python -m unittest tests.test_vocab.TestSimpleVocab.test_build_vocab -v
 ```
 
 ### Writing Tests
 
-Tests live in `tests/` and use pytest:
+Tests live in `tests/` and use unittest:
 
 ```python
 # tests/test_vocab.py
-import pytest
+import unittest
 from torchlingo.data_processing import SimpleVocab
 
 
-class TestSimpleVocab:
+class TestSimpleVocab(unittest.TestCase):
     def test_build_vocab(self):
         vocab = SimpleVocab()
         vocab.build_vocab(["hello world", "hello friend"])
         
-        assert "hello" in vocab.token2idx
-        assert len(vocab) >= 4  # At least special tokens
+        self.assertIn("hello", vocab.token2idx)
+        self.assertGreaterEqual(len(vocab), 4)  # At least special tokens
 
     def test_encode_decode(self):
         vocab = SimpleVocab()
@@ -117,7 +117,11 @@ class TestSimpleVocab:
         indices = vocab.encode("hello world", add_special_tokens=True)
         text = vocab.decode(indices, skip_special_tokens=True)
         
-        assert text == "hello world"
+        self.assertEqual(text, "hello world")
+
+
+if __name__ == "__main__":
+    unittest.main()
 ```
 
 ## Documentation

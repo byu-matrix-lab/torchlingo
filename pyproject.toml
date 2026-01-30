@@ -37,6 +37,7 @@ classifiers = [
 dependencies = [
     "torch>=2.0",
     "pandas>=1.5",
+    "pyarrow>=13.0",
     "sentencepiece>=0.1.99",
     "tensorboard>=2.12",
     "sacrebleu>=2.3",
@@ -44,10 +45,10 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://byu-matrix-lab.github.io/torchlingo/"
-# Documentation = "https://github.com/byu-matrix-lab/torchlingo#readme"
-# Repository = "https://github.com/byu-matrix-lab/torchlingo"
-# Issues = "https://github.com/byu-matrix-lab/torchlingo/issues"
-# Changelog = "https://github.com/byu-matrix-lab/torchlingo/releases"
+Documentation = "https://byu-matrix-lab.github.io/torchlingo/"
+Repository = "https://github.com/byu-matrix-lab/torchlingo"
+Issues = "https://github.com/byu-matrix-lab/torchlingo/issues"
+Changelog = "https://github.com/byu-matrix-lab/torchlingo/releases"
 
 [project.optional-dependencies]
 docs = [
