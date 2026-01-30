@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "torchlingo"
-version = "0.0.6"
+version = "0.0.7"
 description = "Educational PyTorch NMT library for coursework and instruction."
 readme = "README.md"
 license = "AGPL-3.0-or-later"
