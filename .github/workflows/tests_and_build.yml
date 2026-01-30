@@ -112,18 +112,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cat << 'EOF' > release_body.md
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"  # Strip leading 'v'
+          cat << EOF > release_body.md
           ## 📦 Installation
 
           ### Quick Install (Recommended)
-          ```bash
-          pip install torchlingo=${{ github.ref_name }}
-          ```
+          \`\`\`bash
+          pip install torchlingo==${VERSION}
+          \`\`\`
 
           ### Google Colab
-          ```python
-          %pip install torchlingo=${{ github.ref_name }}
-          ```
+          \`\`\`python
+          %pip install torchlingo==${VERSION}
+          \`\`\`
 
           ## 📚 Resources
 
