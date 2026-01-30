@@ -1,8 +1,8 @@
 site_name: TorchLingo
 site_description: A beginner-friendly PyTorch library for learning Neural Machine Translation
-site_url: https://commanderjcc.github.io/torchlingo
-repo_url: https://github.com/commanderjcc/torchlingo
-repo_name: commanderjcc/torchlingo
+site_url: https://byu-matrix-lab.github.io/torchlingo
+repo_url: https://github.com/byu-matrix-lab/torchlingo
+repo_name: byu-matrix-lab/torchlingo
 
 theme:
   name: material
@@ -153,5 +153,5 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/commanderjcc/torchlingo
+      link: https://github.com/byu-matrix-lab/torchlingo
   generator: false

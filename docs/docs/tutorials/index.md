@@ -8,9 +8,9 @@ The easiest way to run these tutorials is in **Google Colab**—no installation 
 
 | Tutorial | Description | Open in Colab |
 |----------|-------------|---------------|
-| **1. Data and Vocabulary** | Load data, build vocabularies | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/commanderjcc/torchlingo/blob/main/docs/docs/tutorials/01-data-and-vocab.ipynb) |
-| **2. Train a Tiny Model** | Build and train a Transformer | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/commanderjcc/torchlingo/blob/main/docs/docs/tutorials/02-train-tiny-model.ipynb) |
-| **3. Inference and Beam Search** | Generate translations | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/commanderjcc/torchlingo/blob/main/docs/docs/tutorials/03-inference-and-beamsearch.ipynb) |
+| **1. Data and Vocabulary** | Load data, build vocabularies | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/01-data-and-vocab.ipynb) |
+| **2. Train a Tiny Model** | Build and train a Transformer | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/02-train-tiny-model.ipynb) |
+| **3. Inference and Beam Search** | Generate translations | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/03-inference-and-beamsearch.ipynb) |
 
 !!! tip "Enable GPU in Colab"
     For faster training, enable GPU: **Runtime → Change runtime type → GPU**

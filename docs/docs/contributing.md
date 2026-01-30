@@ -15,7 +15,7 @@ Thank you for your interest in contributing to TorchLingo! This guide will help 
 ### 1. Fork and Clone
 
 ```bash
-git clone https://github.com/commanderjcc/torchlingo.git
+git clone https://github.com/byu-matrix-lab/torchlingo.git
 cd torchlingo
 ```
 

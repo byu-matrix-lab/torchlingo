@@ -2,7 +2,7 @@
 
 Let's get you translating in under 5 minutes! :rocket:
 
-<!-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/commanderjcc/torchlingo/blob/main/docs/docs/tutorials/02-train-tiny-model.ipynb) -->
+<!-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/02-train-tiny-model.ipynb) -->
 
 !!! tip "Run in Google Colab"
     The easiest way to follow along is in Google Colab. Click the badge above to open a notebook, then:

@@ -30,8 +30,8 @@ pip install torchlingo[dev]
 ## Documentation
 
 For full documentation, tutorials, and API reference, visit:
-- [Getting Started Guide](https://commanderjcc.github.io/torchlingo/getting-started/installation/)
-- [API Reference](https://commanderjcc.github.io/torchlingo/reference/)
+- [Getting Started Guide](https://byu-matrix-lab.github.io/torchlingo/getting-started/installation/)
+- [API Reference](https://byu-matrix-lab.github.io/torchlingo/reference/)
 
 ## Contributing
 

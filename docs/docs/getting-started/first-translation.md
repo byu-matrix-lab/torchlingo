@@ -2,7 +2,7 @@
 
 In this guide, we'll build a complete English→Spanish translation pipeline from scratch. By the end, you'll understand every component of a neural machine translation system.
 
-<!-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/commanderjcc/torchlingo/blob/main/docs/docs/tutorials/02-train-tiny-model.ipynb) -->
+<!-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/02-train-tiny-model.ipynb) -->
 
 ## Prerequisites
 

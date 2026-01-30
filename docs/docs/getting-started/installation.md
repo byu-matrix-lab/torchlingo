@@ -6,7 +6,7 @@ This guide will help you get TorchLingo installed and ready to use in just a few
 
 **The fastest way to get started!** Google Colab requires zero setup on your machine and provides free GPU access.
 
-<!-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/commanderjcc/torchlingo/blob/main/docs/docs/tutorials/01-data-and-vocab.ipynb) -->
+<!-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/01-data-and-vocab.ipynb) -->
 
 ### Step 1: Open a Colab Notebook
 
@@ -84,7 +84,7 @@ This is the best method if you want to explore the code, run tutorials, or modif
 
     ```bash
     # Clone the repository
-    git clone https://github.com/commanderjcc/torchlingo.git
+    git clone https://github.com/byu-matrix-lab/torchlingo.git
     cd torchlingo
 
     # Create a virtual environment
@@ -99,7 +99,7 @@ This is the best method if you want to explore the code, run tutorials, or modif
 
     ```powershell
     # Clone the repository
-    git clone https://github.com/commanderjcc/torchlingo.git
+    git clone https://github.com/byu-matrix-lab/torchlingo.git
     cd torchlingo
 
     # Create a virtual environment
