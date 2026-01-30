@@ -3,9 +3,23 @@ name: Test, Build, and Publish Python package
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'pyproject.toml'
+      - 'MANIFEST.in'
+      - '.github/workflows/tests_and_build.yml'
     tags: ['v*']
   pull_request:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'pyproject.toml'
+      - 'MANIFEST.in'
+      - '.github/workflows/tests_and_build.yml'
   workflow_dispatch: {}
 
 permissions:
