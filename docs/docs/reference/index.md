@@ -4,7 +4,7 @@ Welcome to the TorchLingo API reference. This section documents all public class
 
 ## Module Overview
 
-TorchLingo is organized into four main modules:
+TorchLingo is organized into five main modules:
 
 <div class="grid cards" markdown>
 
@@ -39,6 +39,14 @@ TorchLingo is organized into four main modules:
     Data loading, tokenization, and preprocessing utilities.
 
     [:octicons-arrow-right-24: Preprocessing Reference](preprocessing/index.md)
+
+-   :material-content-save:{ .lg .middle } **Checkpoint**
+
+    ---
+
+    Auto-checkpointing with Google Drive for Colab.
+
+    [:octicons-arrow-right-24: Checkpoint Reference](checkpoint.md)
 
 </div>
 

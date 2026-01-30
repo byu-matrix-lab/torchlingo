@@ -725,6 +725,60 @@ EXPERIMENT_NAME = "baseline"
 #   - Description: Human-readable name for the experiment. Used in log filenames,
 #     checkpoint names, and experiment tracking. Change this for each new experiment.
 
+# ============================================================================
+# COLAB CHECKPOINTING SETTINGS
+# ============================================================================
+
+USE_COLAB_CHECKPOINTING = False
+# USE_COLAB_CHECKPOINTING: bool
+#   - Type: bool
+#   - Choices: True or False
+#   - Default: False
+#   - Description: When True, enables automatic checkpointing to Google Drive
+#     in Colab environments. Checkpoints are saved periodically to prevent loss
+#     of training progress if the runtime disconnects.
+
+COLAB_CHECKPOINT_INTERVAL_MINUTES = 10.0
+# COLAB_CHECKPOINT_INTERVAL_MINUTES: float
+#   - Type: float (positive)
+#   - Typical values: 5.0, 10.0, 15.0, 30.0
+#   - Default: 10.0
+#   - Description: How often (in minutes) to auto-save checkpoints to Google Drive.
+#     Shorter intervals provide better protection but may slow training slightly.
+
+COLAB_CHECKPOINT_INTERVAL_STEPS = 0
+# COLAB_CHECKPOINT_INTERVAL_STEPS: int
+#   - Type: int (non-negative)
+#   - Typical values: 0, 500, 1000, 5000
+#   - Default: 0 (disabled)
+#   - Description: Auto-save checkpoint every N training steps. Set to 0 to disable
+#     step-based checkpointing and use only time-based (COLAB_CHECKPOINT_INTERVAL_MINUTES).
+
+COLAB_DRIVE_PATH = "My Drive/torchlingo_checkpoints"
+# COLAB_DRIVE_PATH: str
+#   - Type: str (path within Google Drive)
+#   - Default: "My Drive/torchlingo_checkpoints"
+#   - Description: Path within Google Drive where checkpoints are saved.
+#     The experiment name will be appended as a subdirectory.
+
+COLAB_KEEP_N_CHECKPOINTS = 3
+# COLAB_KEEP_N_CHECKPOINTS: int
+#   - Type: int (positive)
+#   - Typical values: 1, 3, 5
+#   - Default: 3
+#   - Description: Number of recent step checkpoints to keep. Older checkpoints
+#     are automatically deleted to save space. Best and latest checkpoints are
+#     always kept regardless of this setting.
+
+COLAB_AUTO_RESUME = True
+# COLAB_AUTO_RESUME: bool
+#   - Type: bool
+#   - Choices: True or False
+#   - Default: True
+#   - Description: When True, training will automatically resume from the latest
+#     checkpoint if one exists. Useful for continuing training after a runtime
+#     disconnect in Colab.
+
 
 # ============================================================================
 # CONFIG CLASS
@@ -866,6 +920,13 @@ class Config:
         use_tensorboard: bool = False,
         tensorboard_dir: Optional[Path] = None,
         experiment_name: str = "baseline",
+        # Colab checkpointing
+        use_colab_checkpointing: bool = False,
+        colab_checkpoint_interval_minutes: float = 10.0,
+        colab_checkpoint_interval_steps: int = 0,
+        colab_drive_path: str = "My Drive/torchlingo_checkpoints",
+        colab_keep_n_checkpoints: int = 3,
+        colab_auto_resume: bool = True,
     ):
         """Initialize a Config instance with given parameters.
 
@@ -1040,6 +1101,14 @@ class Config:
         self.use_tensorboard = use_tensorboard
         self.tensorboard_dir = tensorboard_dir or (self.base_dir / "runs")
         self.experiment_name = experiment_name
+
+        # Colab checkpointing
+        self.use_colab_checkpointing = use_colab_checkpointing
+        self.colab_checkpoint_interval_minutes = colab_checkpoint_interval_minutes
+        self.colab_checkpoint_interval_steps = colab_checkpoint_interval_steps
+        self.colab_drive_path = colab_drive_path
+        self.colab_keep_n_checkpoints = colab_keep_n_checkpoints
+        self.colab_auto_resume = colab_auto_resume
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert config to a dictionary for logging and serialization.
@@ -1339,6 +1408,16 @@ class Config:
         "use_tensorboard": lambda self, v: self._ensure_bool(v),
         "tensorboard_dir": lambda self, v: self._ensure_path(v),
         "experiment_name": lambda self, v: self._ensure_str(v),
+        # Colab checkpointing
+        "use_colab_checkpointing": lambda self, v: self._ensure_bool(v),
+        "colab_checkpoint_interval_minutes": lambda self,
+        v: self._ensure_float_in_range(v, 0.0, float("inf")),
+        "colab_checkpoint_interval_steps": lambda self, v: self._ensure_positive_int(
+            v, allow_zero=True
+        ),
+        "colab_drive_path": lambda self, v: self._ensure_str(v),
+        "colab_keep_n_checkpoints": lambda self, v: self._ensure_positive_int(v),
+        "colab_auto_resume": lambda self, v: self._ensure_bool(v),
     }
 
     # Explicit properties with docstrings so editors show hover help
@@ -3146,6 +3225,130 @@ class Config:
             value (str (short identifier)): Human-readable name for the experiment. Used in log filenames, checkpoint names, and experiment tracking. Change this for each new experiment.
         """
         self._validate_and_set("experiment_name", value)
+
+    # ===== Colab Checkpointing Properties =====
+
+    @property
+    def use_colab_checkpointing(self) -> bool:
+        """Return whether to enable auto-checkpointing in Google Colab.
+
+        When True, training will automatically save checkpoints to Google Drive
+        at regular intervals to prevent loss of progress if the runtime disconnects.
+
+        Returns:
+            bool: Whether Colab checkpointing is enabled.
+        """
+        return self._get_field("use_colab_checkpointing")
+
+    @use_colab_checkpointing.setter
+    def use_colab_checkpointing(self, value: bool) -> None:
+        """Set whether to enable auto-checkpointing in Google Colab.
+
+        Args:
+            value (bool): Whether to enable Colab checkpointing.
+        """
+        self._validate_and_set("use_colab_checkpointing", value)
+
+    @property
+    def colab_checkpoint_interval_minutes(self) -> float:
+        """Return auto-save interval in minutes for Colab checkpointing.
+
+        Set to 0 to disable time-based saves and rely only on step-based saves.
+
+        Returns:
+            float: Minutes between automatic checkpoint saves.
+        """
+        return self._get_field("colab_checkpoint_interval_minutes")
+
+    @colab_checkpoint_interval_minutes.setter
+    def colab_checkpoint_interval_minutes(self, value: float) -> None:
+        """Set auto-save interval in minutes for Colab checkpointing.
+
+        Args:
+            value (float): Minutes between automatic checkpoint saves.
+        """
+        self._validate_and_set("colab_checkpoint_interval_minutes", value)
+
+    @property
+    def colab_checkpoint_interval_steps(self) -> int:
+        """Return auto-save interval in training steps for Colab checkpointing.
+
+        Set to 0 to disable step-based saves and rely only on time-based saves.
+
+        Returns:
+            int: Training steps between automatic checkpoint saves.
+        """
+        return self._get_field("colab_checkpoint_interval_steps")
+
+    @colab_checkpoint_interval_steps.setter
+    def colab_checkpoint_interval_steps(self, value: int) -> None:
+        """Set auto-save interval in training steps for Colab checkpointing.
+
+        Args:
+            value (int): Training steps between automatic checkpoint saves.
+        """
+        self._validate_and_set("colab_checkpoint_interval_steps", value)
+
+    @property
+    def colab_drive_path(self) -> str:
+        """Return the path within Google Drive for checkpoint storage.
+
+        This is relative to the Drive root (e.g., 'My Drive/torchlingo_checkpoints').
+
+        Returns:
+            str: Path within Google Drive for checkpoints.
+        """
+        return self._get_field("colab_drive_path")
+
+    @colab_drive_path.setter
+    def colab_drive_path(self, value: str) -> None:
+        """Set the path within Google Drive for checkpoint storage.
+
+        Args:
+            value (str): Path within Google Drive for checkpoints.
+        """
+        self._validate_and_set("colab_drive_path", value)
+
+    @property
+    def colab_keep_n_checkpoints(self) -> int:
+        """Return the number of recent checkpoints to keep.
+
+        Older step-based checkpoints are automatically deleted to save space.
+
+        Returns:
+            int: Number of checkpoints to retain.
+        """
+        return self._get_field("colab_keep_n_checkpoints")
+
+    @colab_keep_n_checkpoints.setter
+    def colab_keep_n_checkpoints(self, value: int) -> None:
+        """Set the number of recent checkpoints to keep.
+
+        Args:
+            value (int): Number of checkpoints to retain.
+        """
+        self._validate_and_set("colab_keep_n_checkpoints", value)
+
+    @property
+    def colab_auto_resume(self) -> bool:
+        """Return whether to automatically resume from the latest checkpoint.
+
+        When True, training will attempt to load and resume from the most recent
+        checkpoint if one exists.
+
+        Returns:
+            bool: Whether auto-resume is enabled.
+        """
+        return self._get_field("colab_auto_resume")
+
+    @colab_auto_resume.setter
+    def colab_auto_resume(self, value: bool) -> None:
+        """Set whether to automatically resume from the latest checkpoint.
+
+        Args:
+            value (bool): Whether to enable auto-resume.
+        """
+        self._validate_and_set("colab_auto_resume", value)
 
 
 _default_config = Config()

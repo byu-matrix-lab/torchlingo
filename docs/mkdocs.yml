@@ -133,6 +133,7 @@ nav:
   - API Reference:
     - reference/index.md
     - Config: reference/config.md
+    - Checkpoint: reference/checkpoint.md
     - Data Processing:
       - reference/data_processing/index.md
       - Dataset: reference/data_processing/dataset.md
