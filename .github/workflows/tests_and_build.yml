@@ -2,7 +2,7 @@ name: Test, Build, and Publish Python package
 
 on:
   push:
-    branches: [main, myles_testing]
+    branches: [main]
     paths:
       - 'src/**'
       - 'tests/**'
