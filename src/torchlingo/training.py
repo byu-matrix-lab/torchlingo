@@ -57,6 +57,49 @@ def _resolve_device(device: Optional[torch.device]) -> torch.device:
     )
 
 
+def get_transformer_scheduler(
+    optimizer: torch.optim.Optimizer,
+    d_model: int = 512,
+    warmup_steps: int = 4000,
+) -> torch.optim.lr_scheduler.LambdaLR:
+    """Create the learning rate scheduler from 'Attention Is All You Need'.
+
+    Implements the learning rate schedule from Vaswani et al. (2017):
+        lr = d_model^(-0.5) * min(step^(-0.5), step * warmup_steps^(-1.5))
+
+    This schedule:
+    1. Increases learning rate linearly during warmup
+    2. Decreases proportionally to the inverse square root of the step number afterward
+
+    This helps stabilize training by starting with smaller learning rates and
+    prevents the model from converging too quickly to suboptimal solutions.
+
+    Args:
+        optimizer: The optimizer to schedule.
+        d_model: Model dimension (typically 512). Used for scaling.
+        warmup_steps: Number of warmup steps (typically 4000).
+
+    Returns:
+        LambdaLR scheduler that adjusts learning rate according to the Transformer schedule.
+
+    Example:
+        >>> opt = torch.optim.Adam(model.parameters(), lr=1.0)
+        >>> scheduler = get_transformer_scheduler(opt, d_model=512, warmup_steps=4000)
+        >>> for epoch in range(num_epochs):
+        >>>     ...
+        >>>     scheduler.step()
+    """
+
+    def lr_lambda(step: int) -> float:
+        # Avoid division by zero on first step
+        if step == 0:
+            step = 1
+        # Transformer schedule: scale by d_model and apply warmup + inverse sqrt decay
+        return d_model ** (-0.5) * min(step ** (-0.5), step * warmup_steps ** (-1.5))
+
+    return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+
+
 def train_model(
     model: nn.Module,
     train_loader: torch.utils.data.DataLoader,
@@ -100,7 +143,23 @@ def train_model(
     opt = (
         optimizer
         if optimizer is not None
-        else optim.Adam(model.parameters(), lr=cfg.learning_rate)
+        else optim.AdamW(
+            model.parameters(),
+            lr=cfg.learning_rate,
+            betas=cfg.adam_betas,
+            eps=cfg.adam_eps,
+            weight_decay=cfg.weight_decay,
+        )
+    )
+    # Use Transformer schedule with warmup if no scheduler provided
+    sched = (
+        scheduler
+        if scheduler is not None
+        else get_transformer_scheduler(
+            opt,
+            d_model=getattr(cfg, "d_model", 512),
+            warmup_steps=cfg.warmup_steps,
+        )
     )
     loss_fn = (
         criterion
@@ -154,8 +213,8 @@ def train_model(
             scaler.step(opt)
             scaler.update()
 
-            if scheduler is not None:
-                scheduler.step()
+            # Step the learning rate scheduler
+            sched.step()
 
             total_train += loss.item()
             global_step += 1
@@ -194,13 +253,29 @@ def train_model(
                     if avg_val < best_val:
                         best_val = avg_val
                         no_improve_steps = 0
-                        # save best checkpoint
+                        # save best checkpoint with full training state
                         if save_dir is not None:
                             save_dir.mkdir(parents=True, exist_ok=True)
                             best_path = Path(save_dir) / "model_best.pt"
-                            torch.save(model.state_dict(), best_path)
+                            torch.save({
+                                'epoch': epoch,
+                                'global_step': global_step,
+                                'model_state_dict': model.state_dict(),
+                                'optimizer_state_dict': opt.state_dict(),
+                                'scheduler_state_dict': sched.state_dict(),
+                                'val_loss': avg_val,
+                                'train_losses': train_losses,
+                                'val_losses': val_losses,
+                            }, best_path)
                         else:
-                            torch.save(model.state_dict(), cfg.checkpoint_path)
+                            torch.save({
+                                'epoch': epoch,
+                                'global_step': global_step,
+                                'model_state_dict': model.state_dict(),
+                                'optimizer_state_dict': opt.state_dict(),
+                                'scheduler_state_dict': sched.state_dict(),
+                                'val_loss': avg_val,
+                            }, cfg.checkpoint_path)
                     else:
                         no_improve_steps += 1
                         if no_improve_steps >= getattr(cfg, "patience", 0):
@@ -209,7 +284,7 @@ def train_model(
                         writer.add_scalar("val/loss", avg_val, global_step)
                     model.train()
 
-            # Periodic save of last checkpoint
+            # Periodic save of last checkpoint with full training state
             if (
                 getattr(cfg, "save_interval", None)
                 and cfg.save_interval
@@ -218,10 +293,24 @@ def train_model(
                 if save_dir is not None:
                     save_dir.mkdir(parents=True, exist_ok=True)
                     last_path = Path(save_dir) / "model_last.pt"
-                    torch.save(model.state_dict(), last_path)
+                    torch.save({
+                        'epoch': epoch,
+                        'global_step': global_step,
+                        'model_state_dict': model.state_dict(),
+                        'optimizer_state_dict': opt.state_dict(),
+                        'scheduler_state_dict': sched.state_dict(),
+                        'train_losses': train_losses,
+                        'val_losses': val_losses,
+                    }, last_path)
                     best_path = last_path if best_path is None else best_path
                 else:
-                    torch.save(model.state_dict(), cfg.last_checkpoint_path)
+                    torch.save({
+                        'epoch': epoch,
+                        'global_step': global_step,
+                        'model_state_dict': model.state_dict(),
+                        'optimizer_state_dict': opt.state_dict(),
+                        'scheduler_state_dict': sched.state_dict(),
+                    }, cfg.last_checkpoint_path)
 
             if stop_training:
                 break
@@ -277,14 +366,30 @@ def train_model(
         if avg_val < best_val:
             best_val = avg_val
             no_improve_steps = 0
-            # save best checkpoint
+            # save best checkpoint with full training state
             if save_dir is not None:
                 save_dir.mkdir(parents=True, exist_ok=True)
                 best_path = Path(save_dir) / "model_best.pt"
-                torch.save(model.state_dict(), best_path)
+                torch.save({
+                    'epoch': epoch,
+                    'global_step': global_step,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': opt.state_dict(),
+                    'scheduler_state_dict': sched.state_dict(),
+                    'val_loss': avg_val,
+                    'train_losses': train_losses,
+                    'val_losses': val_losses,
+                }, best_path)
                 print("  -> Saved best checkpoint")
             else:
-                torch.save(model.state_dict(), cfg.checkpoint_path)
+                torch.save({
+                    'epoch': epoch,
+                    'global_step': global_step,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': opt.state_dict(),
+                    'scheduler_state_dict': sched.state_dict(),
+                    'val_loss': avg_val,
+                }, cfg.checkpoint_path)
         else:
             no_improve_steps += 1
             if no_improve_steps >= getattr(cfg, "patience", 0):

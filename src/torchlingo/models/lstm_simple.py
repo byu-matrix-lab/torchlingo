@@ -83,6 +83,28 @@ class SimpleSeq2SeqLSTM(nn.Module):
         self.output = nn.Linear(hidden_dim, tgt_vocab_size)
         self.hidden_dim = hidden_dim
 
+        # Initialize weights for better convergence
+        self._init_weights()
+
+    def _init_weights(self):
+        """Initialize LSTM weights for better convergence.
+
+        Applies Xavier uniform initialization to input-hidden weights,
+        orthogonal initialization to hidden-hidden weights, and zeros
+        to biases. This improves training stability compared to default
+        PyTorch initialization.
+        """
+        for name, param in self.named_parameters():
+            if 'weight_ih' in name:
+                # Input-to-hidden weights: Xavier uniform
+                nn.init.xavier_uniform_(param)
+            elif 'weight_hh' in name:
+                # Hidden-to-hidden weights: Orthogonal (preserves gradient flow)
+                nn.init.orthogonal_(param)
+            elif 'bias' in name:
+                # Biases: Initialize to zero
+                nn.init.zeros_(param)
+
     def forward(
         self,
         src: torch.Tensor,

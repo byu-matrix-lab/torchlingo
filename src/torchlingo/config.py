@@ -837,6 +837,7 @@ class Config:
         learning_rate: float = 0.0001,
         adam_betas: tuple = (0.9, 0.98),
         adam_eps: float = 1e-9,
+        weight_decay: float = 0.0001,
         warmup_steps: int = 4000,
         label_smoothing: float = 0.1,
         use_bucketing: bool = False,
@@ -999,6 +1000,7 @@ class Config:
         self.learning_rate = learning_rate
         self.adam_betas = adam_betas
         self.adam_eps = adam_eps
+        self.weight_decay = weight_decay
         self.warmup_steps = warmup_steps
         self.label_smoothing = label_smoothing
         self.use_bucketing = use_bucketing
@@ -1308,6 +1310,7 @@ class Config:
         ),
         "adam_betas": lambda self, v: self._ensure_tuple_two_floats(v),
         "adam_eps": lambda self, v: self._ensure_float_in_range(v, 0.0, float("inf")),
+        "weight_decay": lambda self, v: self._ensure_float_in_range(v, 0.0, 1.0),
         "warmup_steps": lambda self, v: self._ensure_positive_int(v, allow_zero=True),
         "label_smoothing": lambda self, v: self._ensure_float_in_range(
             v, 0.0, 1.0, inclusive_high=False
@@ -2635,6 +2638,27 @@ class Config:
             value (float (small positive)): Small constant added to the denominator in Adam to avoid division by zero. See https://pytorch.org/docs/stable/generated/torch.optim.Adam.html.
         """
         self._validate_and_set("adam_eps", value)
+
+    @property
+    def weight_decay(self) -> float:
+        """Return L2 regularization coefficient (weight decay) for optimizer.
+
+        Weight decay helps prevent overfitting by penalizing large weights. Standard value is 1e-4.
+        See https://pytorch.org/docs/stable/generated/torch.optim.AdamW.html.
+
+        Returns:
+            float (0.0-1.0): L2 regularization coefficient. 0.0 disables weight decay.
+        """
+        return self._get_field("weight_decay")
+
+    @weight_decay.setter
+    def weight_decay(self, value: float) -> None:
+        """Set L2 regularization coefficient (weight decay) for optimizer.
+
+        Args:
+            value (float (0.0-1.0)): L2 regularization coefficient. Standard value is 1e-4.
+        """
+        self._validate_and_set("weight_decay", value)
 
     @property
     def warmup_steps(self) -> int:

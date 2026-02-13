@@ -1,27 +1,103 @@
-"""Rotary positional embeddings (RoPE) for transformer models.
+"""Positional encodings for transformer models.
 
-This module implements Rotary Position Embedding (RoPE), a method that encodes
-position information by rotating query and key vectors in the embedding space.
-RoPE offers improved extrapolation to longer sequences compared to absolute
-position embeddings and is efficiently implemented using precomputed rotation
-matrices cached in buffers.
+This module implements various positional encoding methods for transformers:
+- Standard sinusoidal positional encoding (Vaswani et al., 2017)
+- Rotary positional embeddings (RoPE) (Su et al., 2024)
 
-Reference:
+Standard positional encoding adds fixed sinusoidal patterns to embeddings,
+allowing the model to learn position information. This is the method used
+in the original "Attention Is All You Need" paper.
+
+References:
+    Vaswani et al. (2017): "Attention Is All You Need"
+    https://arxiv.org/abs/1706.03762
+
     Su et al. (2024): "RoFormer: Enhanced Transformer with Rotary Position Embedding"
     https://arxiv.org/abs/2104.09864
 
 Typical usage:
-    >>> rope = RotaryPositionalEmbedding(dim=64, max_seq_len=512)
-    >>> q = torch.randn(2, 8, 10, 64)  # (batch, heads, seq_len, dim)
-    >>> k = torch.randn(2, 8, 10, 64)
-    >>> q_rot, k_rot = rope(q, k)
+    >>> pos_enc = PositionalEncoding(d_model=512, max_seq_len=1000)
+    >>> x = torch.randn(2, 10, 512)  # (batch, seq_len, d_model)
+    >>> x_with_pos = pos_enc(x)
 """
 
 from typing import Tuple
 import torch
 import torch.nn as nn
+import math
 
 from ..config import Config, get_default_config
+
+
+class PositionalEncoding(nn.Module):
+    """Standard sinusoidal positional encoding from 'Attention Is All You Need'.
+
+    Adds fixed position-dependent sinusoidal patterns to embeddings, allowing
+    the model to learn relative and absolute positions. Unlike learned embeddings,
+    these are deterministic and generalize to longer sequences than seen during training.
+
+    The encoding uses sine and cosine functions of different frequencies:
+        PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))
+        PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))
+
+    Args:
+        d_model (int, optional): Embedding dimension. Falls back to config.d_model.
+        max_seq_len (int, optional): Maximum sequence length. Falls back to config.max_seq_length.
+        dropout (float, optional): Dropout rate applied after adding positional encoding.
+            Falls back to config.dropout.
+        config (Config, optional): Configuration object. Defaults to default config.
+
+    Attributes:
+        dropout (nn.Dropout): Dropout layer applied after positional encoding.
+        pe (torch.Tensor): Precomputed positional encodings of shape (1, max_seq_len, d_model).
+
+    Example:
+        >>> pos_enc = PositionalEncoding(d_model=512)
+        >>> x = torch.randn(32, 100, 512)  # (batch, seq_len, d_model)
+        >>> x = pos_enc(x)  # Add positional information
+    """
+
+    def __init__(
+        self,
+        d_model: int = None,
+        max_seq_len: int = None,
+        dropout: float = None,
+        config: Config = None,
+    ):
+        super().__init__()
+        cfg = config if config is not None else get_default_config()
+        d_model = d_model if d_model is not None else cfg.d_model
+        max_seq_len = max_seq_len if max_seq_len is not None else cfg.max_seq_length
+        dropout = dropout if dropout is not None else cfg.dropout
+
+        self.dropout = nn.Dropout(dropout)
+
+        # Create positional encoding matrix
+        pe = torch.zeros(max_seq_len, d_model)
+        position = torch.arange(0, max_seq_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(
+            torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
+        )
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)  # Shape: (1, max_seq_len, d_model)
+
+        # Register as buffer (not a parameter, but part of state_dict)
+        self.register_buffer("pe", pe, persistent=False)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Add positional encoding to input embeddings.
+
+        Args:
+            x (torch.Tensor): Input embeddings of shape (batch_size, seq_len, d_model).
+
+        Returns:
+            torch.Tensor: Embeddings with positional information added, same shape as input.
+        """
+        seq_len = x.size(1)
+        pe = getattr(self, "pe")
+        x = x + pe[:, :seq_len, :]
+        return self.dropout(x)
 
 
 class RotaryPositionalEmbedding(nn.Module):

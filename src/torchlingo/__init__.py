@@ -19,6 +19,7 @@ from . import data_processing
 from . import preprocessing
 from . import training
 from . import inference
+from . import evaluation
 
 __all__ = [
     "__version__",
@@ -28,4 +29,5 @@ __all__ = [
     "preprocessing",
     "training",
     "inference",
+    "evaluation",
 ]
