@@ -62,8 +62,7 @@ Thumbs.db
 *.tmp
 *.log
 
-# Data
-data/
+# Data - keep example files, ignore everything else
 !data/example.tsv
 !data/example_en_subset.txt
 !data/example_es_subset.txt

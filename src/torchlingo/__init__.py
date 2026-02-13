@@ -5,7 +5,13 @@ preprocessing) so codebases/tests can import `torchlingo` rather than top-level
 module names. It mirrors the project layout used in the repository.
 """
 
-__version__ = "0.0.7"
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("torchlingo")
+except PackageNotFoundError:
+    # Package is not installed
+    __version__ = "unknown"
 
 from . import config
 from . import models
