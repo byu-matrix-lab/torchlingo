@@ -52,11 +52,12 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 DATA_FORMAT = "tsv"
 # DATA_FORMAT: str
-#   - Supported values: "tsv", "csv", "parquet", "json"
+#   - Supported values: "tsv", "csv", "parquet", "json", "txt"
 #   - Default: "tsv"
 #   - Description: File format for train/val/test data files. Each file must
 #     contain two columns: SRC_COL (source language) and TGT_COL (target language).
 #     The suffix will be appended to train/val/test filenames automatically.
+#     "txt" format is a special case for parallel src.txt and tgt.txt files.
 
 SRC_COL = "src"
 # SRC_COL: str
@@ -725,6 +726,20 @@ EXPERIMENT_NAME = "baseline"
 #   - Description: Human-readable name for the experiment. Used in log filenames,
 #     checkpoint names, and experiment tracking. Change this for each new experiment.
 
+SRC_LANG = "eng"
+# SRC_LANG: str
+#   - Type: str (language code)
+#   - Default: "eng"
+#   - Description: Source language code (e.g., "eng" for English). Used in file
+#     naming and logging.
+
+TGT_LANG = "deu"
+# TGT_LANG: str
+#   - Type: str (language code)
+#   - Default: "deu"
+#   - Description: Target language code (e.g., "deu" for German).
+
+
 
 # ============================================================================
 # CONFIG CLASS
@@ -837,7 +852,10 @@ class Config:
         learning_rate: float = 0.0001,
         adam_betas: tuple = (0.9, 0.98),
         adam_eps: float = 1e-9,
+        weight_decay: float = 0.0001,
         warmup_steps: int = 4000,
+        scheduler_type: str = "cosine",
+        scheduler_patience: int = 3,
         label_smoothing: float = 0.1,
         use_bucketing: bool = False,
         bucket_boundaries: Optional[list] = None,
@@ -866,6 +884,8 @@ class Config:
         use_tensorboard: bool = False,
         tensorboard_dir: Optional[Path] = None,
         experiment_name: str = "baseline",
+        src_lang: str = "eng",
+        tgt_lang: str = "deu",
     ):
         """Initialize a Config instance with given parameters.
 
@@ -893,6 +913,8 @@ class Config:
         self.val_file = val_file or (self.data_dir / f"val.{self.data_format}")
         self.test_file = test_file or (self.data_dir / f"test.{self.data_format}")
         self.raw_data_file = raw_data_file or (self.data_dir / "raw_data.txt")
+        self.src_lang = src_lang
+        self.tgt_lang = tgt_lang
 
         # Tokenization and vocabulary
         self.use_sentencepiece = use_sentencepiece
@@ -999,7 +1021,10 @@ class Config:
         self.learning_rate = learning_rate
         self.adam_betas = adam_betas
         self.adam_eps = adam_eps
+        self.weight_decay = weight_decay
         self.warmup_steps = warmup_steps
+        self.scheduler_type = scheduler_type
+        self.scheduler_patience = scheduler_patience
         self.label_smoothing = label_smoothing
         self.use_bucketing = use_bucketing
         self.bucket_boundaries = bucket_boundaries
@@ -1040,6 +1065,8 @@ class Config:
         self.use_tensorboard = use_tensorboard
         self.tensorboard_dir = tensorboard_dir or (self.base_dir / "runs")
         self.experiment_name = experiment_name
+
+
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert config to a dictionary for logging and serialization.
@@ -1153,6 +1180,17 @@ class Config:
         return value
 
     @staticmethod
+    def _ensure_valid_scheduler_type(value: Any) -> str:
+        if not isinstance(value, str):
+            raise TypeError("scheduler_type must be a string")
+        valid_types = {"transformer", "noam", "cosine", "plateau", "none"}
+        if value.lower() not in valid_types:
+            raise ValueError(
+                f"scheduler_type must be one of {valid_types}, got '{value}'"
+            )
+        return value.lower()
+
+    @staticmethod
     def _ensure_device(value: Any) -> Any:
         if isinstance(value, (str, torch.device)):
             return value
@@ -1188,7 +1226,7 @@ class Config:
 
     @staticmethod
     def _ensure_data_format(value: Any) -> str:
-        allowed = {"tsv", "csv", "parquet", "json"}
+        allowed = {"tsv", "csv", "parquet", "json", "txt"}
         val = Config._ensure_str(value)
         if val not in allowed:
             raise ValueError(f"data_format must be one of {allowed}")
@@ -1308,7 +1346,10 @@ class Config:
         ),
         "adam_betas": lambda self, v: self._ensure_tuple_two_floats(v),
         "adam_eps": lambda self, v: self._ensure_float_in_range(v, 0.0, float("inf")),
+        "weight_decay": lambda self, v: self._ensure_float_in_range(v, 0.0, 1.0),
         "warmup_steps": lambda self, v: self._ensure_positive_int(v, allow_zero=True),
+        "scheduler_type": lambda self, v: self._ensure_valid_scheduler_type(v),
+        "scheduler_patience": lambda self, v: self._ensure_positive_int(v),
         "label_smoothing": lambda self, v: self._ensure_float_in_range(
             v, 0.0, 1.0, inclusive_high=False
         ),
@@ -1339,6 +1380,8 @@ class Config:
         "use_tensorboard": lambda self, v: self._ensure_bool(v),
         "tensorboard_dir": lambda self, v: self._ensure_path(v),
         "experiment_name": lambda self, v: self._ensure_str(v),
+        "src_lang": lambda self, v: self._ensure_str(v),
+        "tgt_lang": lambda self, v: self._ensure_str(v),
     }
 
     # Explicit properties with docstrings so editors show hover help
@@ -2637,6 +2680,27 @@ class Config:
         self._validate_and_set("adam_eps", value)
 
     @property
+    def weight_decay(self) -> float:
+        """Return L2 regularization coefficient (weight decay) for optimizer.
+
+        Weight decay helps prevent overfitting by penalizing large weights. Standard value is 1e-4.
+        See https://pytorch.org/docs/stable/generated/torch.optim.AdamW.html.
+
+        Returns:
+            float (0.0-1.0): L2 regularization coefficient. 0.0 disables weight decay.
+        """
+        return self._get_field("weight_decay")
+
+    @weight_decay.setter
+    def weight_decay(self, value: float) -> None:
+        """Set L2 regularization coefficient (weight decay) for optimizer.
+
+        Args:
+            value (float (0.0-1.0)): L2 regularization coefficient. Standard value is 1e-4.
+        """
+        self._validate_and_set("weight_decay", value)
+
+    @property
     def warmup_steps(self) -> int:
         """Return number of steps for learning rate warmup schedule.
 
@@ -2656,6 +2720,50 @@ class Config:
             value (int (non-negative)): Number of steps for learning rate warmup schedule. Learning rate increases linearly from 0 to LEARNING_RATE over WARMUP_STEPS, then decays. Set to 0 to disable warmup.
         """
         self._validate_and_set("warmup_steps", value)
+
+    @property
+    def scheduler_type(self) -> str:
+        """Return the type of learning rate scheduler to use.
+
+        Options:
+            - 'plateau': ReduceLROnPlateau - reduces LR when validation loss plateaus
+            - 'cosine': Cosine annealing with linear warmup (default)
+            - 'transformer' / 'noam': Inverse square root decay from Vaswani et al. (2017)
+            - 'none': No scheduler (constant learning rate)
+
+        Returns:
+            str: Scheduler type ('plateau', 'cosine', 'transformer', 'noam', or 'none').
+        """
+        return self._get_field("scheduler_type")
+
+    @scheduler_type.setter
+    def scheduler_type(self, value: str) -> None:
+        """Set the type of learning rate scheduler to use.
+
+        Args:
+            value (str): Scheduler type - must be 'plateau', 'cosine', 'transformer', 'noam', or 'none'.
+        """
+        self._validate_and_set("scheduler_type", value)
+
+    @property
+    def scheduler_patience(self) -> int:
+        """Return patience for ReduceLROnPlateau scheduler.
+
+        Number of validations with no improvement before the learning rate is reduced.
+
+        Returns:
+            int (positive): Number of validations to wait before reducing LR.
+        """
+        return self._get_field("scheduler_patience")
+
+    @scheduler_patience.setter
+    def scheduler_patience(self, value: int) -> None:
+        """Set patience for ReduceLROnPlateau scheduler.
+
+        Args:
+            value (int): Number of validations with no improvement before reducing LR.
+        """
+        self._validate_and_set("scheduler_patience", value)
 
     @property
     def label_smoothing(self) -> float:
@@ -3147,6 +3255,47 @@ class Config:
         """
         self._validate_and_set("experiment_name", value)
 
+    @property
+    def src_lang(self) -> str:
+        """Return Source language code (e.g., "eng" for English).
+
+        Used for logging and display purposes.
+
+        Returns:
+            str (language code): Source language code (e.g., "eng" for English). Used for logging and display purposes.
+        """
+
+        return self._get_field("src_lang")
+
+    @src_lang.setter
+    def src_lang(self, value: str) -> None:
+        """Set Source language code (e.g., "eng" for English).
+
+        Args:
+            value (str (language code)): Source language code (e.g., "eng" for English). Used for logging and display purposes.
+        """
+        self._validate_and_set("src_lang", value)
+    
+    @property
+    def tgt_lang(self) -> str:
+        """Return Target language code (e.g., "deu" for German).
+
+        Used for logging and display purposes.
+
+        Returns:
+            str (language code): Target language code (e.g., "deu" for German). Used for logging and display purposes.
+        """
+
+        return self._get_field("tgt_lang")
+    
+    @tgt_lang.setter
+    def tgt_lang(self, value: str) -> None:
+        """Set Target language code (e.g., "deu" for German).
+
+        Args:
+            value (str (language code)): Target language code (e.g., "deu" for German). Used for logging and display purposes.
+        """
+        self._validate_and_set("tgt_lang", value)
 
 _default_config = Config()
 

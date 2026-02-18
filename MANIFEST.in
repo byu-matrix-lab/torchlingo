@@ -2,3 +2,6 @@ include LICENSE
 include README.md
 include pyproject.toml
 recursive-include src/torchlingo *.py
+include src/torchlingo/py.typed
+recursive-include data *.tsv
+recursive-include data *.txt

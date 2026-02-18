@@ -99,7 +99,7 @@ def train_sentencepiece(
 
     cols = columns or [src_col, tgt_col]
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=False) as tmp:
         for f in input_files:
             df = load_data(f)
             for col in cols:

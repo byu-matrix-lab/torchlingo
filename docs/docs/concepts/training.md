@@ -76,7 +76,7 @@ for epoch in range(10):
 
 During training, we feed the **correct** previous tokens to the decoder, not its own predictions:
 
-```
+```text
 Source: "I love cats"
 Target: "<sos> Me gustan los gatos <eos>"
 
@@ -192,6 +192,31 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     optimizer, mode='min', factor=0.5, patience=2
 )
 ```
+
+### Config-Based Scheduling with `train_model()`
+
+When using TorchLingo's `train_model()`, scheduler selection is handled automatically via the `scheduler_type` config parameter — no manual setup needed:
+
+```python
+from torchlingo.config import Config
+from torchlingo.training import train_model
+
+config = Config(
+    learning_rate=1e-4,
+    scheduler_type="plateau",   # "cosine" | "plateau" | "transformer" | "noam" | "none"
+    scheduler_patience=3,       # plateau only: validations before LR is halved
+    warmup_steps=8000,          # cosine/transformer/noam: steps for linear warmup
+)
+
+result = train_model(model, train_loader, val_loader, config=config)
+```
+
+| `scheduler_type` | Behaviour |
+| ---------------- | --------- |
+| `"cosine"` (default) | Linear warmup then cosine decay — good general choice |
+| `"plateau"` | Halves LR after `scheduler_patience` validations with no improvement |
+| `"transformer"` / `"noam"` | Inverse square-root decay (Vaswani et al. 2017) |
+| `"none"` | Constant learning rate throughout training |
 
 ## Gradient Clipping
 

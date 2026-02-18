@@ -57,6 +57,96 @@ def _resolve_device(device: Optional[torch.device]) -> torch.device:
     )
 
 
+def get_transformer_scheduler(
+    optimizer: torch.optim.Optimizer,
+    d_model: int = 512,
+    warmup_steps: int = 4000,
+) -> torch.optim.lr_scheduler.LambdaLR:
+    """Create the learning rate scheduler from 'Attention Is All You Need'.
+
+    Implements the learning rate schedule from Vaswani et al. (2017):
+        lr = d_model^(-0.5) * min(step^(-0.5), step * warmup_steps^(-1.5))
+
+    This schedule:
+    1. Increases learning rate linearly during warmup
+    2. Decreases proportionally to the inverse square root of the step number afterward
+
+    This helps stabilize training by starting with smaller learning rates and
+    prevents the model from converging too quickly to suboptimal solutions.
+
+    Args:
+        optimizer: The optimizer to schedule.
+        d_model: Model dimension (typically 512). Used for scaling.
+        warmup_steps: Number of warmup steps (typically 4000).
+
+    Returns:
+        LambdaLR scheduler that adjusts learning rate according to the Transformer schedule.
+
+    Example:
+        >>> opt = torch.optim.Adam(model.parameters(), lr=1.0)
+        >>> scheduler = get_transformer_scheduler(opt, d_model=512, warmup_steps=4000)
+        >>> for epoch in range(num_epochs):
+        >>>     ...
+        >>>     scheduler.step()
+    """
+
+    def lr_lambda(step: int) -> float:
+        # Avoid division by zero on first step
+        if step == 0:
+            step = 1
+        # Transformer schedule: scale by d_model and apply warmup + inverse sqrt decay
+        return d_model ** (-0.5) * min(step ** (-0.5), step * warmup_steps ** (-1.5))
+
+    return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+
+
+def get_cosine_annealing_scheduler(
+    optimizer: torch.optim.Optimizer,
+    warmup_steps: int = 4000,
+    total_steps: int = 100000,
+    min_lr_ratio: float = 0.1,
+) -> torch.optim.lr_scheduler.LambdaLR:
+    """Create a cosine annealing scheduler with linear warmup.
+
+    This scheduler is now standard in modern deep learning and often outperforms
+    the inverse square root schedule. It:
+    1. Increases learning rate linearly during warmup
+    2. Decreases smoothly following a cosine curve from peak to min_lr
+    3. Maintains a reasonable learning rate throughout training (unlike inverse sqrt)
+
+    Args:
+        optimizer: The optimizer to schedule.
+        warmup_steps: Number of warmup steps (typically 4000-8000).
+        total_steps: Total number of training steps (num_epochs * steps_per_epoch).
+        min_lr_ratio: Minimum learning rate as ratio of peak (default 0.1 = 10% of peak).
+
+    Returns:
+        LambdaLR scheduler that adjusts learning rate with cosine annealing.
+
+    Example:
+        >>> opt = torch.optim.Adam(model.parameters(), lr=1e-3)
+        >>> scheduler = get_cosine_annealing_scheduler(opt, warmup_steps=8000, total_steps=200000)
+        >>> for epoch in range(num_epochs):
+        >>>     for batch in train_loader:
+        >>>         ...
+        >>>         scheduler.step()
+    """
+    import math
+
+    def lr_lambda(step: int) -> float:
+        if step < warmup_steps:
+            # Linear warmup
+            return float(step) / float(max(1, warmup_steps))
+        else:
+            # Cosine annealing
+            progress = float(step - warmup_steps) / float(max(1, total_steps - warmup_steps))
+            progress = min(progress, 1.0)  # Cap at 1.0 if training goes over total_steps
+            cosine_decay = 0.5 * (1.0 + math.cos(math.pi * progress))
+            return min_lr_ratio + (1.0 - min_lr_ratio) * cosine_decay
+
+    return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+
+
 def train_model(
     model: nn.Module,
     train_loader: torch.utils.data.DataLoader,
@@ -100,8 +190,55 @@ def train_model(
     opt = (
         optimizer
         if optimizer is not None
-        else optim.Adam(model.parameters(), lr=cfg.learning_rate)
+        else optim.AdamW(
+            model.parameters(),
+            lr=cfg.learning_rate,
+            betas=cfg.adam_betas,
+            eps=cfg.adam_eps,
+            weight_decay=cfg.weight_decay,
+        )
     )
+    # Select learning rate scheduler based on config if no scheduler provided
+    # is_plateau_scheduler tracks whether sched needs val loss (not per-step)
+    is_plateau_scheduler = False
+    if scheduler is not None:
+        sched = scheduler
+        is_plateau_scheduler = isinstance(
+            scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau
+        )
+    else:
+        scheduler_type = getattr(cfg, "scheduler_type", "cosine").lower()
+        if scheduler_type == "plateau":
+            sched = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                opt,
+                mode="min",
+                factor=0.5,
+                patience=getattr(cfg, "scheduler_patience", 3),
+                min_lr=1e-7,
+            )
+            is_plateau_scheduler = True
+        elif scheduler_type == "cosine":
+            total_steps = num_epochs * len(train_loader)
+            sched = get_cosine_annealing_scheduler(
+                opt,
+                warmup_steps=cfg.warmup_steps,
+                total_steps=total_steps,
+                min_lr_ratio=0.1,
+            )
+        elif scheduler_type in ("transformer", "noam"):
+            sched = get_transformer_scheduler(
+                opt,
+                d_model=getattr(cfg, "d_model", 512),
+                warmup_steps=cfg.warmup_steps,
+            )
+        elif scheduler_type == "none":
+            # No scheduler - constant learning rate
+            sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda step: 1.0)
+        else:
+            raise ValueError(
+                f"Unknown scheduler_type: '{scheduler_type}'. "
+                f"Must be 'plateau', 'cosine', 'transformer', 'noam', or 'none'."
+            )
     loss_fn = (
         criterion
         if criterion is not None
@@ -154,8 +291,9 @@ def train_model(
             scaler.step(opt)
             scaler.update()
 
-            if scheduler is not None:
-                scheduler.step()
+            # Step the learning rate scheduler (skip for plateau - it steps on val loss)
+            if not is_plateau_scheduler:
+                sched.step()
 
             total_train += loss.item()
             global_step += 1
@@ -190,17 +328,36 @@ def train_model(
                             total_val += v_loss.item()
                     avg_val = total_val / max(1, len(val_loader))
                     val_losses.append(avg_val)
+                    # Step plateau scheduler on validation loss
+                    if is_plateau_scheduler:
+                        sched.step(avg_val)
                     # early stopping logic (patience)
                     if avg_val < best_val:
                         best_val = avg_val
                         no_improve_steps = 0
-                        # save best checkpoint
+                        # save best checkpoint with full training state
                         if save_dir is not None:
                             save_dir.mkdir(parents=True, exist_ok=True)
                             best_path = Path(save_dir) / "model_best.pt"
-                            torch.save(model.state_dict(), best_path)
+                            torch.save({
+                                'epoch': epoch,
+                                'global_step': global_step,
+                                'model_state_dict': model.state_dict(),
+                                'optimizer_state_dict': opt.state_dict(),
+                                'scheduler_state_dict': sched.state_dict(),
+                                'val_loss': avg_val,
+                                'train_losses': train_losses,
+                                'val_losses': val_losses,
+                            }, best_path)
                         else:
-                            torch.save(model.state_dict(), cfg.checkpoint_path)
+                            torch.save({
+                                'epoch': epoch,
+                                'global_step': global_step,
+                                'model_state_dict': model.state_dict(),
+                                'optimizer_state_dict': opt.state_dict(),
+                                'scheduler_state_dict': sched.state_dict(),
+                                'val_loss': avg_val,
+                            }, cfg.checkpoint_path)
                     else:
                         no_improve_steps += 1
                         if no_improve_steps >= getattr(cfg, "patience", 0):
@@ -209,7 +366,7 @@ def train_model(
                         writer.add_scalar("val/loss", avg_val, global_step)
                     model.train()
 
-            # Periodic save of last checkpoint
+            # Periodic save of last checkpoint with full training state
             if (
                 getattr(cfg, "save_interval", None)
                 and cfg.save_interval
@@ -218,10 +375,24 @@ def train_model(
                 if save_dir is not None:
                     save_dir.mkdir(parents=True, exist_ok=True)
                     last_path = Path(save_dir) / "model_last.pt"
-                    torch.save(model.state_dict(), last_path)
+                    torch.save({
+                        'epoch': epoch,
+                        'global_step': global_step,
+                        'model_state_dict': model.state_dict(),
+                        'optimizer_state_dict': opt.state_dict(),
+                        'scheduler_state_dict': sched.state_dict(),
+                        'train_losses': train_losses,
+                        'val_losses': val_losses,
+                    }, last_path)
                     best_path = last_path if best_path is None else best_path
                 else:
-                    torch.save(model.state_dict(), cfg.last_checkpoint_path)
+                    torch.save({
+                        'epoch': epoch,
+                        'global_step': global_step,
+                        'model_state_dict': model.state_dict(),
+                        'optimizer_state_dict': opt.state_dict(),
+                        'scheduler_state_dict': sched.state_dict(),
+                    }, cfg.last_checkpoint_path)
 
             if stop_training:
                 break
@@ -274,17 +445,37 @@ def train_model(
         if writer is not None:
             writer.add_scalar("val/epoch_loss", avg_val, epoch)
 
+        # Step plateau scheduler on epoch-end validation loss
+        if is_plateau_scheduler:
+            sched.step(avg_val)
+
         if avg_val < best_val:
             best_val = avg_val
             no_improve_steps = 0
-            # save best checkpoint
+            # save best checkpoint with full training state
             if save_dir is not None:
                 save_dir.mkdir(parents=True, exist_ok=True)
                 best_path = Path(save_dir) / "model_best.pt"
-                torch.save(model.state_dict(), best_path)
+                torch.save({
+                    'epoch': epoch,
+                    'global_step': global_step,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': opt.state_dict(),
+                    'scheduler_state_dict': sched.state_dict(),
+                    'val_loss': avg_val,
+                    'train_losses': train_losses,
+                    'val_losses': val_losses,
+                }, best_path)
                 print("  -> Saved best checkpoint")
             else:
-                torch.save(model.state_dict(), cfg.checkpoint_path)
+                torch.save({
+                    'epoch': epoch,
+                    'global_step': global_step,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': opt.state_dict(),
+                    'scheduler_state_dict': sched.state_dict(),
+                    'val_loss': avg_val,
+                }, cfg.checkpoint_path)
         else:
             no_improve_steps += 1
             if no_improve_steps >= getattr(cfg, "patience", 0):

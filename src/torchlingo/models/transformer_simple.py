@@ -26,7 +26,7 @@ import math
 import torch
 import torch.nn as nn
 from ..config import Config, get_default_config
-from .positional import RoPEEmbedding
+from .positional import PositionalEncoding
 
 
 class SimpleTransformer(nn.Module):
@@ -106,7 +106,8 @@ class SimpleTransformer(nn.Module):
         self.tgt_tok_emb = nn.Embedding(
             tgt_vocab_size, d_model, padding_idx=self.pad_idx
         )
-        self.rope = RoPEEmbedding(d_model, max_seq_length)
+        self.embedding_dropout = nn.Dropout(dropout)
+        self.pos_encoder = PositionalEncoding(d_model, max_seq_length, dropout=0.0)
         self.transformer = nn.Transformer(
             d_model=d_model,
             nhead=n_heads,
@@ -234,22 +235,24 @@ class SimpleTransformer(nn.Module):
         )
 
     def _embed(self, tokens: torch.Tensor, is_src: bool) -> torch.Tensor:
-        """Embed and scale tokens, then apply rotary positional embeddings.
+        """Embed and scale tokens, then add positional encoding.
 
-        Looks up token embeddings, scales them by sqrt(d_model), and applies RoPE.
-        This prevents embedding magnitude from dominating the scaled dot-product
-        attention mechanism.
+        Looks up token embeddings, scales them by sqrt(d_model), adds sinusoidal
+        positional encoding, and applies dropout. Scaling prevents embedding magnitude
+        from dominating the scaled dot-product attention mechanism.
 
         Args:
             tokens (torch.Tensor): Token indices of shape (batch_size, seq_len).
             is_src (bool): If True, use source embeddings; otherwise use target embeddings.
 
         Returns:
-            torch.Tensor: Embedded and rotated tokens of shape (batch_size, seq_len, d_model).
+            torch.Tensor: Embedded tokens with positional information of shape (batch_size, seq_len, d_model).
         """
         tok_emb = self.src_tok_emb(tokens) if is_src else self.tgt_tok_emb(tokens)
         tok_emb = tok_emb * math.sqrt(self.d_model)
-        return self.rope(tok_emb)
+        tok_emb = self.pos_encoder(tok_emb)
+        tok_emb = self.embedding_dropout(tok_emb)
+        return tok_emb
 
 
 def create_key_padding_mask(

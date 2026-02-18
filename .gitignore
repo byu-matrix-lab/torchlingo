@@ -47,12 +47,14 @@ data/tokenized/
 !data/sample_data.txt
 
 # Checkpoints and outputs
+checkpoints/
 *.pt
 outputs/*.txt
 outputs/*.log
 
 # TensorBoard
 runs/
+slurm/
 
 # OS
 .DS_Store
@@ -62,10 +64,14 @@ Thumbs.db
 *.tmp
 *.log
 
-# Data
-data/
+# Data - keep example files, ignore everything else
 !data/example.tsv
 !data/example_en_subset.txt
 !data/example_es_subset.txt
 
 docs/site/
+
+.claude/
+/multilingual_train.sh
+evaluation_results/
+/evaluate.sh
