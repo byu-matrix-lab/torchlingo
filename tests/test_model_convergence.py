@@ -279,7 +279,7 @@ class TestOptimizationComponents(unittest.TestCase):
             src_vocab.build_vocab(data["src"].tolist())
             tgt_vocab.build_vocab(data["tgt"].tolist())
 
-            cfg = Config(batch_size=4)
+            cfg = Config(batch_size=4, scheduler_type="none")
             dataset = NMTDataset(
                 data_file, src_vocab=src_vocab, tgt_vocab=tgt_vocab, config=cfg
             )
