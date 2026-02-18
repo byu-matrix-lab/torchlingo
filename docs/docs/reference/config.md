@@ -53,7 +53,7 @@ model = SimpleTransformer(..., config=config)
 
 | Parameter | Default | Description |
 | --------- | ------- | ----------- |
-| `data_format` | `"tsv"` | File format: tsv, csv, parquet, json |
+| `data_format` | `"tsv"` | File format: `tsv`, `csv`, `parquet`, `json`, `txt` |
 | `src_col` | `"src"` | Source column name |
 | `tgt_col` | `"tgt"` | Target column name |
 
@@ -106,6 +106,9 @@ model = SimpleTransformer(..., config=config)
 | `learning_rate` | `1e-4` | Learning rate |
 | `max_seq_length` | `128` | Maximum sequence length |
 | `num_epochs` | `10` | Training epochs |
+| `scheduler_type` | `"cosine"` | LR scheduler: `"cosine"`, `"plateau"`, `"transformer"`, `"noam"`, or `"none"` |
+| `scheduler_patience` | `3` | Validations without improvement before `plateau` scheduler halves the LR |
+| `warmup_steps` | `4000` | Warmup steps for `cosine`, `transformer`, and `noam` schedulers |
 
 ### Experiment Tracking (TensorBoard)
 

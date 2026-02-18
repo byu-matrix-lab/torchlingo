@@ -1,0 +1,3 @@
+Evaluation Scores:
+bleu_char: 33.7365
+chrf: 23.3945

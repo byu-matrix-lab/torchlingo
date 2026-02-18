@@ -265,5 +265,51 @@ class TestConfigGetDefault(unittest.TestCase):
         self.assertNotEqual(cfg2.batch_size, 999)
 
 
+class TestConfigScheduler(unittest.TestCase):
+    """Test scheduler_type and scheduler_patience config parameters."""
+
+    def test_default_scheduler_type_is_cosine(self):
+        """Default scheduler_type should be 'cosine'."""
+        cfg = Config()
+        self.assertEqual(cfg.scheduler_type, "cosine")
+
+    def test_all_valid_scheduler_types_accepted(self):
+        """All documented scheduler_type values should be accepted without error."""
+        for stype in ("cosine", "plateau", "transformer", "noam", "none"):
+            with self.subTest(scheduler_type=stype):
+                cfg = Config(scheduler_type=stype)
+                self.assertEqual(cfg.scheduler_type, stype)
+
+    def test_invalid_scheduler_type_raises_value_error(self):
+        """An unrecognised scheduler_type should raise ValueError."""
+        with self.assertRaises(ValueError):
+            Config(scheduler_type="cyclical")
+
+    def test_scheduler_type_non_string_raises_type_error(self):
+        """A non-string scheduler_type should raise TypeError."""
+        with self.assertRaises(TypeError):
+            Config(scheduler_type=42)
+
+    def test_default_scheduler_patience_is_three(self):
+        """Default scheduler_patience should be 3."""
+        cfg = Config()
+        self.assertEqual(cfg.scheduler_patience, 3)
+
+    def test_positive_scheduler_patience_accepted(self):
+        """Positive integer scheduler_patience should be accepted."""
+        cfg = Config(scheduler_patience=5)
+        self.assertEqual(cfg.scheduler_patience, 5)
+
+    def test_zero_scheduler_patience_raises_value_error(self):
+        """scheduler_patience of 0 should raise ValueError (must be positive)."""
+        with self.assertRaises(ValueError):
+            Config(scheduler_patience=0)
+
+    def test_negative_scheduler_patience_raises_value_error(self):
+        """Negative scheduler_patience should raise ValueError."""
+        with self.assertRaises(ValueError):
+            Config(scheduler_patience=-1)
+
+
 if __name__ == "__main__":
     unittest.main()

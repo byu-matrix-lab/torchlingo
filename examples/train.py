@@ -18,6 +18,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from torchlingo.config import Config
+from torchlingo.preprocessing import parallel_txt_to_dataframe
 from torchlingo.preprocessing.base import save_data
 from torchlingo.preprocessing.sentencepiece import train_sentencepiece
 from torchlingo.data_processing.vocab import SentencePieceVocab
@@ -26,6 +27,7 @@ from torchlingo.data_processing.batching import collate_fn
 from torchlingo.models import SimpleTransformer
 from torchlingo.training import train_model
 from torchlingo.inference import translate_batch
+from torchlingo.evaluation import evaluate_model
 import os
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
@@ -38,8 +40,8 @@ def setup_config(args) -> tuple[Config, int]:
     """
     cfg = Config(
         # Data paths
-        data_dir=Path('data'),
-        checkpoint_dir=Path('checkpoints/ceb_cmn'),
+        data_dir=Path(args.data_dir),
+        checkpoint_dir=Path(f"checkpoints/{args.experiment_name}"),
 
         # Model architecture
         d_model=512,
@@ -54,6 +56,10 @@ def setup_config(args) -> tuple[Config, int]:
         batch_size=args.batch_size,
         learning_rate=args.learning_rate,
         label_smoothing=0.1,
+        num_steps=999999999,  # Effectively unlimited - use num_epochs instead
+        warmup_steps=8000,
+        scheduler_type=args.scheduler,
+        scheduler_patience=3,  # For plateau scheduler: reduce LR after 3 validations w/o improvement
 
         # Validation and checkpointing
         val_interval=args.val_interval,
@@ -62,20 +68,22 @@ def setup_config(args) -> tuple[Config, int]:
 
         # SentencePiece
         vocab_size=args.vocab_size,
-        sp_character_coverage=0.9995,  # High coverage for Chinese
+        sp_character_coverage=0.9995,  
         sp_model_type='unigram',
 
         # TensorBoard
         use_tensorboard=True,
         tensorboard_dir=Path('runs'),
-        experiment_name=f'ceb_cmn_{args.experiment_name}',
+        experiment_name=f'{args.experiment_name}',
 
         # Column names
-        src_col='src_text',
-        tgt_col='tgt_text',
+        src_col='src',
+        tgt_col='tgt',
 
         # Data format
-        data_format='tsv',
+        data_format=args.data_format,
+        src_lang=args.src_lang,
+        tgt_lang=args.tgt_lang,
     )
 
     # num_epochs is passed to train_model(), not Config
@@ -97,42 +105,50 @@ def load_and_preprocess_data(cfg: Config) -> tuple[Path, Path, Path]:
 
     start_time = time.time()
 
-    # Load raw CSV
-    data_file = cfg.data_dir / 'ceb__cmn.csv'
-    print(f"\nLoading data from {data_file}...")
+    if cfg.data_format in ['csv', 'tsv']:
 
-    df = pd.read_csv(data_file)
-    print(f"Loaded {len(df):,} parallel sentences")
+        # Load raw CSV
+        data_file = cfg.data_dir / f'ceb__cmn.{cfg.data_format}'
+        print(f"\nLoading data from {data_file}...")
 
-    # Verify required columns
-    if cfg.src_col not in df.columns or cfg.tgt_col not in df.columns:
-        raise ValueError(
-            f"CSV must contain '{cfg.src_col}' and '{cfg.tgt_col}' columns. "
-            f"Found: {list(df.columns)}"
+        df = pd.read_csv(data_file)
+        print(f"Loaded {len(df):,} parallel sentences")
+
+        # Verify required columns
+        if cfg.src_col not in df.columns or cfg.tgt_col not in df.columns:
+            raise ValueError(
+                f"CSV must contain '{cfg.src_col}' and '{cfg.tgt_col}' columns. "
+                f"Found: {list(df.columns)}"
+            )
+
+        # Remove any rows with missing values
+        initial_len = len(df)
+        df = df.dropna(subset=[cfg.src_col, cfg.tgt_col])
+        if len(df) < initial_len:
+            print(f"Removed {initial_len - len(df):,} rows with missing values")
+
+        # Filter out extremely long sentences (for memory efficiency)
+        def token_count(text):
+            return len(str(text).split())
+
+        max_tokens = cfg.max_seq_length
+        df['src_len'] = df[cfg.src_col].apply(token_count)
+        df['tgt_len'] = df[cfg.tgt_col].apply(token_count)
+
+        before_filter = len(df)
+        df = df[(df['src_len'] < max_tokens) & (df['tgt_len'] < max_tokens)]
+        df = df.drop(columns=['src_len', 'tgt_len'])
+
+        if len(df) < before_filter:
+            print(f"Filtered {before_filter - len(df):,} very long sentences (>{max_tokens} tokens)")
+
+        print(f"Final dataset size: {len(df):,} sentences")
+    elif cfg.data_format == 'txt':
+        df = parallel_txt_to_dataframe(
+            src_path=str(cfg.data_dir / f"src.txt"),
+            tgt_path=str(cfg.data_dir / f"tgt.txt")
         )
 
-    # Remove any rows with missing values
-    initial_len = len(df)
-    df = df.dropna(subset=[cfg.src_col, cfg.tgt_col])
-    if len(df) < initial_len:
-        print(f"Removed {initial_len - len(df):,} rows with missing values")
-
-    # Filter out extremely long sentences (for memory efficiency)
-    def token_count(text):
-        return len(str(text).split())
-
-    max_tokens = cfg.max_seq_length
-    df['src_len'] = df[cfg.src_col].apply(token_count)
-    df['tgt_len'] = df[cfg.tgt_col].apply(token_count)
-
-    before_filter = len(df)
-    df = df[(df['src_len'] < max_tokens) & (df['tgt_len'] < max_tokens)]
-    df = df.drop(columns=['src_len', 'tgt_len'])
-
-    if len(df) < before_filter:
-        print(f"Filtered {before_filter - len(df):,} very long sentences (>{max_tokens} tokens)")
-
-    print(f"Final dataset size: {len(df):,} sentences")
 
     # Create train/val/test splits (80/10/10)
     print("\nCreating train/val/test splits (80/10/10)...")
@@ -149,14 +165,14 @@ def load_and_preprocess_data(cfg: Config) -> tuple[Path, Path, Path]:
     print(f"  Val:   {len(val_df):,} sentences")
     print(f"  Test:  {len(test_df):,} sentences")
 
-    # Save splits
-    train_file = cfg.data_dir / f'train.{cfg.data_format}'
-    val_file = cfg.data_dir / f'val.{cfg.data_format}'
-    test_file = cfg.data_dir / f'test.{cfg.data_format}'
+    # Save splits, needs to be a path object not a string for save_data()
+    train_file = cfg.tensorboard_dir / 'train.tsv'
+    val_file = cfg.tensorboard_dir / 'val.tsv'
+    test_file = cfg.tensorboard_dir / 'test.tsv'
 
-    save_data(train_df, train_file, cfg.data_format)
-    save_data(val_df, val_file, cfg.data_format)
-    save_data(test_df, test_file, cfg.data_format)
+    save_data(train_df, train_file, 'tsv')
+    save_data(val_df, val_file, 'tsv')
+    save_data(test_df, test_file, 'tsv')
 
     elapsed = time.time() - start_time
     print(f"\n✓ Preprocessing complete in {elapsed:.1f}s")
@@ -181,10 +197,10 @@ def train_tokenizers(train_file: Path, cfg: Config) -> tuple[Path, Path]:
     start_time = time.time()
 
     # Train separate models for each language
-    src_model_prefix = str(cfg.data_dir / 'sp_ceb')
-    tgt_model_prefix = str(cfg.data_dir / 'sp_cmn')
+    src_model_prefix = str(cfg.tensorboard_dir / f'sp_{cfg.src_lang}')
+    tgt_model_prefix = str(cfg.tensorboard_dir / f'sp_{cfg.tgt_lang}')
 
-    print(f"\nTraining Cebuano tokenizer (vocab_size={cfg.vocab_size})...")
+    print(f"\nTraining {cfg.src_lang} tokenizer (vocab_size={cfg.vocab_size})...")
     train_sentencepiece(
         [train_file],
         src_model_prefix,
@@ -195,7 +211,7 @@ def train_tokenizers(train_file: Path, cfg: Config) -> tuple[Path, Path]:
         config=cfg,
     )
 
-    print(f"\nTraining Mandarin tokenizer (vocab_size={cfg.vocab_size})...")
+    print(f"\nTraining {cfg.tgt_lang} tokenizer (vocab_size={cfg.vocab_size})...")
     # Chinese needs higher character coverage
     train_sentencepiece(
         [train_file],
@@ -245,8 +261,8 @@ def create_datasets(
     src_vocab = SentencePieceVocab(str(src_model_path), config=cfg)
     tgt_vocab = SentencePieceVocab(str(tgt_model_path), config=cfg)
 
-    print(f"  Cebuano vocab size: {len(src_vocab):,}")
-    print(f"  Mandarin vocab size: {len(tgt_vocab):,}")
+    print(f"  {cfg.src_lang} vocab size: {len(src_vocab):,}")
+    print(f"  {cfg.tgt_lang} vocab size: {len(tgt_vocab):,}")
 
     # Create datasets
     print("\nCreating datasets...")
@@ -372,7 +388,7 @@ def train(
     val_loader = DataLoader(
         val_dataset,
         batch_size=cfg.batch_size,
-        shuffle=False,
+        shuffle=True,
         collate_fn=collate_fn,
         num_workers=2,
         pin_memory=True if device.type == 'cuda' else False,
@@ -393,27 +409,12 @@ def train(
     print(f"  Save interval: every {cfg.save_interval} steps")
     print(f"  Early stopping patience: {cfg.patience} validations")
 
-    # Create optimizer
-    optimizer = torch.optim.Adam(
-        model.parameters(),
-        lr=cfg.learning_rate,
-        betas=(0.9, 0.98),
-        eps=1e-9,
-    )
-
-    # Learning rate scheduler (Transformer paper warmup)
-    def lr_lambda(step):
-        warmup_steps = 4000
-        return min((step + 1) ** -0.5, (step + 1) * warmup_steps ** -1.5) * (cfg.d_model ** 0.5)
-
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
-
     # Create checkpoint directory
     cfg.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     # Train
     print("\n" + "-" * 70)
-    print("Starting training...")
+    print(f"Starting training (scheduler: {cfg.scheduler_type})...")
     print("-" * 70 + "\n")
 
     start_time = time.time()
@@ -423,8 +424,6 @@ def train(
         train_loader=train_loader,
         val_loader=val_loader,
         num_epochs=num_epochs,
-        optimizer=optimizer,
-        scheduler=scheduler,
         gradient_clip=1.0,
         device=device,
         config=cfg,
@@ -514,6 +513,34 @@ def evaluate_inference(
 
     print("\n" + "-" * 70)
 
+    # Evaluate on the entire test set using the new API
+    scores = evaluate_model(
+        model=model,
+        src_sentences=test_dataset.src_sentences,
+        tgt_sentences=test_dataset.tgt_sentences,
+        src_vocab=src_vocab,
+        tgt_vocab=tgt_vocab,
+        device=device,
+        decode_strategy='greedy',
+        max_decode_length=cfg.max_seq_length,
+        batch_size=cfg.batch_size,
+        tokenization='auto',  # Auto-detect language
+        compute_chrf_score=True,
+        compute_ter_score=False,
+        config=cfg,
+    )
+    
+    print(f"\nEvaluation Scores:")
+    for metric, score in scores.items():
+        print(f"  {metric}: {score:.4f}")
+    
+    # Write to results file
+    results_file = cfg.checkpoint_dir / 'test_results.txt'
+    with open(results_file, 'w') as f:
+        f.write("Evaluation Scores:\n")
+        for metric, score in scores.items():
+            f.write(f"{metric}: {score:.4f}\n")
+
 
 def main():
     """Main training pipeline."""
@@ -538,6 +565,9 @@ def main():
                         help='Checkpoint save interval in steps (default: 2000)')
     parser.add_argument('--patience', type=int, default=5,
                         help='Early stopping patience (default: 5)')
+    parser.add_argument('--scheduler', type=str, default='plateau',
+                        choices=['plateau', 'cosine', 'transformer', 'noam', 'none'],
+                        help='LR scheduler type (default: plateau)')
 
     # Experiment
     parser.add_argument('--experiment-name', type=str, default='baseline',
@@ -547,12 +577,24 @@ def main():
     parser.add_argument('--device', type=str, default='auto',
                         choices=['auto', 'cuda', 'cpu'],
                         help='Device to use (default: auto)')
+    
+    # Data paths
+    parser.add_argument('--data-dir', type=str, default='data',
+                        help='Directory containing the dataset (default: data)')
+    
+    parser.add_argument('--data-format', type=str, default='tsv',
+                        choices=['tsv', 'csv', 'txt'],)
+
+    parser.add_argument('--src-lang', type=str, default='ceb',
+                        help='Source language code (default: ceb)')
+    parser.add_argument('--tgt-lang', type=str, default='cmn',
+                        help='Target language code (default: cmn)')
 
     args = parser.parse_args()
 
     # Setup
     print("\n" + "=" * 70)
-    print("CEBUANO → MANDARIN NEURAL MACHINE TRANSLATION")
+    print("Beginning NMT Training Pipeline")
     print("=" * 70)
 
     cfg, num_epochs = setup_config(args)

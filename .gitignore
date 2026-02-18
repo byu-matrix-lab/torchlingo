@@ -53,6 +53,7 @@ outputs/*.log
 
 # TensorBoard
 runs/
+slurm/
 
 # OS
 .DS_Store
@@ -69,4 +70,7 @@ Thumbs.db
 
 docs/site/
 
-CLAUDE.md
+.claude/
+/multilingual_train.sh
+evaluation_results/
+/evaluate.sh
