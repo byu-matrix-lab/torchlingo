@@ -73,6 +73,7 @@ class TestEndToEndTransformerPipeline(unittest.TestCase):
                 unk_idx=3,
                 batch_size=2,
                 max_seq_length=20,
+                scheduler_type="none",
             )
             dataset = NMTDataset(
                 data_file,
