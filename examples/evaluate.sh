@@ -14,9 +14,6 @@ eval "$(conda shell.bash hook)"
 # Activate the conda environment
 conda activate torchlingo_py310
 
-# Verify we're in the right directory (project root)
-cd /home/myl15/torchlingo/torchlingo
-
 # Run the evaluation script
 python examples/evaluate.py \
     --checkpoint "checkpoints/{args.experiment_name}/model_best.pt" \
