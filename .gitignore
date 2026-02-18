@@ -47,6 +47,7 @@ data/tokenized/
 !data/sample_data.txt
 
 # Checkpoints and outputs
+checkpoints/
 *.pt
 outputs/*.txt
 outputs/*.log
