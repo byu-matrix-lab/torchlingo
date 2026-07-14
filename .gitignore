@@ -43,8 +43,16 @@ data/*.x
 data/*.sp
 data/*.model
 data/*.vocab
+data/*.csv
 data/tokenized/
 !data/sample_data.txt
+
+# Generated train/val/test splits (standard output location of the
+# preprocessing scripts/config defaults) and large raw corpora - these can
+# be 100MB+ and must never be committed (GitHub hard-blocks files >100MB).
+data/train.tsv
+data/val.tsv
+data/test.tsv
 
 # Checkpoints and outputs
 checkpoints/

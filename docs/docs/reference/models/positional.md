@@ -1,29 +1,29 @@
 # Positional Encoding
 
-Position embedding implementations for Transformer models.
+Position encoding implementation for Transformer models.
 
 ## Overview
 
 Transformers process all positions in parallel and have no inherent sense of order. Positional encodings add position information to token embeddings so the model can distinguish between "The cat sat" and "sat cat The".
 
-TorchLingo implements **Rotary Position Embeddings (RoPE)**, a modern approach that encodes position directly in the attention computation.
+TorchLingo implements the **sinusoidal positional encoding** from the original Transformer paper ("Attention Is All You Need", Vaswani et al., 2017).
 
 ## Quick Start
 
 ```python
-from torchlingo.models.positional import RoPEEmbedding
+from torchlingo.models.positional import SinusoidalPositionalEncoding
 import torch
 
-rope = RoPEEmbedding(d_model=512, max_seq_length=2048)
+pos_enc = SinusoidalPositionalEncoding(d_model=512, max_seq_len=2048)
 
 # Apply to embeddings
 embeddings = torch.randn(2, 100, 512)  # [batch, seq_len, d_model]
-positioned = rope(embeddings)
+positioned = pos_enc(embeddings)
 ```
 
 ## API Reference
 
-::: torchlingo.models.positional.RoPEEmbedding
+::: torchlingo.models.positional.SinusoidalPositionalEncoding
     options:
       show_source: true
       members:
@@ -42,9 +42,9 @@ $$
 
 This is **permutation invariant**—shuffling the input gives shuffled output with the same attention weights. We need to inject position information.
 
-### Solution 1: Sinusoidal Encoding (Original)
+### The Sinusoidal Solution
 
-The original Transformer used fixed sinusoidal patterns:
+The original Transformer uses fixed sinusoidal patterns. For position $pos$ and dimension pair $i$:
 
 $$
 PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d}}\right)
@@ -54,141 +54,47 @@ $$
 PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)
 $$
 
-This is added to token embeddings:
+Each dimension pair oscillates at a different wavelength, from $2\pi$ up to $10000 \cdot 2\pi$, so every position gets a unique fingerprint. The encoding is simply added to the token embeddings:
 
 ```python
-embeddings = token_embeddings + position_embeddings
+embeddings = token_embeddings + position_encodings
 ```
 
-### Solution 2: Learned Encoding
+**Key insight**: for any fixed offset $k$, $PE_{pos+k}$ is a linear function of $PE_{pos}$ (a rotation in each sine/cosine pair). This makes it easy for the model to learn to attend by *relative* position — which is what matters for translation ("the adjective comes right before the noun").
 
-Learn a position embedding for each position:
+### Alternatives You'll See in the Wild
 
-```python
-pos_emb = nn.Embedding(max_seq_length, d_model)
-embeddings = token_embeddings + pos_emb(positions)
-```
+| Method | Idea | Parameters |
+| ------ | ---- | ---------- |
+| **Sinusoidal** (this library) | Fixed sine/cosine waves added to embeddings | None |
+| **Learned** | `nn.Embedding(max_len, d_model)` added to embeddings | max_len × d_model |
+| **Rotary (RoPE)** | Rotate the query/key vectors *inside attention* so dot products depend only on relative offsets | None |
 
-### Solution 3: Rotary Position Embeddings (RoPE)
-
-RoPE encodes position by **rotating** embeddings in 2D subspaces:
-
-```
-For position p, rotate embedding by angle θ × p
-```
-
-**Key insight**: The dot product between rotated vectors depends on their **relative** position, not absolute positions.
-
-## RoPE Benefits
-
-| Feature | Traditional | RoPE |
-| ------- | ----------- | ---- |
-| Position encoding | Added | Multiplied (rotation) |
-| Captures | Absolute position | Relative position |
-| Extrapolation | Poor | Better |
-| Learned | Often | No |
-
-### Why Relative Position Matters
-
-For translation, relative position often matters more than absolute:
-
-- "The big cat" → Adjective is before noun (relative position -1)
-- "cat big The" → Wrong order
-
-RoPE naturally captures these relative relationships.
-
-## Implementation Details
-
-### Rotation Matrix
-
-For each 2D subspace (dimensions 2i and 2i+1):
-
-$$
-\begin{pmatrix}
-\cos(m\theta_i) & -\sin(m\theta_i) \\
-\sin(m\theta_i) & \cos(m\theta_i)
-\end{pmatrix}
-\begin{pmatrix}
-x_{2i} \\
-x_{2i+1}
-\end{pmatrix}
-$$
-
-Where $m$ is the position and $\theta_i = 10000^{-2i/d}$.
-
-### In Code
-
-```python
-def apply_rope(x, cos, sin):
-    # Split into even/odd dimensions
-    x1, x2 = x[..., ::2], x[..., 1::2]
-    
-    # Apply rotation
-    rotated = torch.cat([
-        x1 * cos - x2 * sin,
-        x1 * sin + x2 * cos,
-    ], dim=-1)
-    
-    return rotated
-```
+Learned encodings can't represent positions beyond the trained maximum. RoPE is popular in modern LLMs but requires a custom attention implementation (it must be applied to Q and K inside every attention layer, not to the input embeddings) — a great extension exercise once you understand the sinusoidal version.
 
 ## Usage in SimpleTransformer
 
-`SimpleTransformer` uses RoPE automatically:
+`SimpleTransformer` applies the encoding automatically:
 
 ```python
 model = SimpleTransformer(
     src_vocab_size=10000,
     tgt_vocab_size=10000,
     d_model=512,
-    max_seq_length=2048,  # RoPE will work up to this length
+    max_seq_length=2048,  # positions precomputed up to this length
 )
 ```
 
-The RoPE embedding is applied in the `_embed` method before passing to encoder/decoder layers.
-
-## Configuration
-
-```python
-from torchlingo.models.positional import RoPEEmbedding
-
-rope = RoPEEmbedding(
-    d_model=512,           # Must match model dimension
-    max_seq_length=2048,   # Maximum supported sequence length
-)
-```
-
-## Comparison with Other Methods
-
-### Sinusoidal vs RoPE
-
-```python
-# Sinusoidal: Add position info
-embedded = token_emb + pos_emb  # Sum
-
-# RoPE: Rotate by position
-embedded = rotate(token_emb, position)  # Rotation
-```
-
-### Learned vs RoPE
-
-| Aspect | Learned | RoPE |
-| ------ | ------- | ---- |
-| Parameters | max_len × d_model | None (fixed) |
-| Generalization | Only trained positions | Any position |
-| Memory | Stores embeddings | Computes on-the-fly |
+Token embeddings are scaled by $\sqrt{d_{model}}$ (so they don't drown out the position signal) and the encoding is added in the `_embed` method before the encoder/decoder layers. Dropout is applied to the sum, as in the original paper.
 
 ## Handling Long Sequences
 
-RoPE extrapolates better than traditional encodings to positions beyond training:
+The table is precomputed for `max_seq_len` positions but extends itself automatically if a longer input arrives:
 
 ```python
-# Trained on sequences up to 512
-# RoPE can handle 1024+ with reasonable quality
-
-rope = RoPEEmbedding(d_model=512, max_seq_length=2048)
+pos_enc = SinusoidalPositionalEncoding(d_model=512, max_seq_len=512)
 long_seq = torch.randn(1, 1500, 512)  # Beyond 512
-positioned = rope(long_seq)  # Still works!
+positioned = pos_enc(long_seq)  # Table is rebuilt to 1500 positions
 ```
 
-However, performance may degrade for very long extrapolation. For best results, train with sequences close to your expected inference length.
+Because the encoding is a fixed function of position, it produces valid values for any position. Model *quality* at positions far beyond those seen in training is a separate question — for best results, train with sequences close to your expected inference length.

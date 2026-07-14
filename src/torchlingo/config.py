@@ -29,8 +29,10 @@ from typing import Optional, Dict, Any
 # BASE DIRECTORIES
 # ============================================================================
 
-BASE_DIR = Path(__file__).parent.parent
-# BASE_DIR: Path — root directory of the project, derived from this file's location
+BASE_DIR = Path.cwd()
+# BASE_DIR: Path — root directory for project files. Defaults to the current
+#   working directory so data/checkpoints/outputs land in *your* project, not
+#   inside the installed package. Override per-experiment via Config(base_dir=...).
 
 DATA_DIR = BASE_DIR / "data"
 # DATA_DIR: Path — directory where all data files (raw, processed, vocab) are stored
@@ -41,10 +43,8 @@ CHECKPOINT_DIR = BASE_DIR / "checkpoints"
 OUTPUT_DIR = BASE_DIR / "outputs"
 # OUTPUT_DIR: Path — where translation outputs and results are written
 
-# Create directories if they don't exist (safe no-op if present)
-DATA_DIR.mkdir(exist_ok=True)
-CHECKPOINT_DIR.mkdir(exist_ok=True)
-OUTPUT_DIR.mkdir(exist_ok=True)
+# NOTE: directories are created lazily by the functions that write to them
+# (training, save_data, ...). Importing this module has no filesystem side effects.
 
 # ============================================================================
 # DATA AND FILE SETTINGS
@@ -103,15 +103,14 @@ TEST_FILE = DATA_DIR / f"test.{DATA_FORMAT}"
 #   - Description: Path to the test data file (held-out set). Used for final
 #     evaluation after training completes.
 
-RAW_DATA_FILE = DATA_DIR / "raw_data.txt"
+RAW_DATA_FILE = DATA_DIR / "raw_data.tsv"
 # RAW_DATA_FILE: Path
 #   - Type: Path object
-#   - Default: data/raw_data.txt
+#   - Default: data/raw_data.tsv
 #   - Description: Path used for raw, unprocessed parallel data when needed.
-#     Prefer using structured CSV/TSV/Parquet/JSON files with `src` and `tgt`
-#     columns or passing explicit parallel files (src,tgt) to `load_data`.
-#     Historically single-file pipe-separated (|||) format was supported but
-#     this is deprecated in favor of explicit CSV/TSV files or two-file inputs.
+#     Must be a structured TSV/CSV/Parquet/JSON file with `src` and `tgt`
+#     columns. Parallel .txt corpora should be converted first with
+#     `preprocessing.base.parallel_txt_to_dataframe`.
 
 # ============================================================================
 # TOKENIZATION AND VOCABULARY SETTINGS
@@ -326,7 +325,7 @@ MAX_SEQ_LENGTH = 512
 #   - Typical values: 128, 256, 512, 1024
 #   - Default: 512
 #   - Description: Maximum sequence length supported by position encodings
-#     (Rotary Embeddings in this codebase). Sequences longer than this will be
+#     (sinusoidal positional encodings in this codebase). Sequences longer than this will be
 #     truncated. Increase for longer documents, decrease for faster training.
 
 # ============================================================================
@@ -740,7 +739,6 @@ TGT_LANG = "deu"
 #   - Description: Target language code (e.g., "deu" for German).
 
 
-
 # ============================================================================
 # CONFIG CLASS
 # ============================================================================
@@ -892,16 +890,12 @@ class Config:
         All parameters are optional. If not provided, defaults from the
         module-level constants above are used.
         """
-        # Base directories
+        # Base directories. Created lazily by code that writes to them, so
+        # constructing a Config never touches the filesystem.
         self.base_dir = base_dir or BASE_DIR
         self.data_dir = data_dir or (self.base_dir / "data")
         self.checkpoint_dir = checkpoint_dir or (self.base_dir / "checkpoints")
         self.output_dir = output_dir or (self.base_dir / "outputs")
-
-        # Ensure directories exist
-        self.data_dir.mkdir(exist_ok=True, parents=True)
-        self.checkpoint_dir.mkdir(exist_ok=True, parents=True)
-        self.output_dir.mkdir(exist_ok=True, parents=True)
 
         # Data and file settings
         self.data_format = data_format
@@ -912,7 +906,7 @@ class Config:
         self.train_file = train_file or (self.data_dir / f"train.{self.data_format}")
         self.val_file = val_file or (self.data_dir / f"val.{self.data_format}")
         self.test_file = test_file or (self.data_dir / f"test.{self.data_format}")
-        self.raw_data_file = raw_data_file or (self.data_dir / "raw_data.txt")
+        self.raw_data_file = raw_data_file or (self.data_dir / "raw_data.tsv")
         self.src_lang = src_lang
         self.tgt_lang = tgt_lang
 
@@ -1009,15 +1003,11 @@ class Config:
         self.sos_idx = sos_idx
         self.eos_idx = eos_idx
 
-        # Training hyperparameters (continued)
+        # Training hyperparameters
         self.batch_size = batch_size
         self.num_steps = num_steps
         # Optional global step limit (None means no limit)
         self.step_limit = step_limit
-
-        # Training hyperparameters
-        self.batch_size = batch_size
-        self.num_steps = num_steps
         self.learning_rate = learning_rate
         self.adam_betas = adam_betas
         self.adam_eps = adam_eps
@@ -1065,8 +1055,6 @@ class Config:
         self.use_tensorboard = use_tensorboard
         self.tensorboard_dir = tensorboard_dir or (self.base_dir / "runs")
         self.experiment_name = experiment_name
-
-
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert config to a dictionary for logging and serialization.
@@ -2237,22 +2225,22 @@ class Config:
 
     @property
     def max_seq_length(self) -> int:
-        """Return Maximum sequence length supported by position encodings (Rotary Embeddings in this codebase).
+        """Return Maximum sequence length supported by position encodings (sinusoidal positional encodings in this codebase).
 
         Sequences longer than this will be truncated. Increase for longer documents, decrease for faster training.
 
         Returns:
-            int (positive): Maximum sequence length supported by position encodings (Rotary Embeddings in this codebase). Sequences longer than this will be truncated. Increase for longer documents, decrease for faster training.
+            int (positive): Maximum sequence length supported by position encodings (sinusoidal positional encodings in this codebase). Sequences longer than this will be truncated. Increase for longer documents, decrease for faster training.
         """
 
         return self._get_field("max_seq_length")
 
     @max_seq_length.setter
     def max_seq_length(self, value: int) -> None:
-        """Set Maximum sequence length supported by position encodings (Rotary Embeddings in this codebase).
+        """Set Maximum sequence length supported by position encodings (sinusoidal positional encodings in this codebase).
 
         Args:
-            value (int (positive)): Maximum sequence length supported by position encodings (Rotary Embeddings in this codebase). Sequences longer than this will be truncated. Increase for longer documents, decrease for faster training.
+            value (int (positive)): Maximum sequence length supported by position encodings (sinusoidal positional encodings in this codebase). Sequences longer than this will be truncated. Increase for longer documents, decrease for faster training.
         """
         self._validate_and_set("max_seq_length", value)
 
@@ -3275,7 +3263,7 @@ class Config:
             value (str (language code)): Source language code (e.g., "eng" for English). Used for logging and display purposes.
         """
         self._validate_and_set("src_lang", value)
-    
+
     @property
     def tgt_lang(self) -> str:
         """Return Target language code (e.g., "deu" for German).
@@ -3287,7 +3275,7 @@ class Config:
         """
 
         return self._get_field("tgt_lang")
-    
+
     @tgt_lang.setter
     def tgt_lang(self, value: str) -> None:
         """Set Target language code (e.g., "deu" for German).
@@ -3296,6 +3284,7 @@ class Config:
             value (str (language code)): Target language code (e.g., "deu" for German). Used for logging and display purposes.
         """
         self._validate_and_set("tgt_lang", value)
+
 
 _default_config = Config()
 

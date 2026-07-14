@@ -266,7 +266,9 @@ def preprocess_base(
     if not raw_data_file.exists():
         print(f"Error: Raw data file not found at {raw_data_file}")
         print(
-            "Please create a TSV/CSV file with columns 'src' and 'tgt', or pass explicit source & target file paths."
+            f"Create a TSV/CSV file with columns '{src_col}' and '{tgt_col}' at that "
+            "path, or pass raw_data_file= explicitly. For parallel .txt corpora, "
+            "convert with preprocessing.base.parallel_txt_to_dataframe first."
         )
         return
     df = load_data(raw_data_file)

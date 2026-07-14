@@ -76,12 +76,16 @@ Machine translation needs **parallel corpora**—the same sentences in both lang
 
 ### Loading Data with TorchLingo
 
+The snippets below use the demo file created in the
+[Quick Start](quickstart.md) — run that data-creation cell first, or point
+`data_path` at your own TSV with `src` and `tgt` columns.
+
 ```python
 import pandas as pd
 from pathlib import Path
 from torchlingo.preprocessing import load_data
 
-# Load a TSV file
+# Load a TSV file (created in the Quick Start)
 data_path = Path("data/demo_small/train.tsv")
 df = load_data(data_path)
 

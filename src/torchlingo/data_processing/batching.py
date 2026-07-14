@@ -89,6 +89,12 @@ class BucketBatchSampler(Sampler):
         buckets (list[list[int]]): Per-bucket list of sample indices.
         num_batches (int): Total number of batches that will be yielded.
         bucket_boundaries (list[int]): Upper length boundary for each bucket.
+
+    Raises:
+        ValueError: If no bucket contains at least batch_size samples, so the
+            sampler would yield zero batches (incomplete batches are dropped).
+            This typically happens when batch_size is larger than the dataset;
+            use a smaller batch_size or provide more data.
     """
 
     def __init__(
@@ -117,6 +123,17 @@ class BucketBatchSampler(Sampler):
             b = self._get_bucket(src_len)
             self.buckets[b].append(idx)
         self._compute_num_batches()
+        if self.num_batches == 0:
+            largest_bucket = max((len(b) for b in self.buckets), default=0)
+            raise ValueError(
+                f"BucketBatchSampler would yield 0 batches: the dataset has "
+                f"{len(dataset)} example(s) and no bucket contains at least "
+                f"batch_size={batch_size} of them (largest bucket has "
+                f"{largest_bucket}). Incomplete batches are dropped, so "
+                f"training would silently run 0 steps. Use a smaller "
+                f"batch_size (at most {largest_bucket} for this data) or "
+                f"provide more training data."
+            )
 
     def _calculate_bucket_boundaries(self) -> List[int]:
         """Compute bucket boundaries automatically from sequence length distribution.
@@ -313,6 +330,10 @@ def create_dataloaders(
     Raises:
         AssertionError: If use_sentencepiece=True but sp_model_path is None.
         ValueError: If data files have incorrect format or missing columns.
+        ValueError: If the training loader would yield 0 batches, e.g. when
+            use_bucketing=True and batch_size is larger than every length
+            bucket (incomplete batches are dropped), or when the training
+            dataset is empty. Use a smaller batch_size or more data.
 
     Examples:
         >>> train_loader, val_loader, src_vocab, tgt_vocab = create_dataloaders(
@@ -338,7 +359,8 @@ def create_dataloaders(
         - DataLoader pin_memory is enabled for CUDA devices to speed up transfers.
         - Training loader always shuffles (or uses bucket-based shuffling).
         - Validation loader does not shuffle.
-        - Incomplete batches are dropped.
+        - With use_bucketing=True, incomplete batches are dropped; without
+          bucketing, the final (possibly smaller) batch is kept.
     """
     cfg = config if config is not None else get_default_config()
     batch_size = batch_size if batch_size is not None else cfg.batch_size
@@ -414,6 +436,13 @@ def create_dataloaders(
             num_workers=num_workers,
             collate_fn=collate,
             pin_memory=True if device == "cuda" else False,
+        )
+    if len(train_loader) == 0:
+        raise ValueError(
+            f"Training loader would yield 0 batches (dataset has "
+            f"{len(train_dataset)} example(s), batch_size={batch_size}). "
+            f"Training would silently run 0 steps. Use a smaller batch_size "
+            f"or provide more training data."
         )
     if val_dataset is not None:
         val_loader = DataLoader(

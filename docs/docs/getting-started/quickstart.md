@@ -2,13 +2,16 @@
 
 Let's get you translating in under 5 minutes! :rocket:
 
-<!-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/02-train-tiny-model.ipynb) -->
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/02-train-tiny-model.ipynb)
 
 !!! tip "Run in Google Colab"
     The easiest way to follow along is in Google Colab. Click the badge above to open a notebook, then:
     
     1. Go to **Runtime → Change runtime type → GPU**
     2. Run `%pip install torchlingo` in the first cell
+
+    Everything on this page is self-contained — it also works in a local
+    Python session or script.
 
 ## Setup
 
@@ -54,17 +57,38 @@ Thank you very much.	Muchas gracias.
 !!! info "Already have data?"
     TorchLingo supports multiple formats: TSV, CSV, JSON, and Parquet. Just make sure you have `src` and `tgt` columns.
 
-For this quickstart, let's use the demo data that comes with TorchLingo:
+For this quickstart, let's create a tiny demo corpus right here so everything is self-contained:
 
 ```python
 from pathlib import Path
+import pandas as pd
 
-# Demo data location (adjust if you installed differently)
+# Every word appears at least twice, so it clears the default
+# vocabulary frequency threshold (min_freq=2).
+pairs = {
+    "src": [
+        "hello world", "hello friend", "good morning",
+        "good morning friend", "thank you world", "thank you today",
+        "how are you", "how are you today", "see you tomorrow",
+        "see you tomorrow friend",
+    ],
+    "tgt": [
+        "hola mundo", "hola amigo", "buenos días",
+        "buenos días amigo", "gracias mundo", "gracias hoy",
+        "cómo estás", "cómo estás hoy", "nos vemos mañana",
+        "nos vemos mañana amigo",
+    ],
+}
+
 data_dir = Path("data/demo_small")
+data_dir.mkdir(parents=True, exist_ok=True)
 train_file = data_dir / "train.tsv"
+pd.DataFrame(pairs).to_csv(train_file, sep="\t", index=False)
 
-print(f"Using data from: {train_file}")
+print(f"Wrote demo data to: {train_file}")
 ```
+
+(With your own data, skip this step and point `train_file` at your TSV/CSV file.)
 
 ## Step 2: Build Vocabularies
 
@@ -175,6 +199,8 @@ for epoch in range(3):
 Now let's use our trained model to translate a sentence:
 
 ```python
+from torchlingo.models.transformer_simple import create_causal_mask
+
 def greedy_decode(model, src_sentence, src_vocab, tgt_vocab, max_len=50):
     """Simple greedy decoding for translation."""
     model.eval()
@@ -191,7 +217,10 @@ def greedy_decode(model, src_sentence, src_vocab, tgt_vocab, max_len=50):
         
         for _ in range(max_len):
             tgt_tensor = torch.tensor([tgt_indices])
-            output = model.decode(tgt_tensor, memory)
+            # Causal mask keeps each position from attending to later
+            # positions — the same setup the model saw during training.
+            tgt_mask = create_causal_mask(tgt_tensor.size(1), tgt_tensor.device)
+            output = model.decode(tgt_tensor, memory, tgt_mask=tgt_mask)
             
             # Get the most likely next token
             next_token = output[0, -1, :].argmax().item()
@@ -205,7 +234,7 @@ def greedy_decode(model, src_sentence, src_vocab, tgt_vocab, max_len=50):
     return tgt_vocab.decode(tgt_indices, skip_special_tokens=True)
 
 # Try it out!
-test_sentence = "Hello, how are you?"
+test_sentence = "how are you"
 translation = greedy_decode(
     model, 
     test_sentence, 
@@ -215,6 +244,11 @@ translation = greedy_decode(
 print(f"📝 Input:  {test_sentence}")
 print(f"🌍 Output: {translation}")
 ```
+
+!!! note "Production decoding"
+    This loop is for learning. For real use, call
+    [`torchlingo.inference.translate_batch`](../reference/index.md), which
+    handles batching, padding masks, and beam search for you.
 
 !!! warning "Quality Warning"
     With only 3 epochs on tiny data, translations won't be great! This is just to show the process. See our [tutorials](../tutorials/index.md) for proper training.

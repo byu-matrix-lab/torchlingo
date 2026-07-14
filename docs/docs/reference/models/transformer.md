@@ -1,10 +1,10 @@
 # Transformer
 
-Simple transformer-based sequence-to-sequence model with RoPE embeddings.
+Simple transformer-based sequence-to-sequence model with sinusoidal positional encoding.
 
 ## Overview
 
-`SimpleTransformer` implements the encoder-decoder Transformer architecture from "Attention Is All You Need" (Vaswani et al., 2017), enhanced with Rotary Position Embeddings (RoPE) for better position encoding.
+`SimpleTransformer` implements the encoder-decoder Transformer architecture from "Attention Is All You Need" (Vaswani et al., 2017), using the paper's sinusoidal positional encoding.
 
 ## Architecture
 
@@ -12,7 +12,7 @@ Simple transformer-based sequence-to-sequence model with RoPE embeddings.
 ┌─────────────────────────────────────────────────┐
 │                    ENCODER                       │
 │  ┌───────────────────────────────────────────┐  │
-│  │   Token Embedding + RoPE Position         │  │
+│  │  Token Embedding + Sinusoidal Position    │  │
 │  │   src_vocab_size → d_model                │  │
 │  └───────────────────────────────────────────┘  │
 │                      ↓                           │
@@ -29,7 +29,7 @@ Simple transformer-based sequence-to-sequence model with RoPE embeddings.
 ┌─────────────────────────────────────────────────┐
 │                    DECODER                       │
 │  ┌───────────────────────────────────────────┐  │
-│  │   Token Embedding + RoPE Position         │  │
+│  │  Token Embedding + Sinusoidal Position    │  │
 │  │   tgt_vocab_size → d_model                │  │
 │  └───────────────────────────────────────────┘  │
 │                      ↓                           │
@@ -174,13 +174,13 @@ logits = model(
 
 ## Key Features
 
-### Rotary Position Embeddings (RoPE)
+### Sinusoidal Positional Encoding
 
-Unlike standard sinusoidal or learned position embeddings, RoPE encodes position information directly into the attention computation:
+Fixed sine/cosine waves of geometrically increasing wavelengths are added to the token embeddings:
 
-- Better extrapolation to longer sequences
-- Captures relative positions naturally
-- No separate position embedding layer
+- No learned parameters; valid for any position
+- Encodings for nearby positions are related by simple rotations, which helps the model attend by relative offset
+- Matches the original "Attention Is All You Need" recipe
 
 ### Automatic Masking
 

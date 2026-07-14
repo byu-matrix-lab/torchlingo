@@ -18,7 +18,6 @@ from torchlingo.data_processing.dataset import NMTDataset
 from torchlingo.data_processing.vocab import SimpleVocab, SentencePieceVocab
 from torchlingo.inference import greedy_decode, translate_batch
 from torchlingo.models import SimpleTransformer, SimpleSeq2SeqLSTM
-from torchlingo.preprocessing.base import load_data, save_data
 from torchlingo.preprocessing.sentencepiece import train_sentencepiece
 from torchlingo.training import train_model
 
@@ -29,6 +28,9 @@ class TestEndToEndTransformerPipeline(unittest.TestCase):
     @unittest.skip("Flaky: loss convergence unreliable with only 3 epochs on 8 examples")
     def test_full_pipeline_with_simple_vocab(self):
         """Test complete pipeline: data → vocab → dataset → train → inference."""
+        # Seed so the briefly-trained model behaves the same regardless of
+        # which tests ran before this one.
+        torch.manual_seed(0)
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
 
@@ -60,13 +62,8 @@ class TestEndToEndTransformerPipeline(unittest.TestCase):
             data_file = tmp / "train.tsv"
             data.to_csv(data_file, sep="\t", index=False)
 
-            # 2. Build vocabularies
-            src_vocab = SimpleVocab(min_freq=1)
-            tgt_vocab = SimpleVocab(min_freq=1)
-            src_vocab.build_vocab(data["src"].tolist())
-            tgt_vocab.build_vocab(data["tgt"].tolist())
-
-            # 3. Create dataset
+            # 2. Build vocabularies (sharing the config so special-token
+            # indices match between the vocab, model, and decoder)
             cfg = Config(
                 pad_idx=0,
                 sos_idx=1,
@@ -75,7 +72,16 @@ class TestEndToEndTransformerPipeline(unittest.TestCase):
                 batch_size=2,
                 max_seq_length=20,
                 scheduler_type="none",
+                # High enough that the tiny model memorizes the 8 pairs and
+                # produces non-empty translations within 10 epochs.
+                learning_rate=1e-3,
             )
+            src_vocab = SimpleVocab(min_freq=1, config=cfg)
+            tgt_vocab = SimpleVocab(min_freq=1, config=cfg)
+            src_vocab.build_vocab(data["src"].tolist())
+            tgt_vocab.build_vocab(data["tgt"].tolist())
+
+            # 3. Create dataset
             dataset = NMTDataset(
                 data_file,
                 src_vocab=src_vocab,
@@ -112,14 +118,14 @@ class TestEndToEndTransformerPipeline(unittest.TestCase):
                 model,
                 train_loader=loader,
                 val_loader=None,
-                num_epochs=3,
+                num_epochs=10,
                 gradient_clip=1.0,
                 device=torch.device("cpu"),
                 config=cfg,
             )
 
             # Verify training completed
-            self.assertEqual(len(result.train_losses), 3)
+            self.assertEqual(len(result.train_losses), 10)
             self.assertTrue(all(loss < 10.0 for loss in result.train_losses))
             # Training loss should decrease
             self.assertLess(result.train_losses[-1], result.train_losses[0])
@@ -143,7 +149,6 @@ class TestEndToEndTransformerPipeline(unittest.TestCase):
                 # Note: With minimal training (3 epochs), model may output only special
                 # tokens which get stripped to empty string. This is expected behavior.
                 # We just verify the inference pipeline runs without errors.
-
 
     def test_full_pipeline_with_sentencepiece(self):
         """Test complete pipeline with SentencePiece tokenization."""
@@ -258,7 +263,10 @@ class TestEndToEndTransformerPipeline(unittest.TestCase):
             self.assertEqual(len(result.train_losses), 2)
 
             # 8. Test inference
-            test_sentences = ["transformers use attention", "pytorch makes learning easier"]
+            test_sentences = [
+                "transformers use attention",
+                "pytorch makes learning easier",
+            ]
             translations = translate_batch(
                 model,
                 test_sentences,

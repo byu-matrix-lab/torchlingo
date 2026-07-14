@@ -66,6 +66,9 @@ class NMTDataset(Dataset):
         df (pd.DataFrame): Loaded and cleaned dataframe.
         src_sentences (list[str]): Raw source sentences.
         tgt_sentences (list[str]): Raw target sentences.
+        src_texts (list[str]): Text used for vocab building and encoding —
+            the pre-tokenized columns when present, else the raw sentences.
+        tgt_texts (list[str]): Target-side counterpart of src_texts.
         src_vocab (BaseVocab): Source vocabulary.
         tgt_vocab (BaseVocab): Target vocabulary.
         has_tokenized (bool): Whether pre-tokenized columns exist in data.
@@ -100,7 +103,9 @@ class NMTDataset(Dataset):
         # Ensure columns exist before manipulating them
         if self.src_col not in self.df.columns or self.tgt_col not in self.df.columns:
             raise ValueError(
-                f"Data file {data_file} must contain columns '{self.src_col}' and '{self.tgt_col}'"
+                f"Data file {data_file} must contain columns '{self.src_col}' and "
+                f"'{self.tgt_col}', but has columns {self.df.columns.tolist()}. "
+                "Pass src_col/tgt_col (or set them on your Config) to match your file."
             )
 
         # Normalize columns: replace NaN with empty string, strip whitespace,
@@ -125,26 +130,25 @@ class NMTDataset(Dataset):
         self.src_sentences = self.df[self.src_col].astype(str).tolist()
         self.tgt_sentences = self.df[self.tgt_col].astype(str).tolist()
 
+        # Text actually fed to the vocabularies: pre-tokenized columns when
+        # available, raw sentences otherwise. Vocab building and encoding must
+        # use the same text or out-of-vocabulary rates explode.
+        if self.has_tokenized:
+            self.src_texts = [" ".join(t.split()) for t in self.src_tokenized]
+            self.tgt_texts = [" ".join(t.split()) for t in self.tgt_tokenized]
+        else:
+            self.src_texts = self.src_sentences
+            self.tgt_texts = self.tgt_sentences
+
         self.src_vocab = src_vocab
         self.tgt_vocab = tgt_vocab
 
-        if self.src_vocab is None or self.tgt_vocab is None:
-            if self.src_vocab is None:
-                self.src_vocab = SimpleVocab()
-                if self.has_tokenized:
-                    self.src_vocab.build_vocab(
-                        [" ".join(t.split()) for t in self.src_tokenized]
-                    )
-                else:
-                    self.src_vocab.build_vocab(self.src_sentences)
-            if self.tgt_vocab is None:
-                self.tgt_vocab = SimpleVocab()
-                if self.has_tokenized:
-                    self.tgt_vocab.build_vocab(
-                        [" ".join(t.split()) for t in self.tgt_tokenized]
-                    )
-                else:
-                    self.tgt_vocab.build_vocab(self.tgt_sentences)
+        if self.src_vocab is None:
+            self.src_vocab = SimpleVocab()
+            self.src_vocab.build_vocab(self.src_texts)
+        if self.tgt_vocab is None:
+            self.tgt_vocab = SimpleVocab()
+            self.tgt_vocab.build_vocab(self.tgt_texts)
 
     def __len__(self) -> int:
         """Return the number of samples in the dataset.
@@ -178,8 +182,8 @@ class NMTDataset(Dataset):
             AssertionError: If vocabularies have not been initialized.
             IndexError: If idx is out of range.
         """
-        src_sentence = self.src_sentences[idx]
-        tgt_sentence = self.tgt_sentences[idx]
+        src_sentence = self.src_texts[idx]
+        tgt_sentence = self.tgt_texts[idx]
 
         assert self.src_vocab is not None and self.tgt_vocab is not None
 

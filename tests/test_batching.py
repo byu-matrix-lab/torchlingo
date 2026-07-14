@@ -77,7 +77,7 @@ class TestBucketBatchSamplerInitialization(unittest.TestCase):
 
     def test_sampler_init_with_default_boundaries(self):
         """Sampler should calculate boundaries if not provided."""
-        sampler = BucketBatchSampler(self.dataset, batch_size=2)
+        sampler = BucketBatchSampler(self.dataset, batch_size=1)
         self.assertIsNotNone(sampler.bucket_boundaries)
         self.assertIsInstance(sampler.bucket_boundaries, list)
         self.assertGreater(len(sampler.bucket_boundaries), 0)
@@ -175,7 +175,7 @@ class TestBucketBatchSamplerBucketing(unittest.TestCase):
 
     def test_buckets_respect_default_boundaries(self):
         """Buckets created with default boundaries should respect those boundaries."""
-        sampler = BucketBatchSampler(self.dataset, batch_size=2)
+        sampler = BucketBatchSampler(self.dataset, batch_size=1)
         boundaries = sampler.bucket_boundaries
         # For each bucket, ensure lengths fall into the expected ranges
         for b_idx, bucket in enumerate(sampler.buckets):
@@ -456,6 +456,75 @@ class TestCreateDataloadersParallelConversion(unittest.TestCase):
             use_bucketing=True,
         )
         self.assertIsNotNone(train_loader)
+
+
+class TestZeroBatchHandling(unittest.TestCase):
+    """Test that zero-batch configurations fail loudly instead of silently."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.data_file = Path(self.temp_dir.name) / "data.tsv"
+        # Classroom-sized dataset: 5 examples, far fewer than default batch_size
+        data = {
+            "src": ["a", "a b", "a b c", "a b c d", "a b c d e"],
+            "tgt": ["x", "x y", "x y z", "x y z w", "x y z w v"],
+        }
+        pd.DataFrame(data).to_csv(self.data_file, sep="\t", index=False)
+        self.dataset = NMTDataset(self.data_file, src_col="src", tgt_col="tgt")
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_sampler_raises_when_batch_size_exceeds_dataset(self):
+        """Sampler should raise ValueError when batch_size > dataset size."""
+        with self.assertRaises(ValueError):
+            BucketBatchSampler(self.dataset, batch_size=64)
+
+    def test_sampler_raises_when_no_bucket_fills_a_batch(self):
+        """Sampler should raise when buckets exist but none fills a batch."""
+        # With SOS/EOS, source lengths are 3-7. Boundaries [5] split them
+        # into buckets of 3 and 2 examples, so batch_size=4 yields zero
+        # complete batches.
+        with self.assertRaises(ValueError):
+            BucketBatchSampler(self.dataset, batch_size=4, bucket_boundaries=[5])
+
+    def test_sampler_error_message_suggests_smaller_batch_size(self):
+        """The error should mention batch_size so students know how to fix it."""
+        with self.assertRaises(ValueError) as ctx:
+            BucketBatchSampler(self.dataset, batch_size=64)
+        message = str(ctx.exception)
+        self.assertIn("batch_size", message)
+        self.assertIn("0 batches", message)
+
+    def test_sampler_succeeds_when_a_bucket_fills_a_batch(self):
+        """No error when at least one complete batch can be formed."""
+        sampler = BucketBatchSampler(self.dataset, batch_size=5, bucket_boundaries=[10])
+        self.assertEqual(len(sampler), 1)
+        batches = list(sampler)
+        self.assertEqual(len(batches), 1)
+        self.assertEqual(len(batches[0]), 5)
+
+    def test_create_dataloaders_raises_with_bucketing_and_large_batch_size(self):
+        """create_dataloaders should raise instead of returning an empty loader."""
+        with self.assertRaises(ValueError):
+            create_dataloaders(
+                self.data_file,
+                batch_size=64,
+                num_workers=0,
+                use_bucketing=True,
+            )
+
+    def test_create_dataloaders_without_bucketing_keeps_partial_batch(self):
+        """Without bucketing, a small dataset still yields one partial batch."""
+        train_loader, _, _, _ = create_dataloaders(
+            self.data_file,
+            batch_size=64,
+            num_workers=0,
+            use_bucketing=False,
+        )
+        batches = list(train_loader)
+        self.assertEqual(len(batches), 1)
+        self.assertEqual(batches[0][0].shape[0], 5)
 
 
 class TestCollateFnEdgeCases(unittest.TestCase):
