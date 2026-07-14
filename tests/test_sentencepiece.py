@@ -125,6 +125,32 @@ class TrainSentencepieceTests(unittest.TestCase):
             ids = proc.encode("src_only_token")
             self.assertTrue(all(i != proc.unk_id() for i in ids))
 
+    def test_user_defined_symbols_encode_as_single_piece(self):
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td)
+            cfg = Config(
+                data_dir=tmp,
+                sentencepiece_model_prefix=str(tmp / "sp_tags"),
+                vocab_size=64,
+            )
+            train_file, _, _ = _make_parallel(tmp)
+
+            train_sentencepiece(
+                [train_file],
+                cfg.sentencepiece_model_prefix,
+                user_defined_symbols=["<2es>", "<2fr>"],
+                config=cfg,
+            )
+
+            proc = spm.SentencePieceProcessor()
+            proc.load(cfg.sentencepiece_model)
+            for tag in ["<2es>", "<2fr>"]:
+                # The tag must exist as a known vocabulary piece
+                self.assertNotEqual(proc.piece_to_id(tag), proc.unk_id())
+                # Encoding must keep the tag as one piece, never split it
+                pieces = proc.encode(f"{tag} hello world", out_type=str)
+                self.assertIn(tag, pieces)
+
     def test_uses_vocab_size_limit(self):
         with tempfile.TemporaryDirectory() as td:
             tmp = Path(td)

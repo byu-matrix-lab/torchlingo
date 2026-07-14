@@ -5,52 +5,99 @@ Load the best checkpoint and translate Cebuano sentences to Mandarin Chinese.
 """
 
 import argparse
+import os
+import tempfile
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import torch
 import pandas as pd
 
 from torchlingo.config import Config
+from torchlingo.checkpoint import CHECKPOINT_FORMAT, load_checkpoint
 from torchlingo.data_processing.vocab import SentencePieceVocab
 from torchlingo.models import SimpleTransformer
 from torchlingo.inference import translate_batch
 
 
+def _sp_vocab_from_bytes(model_bytes: bytes, cfg: Config) -> SentencePieceVocab:
+    """Build a SentencePieceVocab from raw .model bytes bundled in a checkpoint."""
+    with tempfile.NamedTemporaryFile(suffix=".model", delete=False) as f:
+        f.write(model_bytes)
+        tmp = f.name
+    try:
+        return SentencePieceVocab(tmp, config=cfg)
+    finally:
+        os.unlink(tmp)
+
+
 def load_model_and_vocabs(
     checkpoint_path: Path,
-    src_model_path: Path,
-    tgt_model_path: Path,
+    src_model_path: Optional[Path],
+    tgt_model_path: Optional[Path],
     cfg: Config,
     device: torch.device,
 ) -> tuple[SimpleTransformer, SentencePieceVocab, SentencePieceVocab]:
     """Load trained model and vocabularies.
 
+    Self-describing checkpoints (saved by the training scripts) carry their own
+    SentencePiece tokenizers and architecture config, so the matching tokenizer
+    is always used — this is the safe default. For a legacy bare ``state_dict``
+    checkpoint, ``src_model_path``/``tgt_model_path`` must be supplied and must
+    match the tokenizer the model was trained with.
+
     Args:
         checkpoint_path: Path to model checkpoint (.pt file).
-        src_model_path: Path to source SentencePiece model.
-        tgt_model_path: Path to target SentencePiece model.
-        cfg: Configuration object.
+        src_model_path: Path to source SentencePiece model (legacy checkpoints
+            only; ignored when the checkpoint bundles its own tokenizer).
+        tgt_model_path: Path to target SentencePiece model (legacy only).
+        cfg: Configuration object (used for legacy model dims and special tokens).
         device: Device to load model on.
 
     Returns:
         Tuple of (model, src_vocab, tgt_vocab).
+
+    Raises:
+        ValueError: If a legacy checkpoint is loaded without SentencePiece paths.
     """
-    print("Loading vocabularies...")
-    src_vocab = SentencePieceVocab(str(src_model_path), config=cfg)
-    tgt_vocab = SentencePieceVocab(str(tgt_model_path), config=cfg)
+    print(f"Loading checkpoint from {checkpoint_path}...")
+    ckpt = load_checkpoint(checkpoint_path, map_location=device)
+
+    if ckpt.get("format") == CHECKPOINT_FORMAT and "src_sp_model" in ckpt:
+        print("  Self-describing checkpoint: using bundled tokenizer + config.")
+        if src_model_path is not None or tgt_model_path is not None:
+            print(
+                "  Note: --src-model/--tgt-model are ignored; the checkpoint's "
+                "own tokenizer is used to guarantee a match."
+            )
+        src_vocab = _sp_vocab_from_bytes(ckpt["src_sp_model"], cfg)
+        tgt_vocab = _sp_vocab_from_bytes(ckpt["tgt_sp_model"], cfg)
+        mc = dict(ckpt["model_config"])
+        # config= supplies special-token indices / dropout defaults; explicit
+        # bundled dims override them.
+        model = SimpleTransformer(config=cfg, **mc)
+        state_dict = ckpt["model_state_dict"]
+    else:
+        print("  Legacy checkpoint (bare weights): loading tokenizer from --src/--tgt-model.")
+        if src_model_path is None or tgt_model_path is None:
+            raise ValueError(
+                "This checkpoint does not bundle a tokenizer. Provide --src-model "
+                "and --tgt-model pointing at the SentencePiece models the checkpoint "
+                "was trained with (mismatched same-size vocabularies silently "
+                "produce nonsense)."
+            )
+        src_vocab = SentencePieceVocab(str(src_model_path), config=cfg)
+        tgt_vocab = SentencePieceVocab(str(tgt_model_path), config=cfg)
+        model = SimpleTransformer(
+            src_vocab_size=len(src_vocab),
+            tgt_vocab_size=len(tgt_vocab),
+            config=cfg,
+        )
+        state_dict = ckpt["model_state_dict"]
+
     print(f"  Source vocab size: {len(src_vocab):,}")
     print(f"  Target vocab size: {len(tgt_vocab):,}")
 
-    print("\nInitializing model...")
-    model = SimpleTransformer(
-        src_vocab_size=len(src_vocab),
-        tgt_vocab_size=len(tgt_vocab),
-        config=cfg,
-    )
-
-    print(f"Loading checkpoint from {checkpoint_path}...")
-    state_dict = torch.load(checkpoint_path, map_location=device, weights_only=True)
     model.load_state_dict(state_dict)
     model = model.to(device)
     model.eval()
@@ -263,12 +310,12 @@ def main():
     parser.add_argument('--checkpoint', type=str,
                         default='checkpoints/ceb_cmn/model_best.pt',
                         help='Path to model checkpoint (default: checkpoints/ceb_cmn/model_best.pt)')
-    parser.add_argument('--src-model', type=str,
-                        default='data/sp_ceb.model',
-                        help='Path to source SentencePiece model (default: data/sp_ceb.model)')
-    parser.add_argument('--tgt-model', type=str,
-                        default='data/sp_cmn.model',
-                        help='Path to target SentencePiece model (default: data/sp_cmn.model)')
+    parser.add_argument('--src-model', type=str, default=None,
+                        help='Source SentencePiece model. Only needed for legacy '
+                             'checkpoints that do not bundle a tokenizer; must match '
+                             'the model the checkpoint was trained with.')
+    parser.add_argument('--tgt-model', type=str, default=None,
+                        help='Target SentencePiece model (legacy checkpoints only).')
 
     # Translation mode
     parser.add_argument('--mode', type=str, default='interactive',
@@ -312,7 +359,10 @@ def main():
     if args.decode_strategy == 'beam':
         print(f"Beam size: {args.beam_size}")
 
-    # Configuration (must match training config)
+    # Special-token indices and column names. Model architecture dims come from
+    # the checkpoint bundle when present; the dims below are only used as a
+    # fallback for legacy bare-state_dict checkpoints (and must then match how
+    # that checkpoint was trained).
     cfg = Config(
         d_model=512,
         n_heads=8,
@@ -328,8 +378,8 @@ def main():
     # Load model and vocabularies
     model, src_vocab, tgt_vocab = load_model_and_vocabs(
         Path(args.checkpoint),
-        Path(args.src_model),
-        Path(args.tgt_model),
+        Path(args.src_model) if args.src_model else None,
+        Path(args.tgt_model) if args.tgt_model else None,
         cfg,
         device,
     )

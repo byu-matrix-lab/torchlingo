@@ -11,7 +11,6 @@ from pathlib import Path
 
 import pandas as pd
 import torch
-import torch.nn as nn
 import torch.optim as optim
 
 from torchlingo.config import Config
@@ -122,9 +121,7 @@ class TestTransformerConvergence(unittest.TestCase):
                 config=cfg,
             )
 
-            result = train_model(
-                model, train_loader=loader, num_epochs=15, config=cfg
-            )
+            result = train_model(model, train_loader=loader, num_epochs=15, config=cfg)
 
             # Check that loss generally trends downward
             losses = result.train_losses
@@ -176,9 +173,7 @@ class TestLSTMConvergence(unittest.TestCase):
                 config=cfg,
             )
 
-            result = train_model(
-                model, train_loader=loader, num_epochs=15, config=cfg
-            )
+            result = train_model(model, train_loader=loader, num_epochs=15, config=cfg)
 
             # Loss should decrease
             initial_loss = result.train_losses[0]
@@ -514,8 +509,6 @@ class TestValidationAndEarlyStopping(unittest.TestCase):
             self.assertIsNotNone(result.best_checkpoint)
             self.assertTrue(result.best_checkpoint.exists())
 
-            # Best checkpoint should correspond to min val loss
-            min_val_loss = min(result.val_losses)
             # Load checkpoint and verify it's valid
             checkpoint = torch.load(result.best_checkpoint, weights_only=True)
             self.assertIsInstance(checkpoint, dict)
@@ -533,12 +526,10 @@ class TestModelCapacity(unittest.TestCase):
             data = pd.DataFrame(
                 {
                     "src": [
-                        f"sentence number {i} with unique content"
-                        for i in range(30)
+                        f"sentence number {i} with unique content" for i in range(30)
                     ],
                     "tgt": [
-                        f"oracion numero {i} con contenido unico"
-                        for i in range(30)
+                        f"oracion numero {i} con contenido unico" for i in range(30)
                     ],
                 }
             )

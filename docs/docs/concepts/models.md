@@ -217,19 +217,19 @@ model = SimpleTransformer(
 
 Since attention processes all positions simultaneously, the model has no sense of order. **Positional encodings** add position information:
 
-TorchLingo uses **Rotary Position Embeddings (RoPE)**, which encode position in the attention computation itself:
+TorchLingo uses the **sinusoidal positional encoding** from the original Transformer paper, added to the token embeddings:
 
 ```python
-from torchlingo.models.positional import RoPEEmbedding
+from torchlingo.models.positional import SinusoidalPositionalEncoding
 
-rope = RoPEEmbedding(d_model=512, max_seq_length=2048)
+pos_enc = SinusoidalPositionalEncoding(d_model=512, max_seq_len=2048)
 ```
 
-RoPE advantages:
+Sinusoidal encoding advantages:
 
-- Works with any sequence length
-- Captures relative positions naturally
-- Better extrapolation to longer sequences
+- No learned parameters — produces valid values for any position
+- For a fixed offset, encodings are related by a simple rotation, so the model can learn to attend by relative position
+- The classic, well-understood baseline from "Attention Is All You Need"
 
 ### Masking
 

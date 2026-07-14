@@ -20,6 +20,7 @@ from . import preprocessing
 from . import training
 from . import inference
 from . import evaluation
+from . import checkpoint
 
 __all__ = [
     "__version__",
@@ -30,4 +31,5 @@ __all__ = [
     "training",
     "inference",
     "evaluation",
+    "checkpoint",
 ]

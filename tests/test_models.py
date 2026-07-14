@@ -39,7 +39,7 @@ class TestTransformerInitialization(unittest.TestCase):
         )
         self.assertIsNotNone(model.src_tok_emb)
         self.assertIsNotNone(model.tgt_tok_emb)
-        self.assertIsNotNone(model.pos_encoder)
+        self.assertIsNotNone(model.pos_encoding)
         self.assertIsNotNone(model.transformer)
         self.assertIsNotNone(model.generator)
 

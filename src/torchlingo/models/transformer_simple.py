@@ -1,9 +1,9 @@
-"""Simple transformer-based sequence-to-sequence model with RoPE embeddings.
+"""Simple transformer-based sequence-to-sequence model.
 
 This module implements a basic transformer encoder-decoder architecture for
-sequence-to-sequence tasks such as neural machine translation. It uses rotary
-position embeddings (RoPE) for efficient position encoding and PyTorch's built-in
-Transformer layers with batch-first computation.
+sequence-to-sequence tasks such as neural machine translation. It uses the
+classic sinusoidal positional encoding from "Attention is All You Need" and
+PyTorch's built-in Transformer layers with batch-first computation.
 
 The model automatically generates causal masks for the decoder and padding masks
 for both encoder and decoder based on vocabulary padding indices.
@@ -18,7 +18,6 @@ Typical usage:
 
 References:
     - Vaswani et al. (2017): "Attention is All You Need"
-    - Su et al. (2024): "RoFormer: Enhanced Transformer with Rotary Position Embedding"
 """
 
 from typing import Optional, Tuple
@@ -26,15 +25,15 @@ import math
 import torch
 import torch.nn as nn
 from ..config import Config, get_default_config
-from .positional import PositionalEncoding
+from .positional import SinusoidalPositionalEncoding
 
 
 class SimpleTransformer(nn.Module):
-    """Transformer encoder-decoder model with rotary positional embeddings.
+    """Transformer encoder-decoder model with sinusoidal positional encoding.
 
     A standard transformer architecture combining an encoder and decoder, each
     composed of stacked multi-head self-attention and feed-forward layers. Uses
-    RoPE for position encoding, which improves extrapolation to longer sequences.
+    the fixed sinusoidal positional encoding from Vaswani et al. (2017).
     Embeddings are scaled by sqrt(d_model) to prevent vanishing gradients.
 
     Args:
@@ -45,7 +44,8 @@ class SimpleTransformer(nn.Module):
         num_encoder_layers (int, optional): Number of encoder transformer blocks. Defaults to 6.
         num_decoder_layers (int, optional): Number of decoder transformer blocks. Defaults to 6.
         d_ff (int, optional): Feed-forward inner dimension. Defaults to 2048.
-        max_seq_length (int, optional): Maximum sequence length for RoPE cache. Defaults to 512.
+        max_seq_length (int, optional): Maximum sequence length for the positional
+            encoding table. Defaults to 512.
         dropout (float, optional): Dropout rate throughout the model. Defaults to 0.1.
         pad_idx (int, optional): Padding token index. Falls back to config.pad_idx.
         config (Config, optional): Configuration object. Defaults to default config.
@@ -56,7 +56,7 @@ class SimpleTransformer(nn.Module):
         pad_idx (int): Resolved padding index.
         src_tok_emb (nn.Embedding): Source token embedding layer.
         tgt_tok_emb (nn.Embedding): Target token embedding layer.
-        rope (RoPEEmbedding): Rotary position embedding module.
+        pos_encoding (SinusoidalPositionalEncoding): Positional encoding module.
         transformer (nn.Transformer): PyTorch transformer with encoder and decoder.
         generator (nn.Linear): Output projection to target vocabulary logits.
     """
@@ -106,8 +106,9 @@ class SimpleTransformer(nn.Module):
         self.tgt_tok_emb = nn.Embedding(
             tgt_vocab_size, d_model, padding_idx=self.pad_idx
         )
-        self.embedding_dropout = nn.Dropout(dropout)
-        self.pos_encoder = PositionalEncoding(d_model, max_seq_length, dropout=0.0)
+        self.pos_encoding = SinusoidalPositionalEncoding(
+            d_model, max_seq_length, dropout=dropout
+        )
         self.transformer = nn.Transformer(
             d_model=d_model,
             nhead=n_heads,
@@ -138,9 +139,8 @@ class SimpleTransformer(nn.Module):
     ) -> torch.Tensor:
         """Encode source sequence using the transformer encoder.
 
-        Embeds and applies rotary position embeddings to source tokens, then passes
-        through the transformer encoder stack. Position information is encoded in
-        the embedding rotations, not as additional position embeddings.
+        Embeds source tokens, adds sinusoidal positional encodings, then passes
+        the result through the transformer encoder stack.
 
         Args:
             src (torch.Tensor): Source token indices of shape (batch_size, src_len).
@@ -165,7 +165,7 @@ class SimpleTransformer(nn.Module):
     ) -> torch.Tensor:
         """Decode target sequence using the transformer decoder and encoder output.
 
-        Embeds and applies rotary position embeddings to target tokens, then passes
+        Embeds target tokens, adds sinusoidal positional encodings, then passes
         them through the transformer decoder with cross-attention to the encoder output.
         The decoder is typically run with a causal mask to prevent attending to future tokens.
 
@@ -235,24 +235,22 @@ class SimpleTransformer(nn.Module):
         )
 
     def _embed(self, tokens: torch.Tensor, is_src: bool) -> torch.Tensor:
-        """Embed and scale tokens, then add positional encoding.
+        """Embed and scale tokens, then add sinusoidal positional encodings.
 
-        Looks up token embeddings, scales them by sqrt(d_model), adds sinusoidal
-        positional encoding, and applies dropout. Scaling prevents embedding magnitude
-        from dominating the scaled dot-product attention mechanism.
+        Looks up token embeddings and scales them by sqrt(d_model) so the
+        embedding magnitude matches the positional encoding magnitude, then
+        adds the positional encodings.
 
         Args:
             tokens (torch.Tensor): Token indices of shape (batch_size, seq_len).
             is_src (bool): If True, use source embeddings; otherwise use target embeddings.
 
         Returns:
-            torch.Tensor: Embedded tokens with positional information of shape (batch_size, seq_len, d_model).
+            torch.Tensor: Position-aware embeddings of shape (batch_size, seq_len, d_model).
         """
         tok_emb = self.src_tok_emb(tokens) if is_src else self.tgt_tok_emb(tokens)
         tok_emb = tok_emb * math.sqrt(self.d_model)
-        tok_emb = self.pos_encoder(tok_emb)
-        tok_emb = self.embedding_dropout(tok_emb)
-        return tok_emb
+        return self.pos_encoding(tok_emb)
 
 
 def create_key_padding_mask(

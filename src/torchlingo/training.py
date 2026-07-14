@@ -7,15 +7,14 @@ in `torchlingo.inference` to keep responsibilities separated.
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional
 
 import torch
-import torch.nn.functional as F
 from torch import nn, optim
 from torch.nn.utils import clip_grad_norm_
-from torch.nn.utils.rnn import pad_sequence
 
 try:
     from tqdm.auto import tqdm
@@ -139,8 +138,12 @@ def get_cosine_annealing_scheduler(
             return float(step) / float(max(1, warmup_steps))
         else:
             # Cosine annealing
-            progress = float(step - warmup_steps) / float(max(1, total_steps - warmup_steps))
-            progress = min(progress, 1.0)  # Cap at 1.0 if training goes over total_steps
+            progress = float(step - warmup_steps) / float(
+                max(1, total_steps - warmup_steps)
+            )
+            progress = min(
+                progress, 1.0
+            )  # Cap at 1.0 if training goes over total_steps
             cosine_decay = 0.5 * (1.0 + math.cos(math.pi * progress))
             return min_lr_ratio + (1.0 - min_lr_ratio) * cosine_decay
 
@@ -161,6 +164,7 @@ def train_model(
     save_dir: Optional[Path] = None,
     use_amp: bool = False,
     log_every: int = 0,
+    accumulation_steps: int = 1,
 ) -> TrainResult:
     """Train a seq2seq model with optional validation and checkpointing.
 
@@ -176,12 +180,33 @@ def train_model(
         device: Torch device. Defaults to CUDA if available else CPU.
         config: TorchLingo Config providing pad_idx, label_smoothing, etc.
         save_dir: If provided, best model (lowest val loss) is saved here.
-        use_amp: Enable automatic mixed precision for speed on GPUs.
-        log_every: If >0, prints running train loss every log_every steps.
+        use_amp: Enable automatic mixed precision for speed on GPUs. Uses
+            bfloat16 where supported (more numerically stable for transformers),
+            otherwise float16 with gradient scaling.
+        log_every: If >0, prints/logs the mean batch loss over the last
+            log_every steps (a smooth, epoch-continuous "train/loss" curve).
+        accumulation_steps: Number of micro-batches to accumulate gradients over
+            before each optimizer step. The *effective* batch size is
+            ``train_loader.batch_size * accumulation_steps``, at the memory cost
+            of a single micro-batch — useful for fitting a large effective batch
+            on a small GPU. Defaults to 1 (an optimizer step every batch).
+            Counters keyed on "steps" (num_steps, step_limit, val_interval,
+            save_interval) count optimizer steps, not micro-batches.
 
     Returns:
         TrainResult containing per-epoch losses and optional checkpoint path.
+
+    Raises:
+        ValueError: If accumulation_steps < 1.
+
+    Warns:
+        RuntimeWarning: If an epoch completes with 0 training steps because
+            train_loader yielded no batches (e.g., batch_size larger than the
+            dataset with bucketing enabled, which drops incomplete batches).
     """
+
+    if accumulation_steps < 1:
+        raise ValueError("accumulation_steps must be >= 1")
 
     cfg = config if config is not None else get_default_config()
     device = _resolve_device(device)
@@ -247,7 +272,21 @@ def train_model(
         )
     )
 
-    scaler = torch.amp.GradScaler(device=device, enabled=use_amp)
+    # Mixed-precision dtype. Prefer bfloat16 where supported: it has the same
+    # exponent range as float32, so activations/attention scores can't overflow
+    # to inf the way they can in float16 (a common cause of transformer training
+    # suddenly diverging to NaN). float16 needs loss scaling (GradScaler);
+    # bfloat16 does not, so the scaler is only enabled for the float16 path.
+    if not use_amp:
+        amp_dtype = torch.float16  # unused; autocast is disabled
+    elif device.type == "cuda":
+        amp_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+    else:
+        amp_dtype = torch.bfloat16  # CPU autocast supports bfloat16
+    use_scaler = use_amp and amp_dtype == torch.float16
+
+    scaler = torch.amp.GradScaler(device=device, enabled=use_scaler)
+    skipped_steps = 0
     best_val = float("inf")
     best_path: Optional[Path] = None
     train_losses: List[float] = []
@@ -255,6 +294,12 @@ def train_model(
     global_step = 0
     stop_training = False
     no_improve_steps = 0
+    # Accumulates loss over the current logging window. Unlike the per-epoch
+    # totals below, this is reset at each log point (not at each epoch), so the
+    # logged "train/loss" curve is continuous across epoch boundaries instead of
+    # showing a sawtooth drop whenever a per-epoch running average resets.
+    window_loss_sum = 0.0
+    window_loss_count = 0
 
     # Initialize TensorBoard writer if enabled
     writer = None
@@ -267,9 +312,13 @@ def train_model(
         model.train()
         total_train = 0.0
         steps_in_epoch = 0
+        num_batches = len(train_loader)
+        # Gradients accumulate across micro-batches, so zero them once before the
+        # accumulation window rather than before every batch.
+        opt.zero_grad()
         # Use tqdm to present a progress bar for steps in the epoch
         for step, (src, tgt) in enumerate(
-            tqdm(train_loader, desc=f"Epoch {epoch + 1}", total=len(train_loader)),
+            tqdm(train_loader, desc=f"Epoch {epoch + 1}", total=num_batches),
             start=1,
         ):
             src = src.to(device)
@@ -277,122 +326,140 @@ def train_model(
             tgt_input = tgt[:, :-1]
             tgt_output = tgt[:, 1:]
 
-            opt.zero_grad()
-            with torch.amp.autocast(device_type=device.type, enabled=use_amp):
+            with torch.amp.autocast(
+                device_type=device.type, dtype=amp_dtype, enabled=use_amp
+            ):
                 logits = model(src, tgt_input)
                 loss = loss_fn(
                     logits.reshape(-1, logits.size(-1)), tgt_output.reshape(-1)
                 )
 
-            scaler.scale(loss).backward()
-            if gradient_clip is not None:
-                scaler.unscale_(opt)
-                clip_grad_norm_(model.parameters(), gradient_clip)
-            scaler.step(opt)
-            scaler.update()
+            # Report the true per-batch loss, but divide before backward so that
+            # the gradients summed over accumulation_steps micro-batches equal the
+            # gradient of one effective batch.
+            batch_loss = loss.item()
+            scaler.scale(loss / accumulation_steps).backward()
 
-            # Step the learning rate scheduler (skip for plateau - it steps on val loss)
-            if not is_plateau_scheduler:
-                sched.step()
-
-            total_train += loss.item()
-            global_step += 1
+            total_train += batch_loss
+            window_loss_sum += batch_loss
+            window_loss_count += 1
             steps_in_epoch += 1
-            # stop when either explicit step_limit or config.num_steps reached
-            if (
-                getattr(cfg, "step_limit", None) is not None
-                and global_step >= cfg.step_limit
-            ):
-                stop_training = True
-            if (
-                getattr(cfg, "num_steps", None) is not None
-                and cfg.num_steps
-                and global_step >= cfg.num_steps
-            ):
-                stop_training = True
 
-            # Periodic validation (step-based)
-            if val_loader is not None and getattr(cfg, "val_interval", None):
-                if global_step % cfg.val_interval == 0:
-                    model.eval()
-                    total_val = 0.0
-                    with torch.no_grad():
-                        for v_src, v_tgt in val_loader:
-                            v_src = v_src.to(device)
-                            v_tgt = v_tgt.to(device)
-                            v_logits = model(v_src, v_tgt[:, :-1])
-                            v_loss = loss_fn(
-                                v_logits.reshape(-1, v_logits.size(-1)),
-                                v_tgt[:, 1:].reshape(-1),
-                            )
-                            total_val += v_loss.item()
-                    avg_val = total_val / max(1, len(val_loader))
-                    val_losses.append(avg_val)
-                    # Step plateau scheduler on validation loss
-                    if is_plateau_scheduler:
-                        sched.step(avg_val)
-                    # early stopping logic (patience)
-                    if avg_val < best_val:
-                        best_val = avg_val
-                        no_improve_steps = 0
-                        # save best checkpoint with full training state
-                        if save_dir is not None:
-                            save_dir.mkdir(parents=True, exist_ok=True)
-                            best_path = Path(save_dir) / "model_best.pt"
-                            torch.save({
-                                'epoch': epoch,
-                                'global_step': global_step,
-                                'model_state_dict': model.state_dict(),
-                                'optimizer_state_dict': opt.state_dict(),
-                                'scheduler_state_dict': sched.state_dict(),
-                                'val_loss': avg_val,
-                                'train_losses': train_losses,
-                                'val_losses': val_losses,
-                            }, best_path)
-                        else:
-                            torch.save({
-                                'epoch': epoch,
-                                'global_step': global_step,
-                                'model_state_dict': model.state_dict(),
-                                'optimizer_state_dict': opt.state_dict(),
-                                'scheduler_state_dict': sched.state_dict(),
-                                'val_loss': avg_val,
-                            }, cfg.checkpoint_path)
-                    else:
-                        no_improve_steps += 1
-                        if no_improve_steps >= getattr(cfg, "patience", 0):
-                            stop_training = True
-                    if writer is not None:
-                        writer.add_scalar("val/loss", avg_val, global_step)
-                    model.train()
-
-            # Periodic save of last checkpoint with full training state
-            if (
-                getattr(cfg, "save_interval", None)
-                and cfg.save_interval
-                and global_step % cfg.save_interval == 0
-            ):
-                if save_dir is not None:
-                    save_dir.mkdir(parents=True, exist_ok=True)
-                    last_path = Path(save_dir) / "model_last.pt"
-                    torch.save({
-                        'epoch': epoch,
-                        'global_step': global_step,
-                        'model_state_dict': model.state_dict(),
-                        'optimizer_state_dict': opt.state_dict(),
-                        'scheduler_state_dict': sched.state_dict(),
-                        'train_losses': train_losses,
-                        'val_losses': val_losses,
-                    }, last_path)
-                    best_path = last_path if best_path is None else best_path
+            # Step the optimizer once per accumulation window, and always on the
+            # final batch so no accumulated gradients are left unapplied.
+            took_step = step % accumulation_steps == 0 or step == num_batches
+            if took_step:
+                grad_finite = True
+                if gradient_clip is not None:
+                    scaler.unscale_(opt)
+                    grad_norm = clip_grad_norm_(model.parameters(), gradient_clip)
+                    # A non-finite gradient (transient overflow or a bad batch)
+                    # would otherwise corrupt the weights and turn the whole run
+                    # into NaN. Skip the update instead. The float16 GradScaler
+                    # also skips internally; this additionally protects bf16/fp32.
+                    grad_finite = bool(torch.isfinite(grad_norm))
+                if grad_finite:
+                    scaler.step(opt)
                 else:
-                    torch.save({
-                        'epoch': epoch,
-                        'global_step': global_step,
-                        'model_state_dict': model.state_dict(),
-                        'optimizer_state_dict': opt.state_dict(),
-                        'scheduler_state_dict': sched.state_dict(),
-                    }, cfg.last_checkpoint_path)
+                    skipped_steps += 1
+                scaler.update()
+                opt.zero_grad()
+
+                # Step the learning rate scheduler (skip for plateau - it steps on val loss)
+                if not is_plateau_scheduler:
+                    sched.step()
+
+                global_step += 1
+                # stop when either explicit step_limit or config.num_steps reached
+                if (
+                    getattr(cfg, "step_limit", None) is not None
+                    and global_step >= cfg.step_limit
+                ):
+                    stop_training = True
+                if (
+                    getattr(cfg, "num_steps", None) is not None
+                    and cfg.num_steps
+                    and global_step >= cfg.num_steps
+                ):
+                    stop_training = True
+
+                # Periodic validation (counted in optimizer steps)
+                if val_loader is not None and getattr(cfg, "val_interval", None):
+                    if global_step % cfg.val_interval == 0:
+                        model.eval()
+                        total_val = 0.0
+                        with torch.no_grad():
+                            for v_src, v_tgt in val_loader:
+                                v_src = v_src.to(device)
+                                v_tgt = v_tgt.to(device)
+                                v_logits = model(v_src, v_tgt[:, :-1])
+                                v_loss = loss_fn(
+                                    v_logits.reshape(-1, v_logits.size(-1)),
+                                    v_tgt[:, 1:].reshape(-1),
+                                )
+                                total_val += v_loss.item()
+                        avg_val = total_val / max(1, len(val_loader))
+                        val_losses.append(avg_val)
+                        # Step plateau scheduler on validation loss
+                        if is_plateau_scheduler:
+                            sched.step(avg_val)
+                        # early stopping logic (patience)
+                        if avg_val < best_val:
+                            best_val = avg_val
+                            no_improve_steps = 0
+                            # save best checkpoint with full training state
+                            state = {
+                                "epoch": epoch,
+                                "global_step": global_step,
+                                "model_state_dict": model.state_dict(),
+                                "optimizer_state_dict": opt.state_dict(),
+                                "scheduler_state_dict": sched.state_dict(),
+                                "val_loss": avg_val,
+                                "train_losses": train_losses,
+                                "val_losses": val_losses,
+                            }
+                            if save_dir is not None:
+                                save_dir.mkdir(parents=True, exist_ok=True)
+                                best_path = Path(save_dir) / "model_best.pt"
+                                torch.save(state, best_path)
+                            else:
+                                cfg.checkpoint_path.parent.mkdir(
+                                    parents=True, exist_ok=True
+                                )
+                                torch.save(state, cfg.checkpoint_path)
+                        else:
+                            no_improve_steps += 1
+                            if no_improve_steps >= getattr(cfg, "patience", 0):
+                                stop_training = True
+                        if writer is not None:
+                            writer.add_scalar("val/loss", avg_val, global_step)
+                        model.train()
+
+                # Periodic save of last checkpoint with full training state
+                if (
+                    getattr(cfg, "save_interval", None)
+                    and cfg.save_interval
+                    and global_step % cfg.save_interval == 0
+                ):
+                    state = {
+                        "epoch": epoch,
+                        "global_step": global_step,
+                        "model_state_dict": model.state_dict(),
+                        "optimizer_state_dict": opt.state_dict(),
+                        "scheduler_state_dict": sched.state_dict(),
+                        "train_losses": train_losses,
+                        "val_losses": val_losses,
+                    }
+                    if save_dir is not None:
+                        save_dir.mkdir(parents=True, exist_ok=True)
+                        last_path = Path(save_dir) / "model_last.pt"
+                        torch.save(state, last_path)
+                        best_path = last_path if best_path is None else best_path
+                    else:
+                        cfg.last_checkpoint_path.parent.mkdir(
+                            parents=True, exist_ok=True
+                        )
+                        torch.save(state, cfg.last_checkpoint_path)
 
             if stop_training:
                 break
@@ -400,17 +467,33 @@ def train_model(
             # logging: prefer explicit function arg, fall back to config
             effective_log = log_every if log_every else getattr(cfg, "log_interval", 0)
             if effective_log and step % effective_log == 0:
-                running = total_train / max(1, steps_in_epoch)
+                # Mean batch loss over the steps since the last log. This window
+                # spans epoch boundaries, so the curve reflects the true recent
+                # training loss rather than an epoch-cumulative average.
+                window_loss = window_loss_sum / max(1, window_loss_count)
+                window_loss_sum = 0.0
+                window_loss_count = 0
                 print(
-                    f"Epoch {epoch + 1} Step {step}/{len(train_loader)} | Train Loss: {running:.4f}"
+                    f"Epoch {epoch + 1} Step {step}/{num_batches} | Train Loss: {window_loss:.4f}"
                 )
                 if writer is not None:
-                    writer.add_scalar("train/loss", running, global_step)
+                    writer.add_scalar("train/loss", window_loss, global_step)
                     # Log learning rate from optimizer
                     for param_group in opt.param_groups:
                         writer.add_scalar(
                             "train/learning_rate", param_group["lr"], global_step
                         )
+
+        if steps_in_epoch == 0:
+            warnings.warn(
+                f"Epoch {epoch + 1} ran 0 training steps because train_loader "
+                f"yielded no batches. This usually means batch_size is larger "
+                f"than the dataset (incomplete batches are dropped when "
+                f"bucketing is enabled). Use a smaller batch_size or provide "
+                f"more training data.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
 
         # Average over steps actually run in this epoch
         avg_train = total_train / max(1, steps_in_epoch)
@@ -456,26 +539,33 @@ def train_model(
             if save_dir is not None:
                 save_dir.mkdir(parents=True, exist_ok=True)
                 best_path = Path(save_dir) / "model_best.pt"
-                torch.save({
-                    'epoch': epoch,
-                    'global_step': global_step,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': opt.state_dict(),
-                    'scheduler_state_dict': sched.state_dict(),
-                    'val_loss': avg_val,
-                    'train_losses': train_losses,
-                    'val_losses': val_losses,
-                }, best_path)
+                torch.save(
+                    {
+                        "epoch": epoch,
+                        "global_step": global_step,
+                        "model_state_dict": model.state_dict(),
+                        "optimizer_state_dict": opt.state_dict(),
+                        "scheduler_state_dict": sched.state_dict(),
+                        "val_loss": avg_val,
+                        "train_losses": train_losses,
+                        "val_losses": val_losses,
+                    },
+                    best_path,
+                )
                 print("  -> Saved best checkpoint")
             else:
-                torch.save({
-                    'epoch': epoch,
-                    'global_step': global_step,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': opt.state_dict(),
-                    'scheduler_state_dict': sched.state_dict(),
-                    'val_loss': avg_val,
-                }, cfg.checkpoint_path)
+                cfg.checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+                torch.save(
+                    {
+                        "epoch": epoch,
+                        "global_step": global_step,
+                        "model_state_dict": model.state_dict(),
+                        "optimizer_state_dict": opt.state_dict(),
+                        "scheduler_state_dict": sched.state_dict(),
+                        "val_loss": avg_val,
+                    },
+                    cfg.checkpoint_path,
+                )
         else:
             no_improve_steps += 1
             if no_improve_steps >= getattr(cfg, "patience", 0):
@@ -490,237 +580,19 @@ def train_model(
     if writer is not None:
         writer.close()
 
+    if skipped_steps:
+        warnings.warn(
+            f"Skipped {skipped_steps} optimizer step(s) due to non-finite "
+            f"gradients. Training continued, but repeated skips indicate "
+            f"instability — consider lowering the learning rate, increasing "
+            f"warmup, or reducing the model size.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+
     return TrainResult(
         train_losses=train_losses, val_losses=val_losses, best_checkpoint=best_path
     )
-
-
-def greedy_decode(
-    model: nn.Module,
-    src: torch.Tensor,
-    max_len: int = 100,
-    device: Optional[torch.device] = None,
-    config: Optional[Config] = None,
-) -> List[List[int]]:
-    """Greedy autoregressive decoding for Transformer or LSTM models.
-
-    Args:
-        model: Seq2seq model. Transformer models must expose encode/decode; LSTM
-            path uses src_embed/encoder/decoder/output modules present in
-            SimpleSeq2SeqLSTM.
-        src: Source tensor (batch, src_len).
-        max_len: Maximum decoded length (including SOS/EOS).
-        device: Torch device. Defaults to model's device or CUDA/CPU.
-        config: TorchLingo Config providing special token indices.
-
-    Returns:
-        List of decoded token ID sequences (one list per batch element).
-    """
-
-    cfg = config if config is not None else get_default_config()
-    device = device if device is not None else next(model.parameters()).device
-    model.eval()
-
-    src = src.to(device)
-    pad_mask = src.eq(cfg.pad_idx)
-
-    with torch.no_grad():
-        if hasattr(model, "encode") and hasattr(model, "decode"):
-            memory = model.encode(src, src_key_padding_mask=pad_mask)
-            ys = torch.full(
-                (src.size(0), 1), cfg.sos_idx, device=device, dtype=torch.long
-            )
-            finished = torch.zeros(src.size(0), dtype=torch.bool, device=device)
-            for _ in range(max_len):
-                tgt_mask = nn.Transformer.generate_square_subsequent_mask(
-                    ys.size(1)
-                ).to(device)
-                out = model.decode(
-                    ys,
-                    memory,
-                    src_key_padding_mask=pad_mask,
-                    tgt_key_padding_mask=ys.eq(cfg.pad_idx),
-                    tgt_mask=tgt_mask,
-                )
-                next_token = out[:, -1, :].argmax(-1)
-                ys = torch.cat([ys, next_token.unsqueeze(1)], dim=1)
-                finished |= next_token.eq(cfg.eos_idx)
-                if finished.all():
-                    break
-            return ys.tolist()
-
-        # Fallback: LSTM incremental decoding
-        if not all(
-            hasattr(model, attr)
-            for attr in ("src_embed", "encoder", "decoder", "output")
-        ):
-            raise ValueError(
-                "Model must expose encode/decode or LSTM modules for greedy decoding."
-            )
-
-        src_emb = model.src_embed(src)
-        _, (h, c) = model.encoder(src_emb)
-        outputs = torch.full(
-            (src.size(0), 1), cfg.sos_idx, device=device, dtype=torch.long
-        )
-        finished = torch.zeros(src.size(0), dtype=torch.bool, device=device)
-
-        for _ in range(max_len):
-            step_input = model.tgt_embed(outputs[:, -1:])
-            dec_out, (h, c) = model.decoder(step_input, (h, c))
-            logits = model.output(dec_out)
-            next_token = logits[:, -1, :].argmax(-1)
-            outputs = torch.cat([outputs, next_token.unsqueeze(1)], dim=1)
-            finished |= next_token.eq(cfg.eos_idx)
-            if finished.all():
-                break
-        return outputs.tolist()
-
-
-def beam_search_decode(
-    model: nn.Module,
-    src: torch.Tensor,
-    beam_size: int = 5,
-    max_len: int = 100,
-    alpha: float = 0.6,
-    device: Optional[torch.device] = None,
-    config: Optional[Config] = None,
-) -> List[int]:
-    """Beam search decoding for Transformer-style models.
-
-    Args:
-        model: Transformer model exposing encode() and decode().
-        src: Source tensor with shape (1, src_len). Batch size 1 is assumed.
-        beam_size: Number of beams to maintain.
-        max_len: Maximum generated length.
-        alpha: Length normalization factor (Wu et al., 2016).
-        device: Torch device. Defaults to model device.
-        config: TorchLingo Config for special token indices.
-
-    Returns:
-        Best decoded token ID sequence (including SOS/EOS).
-    """
-
-    cfg = config if config is not None else get_default_config()
-    device = device if device is not None else next(model.parameters()).device
-    model.eval()
-
-    if src.size(0) != 1:
-        raise ValueError("beam_search_decode currently expects batch size = 1")
-    if not (hasattr(model, "encode") and hasattr(model, "decode")):
-        raise ValueError(
-            "beam_search_decode requires a Transformer-style model with encode/decode"
-        )
-
-    src = src.to(device)
-    pad_mask = src.eq(cfg.pad_idx)
-    with torch.no_grad():
-        memory = model.encode(src, src_key_padding_mask=pad_mask)
-
-    beams: List[Tuple[List[int], float]] = [([cfg.sos_idx], 0.0)]
-    completed: List[Tuple[List[int], float]] = []
-
-    def length_norm(log_prob: float, length: int) -> float:
-        return log_prob / (((5 + length) / 6) ** alpha)
-
-    for _ in range(max_len):
-        candidates: List[Tuple[List[int], float]] = []
-        for tokens, score in beams:
-            if tokens[-1] == cfg.eos_idx:
-                completed.append((tokens, score))
-                continue
-            tgt = torch.tensor([tokens], dtype=torch.long, device=device)
-            tgt_mask = nn.Transformer.generate_square_subsequent_mask(len(tokens)).to(
-                device
-            )
-            with torch.no_grad():
-                out = model.decode(
-                    tgt,
-                    memory,
-                    src_key_padding_mask=pad_mask,
-                    tgt_key_padding_mask=tgt.eq(cfg.pad_idx),
-                    tgt_mask=tgt_mask,
-                )
-            log_probs = F.log_softmax(out[0, -1, :], dim=-1)
-            top_log_probs, top_idx = torch.topk(log_probs, beam_size)
-            for lp, idx in zip(top_log_probs.tolist(), top_idx.tolist()):
-                candidates.append((tokens + [idx], score + lp))
-
-        if not candidates:
-            break
-        candidates.sort(key=lambda x: length_norm(x[1], len(x[0])), reverse=True)
-        beams = candidates[:beam_size]
-
-        if all(tokens[-1] == cfg.eos_idx for tokens, _ in beams):
-            completed.extend(beams)
-            break
-
-    completed.extend(beams)
-    best_tokens, _ = max(completed, key=lambda x: length_norm(x[1], len(x[0])))
-    return best_tokens
-
-
-def translate_batch(
-    model: nn.Module,
-    sentences: Sequence[str],
-    src_vocab,
-    tgt_vocab,
-    decode_strategy: str = "greedy",
-    beam_size: int = 5,
-    max_len: int = 100,
-    device: Optional[torch.device] = None,
-    config: Optional[Config] = None,
-) -> List[str]:
-    """Translate a batch of raw sentences using provided vocabularies.
-
-    Args:
-        model: Seq2seq model (Transformer or LSTM).
-        sentences: Iterable of raw source sentences.
-        src_vocab: Vocabulary with encode(add_special_tokens=True).
-        tgt_vocab: Vocabulary with decode(skip_special_tokens=True).
-        decode_strategy: "greedy" or "beam".
-        beam_size: Beam width when decode_strategy == "beam".
-        max_len: Maximum generation length.
-        device: Torch device. Defaults to model device.
-        config: TorchLingo Config.
-
-    Returns:
-        List of decoded text strings aligned with input sentences.
-    """
-
-    cfg = config if config is not None else get_default_config()
-    device = device if device is not None else next(model.parameters()).device
-
-    encoded = [
-        torch.tensor(src_vocab.encode(s, add_special_tokens=True), dtype=torch.long)
-        for s in sentences
-    ]
-    padded = pad_sequence(encoded, batch_first=True, padding_value=cfg.pad_idx).to(
-        device
-    )
-
-    outputs: List[List[int]]
-    if decode_strategy == "beam":
-        outputs = []
-        for row in padded:
-            tokens = beam_search_decode(
-                model,
-                row.unsqueeze(0),
-                beam_size=beam_size,
-                max_len=max_len,
-                device=device,
-                config=cfg,
-            )
-            outputs.append(tokens)
-    else:
-        outputs = greedy_decode(
-            model, padded, max_len=max_len, device=device, config=cfg
-        )
-
-    decoded: List[str] = []
-    for token_ids in outputs:
-        decoded.append(tgt_vocab.decode(token_ids, skip_special_tokens=True))
-    return decoded
 
 
 __all__ = ["TrainResult", "train_model"]

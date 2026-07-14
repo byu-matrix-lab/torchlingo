@@ -482,5 +482,56 @@ class TestNMTDatasetConfigOverride(unittest.TestCase):
         self.assertEqual(dataset.tgt_tok_col, "other_tok")
 
 
+class TestNMTDatasetTokenizedColumns(unittest.TestCase):
+    """Test that pre-tokenized columns drive both vocab building and encoding."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.data_file = Path(self.temp_dir.name) / "data.tsv"
+        # Tokenized text differs from raw text (subword-style pieces), so any
+        # mismatch between vocab building and encoding shows up as UNK tokens.
+        # Each piece appears twice so it clears the default min_freq=2.
+        data = {
+            "src": ["unbelievable results", "unbelievable results"],
+            "tgt": ["resultados increibles", "resultados increibles"],
+            "src_tokenized": ["un believ able results", "un believ able results"],
+            "tgt_tokenized": ["resultados increi bles", "resultados increi bles"],
+        }
+        pd.DataFrame(data).to_csv(self.data_file, sep="\t", index=False)
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_encoding_uses_tokenized_text(self):
+        """Encoded samples must come from the tokenized columns, not raw text."""
+        dataset = NMTDataset(self.data_file, src_col="src", tgt_col="tgt")
+        self.assertTrue(dataset.has_tokenized)
+        self.assertEqual(dataset.src_texts[0], "un believ able results")
+
+        src_tensor, tgt_tensor = dataset[0]
+        unk = dataset.src_vocab.unk_idx
+        self.assertNotIn(unk, src_tensor.tolist())
+        self.assertNotIn(unk, tgt_tensor.tolist())
+        # SOS + 4 tokenized pieces + EOS
+        self.assertEqual(len(src_tensor), 6)
+
+    def test_vocab_built_from_tokenized_text(self):
+        """Auto-built vocab should contain tokenized pieces, not raw words."""
+        dataset = NMTDataset(self.data_file, src_col="src", tgt_col="tgt")
+        self.assertIn("believ", dataset.src_vocab.token2idx)
+        self.assertNotIn("unbelievable", dataset.src_vocab.token2idx)
+
+    def test_raw_text_used_when_no_tokenized_columns(self):
+        """Without tokenized columns, raw sentences are encoded as before."""
+        plain_file = Path(self.temp_dir.name) / "plain.tsv"
+        pd.DataFrame(
+            {"src": ["hello world", "hello again"], "tgt": ["hola mundo", "hola otra"]}
+        ).to_csv(plain_file, sep="\t", index=False)
+        dataset = NMTDataset(plain_file, src_col="src", tgt_col="tgt")
+        self.assertFalse(dataset.has_tokenized)
+        self.assertEqual(dataset.src_texts, dataset.src_sentences)
+        self.assertIn("hello", dataset.src_vocab.token2idx)
+
+
 if __name__ == "__main__":
     unittest.main()

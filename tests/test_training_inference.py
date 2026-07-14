@@ -1,4 +1,5 @@
 import math
+import types
 import unittest
 import tempfile
 from pathlib import Path
@@ -229,6 +230,217 @@ class TrainModelTests(unittest.TestCase):
             self.assertEqual(len(result.val_losses), 2)
             self.assertIsNotNone(result.best_checkpoint)
             self.assertTrue(result.best_checkpoint.exists())
+
+    def test_train_model_warns_on_zero_step_epoch(self):
+        """A loader that yields no batches should trigger a RuntimeWarning."""
+        model = DummyTransformer()
+        empty_ds = torch.utils.data.TensorDataset(
+            torch.empty(0, 3, dtype=torch.long), torch.empty(0, 3, dtype=torch.long)
+        )
+        empty_loader = torch.utils.data.DataLoader(empty_ds, batch_size=2)
+        with self.assertWarns(RuntimeWarning):
+            result = train_model(
+                model,
+                train_loader=empty_loader,
+                val_loader=None,
+                num_epochs=1,
+                save_dir=None,
+            )
+        self.assertEqual(len(result.train_losses), 1)
+
+    def test_logged_train_loss_is_windowed_and_epoch_continuous(self):
+        """train/loss should be the mean batch loss over the logging window,
+        carried across epoch boundaries (not a per-epoch cumulative average
+        that resets and produces a sawtooth drop each epoch)."""
+
+        class _RecordingLoss(torch.nn.Module):
+            def __init__(self, base):
+                super().__init__()
+                self.base = base
+                self.values = []
+
+            def forward(self, logits, target):
+                loss = self.base(logits, target)
+                self.values.append(loss.item())
+                return loss
+
+        records: dict[str, list] = {}
+
+        class _FakeWriter:
+            def __init__(self, *a, **k):
+                pass
+
+            def add_scalar(self, tag, value, step):
+                records.setdefault(tag, []).append((step, value))
+
+            def close(self):
+                pass
+
+        # 3 single-sample batches per epoch, 2 epochs, log every 2 steps.
+        src = torch.tensor([[2, 5, 3], [2, 6, 3], [2, 7, 3]], dtype=torch.long)
+        tgt = torch.tensor([[2, 8, 3], [2, 9, 3], [2, 4, 3]], dtype=torch.long)
+        loader = torch.utils.data.DataLoader(
+            torch.utils.data.TensorDataset(src, tgt), batch_size=1, shuffle=False
+        )
+
+        cfg = get_default_config()
+        cfg.use_tensorboard = True
+        criterion = _RecordingLoss(torch.nn.CrossEntropyLoss(ignore_index=cfg.pad_idx))
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg.tensorboard_dir = Path(tmpdir)
+            with mock.patch("torchlingo.training.SummaryWriter", _FakeWriter):
+                train_model(
+                    DummyTransformer(),
+                    train_loader=loader,
+                    val_loader=None,
+                    num_epochs=2,
+                    criterion=criterion,
+                    config=cfg,
+                    log_every=2,
+                    save_dir=None,
+                )
+
+        losses = criterion.values  # per-step batch losses, in order
+        logged = [v for _tag_step, v in records.get("train/loss", [])]
+
+        # Logs fire at step 2 of each epoch. Window 1 = steps 1-2 of epoch 1.
+        # Window 2 spans the epoch boundary: step 3 of epoch 1 plus steps 1-2 of
+        # epoch 2 (3 batches) -> mean of losses[2], losses[3], losses[4]. The
+        # old per-epoch average would instead reset and report mean(losses[3],
+        # losses[4]); including losses[2] proves the window is epoch-continuous.
+        self.assertEqual(len(logged), 2)
+        self.assertAlmostEqual(logged[0], sum(losses[0:2]) / 2, places=5)
+        self.assertAlmostEqual(logged[1], sum(losses[2:5]) / 3, places=5)
+
+    def test_accumulation_rejects_invalid_steps(self):
+        with self.assertRaises(ValueError):
+            train_model(
+                DummyTransformer(),
+                train_loader=_toy_loader(),
+                num_epochs=1,
+                accumulation_steps=0,
+            )
+
+    def test_accumulation_optimizer_step_count_with_partial_window(self):
+        """With 5 batches and accumulation_steps=2, the optimizer steps at
+        batches 2, 4, and 5 (the final partial window is flushed) -> 3 steps."""
+        model = DummyTransformer()
+        src = torch.tensor([[2, 5, 3]] * 5, dtype=torch.long)
+        tgt = torch.tensor([[2, 8, 3]] * 5, dtype=torch.long)
+        loader = torch.utils.data.DataLoader(
+            torch.utils.data.TensorDataset(src, tgt), batch_size=1, shuffle=False
+        )
+        opt = torch.optim.SGD(model.parameters(), lr=0.0)
+        calls = {"n": 0}
+        real_step = opt.step
+
+        def counting_step(self, *a, **k):
+            calls["n"] += 1
+            return real_step(*a, **k)
+
+        # torch's LR schedulers wrap opt.step for call tracking and expect it
+        # to be a bound method (they read step.__func__); a plain function
+        # assigned directly would break that. types.MethodType keeps it bound.
+        opt.step = types.MethodType(counting_step, opt)
+        train_model(
+            model,
+            train_loader=loader,
+            num_epochs=1,
+            optimizer=opt,
+            accumulation_steps=2,
+            save_dir=None,
+        )
+        self.assertEqual(calls["n"], 3)
+
+    def test_accumulation_matches_large_batch_update(self):
+        """accumulation_steps=k over k equal micro-batches gives the same
+        parameter update as a single batch of k x the size (no padding)."""
+        from torchlingo.models import SimpleTransformer
+
+        def make_model():
+            torch.manual_seed(123)
+            return SimpleTransformer(
+                src_vocab_size=20,
+                tgt_vocab_size=20,
+                d_model=16,
+                n_heads=2,
+                num_encoder_layers=1,
+                num_decoder_layers=1,
+                d_ff=32,
+                dropout=0.0,  # determinism
+            )
+
+        torch.manual_seed(0)
+        # Fixed-length, pad-free samples so per-micro-batch token counts match.
+        src = torch.randint(4, 20, (4, 5), dtype=torch.long)
+        tgt = torch.randint(4, 20, (4, 6), dtype=torch.long)
+        ds = torch.utils.data.TensorDataset(src, tgt)
+
+        # A: two micro-batches of 2, accumulate 2 -> one optimizer step.
+        model_a = make_model()
+        opt_a = torch.optim.SGD(model_a.parameters(), lr=0.1)
+        train_model(
+            model_a,
+            torch.utils.data.DataLoader(ds, batch_size=2, shuffle=False),
+            num_epochs=1,
+            optimizer=opt_a,
+            accumulation_steps=2,
+            save_dir=None,
+        )
+
+        # B: one batch of 4 -> one optimizer step.
+        model_b = make_model()
+        opt_b = torch.optim.SGD(model_b.parameters(), lr=0.1)
+        train_model(
+            model_b,
+            torch.utils.data.DataLoader(ds, batch_size=4, shuffle=False),
+            num_epochs=1,
+            optimizer=opt_b,
+            accumulation_steps=1,
+            save_dir=None,
+        )
+
+        for (n_a, p_a), (_n_b, p_b) in zip(
+            model_a.named_parameters(), model_b.named_parameters()
+        ):
+            self.assertTrue(
+                torch.allclose(p_a, p_b, atol=1e-6),
+                msg=f"param {n_a} differs between accumulation and large-batch",
+            )
+
+    def test_nonfinite_gradient_skips_optimizer_step(self):
+        """A non-finite gradient norm must skip the update (not poison weights)
+        and surface a RuntimeWarning."""
+        model = DummyTransformer()
+        loader = _toy_loader()  # single batch
+        opt = torch.optim.SGD(model.parameters(), lr=1.0)
+        calls = {"n": 0}
+        real_step = opt.step
+
+        def counting_step(self, *a, **k):
+            calls["n"] += 1
+            return real_step(*a, **k)
+
+        # torch's LR schedulers wrap opt.step for call tracking and expect it
+        # to be a bound method (they read step.__func__); a plain function
+        # assigned directly would break that. types.MethodType keeps it bound.
+        opt.step = types.MethodType(counting_step, opt)
+        # Force the clipped grad norm to look non-finite.
+        with mock.patch(
+            "torchlingo.training.clip_grad_norm_",
+            return_value=torch.tensor(float("inf")),
+        ):
+            with self.assertWarns(RuntimeWarning):
+                train_model(
+                    model,
+                    train_loader=loader,
+                    num_epochs=1,
+                    optimizer=opt,
+                    gradient_clip=1.0,
+                    save_dir=None,
+                )
+        self.assertEqual(calls["n"], 0)  # every step skipped
 
     def test_train_model_honors_gradient_clip(self):
         model = DummyTransformer()

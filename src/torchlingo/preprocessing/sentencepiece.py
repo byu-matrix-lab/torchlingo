@@ -30,6 +30,7 @@ def train_sentencepiece(
     unk_token: str = None,
     sos_token: str = None,
     eos_token: str = None,
+    user_defined_symbols: Optional[List[str]] = None,
     config: Config = None,
 ):
     """Train a SentencePiece tokenization model on raw text data.
@@ -60,6 +61,9 @@ def train_sentencepiece(
         unk_token (str, optional): Unknown token string. Falls back to config.unk_token.
         sos_token (str, optional): Start-of-sequence token string. Falls back to config.sos_token.
         eos_token (str, optional): End-of-sequence token string. Falls back to config.eos_token.
+        user_defined_symbols (List[str], optional): Symbols to register as whole
+            vocabulary pieces that are never split during tokenization. Useful
+            for multilingual language tags (e.g., ['<2es>', '<2fr>']).
         config (Config, optional): Configuration object. Falls back to get_default_config().
 
     Side Effects:
@@ -124,6 +128,7 @@ def train_sentencepiece(
             unk_piece=unk_token,
             bos_piece=sos_token,
             eos_piece=eos_token,
+            user_defined_symbols=user_defined_symbols or [],
         )
         print(f"SentencePiece model saved to {model_prefix}.model")
     finally:

@@ -16,22 +16,22 @@ from .multilingual import add_language_tags
 
 # Default language tags following mBART/M2M-100 convention
 DEFAULT_LANGUAGE_TAGS = {
-    'es': '<2es>',  # Spanish
-    'fr': '<2fr>',  # French
-    'de': '<2de>',  # German
-    'zh': '<2zh>',  # Chinese
-    'ja': '<2ja>',  # Japanese
-    'ar': '<2ar>',  # Arabic
-    'ru': '<2ru>',  # Russian
-    'pt': '<2pt>',  # Portuguese
-    'it': '<2it>',  # Italian
-    'nl': '<2nl>',  # Dutch
-    'ko': '<2ko>',  # Korean
-    'tr': '<2tr>',  # Turkish
-    'pl': '<2pl>',  # Polish
-    'vi': '<2vi>',  # Vietnamese
-    'th': '<2th>',  # Thai
-    'hi': '<2hi>',  # Hindi
+    "es": "<2es>",  # Spanish
+    "fr": "<2fr>",  # French
+    "de": "<2de>",  # German
+    "zh": "<2zh>",  # Chinese
+    "ja": "<2ja>",  # Japanese
+    "ar": "<2ar>",  # Arabic
+    "ru": "<2ru>",  # Russian
+    "pt": "<2pt>",  # Portuguese
+    "it": "<2it>",  # Italian
+    "nl": "<2nl>",  # Dutch
+    "ko": "<2ko>",  # Korean
+    "tr": "<2tr>",  # Turkish
+    "pl": "<2pl>",  # Polish
+    "vi": "<2vi>",  # Vietnamese
+    "th": "<2th>",  # Thai
+    "hi": "<2hi>",  # Hindi
 }
 
 
@@ -76,7 +76,7 @@ def add_language_tags_multi(
     tags = language_tags if language_tags is not None else DEFAULT_LANGUAGE_TAGS
 
     if target_lang not in tags:
-        available = ', '.join(sorted(tags.keys()))
+        available = ", ".join(sorted(tags.keys()))
         raise ValueError(
             f"Unknown target language: '{target_lang}'. "
             f"Available languages: {available}"
@@ -235,11 +235,13 @@ def save_multilingual_splits(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Process each split
-    for split, filename in [('train', train_file), ('val', val_file), ('test', test_file)]:
+    for split, filename in [
+        ("train", train_file),
+        ("val", val_file),
+        ("test", test_file),
+    ]:
         split_sources = {
-            lang: paths[split]
-            for lang, paths in data_sources.items()
-            if split in paths
+            lang: paths[split] for lang, paths in data_sources.items() if split in paths
         }
 
         if not split_sources:
@@ -261,7 +263,10 @@ def save_multilingual_splits(
 def get_language_tags_from_vocab(vocab) -> List[str]:
     """Extract language tags from vocabulary.
 
-    Scans vocabulary for tokens matching language tag pattern (<2XX>).
+    Scans vocabulary for tokens matching the language tag pattern <2X>, where
+    X is 1-3 letters in either case. This covers both the ISO-code convention
+    used by this module (e.g., '<2es>', '<2fr>') and the bidirectional config
+    defaults used by preprocessing.multilingual (e.g., '<2X>', '<2E>').
 
     Args:
         vocab: Vocabulary object (SimpleVocab or SentencePieceVocab).
@@ -278,21 +283,22 @@ def get_language_tags_from_vocab(vocab) -> List[str]:
     """
     import re
 
-    # Language tag pattern: <2XX> where XX is 2-3 letters
-    pattern = re.compile(r'<2[a-z]{2,3}>')
+    # Language tag pattern: <2X> where X is 1-3 letters, either case
+    # (covers ISO codes like <2es> and config defaults <2X>/<2E>)
+    pattern = re.compile(r"<2[a-zA-Z]{1,3}>")
 
     tags = []
 
     # Handle different vocab types
-    if hasattr(vocab, 'token2idx'):  # SimpleVocab
+    if hasattr(vocab, "token2idx"):  # SimpleVocab
         for token in vocab.token2idx.keys():
-            if pattern.match(token):
+            if pattern.fullmatch(token):
                 tags.append(token)
-    elif hasattr(vocab, 'sp'):  # SentencePieceVocab
+    elif hasattr(vocab, "sp"):  # SentencePieceVocab
         vocab_size = vocab.sp.get_piece_size()
         for i in range(vocab_size):
             piece = vocab.sp.id_to_piece(i)
-            if pattern.match(piece):
+            if pattern.fullmatch(piece):
                 tags.append(piece)
 
     return tags
@@ -337,7 +343,9 @@ def ensure_language_tags_in_vocab(
                 added_tags.append(tag)
 
         if added_tags:
-            print(f"Added {len(added_tags)} language tags to vocabulary: {', '.join(added_tags)}")
+            print(
+                f"Added {len(added_tags)} language tags to vocabulary: {', '.join(added_tags)}"
+            )
 
     elif isinstance(vocab, SentencePieceVocab):
         print(
@@ -350,10 +358,10 @@ def ensure_language_tags_in_vocab(
 
 
 __all__ = [
-    'DEFAULT_LANGUAGE_TAGS',
-    'add_language_tags_multi',
-    'create_multilingual_dataset',
-    'save_multilingual_splits',
-    'get_language_tags_from_vocab',
-    'ensure_language_tags_in_vocab',
+    "DEFAULT_LANGUAGE_TAGS",
+    "add_language_tags_multi",
+    "create_multilingual_dataset",
+    "save_multilingual_splits",
+    "get_language_tags_from_vocab",
+    "ensure_language_tags_in_vocab",
 ]

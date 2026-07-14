@@ -8,7 +8,7 @@ TorchLingo provides two model architectures:
 
 | Model | Architecture | Use Case |
 | ----- | ------------ | -------- |
-| [`SimpleTransformer`](transformer.md) | Transformer with RoPE | Modern, best quality |
+| [`SimpleTransformer`](transformer.md) | Transformer with sinusoidal positional encoding | Modern, best quality |
 | [`SimpleSeq2SeqLSTM`](lstm.md) | LSTM encoder-decoder | Classic, simpler |
 
 ## Quick Comparison
@@ -42,7 +42,7 @@ flowchart LR
 
     ---
 
-    Modern encoder-decoder with multi-head attention and RoPE.
+    Modern encoder-decoder with multi-head attention and sinusoidal positional encoding.
 
     [:octicons-arrow-right-24: Transformer Reference](transformer.md)
 
@@ -58,7 +58,7 @@ flowchart LR
 
     ---
 
-    Position embedding implementations including RoPE.
+    Sinusoidal positional encoding implementation.
 
     [:octicons-arrow-right-24: Positional Reference](positional.md)
 
