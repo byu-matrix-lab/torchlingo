@@ -4,14 +4,54 @@ Captured 2026-08-22. Numbered for reference in conversation.
 
 ## Code — decoding performance
 
+### Design decision (2026-08-22): reference and fast implementations live side by side
+
+The optimized decoders are **added alongside** the simple ones, not layered into them.
+The existing `greedy_decode` / `beam_search_decode` stay as the readable reference a
+student can follow line by line; batching and caching go in separate, clearly named
+implementations.
+
+*Why:* readability is the reason this library exists. A batched, KV-cached beam search is
+necessarily harder to read than the 85-line version — index bookkeeping across
+`(batch x beam)`, cache invalidation, ragged completion. Folding that into the one
+implementation trades away the thing the repo is for, to buy speed that only matters at
+scales students often are not working at anyway.
+
+*What this unlocks:* #3 (KV cache) was previously marked "decide whether to do it at all,
+since it may compromise readability." That constraint is gone. The fast path can be as
+dense as it needs to be, because the readable path is preserved. #3 moves from
+questionable to straightforwardly worth doing.
+
+*What this demands:* two implementations silently diverging is the obvious failure mode.
+`tests/test_decoding_equivalence.py` already covers this — it was written as a
+characterization oracle for a refactor, but the natural reading is now stronger:
+
+> The simple implementation is the **specification**. The fast implementation must
+> produce token-identical output on every fixture in that module.
+
+Every fast variant should be run against the same fixtures as the reference, ideally
+parameterized so adding an implementation automatically inherits the whole suite.
+
+*Open questions for when we start:*
+- Naming and location: `beam_search_decode_batched` in `inference.py`, or a separate
+  `inference_fast.py`? Separate module keeps `inference.py` short; same module keeps the
+  comparison in front of the reader.
+- Does `translate_batch` gain an implementation selector, or stay on the reference path
+  with the fast path opted into explicitly?
+- Docs need to say plainly which to use when, or students will reach for the reference
+  implementation on a 3k-sentence test set, conclude beam search is impractical, and fall
+  back to greedy — the exact failure this work exists to prevent.
+- Guard against the reference rotting: it must stay exercised by the suite, not become
+  a museum piece nobody runs.
+
 **#1 Batched beam search, Tier 1: batch across beams**
 Stack the k beams into one `(k, t)` tensor, expand `memory` to `(k, src_len, d)`,
 issue one `model.decode()` call per step instead of k.
 - File: `src/torchlingo/inference.py:180-193`
 - Measured payoff: beam currently makes 38.7x more `decode()` calls than greedy for
   only 5.0x more actual math, every call at batch size 1.0. Latency-bound on dispatch.
-- Self-contained; no public API change.
-- Oracle: output must be token-identical to current implementation.
+- Self-contained; no public API change — the reference implementation is left untouched.
+- Oracle: output must be token-identical to the reference implementation.
 
 **#2 Batched beam search, Tier 2: batch across sentences**
 Remove the `src.size(0) != 1` restriction; flatten to `(batch x k, t)`.
@@ -19,13 +59,16 @@ Remove the `src.size(0) != 1` restriction; flatten to `(batch x k, t)`.
   `translate_batch`)
 - Hard part is bookkeeping for ragged completion — sentences finishing at different steps.
 - `tests/test_training_inference.py:502`
-  (`test_beam_search_decode_raises_on_batch_size_gt_one`) encodes the current limitation
-  and is the first test to invert.
+  (`test_beam_search_decode_raises_on_batch_size_gt_one`) stays valid: under the
+  side-by-side design the *reference* implementation keeps that restriction. The batched
+  variant gets its own tests rather than inverting this one.
 
 **#3 Batched beam search, Tier 3: incremental decoding / KV cache**
 Removes the O(L^2) prefix recomputation.
-- DECISION NEEDED: may compromise the readability that makes this repo worth using
-  for teaching. Consider stopping at #2 for an educational library.
+- ~~DECISION NEEDED: may compromise the readability that makes this repo worth using for
+  teaching. Consider stopping at #2 for an educational library.~~ **Resolved by the
+  side-by-side design above:** the reference implementation stays readable regardless, so
+  the fast path is free to be dense. Worth doing.
 
 **#4 Resolve length-normalization semantics**
 `inference.py:203` applies length normalization during *pruning*, not only at final
