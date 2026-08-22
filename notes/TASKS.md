@@ -97,12 +97,45 @@ again. Decide the intended rule and assert it, before golden outputs are relied 
   `(batch * beam, vocab)` selection through `_canonical_topk` or an equivalent, or it
   will break ties differently and silently change output.
 
-**#14 Repo is not ruff-clean at HEAD**
-`ruff check --fix src tests` makes 354 fixes across 28 files, and `ruff format` reformats
-5 more. This means CLAUDE.md's "ALWAYS run ruff after code changes" instruction produces a
-large unrelated diff on any change. Either bring the repo to ruff-clean in one dedicated
-commit, or pin the ruff version — otherwise every future PR is polluted.
-- 124 errors remain that `--fix` cannot resolve automatically.
+**#14 Ruff version drift** — *DONE (branch `chore/ruff-modernization`)*
+
+*Original diagnosis was wrong and is corrected here.* I first recorded this as "the repo
+is not ruff-clean at HEAD," based on 354 fixes across 28 files. In fact the repo was
+**already lint-clean** under the ruff version it pinned: `ruff 0.7.0 check src tests`
+reported **zero** errors. The findings were an artifact of running 0.16.3, whose default
+rule set is far wider.
+
+The real defect was that nothing kept the versions in agreement, and nothing enforced
+either one:
+- `.pre-commit-config.yaml` pinned `v0.7.0`
+- `pyproject.toml` `[dev]` asked for `ruff>=0.12`
+- CI ran no lint step at all
+
+So a fresh `pip install -e ".[dev]"` gave a ruff that disagreed with pre-commit on
+hundreds of findings, and CLAUDE.md's "ALWAYS run ruff" then produced a 28-file diff
+unrelated to the actual work — a trap for students and contributors.
+
+**Resolved in five commits** on its own branch/PR, deliberately separable:
+1. format under the pinned 0.7.0 (4 files had drifted), establishing a clean
+   baseline so the modernization diff contains only real rule changes.
+2. ruff 0.16 safe auto-fixes (358): PEP 604/585 annotations, import sorting.
+3. implicit `Optional` made explicit (69 via RUF013).
+4. findings needing judgment: narrowed bare `except Exception` to
+   `ImportError` / `(AttributeError, TypeError)`, bound a loop variable in a lambda
+   (B023), collapsed a nested `if` preserving short-circuit order, `ClassVar` on
+   `_FIELD_VALIDATORS`, plus 13 more implicit `Optional`s that **RUF013 does not flag**
+   (`config: Config = None`). RUF059 ignored under `tests/` — naming every element of a
+   returned tuple documents the callee's contract.
+5. pin `ruff==0.16.3` in both places with cross-referencing comments; add a
+   CI `lint` job that reads the pinned spec out of `pyproject.toml` at runtime rather
+   than hardcoding a third copy; `build` now needs `[tests, lint]`.
+
+This work is split into its own PR (`chore/ruff-modernization`, branched from `main`)
+so its 32-file mechanical diff does not bury the decoding work in review. The decoding
+branch is stacked on top of it and should merge second.
+
+`src` and `tests` are clean under both `ruff check` and `ruff format --check`. Full suite
+unchanged throughout: 459 tests, OK (21 skipped).
 
 **#15 Existing `DummyTransformer` is history- and memory-blind**
 `tests/test_training_inference.py:16` computes logits from a zero tensor, so its output
