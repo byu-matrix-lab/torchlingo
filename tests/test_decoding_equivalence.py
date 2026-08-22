@@ -12,6 +12,8 @@ across beams and across sentences, and later incremental/KV-cache decoding)
    length normalization during pruning, not only at final selection. That is a
    deliberate (if non-standard) choice and must not change silently during
    performance work.
+5. **Tie-breaking** - equal scores resolve toward lower token IDs, on every
+   device. See the ``inference`` module docstring for the rule itself.
 
 Why a new fixture: ``DummyTransformer`` in ``test_training_inference.py``
 returns logits computed from a zero tensor, so its output depends only on
@@ -35,7 +37,12 @@ import torch
 from torch import nn
 
 from torchlingo.config import get_default_config
-from torchlingo.inference import beam_search_decode, greedy_decode
+from torchlingo.inference import (
+    _canonical_topk,
+    _rank_key,
+    beam_search_decode,
+    greedy_decode,
+)
 from torchlingo.models.transformer_simple import SimpleTransformer
 
 D_MEM = 4
@@ -705,23 +712,27 @@ class BeamSuperiorityTests(unittest.TestCase):
 
 
 class TieBreakingTests(unittest.TestCase):
-    """Document that behavior under exactly-tied logits is unspecified.
+    """Assert the documented tie-breaking rule (task #13).
 
-    ``greedy_decode`` selects with ``argmax`` while ``beam_search_decode``
-    selects with ``topk`` followed by a Python sort on length-normalized
-    scores. Under exact ties these can disagree, so ``beam_size=1`` is NOT
-    guaranteed to equal greedy in that case.
+    The rule: prefer the higher score; among exactly equal scores prefer the
+    sequence with lower token IDs, compared position by position.
 
-    This matters for the batching work: a batched implementation will ``topk``
-    over a flattened (batch * beam, vocab) tensor and will very likely break
-    ties differently again. Decide the intended rule (task #13) before
-    relying on any golden output containing a tie.
+    This matters because ``torch.topk`` documents that tied indices are *not*
+    guaranteed to be stable, so beam search would otherwise be
+    device-dependent. ``greedy_decode`` is safe as written because
+    ``torch.argmax`` documents that it returns the first maximal index.
+
+    A batched beam search will ``topk`` over a flattened
+    ``(batch * beam, vocab)`` tensor and must route that selection through
+    ``_canonical_topk`` (or an equivalent) to preserve these results.
     """
 
     class _TiedTransformer(nn.Module):
         """Model emitting several exactly-equal top logits."""
 
         VOCAB_SIZE = 12
+        TIE_LO = 7
+        TIE_HI = 12
 
         def __init__(self, eos_idx: int = 3) -> None:
             super().__init__()
@@ -742,7 +753,7 @@ class TieBreakingTests(unittest.TestCase):
             batch, tgt_len = tgt.shape
             row = torch.full((batch, self.VOCAB_SIZE), -30.0, device=tgt.device)
             if tgt_len < 3:
-                row[:, 7:12] = 0.0  # exact ties
+                row[:, self.TIE_LO : self.TIE_HI] = 0.0  # exact ties
             else:
                 row[:, self.eos_idx] = 5.0
             logits = torch.full(
@@ -754,23 +765,43 @@ class TieBreakingTests(unittest.TestCase):
         def forward(self, src, tgt):
             return self.decode(tgt, self.encode(src))
 
-    def test_tied_decoding_is_at_least_self_consistent(self):
-        """Whatever the tie rule is, it must be stable across identical runs."""
-        cfg = _cfg()
-        model = self._TiedTransformer(eos_idx=cfg.eos_idx)
-        src = _sentence(cfg, [9])
+    def test_canonical_topk_breaks_ties_by_lowest_index(self):
+        scores = torch.tensor([0.0, 5.0, 5.0, 5.0, 1.0])
+        values, indices = _canonical_topk(scores, 2)
 
-        a = beam_search_decode(model, src, beam_size=3, max_len=6, config=cfg)
-        b = beam_search_decode(model, src, beam_size=3, max_len=6, config=cfg)
-        self.assertEqual(a, b)
+        self.assertEqual(indices.tolist(), [1, 2])
+        self.assertEqual(values.tolist(), [5.0, 5.0])
 
-    def test_tie_behavior_between_greedy_and_beam_one_is_documented(self):
-        """Record, without endorsing, how greedy and beam(1) treat ties.
+    def test_canonical_topk_with_all_scores_tied(self):
+        values, indices = _canonical_topk(torch.zeros(6), 4)
 
-        If this assertion starts failing, tie-breaking changed. That may be an
-        improvement - but it must be a deliberate decision, because golden
-        outputs elsewhere could shift with it.
-        """
+        self.assertEqual(indices.tolist(), [0, 1, 2, 3])
+        self.assertEqual(values.tolist(), [0.0, 0.0, 0.0, 0.0])
+
+    def test_canonical_topk_prefers_strictly_better_scores(self):
+        """Strictly better scores must outrank tied ones regardless of index."""
+        scores = torch.tensor([0.0, 0.0, 0.0, 9.0])
+        _, indices = _canonical_topk(scores, 2)
+
+        self.assertEqual(indices.tolist(), [3, 0])
+
+    def test_canonical_topk_clamps_k_to_length(self):
+        _, indices = _canonical_topk(torch.zeros(3), 10)
+        self.assertEqual(indices.tolist(), [0, 1, 2])
+
+    def test_rank_key_orders_by_score_then_tokens(self):
+        """Sorting ascending by the key puts the preferred hypothesis first."""
+        better = _rank_key([2, 5], -1.0, 0.6)
+        worse = _rank_key([2, 5], -4.0, 0.6)
+        self.assertLess(better, worse)
+
+    def test_rank_key_breaks_score_ties_by_lower_tokens(self):
+        low = _rank_key([2, 4], -2.0, 0.6)
+        high = _rank_key([2, 9], -2.0, 0.6)
+        self.assertLess(low, high)
+
+    def test_beam_one_matches_greedy_even_under_exact_ties(self):
+        """The property that motivated the rule; it did not hold before."""
         cfg = _cfg()
         model = self._TiedTransformer(eos_idx=cfg.eos_idx)
         src = _sentence(cfg, [9])
@@ -778,10 +809,34 @@ class TieBreakingTests(unittest.TestCase):
         greedy = greedy_decode(model, src, max_len=6, config=cfg)[0]
         beam = beam_search_decode(model, src, beam_size=1, max_len=6, config=cfg)
 
-        # Both must be deterministic and well-formed, whether or not they agree.
-        for tokens in (greedy, beam):
-            self.assertEqual(tokens[0], cfg.sos_idx)
-            self.assertIn(cfg.eos_idx, tokens)
+        self.assertEqual(greedy, beam)
+
+    def test_ties_resolve_to_lowest_token_id(self):
+        cfg = _cfg()
+        model = self._TiedTransformer(eos_idx=cfg.eos_idx)
+        src = _sentence(cfg, [9])
+
+        for beam_size in (1, 2, 3, 5):
+            with self.subTest(beam_size=beam_size):
+                tokens = beam_search_decode(
+                    model, src, beam_size=beam_size, max_len=6, config=cfg
+                )
+                self.assertEqual(
+                    tokens,
+                    [cfg.sos_idx, 7, 7, cfg.eos_idx],
+                    "ties must resolve toward the lowest token ID",
+                )
+
+    def test_tied_decoding_is_deterministic(self):
+        cfg = _cfg()
+        model = self._TiedTransformer(eos_idx=cfg.eos_idx)
+        src = _sentence(cfg, [9])
+
+        runs = [
+            beam_search_decode(model, src, beam_size=3, max_len=6, config=cfg)
+            for _ in range(4)
+        ]
+        self.assertEqual(len({tuple(r) for r in runs}), 1)
 
 
 if __name__ == "__main__":
