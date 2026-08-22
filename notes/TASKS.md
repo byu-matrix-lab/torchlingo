@@ -81,13 +81,21 @@ student exercise in its own right.
 
 ## Added 2026-08-22 (during test-suite review)
 
-**#13 Specify decoding tie-breaking behavior** — *blocks #1/#2*
+**#13 Specify decoding tie-breaking behavior** — *DONE (5b3e326)*
 Under exactly-tied logits, `greedy_decode` (`argmax`) and `beam_search_decode`
 (`topk` + Python sort on length-normalized scores) can select different tokens, so
 `beam_size=1` is not guaranteed to equal greedy. A batched implementation will `topk`
 over a flattened `(batch * beam, vocab)` tensor and will likely break ties differently
 again. Decide the intended rule and assert it, before golden outputs are relied upon.
-- Documented in `tests/test_decoding_equivalence.py::TieBreakingTests`.
+- **Resolved.** Rule adopted: *prefer the higher score; among exactly equal scores
+  prefer the sequence with lower token IDs, position by position.* Enforced by
+  `_canonical_topk()` and `_rank_key()` in `inference.py`; asserted by
+  `tests/test_decoding_equivalence.py::TieBreakingTests` (9 tests).
+- Matches prior CPU behavior, so no golden outputs changed. `beam_size=1` now provably
+  equals greedy under exact ties, which was not previously guaranteed.
+- **Carry-over for #1/#2:** a batched implementation must route its
+  `(batch * beam, vocab)` selection through `_canonical_topk` or an equivalent, or it
+  will break ties differently and silently change output.
 
 **#14 Repo is not ruff-clean at HEAD**
 `ruff check --fix src tests` makes 354 fixes across 28 files, and `ruff format` reformats
