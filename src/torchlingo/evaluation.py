@@ -33,12 +33,12 @@ def _needs_char_tokenization(text_samples: List[str]) -> bool:
 
     # Check for Chinese, Japanese, Korean, Thai, Burmese, Khmer, Lao
     cjk_pattern = re.compile(
-        r'[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\u0e00-\u0e7f'
-        r'\u1000-\u109f\u1780-\u17ff\u0e80-\u0eff]'
+        r"[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\u0e00-\u0e7f"
+        r"\u1000-\u109f\u1780-\u17ff\u0e80-\u0eff]"
     )
 
     # Sample first 10 texts
-    sample_text = ' '.join(text_samples[:10])
+    sample_text = " ".join(text_samples[:10])
     return bool(cjk_pattern.search(sample_text))
 
 
@@ -51,8 +51,8 @@ def _char_tokenize(text: str) -> str:
     Returns:
         Character-tokenized text with spaces between each character.
     """
-    text = text.replace(' ', '')  # Remove existing spaces
-    return ' '.join(list(text))
+    text = text.replace(" ", "")  # Remove existing spaces
+    return " ".join(list(text))
 
 
 def compute_bleu(
@@ -111,7 +111,9 @@ def compute_bleu(
     # Apply character tokenization if needed
     if use_char_tokenization:
         predictions = [_char_tokenize(p) for p in predictions]
-        references = [[_char_tokenize(ref) for ref in ref_list] for ref_list in references]
+        references = [
+            [_char_tokenize(ref) for ref in ref_list] for ref_list in references
+        ]
         # Use 'none' tokenizer since we've already tokenized at char level
         tokenize = "none"
 
@@ -280,7 +282,7 @@ def evaluate_model(
         # Translate in batches
         with torch.no_grad():
             for i in range(0, len(src_sentences), batch_size):
-                batch_src = src_sentences[i:i + batch_size]
+                batch_src = src_sentences[i : i + batch_size]
 
                 batch_translations = translate_batch(
                     model=model,
@@ -307,7 +309,8 @@ def evaluate_model(
                     ref_tokens = [
                         idx.item()
                         for idx in tgt_seq
-                        if idx.item() not in [tgt_vocab.pad_idx, tgt_vocab.sos_idx, tgt_vocab.eos_idx]
+                        if idx.item()
+                        not in [tgt_vocab.pad_idx, tgt_vocab.sos_idx, tgt_vocab.eos_idx]
                     ]
                     ref_text = tgt_vocab.decode(ref_tokens)
                     references.append(ref_text)
@@ -318,7 +321,8 @@ def evaluate_model(
                     src_tokens = [
                         idx.item()
                         for idx in src_seq
-                        if idx.item() not in [src_vocab.pad_idx, src_vocab.sos_idx, src_vocab.eos_idx]
+                        if idx.item()
+                        not in [src_vocab.pad_idx, src_vocab.sos_idx, src_vocab.eos_idx]
                     ]
                     src_text = src_vocab.decode(src_tokens)
                     src_texts.append(src_text)
@@ -338,19 +342,21 @@ def evaluate_model(
 
                 predictions.extend(batch_translations)
     else:
-        raise ValueError("Must provide either dataloader or src_sentences+tgt_sentences")
+        raise ValueError(
+            "Must provide either dataloader or src_sentences+tgt_sentences"
+        )
 
     # Compute metrics with language-aware tokenization
     results = {}
 
     bleu_result = compute_bleu(
-        predictions, references,
-        lowercase=lowercase,
-        tokenization=tokenization
+        predictions, references, lowercase=lowercase, tokenization=tokenization
     )
 
     # Use appropriate metric label based on tokenization
-    if tokenization == "char" or (tokenization == "auto" and _needs_char_tokenization(references)):
+    if tokenization == "char" or (
+        tokenization == "auto" and _needs_char_tokenization(references)
+    ):
         results["bleu_char"] = bleu_result.score
     else:
         results["bleu"] = bleu_result.score

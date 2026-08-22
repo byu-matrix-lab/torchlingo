@@ -95,13 +95,13 @@ class SimpleSeq2SeqLSTM(nn.Module):
         PyTorch initialization.
         """
         for name, param in self.named_parameters():
-            if 'weight_ih' in name:
+            if "weight_ih" in name:
                 # Input-to-hidden weights: Xavier uniform
                 nn.init.xavier_uniform_(param)
-            elif 'weight_hh' in name:
+            elif "weight_hh" in name:
                 # Hidden-to-hidden weights: Orthogonal (preserves gradient flow)
                 nn.init.orthogonal_(param)
-            elif 'bias' in name:
+            elif "bias" in name:
                 # Biases: Initialize to zero
                 nn.init.zeros_(param)
 

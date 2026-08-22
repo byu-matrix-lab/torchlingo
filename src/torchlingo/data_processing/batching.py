@@ -375,9 +375,9 @@ def create_dataloaders(
         train_dataset = train_file
         src_vocab = train_dataset.src_vocab
         tgt_vocab = train_dataset.tgt_vocab
-        assert src_vocab is not None and tgt_vocab is not None, (
-            "Provided train_dataset must have src_vocab and tgt_vocab initialized"
-        )
+        assert (
+            src_vocab is not None and tgt_vocab is not None
+        ), "Provided train_dataset must have src_vocab and tgt_vocab initialized"
     else:
         train_data = train_file
         if use_sentencepiece:
@@ -391,9 +391,9 @@ def create_dataloaders(
                 if sp_tgt_model_path is not None
                 else cfg.sentencepiece_tgt_model
             )
-            assert sp_model_path is not None, (
-                "Must provide sp_model_path when using SentencePiece"
-            )
+            assert (
+                sp_model_path is not None
+            ), "Must provide sp_model_path when using SentencePiece"
             src_vocab = SentencePieceVocab(sp_model_path)
             if sp_tgt_model_path and sp_tgt_model_path != sp_model_path:
                 tgt_vocab = SentencePieceVocab(sp_tgt_model_path)
