@@ -289,7 +289,7 @@ def get_language_tags_from_vocab(vocab) -> list[str]:
 
     # Handle different vocab types
     if hasattr(vocab, "token2idx"):  # SimpleVocab
-        for token in vocab.token2idx.keys():
+        for token in vocab.token2idx:
             if pattern.fullmatch(token):
                 tags.append(token)
     elif hasattr(vocab, "sp"):  # SentencePieceVocab

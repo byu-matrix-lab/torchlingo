@@ -55,7 +55,7 @@ class SimpleSeq2SeqLSTM(nn.Module):
         num_layers: int | None = None,
         dropout: float | None = None,
         pad_idx: int | None = None,
-        config: Config = None,
+        config: Config | None = None,
     ):
         super().__init__()
         cfg = config if config is not None else get_default_config()
@@ -129,7 +129,7 @@ class SimpleSeq2SeqLSTM(nn.Module):
                 probability distributions over the target vocabulary for each position.
         """
         src_emb = self.src_embed(src)
-        enc_out, (h, c) = self.encoder(src_emb)
+        _enc_out, (h, c) = self.encoder(src_emb)
         tgt_emb = self.tgt_embed(tgt)
         dec_out, _ = self.decoder(tgt_emb, (h, c))
         return self.output(dec_out)

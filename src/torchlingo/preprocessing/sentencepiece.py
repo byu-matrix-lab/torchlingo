@@ -32,7 +32,7 @@ def train_sentencepiece(
     sos_token: str | None = None,
     eos_token: str | None = None,
     user_defined_symbols: list[str] | None = None,
-    config: Config = None,
+    config: Config | None = None,
 ):
     """Train a SentencePiece tokenization model on raw text data.
 
@@ -143,7 +143,7 @@ def apply_sentencepiece(
     sp_tgt_model: spm.SentencePieceProcessor | None = None,
     src_col: str | None = None,
     tgt_col: str | None = None,
-    config: Config = None,
+    config: Config | None = None,
 ):
     """Apply trained SentencePiece tokenization to all src/tgt columns.
 
@@ -187,9 +187,10 @@ def apply_sentencepiece(
         try:
             if isinstance(m, spm.SentencePieceProcessor):
                 return m
-        except Exception:
-            # If spm.SentencePieceProcessor isn't importable or isinstance
-            # raises for some reason, fall back to duck typing below.
+        except (AttributeError, TypeError):
+            # AttributeError if spm.SentencePieceProcessor is missing;
+            # TypeError if it is not a class isinstance() can test against.
+            # Either way, fall back to the duck-typing check below.
             pass
 
         # Duck-typing: accept any object exposing the encode method
@@ -213,10 +214,13 @@ def apply_sentencepiece(
     for col in [src_col, tgt_col]:
         if col in df.columns:
             model = sp_src_model if col == src_col else sp_tgt_model
+            # Bind `model` as a default argument: the lambda is consumed by
+            # apply() within this iteration, but binding makes that explicit
+            # and keeps the closure correct if the call ever becomes lazy.
             df[col] = (
                 df[col]
                 .astype(str)
-                .apply(lambda x: " ".join(model.encode(x, out_type=str)))
+                .apply(lambda x, _m=model: " ".join(_m.encode(x, out_type=str)))
             )
     save_data(df, output_file)
 
@@ -234,7 +238,7 @@ def preprocess_sentencepiece(
     tgt_col: str | None = None,
     data_dir: Path | None = None,
     data_format: str | None = None,
-    config: Config = None,
+    config: Config | None = None,
 ):
     """Execute SentencePiece tokenization preprocessing pipeline.
 

@@ -22,7 +22,7 @@ Module-level constants are also available:
 
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import torch
 
@@ -1258,8 +1258,10 @@ class Config:
         else:
             super().__setattr__(name, value)
 
-    # Validators for each field (bound as lambdas to allow self-aware checks)
-    _FIELD_VALIDATORS = {
+    # Validators for each field (bound as lambdas to allow self-aware checks).
+    # ClassVar so the dataclass machinery treats this as shared configuration
+    # rather than a per-instance field.
+    _FIELD_VALIDATORS: ClassVar[dict[str, Any]] = {
         "base_dir": lambda self, v: self._ensure_path(v),
         "data_dir": lambda self, v: self._ensure_path(v),
         "checkpoint_dir": lambda self, v: self._ensure_path(v),

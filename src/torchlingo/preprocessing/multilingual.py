@@ -17,7 +17,7 @@ def add_language_tags(
     df: pd.DataFrame,
     tag: str,
     src_col: str | None = None,
-    config: Config = None,
+    config: Config | None = None,
 ) -> pd.DataFrame:
     """Prepend a language tag to all source sentences.
 
@@ -63,7 +63,7 @@ def preprocess_multilingual(
     test_en_x_file: Path | None = None,
     test_x_en_file: Path | None = None,
     data_format: str | None = None,
-    config: Config = None,
+    config: Config | None = None,
 ):
     """Execute multilingual preprocessing pipeline.
 

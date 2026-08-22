@@ -18,7 +18,7 @@ def parallel_txt_to_dataframe(
     tgt_path: Path,
     src_col: str | None = None,
     tgt_col: str | None = None,
-    config: Config = None,
+    config: Config | None = None,
 ) -> pd.DataFrame:
     """Convert parallel .txt files into a single DataFrame with src/tgt columns.
 
@@ -157,7 +157,7 @@ def split_data(
     train_ratio: float | None = None,
     val_ratio: float | None = None,
     seed: int | None = None,
-    config: Config = None,
+    config: Config | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Split a DataFrame into train, validation, and test sets.
 
@@ -213,7 +213,7 @@ def preprocess_base(
     train_ratio: float | None = None,
     val_ratio: float | None = None,
     seed: int | None = None,
-    config: Config = None,
+    config: Config | None = None,
 ):
     """Execute base preprocessing pipeline on raw data.
 

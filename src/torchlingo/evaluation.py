@@ -208,9 +208,9 @@ def compute_ter(
 
 def evaluate_model(
     model: torch.nn.Module,
-    dataloader: torch.utils.data.DataLoader = None,
-    src_vocab: BaseVocab = None,
-    tgt_vocab: BaseVocab = None,
+    dataloader: torch.utils.data.DataLoader | None = None,
+    src_vocab: BaseVocab | None = None,
+    tgt_vocab: BaseVocab | None = None,
     device: torch.device | None = None,
     decode_strategy: str = "greedy",
     beam_size: int = 5,

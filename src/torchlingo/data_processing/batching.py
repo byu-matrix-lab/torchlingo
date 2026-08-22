@@ -183,7 +183,7 @@ class BucketBatchSampler(Sampler):
             boundaries.append(boundary)
 
         # remove duplicates and sort
-        boundaries = sorted(list(set(boundaries)))
+        boundaries = sorted(set(boundaries))
 
         # If there aren't enough distinct boundaries, fall back to reasonable defaults
         # based on the observed max length (from the inspected set).
@@ -252,8 +252,7 @@ class BucketBatchSampler(Sampler):
             ):
                 all_batches.append(bucket[i : i + self.batch_size])
         random.shuffle(all_batches)
-        for batch in all_batches:
-            yield batch
+        yield from all_batches
 
     def __len__(self) -> int:
         """Return the number of complete batches.
@@ -428,7 +427,7 @@ def create_dataloaders(
             batch_sampler=train_sampler,
             num_workers=num_workers,
             collate_fn=collate,
-            pin_memory=True if device == "cuda" else False,
+            pin_memory=device == "cuda",
         )
     else:
         train_loader = DataLoader(
@@ -437,7 +436,7 @@ def create_dataloaders(
             shuffle=True,
             num_workers=num_workers,
             collate_fn=collate,
-            pin_memory=True if device == "cuda" else False,
+            pin_memory=device == "cuda",
         )
     if len(train_loader) == 0:
         raise ValueError(
@@ -453,7 +452,7 @@ def create_dataloaders(
             shuffle=False,
             num_workers=num_workers,
             collate_fn=collate,
-            pin_memory=True if device == "cuda" else False,
+            pin_memory=device == "cuda",
         )
     else:
         val_loader = None

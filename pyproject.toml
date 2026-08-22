@@ -84,8 +84,19 @@ ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 88
-# Ignore E402 (imports not at top) in documentation notebooks since they often
-# manipulate sys.path and import packages mid-cell for interactivity.
+
 [tool.ruff.lint]
-per-file-ignores = { "docs/**/*.ipynb" = ["E402", "F401"] }
+# E402 (imports not at top) and F401 (unused import) in documentation notebooks:
+#   notebooks often manipulate sys.path and import packages mid-cell for
+#   interactivity.
+# RUF059 (unused unpacked variable) in tests: naming every element of a returned
+#   tuple documents that function's contract at the call site, e.g.
+#   `train, val, test = split_data(...)` when a test only asserts on `train`.
+#   Underscore-prefixing them would obscure what the function returns.
+per-file-ignores = { "docs/**/*.ipynb" = [
+    "E402",
+    "F401",
+], "tests/**/*.py" = [
+    "RUF059",
+] }
 

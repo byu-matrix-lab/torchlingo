@@ -86,7 +86,7 @@ class NMTDataset(Dataset):
         tgt_vocab: BaseVocab | None = None,
         max_length: int | None = None,
         eos_idx: int | None = None,
-        config: Config = None,
+        config: Config | None = None,
     ):
         cfg = config if config is not None else get_default_config()
         self.data_file = Path(data_file)
