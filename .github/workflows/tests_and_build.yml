@@ -9,6 +9,7 @@ on:
       - 'scripts/**'
       - 'pyproject.toml'
       - 'MANIFEST.in'
+      - '.pre-commit-config.yaml'
       - '.github/workflows/tests_and_build.yml'
     tags: ['v*']
   pull_request:
@@ -19,10 +20,48 @@ on:
       - 'scripts/**'
       - 'pyproject.toml'
       - 'MANIFEST.in'
+      - '.pre-commit-config.yaml'
       - '.github/workflows/tests_and_build.yml'
   workflow_dispatch: {}
 
 jobs:
+  lint:
+    name: Lint and format check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Read the pinned ruff spec straight out of pyproject.toml so this
+      # workflow cannot drift from the dev extra or from
+      # .pre-commit-config.yaml. Ruff's default rule set widens across
+      # releases, so a version mismatch changes what "clean" means.
+      - name: Install pinned ruff
+        run: |
+          python -m pip install --upgrade pip
+          RUFF_SPEC=$(python -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              dev = tomllib.load(f)['project']['optional-dependencies']['dev']
+          print(next(d for d in dev if d.startswith('ruff')))
+          ")
+          echo "Installing $RUFF_SPEC"
+          pip install "$RUFF_SPEC"
+
+      - name: Ruff lint
+        run: ruff check src tests
+
+      - name: Ruff format check
+        run: ruff format --check src tests
+
   tests:
     name: Run tests
     runs-on: ubuntu-latest
@@ -58,7 +97,7 @@ jobs:
 
   build:
     name: Build wheels and sdist
-    needs: tests
+    needs: [tests, lint]
     runs-on: ubuntu-latest
     permissions:
       contents: read

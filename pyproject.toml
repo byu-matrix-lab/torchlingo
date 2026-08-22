@@ -58,7 +58,17 @@ docs = [
     "mkdocs-jupyter>=0.24",
     "griffe>=0.40",
 ]
-dev = ["pytest>=7.0", "ruff>=0.12", "isort>=5.12", "build>=1.0", "twine>=4.0", "pre-commit>=3.0"]
+# ruff is pinned exactly, and must match the rev in .pre-commit-config.yaml:
+# its default rule set widens across releases, so an unpinned install reports
+# findings that pre-commit does not, and vice versa.
+dev = [
+    "pytest>=7.0",
+    "ruff==0.16.3",
+    "isort>=5.12",
+    "build>=1.0",
+    "twine>=4.0",
+    "pre-commit>=3.0",
+]
 japanese = ["fugashi>=1.3", "unidic-lite>=1.0"]
 chinese = ["jieba>=0.42"]
 asian = [
