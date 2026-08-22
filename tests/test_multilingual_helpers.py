@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from torchlingo.config import Config
-from torchlingo.data_processing.vocab import SimpleVocab, SentencePieceVocab
+from torchlingo.data_processing.vocab import SentencePieceVocab, SimpleVocab
 from torchlingo.preprocessing.multilingual_helpers import (
     DEFAULT_LANGUAGE_TAGS,
     add_language_tags_multi,

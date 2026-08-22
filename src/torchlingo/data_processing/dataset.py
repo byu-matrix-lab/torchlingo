@@ -7,8 +7,8 @@ provided. The dataset handles data cleaning, tokenization, and encoding to tenso
 representations suitable for training neural translation models.
 """
 
-from typing import Tuple, Optional
 from pathlib import Path
+
 import torch
 from torch.utils.data import Dataset
 
@@ -82,9 +82,9 @@ class NMTDataset(Dataset):
         tgt_col: str = None,
         src_tok_col: str = None,
         tgt_tok_col: str = None,
-        src_vocab: Optional[BaseVocab] = None,
-        tgt_vocab: Optional[BaseVocab] = None,
-        max_length: Optional[int] = None,
+        src_vocab: BaseVocab | None = None,
+        tgt_vocab: BaseVocab | None = None,
+        max_length: int | None = None,
         eos_idx: int = None,
         config: Config = None,
     ):
@@ -158,7 +158,7 @@ class NMTDataset(Dataset):
         """
         return len(self.src_sentences)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         """Retrieve and encode a (source, target) pair at the given index.
 
         Encodes raw sentences to token indices using the respective vocabularies,

@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+
 from torchlingo import config
 from torchlingo.config import Config
 

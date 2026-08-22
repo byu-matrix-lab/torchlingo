@@ -1,16 +1,16 @@
 import math
+import tempfile
 import types
 import unittest
-import tempfile
 from pathlib import Path
 from unittest import mock
 
 import torch
 
-from torchlingo.training import train_model, TrainResult
-from torchlingo.inference import greedy_decode, beam_search_decode, translate_batch
 from torchlingo.config import get_default_config
-from torchlingo.data_processing.vocab import SimpleVocab, SentencePieceVocab
+from torchlingo.data_processing.vocab import SentencePieceVocab, SimpleVocab
+from torchlingo.inference import beam_search_decode, greedy_decode, translate_batch
+from torchlingo.training import TrainResult, train_model
 
 
 class DummyTransformer(torch.nn.Module):
@@ -427,19 +427,21 @@ class TrainModelTests(unittest.TestCase):
         # assigned directly would break that. types.MethodType keeps it bound.
         opt.step = types.MethodType(counting_step, opt)
         # Force the clipped grad norm to look non-finite.
-        with mock.patch(
-            "torchlingo.training.clip_grad_norm_",
-            return_value=torch.tensor(float("inf")),
+        with (
+            mock.patch(
+                "torchlingo.training.clip_grad_norm_",
+                return_value=torch.tensor(float("inf")),
+            ),
+            self.assertWarns(RuntimeWarning),
         ):
-            with self.assertWarns(RuntimeWarning):
-                train_model(
-                    model,
-                    train_loader=loader,
-                    num_epochs=1,
-                    optimizer=opt,
-                    gradient_clip=1.0,
-                    save_dir=None,
-                )
+            train_model(
+                model,
+                train_loader=loader,
+                num_epochs=1,
+                optimizer=opt,
+                gradient_clip=1.0,
+                save_dir=None,
+            )
         self.assertEqual(calls["n"], 0)  # every step skipped
 
     def test_train_model_honors_gradient_clip(self):

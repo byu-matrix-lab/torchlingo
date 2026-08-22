@@ -10,7 +10,6 @@ from __future__ import annotations
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
 
 import torch
 from torch import nn, optim
@@ -43,12 +42,12 @@ class TrainResult:
         best_checkpoint: Path to the best checkpoint file if saved, else None.
     """
 
-    train_losses: List[float]
-    val_losses: List[float]
-    best_checkpoint: Optional[Path]
+    train_losses: list[float]
+    val_losses: list[float]
+    best_checkpoint: Path | None
 
 
-def _resolve_device(device: Optional[torch.device]) -> torch.device:
+def _resolve_device(device: torch.device | None) -> torch.device:
     return (
         device
         if device is not None
@@ -153,15 +152,15 @@ def get_cosine_annealing_scheduler(
 def train_model(
     model: nn.Module,
     train_loader: torch.utils.data.DataLoader,
-    val_loader: Optional[torch.utils.data.DataLoader] = None,
+    val_loader: torch.utils.data.DataLoader | None = None,
     num_epochs: int = 10,
-    optimizer: Optional[optim.Optimizer] = None,
-    criterion: Optional[nn.Module] = None,
-    scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
-    gradient_clip: Optional[float] = None,
-    device: Optional[torch.device] = None,
-    config: Optional[Config] = None,
-    save_dir: Optional[Path] = None,
+    optimizer: optim.Optimizer | None = None,
+    criterion: nn.Module | None = None,
+    scheduler: torch.optim.lr_scheduler._LRScheduler | None = None,
+    gradient_clip: float | None = None,
+    device: torch.device | None = None,
+    config: Config | None = None,
+    save_dir: Path | None = None,
     use_amp: bool = False,
     log_every: int = 0,
     accumulation_steps: int = 1,
@@ -288,9 +287,9 @@ def train_model(
     scaler = torch.amp.GradScaler(device=device, enabled=use_scaler)
     skipped_steps = 0
     best_val = float("inf")
-    best_path: Optional[Path] = None
-    train_losses: List[float] = []
-    val_losses: List[float] = []
+    best_path: Path | None = None
+    train_losses: list[float] = []
+    val_losses: list[float] = []
     global_step = 0
     stop_training = False
     no_improve_steps = 0

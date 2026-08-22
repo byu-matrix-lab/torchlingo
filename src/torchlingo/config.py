@@ -20,10 +20,11 @@ Module-level constants are also available:
   print(config.BATCH_SIZE, config.LEARNING_RATE)
 """
 
-import torch
-from pathlib import Path
 from copy import deepcopy
-from typing import Optional, Dict, Any
+from pathlib import Path
+from typing import Any
+
+import torch
 
 # ============================================================================
 # BASE DIRECTORIES
@@ -774,46 +775,46 @@ class Config:
     def __init__(
         self,
         # Base directories
-        base_dir: Optional[Path] = None,
-        data_dir: Optional[Path] = None,
-        checkpoint_dir: Optional[Path] = None,
-        output_dir: Optional[Path] = None,
+        base_dir: Path | None = None,
+        data_dir: Path | None = None,
+        checkpoint_dir: Path | None = None,
+        output_dir: Path | None = None,
         # Data and file settings
         data_format: str = "tsv",
         src_col: str = "src",
         tgt_col: str = "tgt",
         src_tok_col: str = "src_tokenized",
         tgt_tok_col: str = "tgt_tokenized",
-        train_file: Optional[Path] = None,
-        val_file: Optional[Path] = None,
-        test_file: Optional[Path] = None,
-        raw_data_file: Optional[Path] = None,
+        train_file: Path | None = None,
+        val_file: Path | None = None,
+        test_file: Path | None = None,
+        raw_data_file: Path | None = None,
         # Tokenization and vocabulary
         use_sentencepiece: bool = False,
-        sentencepiece_model_prefix: Optional[str] = None,
-        sentencepiece_model: Optional[str] = None,
-        sentencepiece_vocab: Optional[str] = None,
-        sentencepiece_src_model_prefix: Optional[str] = None,
-        sentencepiece_tgt_model_prefix: Optional[str] = None,
-        sentencepiece_src_model: Optional[str] = None,
-        sentencepiece_tgt_model: Optional[str] = None,
-        sentencepiece_src_vocab: Optional[str] = None,
-        sentencepiece_tgt_vocab: Optional[str] = None,
+        sentencepiece_model_prefix: str | None = None,
+        sentencepiece_model: str | None = None,
+        sentencepiece_vocab: str | None = None,
+        sentencepiece_src_model_prefix: str | None = None,
+        sentencepiece_tgt_model_prefix: str | None = None,
+        sentencepiece_src_model: str | None = None,
+        sentencepiece_tgt_model: str | None = None,
+        sentencepiece_src_vocab: str | None = None,
+        sentencepiece_tgt_vocab: str | None = None,
         vocab_size: int = 32000,
         min_freq: int = 2,
         sp_model_type: str = "bpe",
         sp_character_coverage: float = 1.0,
         sp_normalization_rule_name: str = "nmt_nfkc",
         # Back-translation and multilingual
-        back_trans_src: Optional[Path] = None,
-        back_trans_tgt: Optional[Path] = None,
-        combined_train_src: Optional[Path] = None,
-        combined_train_tgt: Optional[Path] = None,
-        reverse_model_checkpoint: Optional[Path] = None,
-        multi_train_file: Optional[Path] = None,
-        multi_val_file: Optional[Path] = None,
-        test_en_x_file: Optional[Path] = None,
-        test_x_en_file: Optional[Path] = None,
+        back_trans_src: Path | None = None,
+        back_trans_tgt: Path | None = None,
+        combined_train_src: Path | None = None,
+        combined_train_tgt: Path | None = None,
+        reverse_model_checkpoint: Path | None = None,
+        multi_train_file: Path | None = None,
+        multi_val_file: Path | None = None,
+        test_en_x_file: Path | None = None,
+        test_x_en_file: Path | None = None,
         lang_tag_en_to_x: str = "<2X>",
         lang_tag_x_to_en: str = "<2E>",
         # Model architecture
@@ -846,7 +847,7 @@ class Config:
         # Training hyperparameters
         batch_size: int = 64,
         num_steps: int = 100000,
-        step_limit: Optional[int] = None,
+        step_limit: int | None = None,
         learning_rate: float = 0.0001,
         adam_betas: tuple = (0.9, 0.98),
         adam_eps: float = 1e-9,
@@ -856,23 +857,23 @@ class Config:
         scheduler_patience: int = 3,
         label_smoothing: float = 0.1,
         use_bucketing: bool = False,
-        bucket_boundaries: Optional[list] = None,
+        bucket_boundaries: list | None = None,
         grad_clip: float = 1.0,
         val_interval: int = 1000,
         save_interval: int = 5000,
         log_interval: int = 100,
         patience: int = 10,
-        checkpoint_path: Optional[Path] = None,
-        last_checkpoint_path: Optional[Path] = None,
+        checkpoint_path: Path | None = None,
+        last_checkpoint_path: Path | None = None,
         # Decoding and inference
         beam_size: int = 5,
         max_decode_length: int = 200,
         length_penalty: float = 0.6,
         use_greedy: bool = False,
-        output_translations: Optional[Path] = None,
-        output_scores: Optional[Path] = None,
+        output_translations: Path | None = None,
+        output_scores: Path | None = None,
         # Device and reproducibility
-        device: Optional[str] = None,
+        device: str | None = None,
         num_workers: int = 4,
         seed: int = 42,
         # Data splitting
@@ -880,7 +881,7 @@ class Config:
         val_ratio: float = 0.1,
         # Experiment tracking
         use_tensorboard: bool = False,
-        tensorboard_dir: Optional[Path] = None,
+        tensorboard_dir: Path | None = None,
         experiment_name: str = "baseline",
         src_lang: str = "eng",
         tgt_lang: str = "deu",
@@ -1056,7 +1057,7 @@ class Config:
         self.tensorboard_dir = tensorboard_dir or (self.base_dir / "runs")
         self.experiment_name = experiment_name
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert config to a dictionary for logging and serialization.
 
         Returns:
@@ -1099,7 +1100,7 @@ class Config:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _ensure_path(value: Optional[Path], allow_none: bool = False) -> Path:
+    def _ensure_path(value: Path | None, allow_none: bool = False) -> Path:
         if value is None:
             if allow_none:
                 return value
@@ -1154,7 +1155,7 @@ class Config:
         return (float(beta1), float(beta2))
 
     @staticmethod
-    def _ensure_bucket_boundaries(value: Any) -> Optional[list]:
+    def _ensure_bucket_boundaries(value: Any) -> list | None:
         if value is None:
             return None
         if not isinstance(value, list):
@@ -1221,7 +1222,7 @@ class Config:
         return val
 
     @staticmethod
-    def _ensure_grad_clip(value: Any) -> Optional[float]:
+    def _ensure_grad_clip(value: Any) -> float | None:
         if value is None:
             return None
         if not isinstance(value, (float, int)):
@@ -2796,7 +2797,7 @@ class Config:
         self._validate_and_set("use_bucketing", value)
 
     @property
-    def bucket_boundaries(self) -> Optional[list]:
+    def bucket_boundaries(self) -> list | None:
         """Return Length boundaries for bucketing.
 
         Only used if USE_BUCKETING=True.
@@ -2808,7 +2809,7 @@ class Config:
         return self._get_field("bucket_boundaries")
 
     @bucket_boundaries.setter
-    def bucket_boundaries(self, value: Optional[list]) -> None:
+    def bucket_boundaries(self, value: list | None) -> None:
         """Set Length boundaries for bucketing.
 
         Args:
@@ -2817,7 +2818,7 @@ class Config:
         self._validate_and_set("bucket_boundaries", value)
 
     @property
-    def grad_clip(self) -> Optional[float]:
+    def grad_clip(self) -> float | None:
         """Return Max norm for gradient clipping.
 
         Prevents exploding gradients. Applied via torch.nn.utils.clip_grad_norm_. Set to 0 or None to disable. See https://pytorch.org/docs/stable/generated/torch.nn.utils.clip_grad_norm_.html.
@@ -2829,7 +2830,7 @@ class Config:
         return self._get_field("grad_clip")
 
     @grad_clip.setter
-    def grad_clip(self, value: Optional[float]) -> None:
+    def grad_clip(self, value: float | None) -> None:
         """Set Max norm for gradient clipping.
 
         Args:
@@ -3301,7 +3302,7 @@ def get_default_config() -> Config:
     return _default_config.copy()
 
 
-def get_config_dict() -> Dict[str, Any]:
+def get_config_dict() -> dict[str, Any]:
     """Return all configuration as a dictionary for logging and display.
 
     Only returns top-level UPPERCASE names to avoid leaking modules or

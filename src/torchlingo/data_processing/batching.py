@@ -17,23 +17,25 @@ Key Components:
    with optional SentencePiece tokenization and bucketing.
 """
 
-from functools import partial
-from typing import List, Tuple, Optional, Iterator, Union
-from pathlib import Path
 import random
+from collections.abc import Iterator
+from functools import partial
+from pathlib import Path
+
 import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Sampler
+
 from ..config import Config, get_default_config
 from .dataset import NMTDataset
 from .vocab import BaseVocab, SentencePieceVocab
 
 
 def collate_fn(
-    batch: List[Tuple[torch.Tensor, torch.Tensor]],
-    pad_idx: Optional[int] = None,
-    config: Optional[Config] = None,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+    batch: list[tuple[torch.Tensor, torch.Tensor]],
+    pad_idx: int | None = None,
+    config: Config | None = None,
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Collate a batch of (source, target) tensor pairs with padding.
 
     Pads all sequences in the batch to the same length (the length of the
@@ -101,7 +103,7 @@ class BucketBatchSampler(Sampler):
         self,
         dataset: NMTDataset,
         batch_size: int,
-        bucket_boundaries: Optional[List[int]] = None,
+        bucket_boundaries: list[int] | None = None,
     ) -> None:
         """Initialize the sampler and assign samples to buckets.
 
@@ -116,7 +118,7 @@ class BucketBatchSampler(Sampler):
         if bucket_boundaries is None:
             bucket_boundaries = self._calculate_bucket_boundaries()
         self.bucket_boundaries = sorted(bucket_boundaries)
-        self.buckets: List[List[int]] = [[] for _ in range(len(bucket_boundaries) + 1)]
+        self.buckets: list[list[int]] = [[] for _ in range(len(bucket_boundaries) + 1)]
         for idx in range(len(dataset)):
             src_tensor, _ = dataset[idx]
             src_len = len(src_tensor)
@@ -135,7 +137,7 @@ class BucketBatchSampler(Sampler):
                 f"provide more training data."
             )
 
-    def _calculate_bucket_boundaries(self) -> List[int]:
+    def _calculate_bucket_boundaries(self) -> list[int]:
         """Compute bucket boundaries automatically from sequence length distribution.
 
         Uses sequence length percentiles (20, 40, 60, 80, 95) to determine
@@ -166,13 +168,13 @@ class BucketBatchSampler(Sampler):
             sample_size = min(SAMPLE_MAX, max(SAMPLE_MIN, int(total * SAMPLE_FRAC)))
             # random.sample on a range is efficient and avoids constructing a large list.
             sample_indices = random.sample(range(total), sample_size)
-            lengths: List[int] = [len(self.dataset[i][0]) for i in sample_indices]
+            lengths: list[int] = [len(self.dataset[i][0]) for i in sample_indices]
         else:
             lengths = [len(self.dataset[i][0]) for i in range(total)]
 
         lengths.sort()
         percentiles = [20, 40, 60, 80, 95]
-        boundaries: List[int] = []
+        boundaries: list[int] = []
         m = len(lengths)
         for p in percentiles:
             # use (m-1) to map percentiles into valid index range [0, m-1]
@@ -224,7 +226,7 @@ class BucketBatchSampler(Sampler):
             len(bucket) // self.batch_size for bucket in self.buckets
         )
 
-    def __iter__(self) -> Iterator[List[int]]:
+    def __iter__(self) -> Iterator[list[int]]:
         """Iterate over batches of sample indices.
 
         Yields batches by:
@@ -243,7 +245,7 @@ class BucketBatchSampler(Sampler):
         """
         for bucket in self.buckets:
             random.shuffle(bucket)
-        all_batches: List[List[int]] = []
+        all_batches: list[list[int]] = []
         for bucket in self.buckets:
             for i in range(
                 0, len(bucket) - len(bucket) % self.batch_size, self.batch_size
@@ -264,19 +266,19 @@ class BucketBatchSampler(Sampler):
 
 
 def create_dataloaders(
-    train_file: Union[Path, NMTDataset],
-    val_file: Optional[Union[Path, NMTDataset]] = None,
-    batch_size: Optional[int] = None,
-    num_workers: Optional[int] = None,
+    train_file: Path | NMTDataset,
+    val_file: Path | NMTDataset | None = None,
+    batch_size: int | None = None,
+    num_workers: int | None = None,
     use_sentencepiece: bool = False,
-    sp_model_path: Optional[str] = None,
-    sp_tgt_model_path: Optional[str] = None,
+    sp_model_path: str | None = None,
+    sp_tgt_model_path: str | None = None,
     use_bucketing: bool = False,
-    bucket_boundaries: Optional[List[int]] = None,
-    device: Optional[str] = None,
-    pad_idx: Optional[int] = None,
-    config: Optional[Config] = None,
-) -> Tuple[DataLoader, Optional[DataLoader], BaseVocab, BaseVocab]:
+    bucket_boundaries: list[int] | None = None,
+    device: str | None = None,
+    pad_idx: int | None = None,
+    config: Config | None = None,
+) -> tuple[DataLoader, DataLoader | None, BaseVocab, BaseVocab]:
     """Create PyTorch DataLoaders for training and validation.
 
     Constructs train and optional validation DataLoaders from structured data
@@ -375,9 +377,9 @@ def create_dataloaders(
         train_dataset = train_file
         src_vocab = train_dataset.src_vocab
         tgt_vocab = train_dataset.tgt_vocab
-        assert (
-            src_vocab is not None and tgt_vocab is not None
-        ), "Provided train_dataset must have src_vocab and tgt_vocab initialized"
+        assert src_vocab is not None and tgt_vocab is not None, (
+            "Provided train_dataset must have src_vocab and tgt_vocab initialized"
+        )
     else:
         train_data = train_file
         if use_sentencepiece:
@@ -391,9 +393,9 @@ def create_dataloaders(
                 if sp_tgt_model_path is not None
                 else cfg.sentencepiece_tgt_model
             )
-            assert (
-                sp_model_path is not None
-            ), "Must provide sp_model_path when using SentencePiece"
+            assert sp_model_path is not None, (
+                "Must provide sp_model_path when using SentencePiece"
+            )
             src_vocab = SentencePieceVocab(sp_model_path)
             if sp_tgt_model_path and sp_tgt_model_path != sp_model_path:
                 tgt_vocab = SentencePieceVocab(sp_tgt_model_path)
@@ -406,7 +408,7 @@ def create_dataloaders(
             assert src_vocab is not None and tgt_vocab is not None
         train_dataset = NMTDataset(train_data, src_vocab=src_vocab, tgt_vocab=tgt_vocab)
 
-    val_dataset: Optional[NMTDataset]
+    val_dataset: NMTDataset | None
     if val_file is not None:
         if isinstance(val_file, NMTDataset):
             val_dataset = val_file

@@ -1,16 +1,18 @@
-import unittest
 import tempfile
-import torch
-import pandas as pd
+import unittest
 from pathlib import Path
+
+import pandas as pd
+import torch
 from torch.utils.data import DataLoader
+
+from torchlingo import config
 from torchlingo.data_processing.batching import (
-    collate_fn,
     BucketBatchSampler,
+    collate_fn,
     create_dataloaders,
 )
 from torchlingo.data_processing.dataset import NMTDataset
-from torchlingo import config
 
 
 class TestCollateFn(unittest.TestCase):

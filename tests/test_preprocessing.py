@@ -1,19 +1,19 @@
 import tempfile
-from pathlib import Path
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
-from torchlingo.preprocessing.base import (
-    load_data,
-    save_data,
-    split_data,
-    parallel_txt_to_dataframe,
-)
-from torchlingo.preprocessing.multilingual import add_language_tags
 from torchlingo import config
 from torchlingo.config import Config
+from torchlingo.preprocessing.base import (
+    load_data,
+    parallel_txt_to_dataframe,
+    save_data,
+    split_data,
+)
+from torchlingo.preprocessing.multilingual import add_language_tags
 
 
 class TestLoadDataParallelFiles(unittest.TestCase):

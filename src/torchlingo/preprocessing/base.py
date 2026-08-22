@@ -7,8 +7,9 @@ all downstream preprocessing operations.
 """
 
 from pathlib import Path
-from typing import Union, Tuple
+
 import pandas as pd
+
 from ..config import Config, get_default_config
 
 
@@ -70,7 +71,7 @@ def parallel_txt_to_dataframe(
     return pd.DataFrame(pairs)
 
 
-def load_data(filepath: Union[Path, str], format: str = None) -> pd.DataFrame:
+def load_data(filepath: Path | str, format: str = None) -> pd.DataFrame:
     """Load a single structured data file containing src/tgt columns.
 
     Supports multiple file formats and automatically detects format from file
@@ -157,7 +158,7 @@ def split_data(
     val_ratio: float = None,
     seed: int = None,
     config: Config = None,
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Split a DataFrame into train, validation, and test sets.
 
     Shuffles the entire DataFrame using the provided seed for reproducibility,

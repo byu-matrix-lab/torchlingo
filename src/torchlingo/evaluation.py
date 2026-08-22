@@ -12,15 +12,15 @@ Typical usage:
     >>> print(f"BLEU: {bleu.score:.2f}")
 """
 
-from typing import List, Dict, Optional, Union
-import torch
-import sacrebleu
 from pathlib import Path
+
+import sacrebleu
+import torch
 
 from .data_processing.vocab import BaseVocab
 
 
-def _needs_char_tokenization(text_samples: List[str]) -> bool:
+def _needs_char_tokenization(text_samples: list[str]) -> bool:
     """Detect if text uses CJK or other non-space-separated scripts.
 
     Args:
@@ -56,8 +56,8 @@ def _char_tokenize(text: str) -> str:
 
 
 def compute_bleu(
-    predictions: List[str],
-    references: Union[List[str], List[List[str]]],
+    predictions: list[str],
+    references: list[str] | list[list[str]],
     lowercase: bool = False,
     tokenize: str = "13a",
     tokenization: str = "auto",
@@ -137,8 +137,8 @@ def compute_bleu(
 
 
 def compute_chrf(
-    predictions: List[str],
-    references: Union[List[str], List[List[str]]],
+    predictions: list[str],
+    references: list[str] | list[list[str]],
     word_order: int = 2,
 ) -> sacrebleu.metrics.CHRF:
     """Compute corpus-level chrF score for translations.
@@ -172,8 +172,8 @@ def compute_chrf(
 
 
 def compute_ter(
-    predictions: List[str],
-    references: Union[List[str], List[List[str]]],
+    predictions: list[str],
+    references: list[str] | list[list[str]],
     normalized: bool = False,
 ) -> sacrebleu.metrics.TER:
     """Compute corpus-level TER (Translation Error Rate) score.
@@ -211,7 +211,7 @@ def evaluate_model(
     dataloader: torch.utils.data.DataLoader = None,
     src_vocab: BaseVocab = None,
     tgt_vocab: BaseVocab = None,
-    device: Optional[torch.device] = None,
+    device: torch.device | None = None,
     decode_strategy: str = "greedy",
     beam_size: int = 5,
     max_decode_length: int = 200,
@@ -219,11 +219,11 @@ def evaluate_model(
     compute_chrf_score: bool = True,
     compute_ter_score: bool = False,
     tokenization: str = "auto",
-    src_sentences: Optional[list] = None,
-    tgt_sentences: Optional[list] = None,
+    src_sentences: list | None = None,
+    tgt_sentences: list | None = None,
     batch_size: int = 32,
-    config: Optional[object] = None,
-) -> Dict[str, float]:
+    config: object | None = None,
+) -> dict[str, float]:
     """Evaluate a trained model on a dataset using multiple metrics.
 
     Generates translations for all samples and computes BLEU, chrF, and
@@ -373,9 +373,9 @@ def evaluate_model(
 
 
 def save_translations(
-    predictions: List[str],
-    references: Optional[List[str]] = None,
-    output_path: Union[str, Path] = "translations.txt",
+    predictions: list[str],
+    references: list[str] | None = None,
+    output_path: str | Path = "translations.txt",
     include_metrics: bool = True,
 ) -> None:
     """Save predictions and optionally references to a file.

@@ -3,8 +3,8 @@
 Exposes a factory `get_model(name, **kwargs)` to instantiate models.
 """
 
-from .transformer_simple import SimpleTransformer
 from .lstm_simple import SimpleSeq2SeqLSTM
+from .transformer_simple import SimpleTransformer
 
 _MODEL_MAP = {
     "transformer_simple": SimpleTransformer,
@@ -20,4 +20,4 @@ def get_model(name: str, **kwargs):
     return _MODEL_MAP[name](**kwargs)
 
 
-__all__ = ["SimpleTransformer", "SimpleSeq2SeqLSTM", "get_model"]
+__all__ = ["SimpleSeq2SeqLSTM", "SimpleTransformer", "get_model"]

@@ -1,12 +1,14 @@
-import unittest
 import tempfile
-import torch
-import pandas as pd
+import unittest
 from pathlib import Path
-from torchlingo.data_processing.dataset import NMTDataset
-from torchlingo.data_processing.vocab import SimpleVocab
+
+import pandas as pd
+import torch
+
 from torchlingo import config
 from torchlingo.config import Config
+from torchlingo.data_processing.dataset import NMTDataset
+from torchlingo.data_processing.vocab import SimpleVocab
 
 
 class TestNMTDatasetInitialization(unittest.TestCase):

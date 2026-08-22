@@ -6,17 +6,18 @@ efficient tokenization suitable for multilingual and low-resource scenarios.
 """
 
 from pathlib import Path
-from typing import List, Optional
+
 import sentencepiece as spm
+
 from ..config import Config, get_default_config
-from .base import load_data, save_data, preprocess_base
+from .base import load_data, preprocess_base, save_data
 
 
 def train_sentencepiece(
-    input_files: List[Path],
+    input_files: list[Path],
     model_prefix: str,
     vocab_size: int = None,
-    columns: Optional[List[str]] = None,
+    columns: list[str] | None = None,
     src_col: str = None,
     tgt_col: str = None,
     model_type: str = None,
@@ -30,7 +31,7 @@ def train_sentencepiece(
     unk_token: str = None,
     sos_token: str = None,
     eos_token: str = None,
-    user_defined_symbols: Optional[List[str]] = None,
+    user_defined_symbols: list[str] | None = None,
     config: Config = None,
 ):
     """Train a SentencePiece tokenization model on raw text data.
@@ -139,7 +140,7 @@ def apply_sentencepiece(
     input_file: Path,
     output_file: Path,
     sp_src_model: spm.SentencePieceProcessor,
-    sp_tgt_model: Optional[spm.SentencePieceProcessor] = None,
+    sp_tgt_model: spm.SentencePieceProcessor | None = None,
     src_col: str = None,
     tgt_col: str = None,
     config: Config = None,
