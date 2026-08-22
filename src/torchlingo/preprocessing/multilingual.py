@@ -16,7 +16,7 @@ from .base import load_data, save_data
 def add_language_tags(
     df: pd.DataFrame,
     tag: str,
-    src_col: str = None,
+    src_col: str | None = None,
     config: Config = None,
 ) -> pd.DataFrame:
     """Prepend a language tag to all source sentences.
@@ -50,19 +50,19 @@ def add_language_tags(
 
 
 def preprocess_multilingual(
-    train_file: Path = None,
-    val_file: Path = None,
-    test_file: Path = None,
-    src_col: str = None,
-    tgt_col: str = None,
-    lang_tag_en_to_x: str = None,
-    lang_tag_x_to_en: str = None,
-    seed: int = None,
-    multi_train_file: Path = None,
-    multi_val_file: Path = None,
-    test_en_x_file: Path = None,
-    test_x_en_file: Path = None,
-    data_format: str = None,
+    train_file: Path | None = None,
+    val_file: Path | None = None,
+    test_file: Path | None = None,
+    src_col: str | None = None,
+    tgt_col: str | None = None,
+    lang_tag_en_to_x: str | None = None,
+    lang_tag_x_to_en: str | None = None,
+    seed: int | None = None,
+    multi_train_file: Path | None = None,
+    multi_val_file: Path | None = None,
+    test_en_x_file: Path | None = None,
+    test_x_en_file: Path | None = None,
+    data_format: str | None = None,
     config: Config = None,
 ):
     """Execute multilingual preprocessing pipeline.

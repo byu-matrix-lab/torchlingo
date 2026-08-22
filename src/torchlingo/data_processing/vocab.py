@@ -35,15 +35,13 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import Union
-
 import sentencepiece as spm
 import torch
 
 from ..config import Config, get_default_config
 
-IndexInput = Union[Sequence[int], Sequence[Sequence[int]], torch.Tensor]
-DecodedOutput = Union[str, list[str]]
+IndexInput = Sequence[int] | Sequence[Sequence[int]] | torch.Tensor
+DecodedOutput = str | list[str]
 
 
 class BaseVocab(ABC):

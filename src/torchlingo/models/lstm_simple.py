@@ -50,11 +50,11 @@ class SimpleSeq2SeqLSTM(nn.Module):
         self,
         src_vocab_size: int,
         tgt_vocab_size: int,
-        emb_dim: int = None,
-        hidden_dim: int = None,
-        num_layers: int = None,
-        dropout: float = None,
-        pad_idx: int = None,
+        emb_dim: int | None = None,
+        hidden_dim: int | None = None,
+        num_layers: int | None = None,
+        dropout: float | None = None,
+        pad_idx: int | None = None,
         config: Config = None,
     ):
         super().__init__()

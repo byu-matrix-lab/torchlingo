@@ -16,8 +16,8 @@ from ..config import Config, get_default_config
 def parallel_txt_to_dataframe(
     src_path: Path,
     tgt_path: Path,
-    src_col: str = None,
-    tgt_col: str = None,
+    src_col: str | None = None,
+    tgt_col: str | None = None,
     config: Config = None,
 ) -> pd.DataFrame:
     """Convert parallel .txt files into a single DataFrame with src/tgt columns.
@@ -71,7 +71,7 @@ def parallel_txt_to_dataframe(
     return pd.DataFrame(pairs)
 
 
-def load_data(filepath: Path | str, format: str = None) -> pd.DataFrame:
+def load_data(filepath: Path | str, format: str | None = None) -> pd.DataFrame:
     """Load a single structured data file containing src/tgt columns.
 
     Supports multiple file formats and automatically detects format from file
@@ -115,7 +115,7 @@ def load_data(filepath: Path | str, format: str = None) -> pd.DataFrame:
         raise ValueError(f"Unsupported format: {format}")
 
 
-def save_data(df: pd.DataFrame, filepath: Path, format: str = None):
+def save_data(df: pd.DataFrame, filepath: Path, format: str | None = None):
     """Save a DataFrame to disk in the specified format.
 
     Creates parent directories as needed. Automatically detects format from
@@ -154,9 +154,9 @@ def save_data(df: pd.DataFrame, filepath: Path, format: str = None):
 
 def split_data(
     df: pd.DataFrame,
-    train_ratio: float = None,
-    val_ratio: float = None,
-    seed: int = None,
+    train_ratio: float | None = None,
+    val_ratio: float | None = None,
+    seed: int | None = None,
     config: Config = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Split a DataFrame into train, validation, and test sets.
@@ -203,16 +203,16 @@ def split_data(
 
 
 def preprocess_base(
-    raw_data_file: Path = None,
-    train_file: Path = None,
-    val_file: Path = None,
-    test_file: Path = None,
-    src_col: str = None,
-    tgt_col: str = None,
-    data_format: str = None,
-    train_ratio: float = None,
-    val_ratio: float = None,
-    seed: int = None,
+    raw_data_file: Path | None = None,
+    train_file: Path | None = None,
+    val_file: Path | None = None,
+    test_file: Path | None = None,
+    src_col: str | None = None,
+    tgt_col: str | None = None,
+    data_format: str | None = None,
+    train_ratio: float | None = None,
+    val_ratio: float | None = None,
+    seed: int | None = None,
     config: Config = None,
 ):
     """Execute base preprocessing pipeline on raw data.

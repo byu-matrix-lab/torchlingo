@@ -78,14 +78,14 @@ class NMTDataset(Dataset):
     def __init__(
         self,
         data_file: Path,
-        src_col: str = None,
-        tgt_col: str = None,
-        src_tok_col: str = None,
-        tgt_tok_col: str = None,
+        src_col: str | None = None,
+        tgt_col: str | None = None,
+        src_tok_col: str | None = None,
+        tgt_tok_col: str | None = None,
         src_vocab: BaseVocab | None = None,
         tgt_vocab: BaseVocab | None = None,
         max_length: int | None = None,
-        eos_idx: int = None,
+        eos_idx: int | None = None,
         config: Config = None,
     ):
         cfg = config if config is not None else get_default_config()
