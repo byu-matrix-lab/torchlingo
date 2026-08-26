@@ -32,17 +32,52 @@ characterization oracle for a refactor, but the natural reading is now stronger:
 Every fast variant should be run against the same fixtures as the reference, ideally
 parameterized so adding an implementation automatically inherits the whole suite.
 
-*Open questions for when we start:*
-- Naming and location: `beam_search_decode_batched` in `inference.py`, or a separate
-  `inference_fast.py`? Separate module keeps `inference.py` short; same module keeps the
-  comparison in front of the reader.
-- Does `translate_batch` gain an implementation selector, or stay on the reference path
-  with the fast path opted into explicitly?
-- Docs need to say plainly which to use when, or students will reach for the reference
-  implementation on a 3k-sentence test set, conclude beam search is impractical, and fall
-  back to greedy — the exact failure this work exists to prevent.
-- Guard against the reference rotting: it must stay exercised by the suite, not become
-  a museum piece nobody runs.
+*Resolved 2026-08-26:*
+
+**Module layout — a flat sibling module, `src/torchlingo/inference_fast.py`.**
+`inference.py` keeps the reference decoders and the shared helpers (`_canonical_topk`,
+`_rank_key`) and is not touched by the optimization work. Matches the repo's existing
+flat-module convention (`config.py`, `training.py`, `evaluation.py`); subpackages are
+reserved for places with several peers (`models/`, `preprocessing/`). Rejected: putting
+both in `inference.py`, which would push it past 700 lines and defeat the split;
+and an `inference/` subpackage, which makes a reader navigate a directory to find an
+85-line function.
+
+**`translate_batch` — mirrored, not switched.** The reference wrapper stays as-is;
+`inference_fast.py` gets its own `translate_batch_fast`. This keeps the dependency arrow
+one-way: **fast imports from reference, never the reverse.** A selector parameter or a
+fast-by-default wrapper would force `inference.py` to import `inference_fast.py`,
+coupling the module a student is meant to read to the one they are not.
+
+**Guidance — three layers, because docs alone will not catch the failure case.**
+1. `docs/docs/concepts/decoding.md`: reference vs fast, carrying the measurement
+   (38.7x the `decode()` calls for 5.0x the math, every call at batch size 1).
+2. Bidirectional docstring cross-references between each implementation and its
+   counterpart.
+3. A threshold-based, once-per-process `warnings.warn` when the reference path is used
+   on a large input, naming `translate_batch_fast` and noting the output is identical.
+   This is the layer that actually works: it fires at the moment of pain, whereas the
+   student who most needs it is mid-experiment and not reading docs.
+
+**Test structure — shared contract base class, one subclass per implementation.**
+Lift the fixtures and invariants in `test_decoding_equivalence.py` into a
+`DecoderContractTests` mixin with the decode callable supplied by each subclass:
+
+```python
+class DecoderContractTests:          # not a TestCase itself
+    DECODE = None
+    # ...every fixture and invariant...
+
+class ReferenceBeamTests(DecoderContractTests, unittest.TestCase):
+    DECODE = staticmethod(beam_search_decode)
+
+class BatchedBeamTests(DecoderContractTests, unittest.TestCase):
+    DECODE = staticmethod(beam_search_decode_batched)
+```
+
+Adding an implementation is one subclass and it inherits the whole suite; failures name
+the implementation, so a divergence is unambiguous. The reference is the specification
+and runs on every invocation, which is what keeps it from rotting into a museum piece.
 
 **#1 Batched beam search, Tier 1: batch across beams**
 Stack the k beams into one `(k, t)` tensor, expand `memory` to `(k, src_len, d)`,
