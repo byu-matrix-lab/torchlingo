@@ -33,6 +33,20 @@ Beam search does roughly 5x the arithmetic of greedy -- about what
 at batch size 1. That is latency-bound on dispatch, not compute-bound, which is
 exactly what batching fixes.
 
+Read that 38.7x carefully: greedy in the table is already batched across
+*sentences*, while the reference beam search batches neither sentences nor
+beams. The figure is therefore two independent inefficiencies multiplied
+together::
+
+    reference beam vs greedy :  38.7x
+      of which, beam axis    :   4.8x   <- one call per beam, per step
+      of which, sentence axis:   8.0x   <- one sentence at a time
+      product                :  38.7x
+
+:func:`beam_search_decode_batched` removes the **beam** factor only, recovering
+roughly ``beam_size``. It still decodes one sentence at a time, so the sentence
+factor remains. Expect about ``beam_size``, not 38.7x.
+
 Which to use
 ------------
 Use the reference when reading, teaching, or debugging, and for small inputs

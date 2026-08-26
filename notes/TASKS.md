@@ -79,27 +79,54 @@ Adding an implementation is one subclass and it inherits the whole suite; failur
 the implementation, so a divergence is unambiguous. The reference is the specification
 and runs on every invocation, which is what keeps it from rotting into a museum piece.
 
-**#1 Batched beam search, Tier 1: batch across beams**
-Stack the k beams into one `(k, t)` tensor, expand `memory` to `(k, src_len, d)`,
-issue one `model.decode()` call per step instead of k.
-- File: `src/torchlingo/inference.py:180-193`
-- Measured payoff: beam currently makes 38.7x more `decode()` calls than greedy for
-  only 5.0x more actual math, every call at batch size 1.0. Latency-bound on dispatch.
-- Self-contained; no public API change — the reference implementation is left untouched.
-- Oracle: output must be token-identical to the reference implementation.
+### The 38.7x is two factors, not one
 
-**#2 Batched beam search, Tier 2: batch across sentences**
-Remove the `src.size(0) != 1` restriction; flatten to `(batch x k, t)`.
-- Files: `src/torchlingo/inference.py:159` (the raise), `:266` (the per-row loop in
-  `translate_batch`)
+Worth stating plainly, because it was originally recorded here in a way that invited
+over-reading. The measurement compared reference beam search against *greedy*, and greedy
+was already batched across sentences. So it captured two independent inefficiencies
+multiplied together:
+
+```
+reference beam vs greedy :  38.7x
+  of which, beam axis    :   4.8x   <- one decode() call per beam, per step   (#1)
+  of which, sentence axis:   8.0x   <- one sentence at a time                 (#2)
+  product                :  38.7x
+```
+
+With `beam_size=5` and 8 sentences, 5 x 8 = 40 ~= 38.7 — the two factors are just the
+beam width and the sentence count. **#1 recovers roughly `beam_size`; the rest needs #2.**
+Neither task alone was ever going to deliver 38.7x, and quoting that figure against a
+single one of them is misleading.
+
+**#1 Batch beam search across beams** — *DONE (aabb260)*
+Stack the live beams into one `(n_live, t)` tensor, expand `memory` as a view, issue one
+`model.decode()` call per step instead of one per beam.
+- Implemented as `beam_search_decode_batched` in `src/torchlingo/inference_fast.py`.
+- Delivered: 125/125 token-identical across 25 sources x 5 beam widths; `decode()` calls
+  121 -> 25 (4.8x fewer); wall clock 140.9 -> 39.1 ms/sentence (3.6x) on a small CPU model.
+- The wall-clock gain trails the call-count gain because eliminating calls does not
+  eliminate per-step Python bookkeeping, the per-row `_canonical_topk`, or `log_softmax`
+  — and each surviving call now does 4.8x more work, so it is not free.
+- Key enabling fact: every live beam always has the same length, so they stack with no
+  padding at all.
+
+**#2 Batch beam search across sentences**
+Remove the batch-size-1 restriction in `inference_fast.py`; flatten to `(batch x k, t)`.
+**This is where the remaining ~8x lives** (the sentence axis above) — and it scales with
+the number of sentences decoded, so it matters more on a real test set than #1 does.
+- Files: `src/torchlingo/inference_fast.py` (the raise, and the per-row loop in
+  `translate_batch_fast`)
 - Hard part is bookkeeping for ragged completion — sentences finishing at different steps.
+- Needs a contract adapter: it takes a batch rather than one sentence, so it does not slot
+  into the current `BEAM_DECODE` shape unchanged.
 - `tests/test_training_inference.py:502`
   (`test_beam_search_decode_raises_on_batch_size_gt_one`) stays valid: under the
   side-by-side design the *reference* implementation keeps that restriction. The batched
   variant gets its own tests rather than inverting this one.
 
-**#3 Batched beam search, Tier 3: incremental decoding / KV cache**
-Removes the O(L^2) prefix recomputation.
+**#3 Incremental decoding / KV cache**
+Removes the O(L^2) prefix recomputation. Independent of the two axes above: it reduces the
+work *inside* each call rather than the number of calls.
 - ~~DECISION NEEDED: may compromise the readability that makes this repo worth using for
   teaching. Consider stopping at #2 for an educational library.~~ **Resolved by the
   side-by-side design above:** the reference implementation stays readable regardless, so

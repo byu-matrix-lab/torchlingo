@@ -75,6 +75,35 @@ This is one of the most transferable lessons in practical deep learning: **many 
 operations are slower than one large operation, even when the total arithmetic is
 identical.**
 
+### The 38.7× is two problems, not one
+
+That number is easy to misread, so it is worth taking apart. Greedy decoding in the table
+is batched across **sentences** — all 8 go through in one call. The reference beam search
+batches neither sentences nor beams. So the comparison measures *two independent
+inefficiencies multiplied together*:
+
+```
+reference beam vs greedy :  38.7x
+  of which, beam axis    :   4.8x   <- one call per beam, per step
+  of which, sentence axis:   8.0x   <- one sentence at a time
+  product                :  38.7x
+```
+
+With `beam_size=5` and 8 sentences, 5 × 8 = 40 ≈ 38.7. The two factors are simply the
+beam width and the number of sentences.
+
+**`beam_search_decode_batched` removes the first factor only.** It batches the beams, so
+it recovers about `beam_size` — measured 4.8×, slightly under 5 because fewer beams remain
+live late in the search. The sentence axis is untouched: the batched decoder still takes
+one sentence at a time.
+
+Recovering the second factor means batching across sentences, which is a harder change —
+sentences finish at different steps, so the bookkeeping for retiring some rows while
+others keep going is genuinely fiddly. That work is tracked separately and is not in the
+library yet.
+
+So: expect roughly `beam_size` from the batched decoder, not 38.7×.
+
 ## What the fast version changes
 
 Not the algorithm. The same beam search, the same scores, the same tie-breaking, the
