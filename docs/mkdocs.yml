@@ -125,6 +125,7 @@ nav:
     - Vocabulary & Tokenization: concepts/vocabulary.md
     - Model Architectures: concepts/models.md
     - Training Loop: concepts/training.md
+    - Decoding: concepts/decoding.md
   - Tutorials:
     - tutorials/index.md
     - Data and Vocabulary: tutorials/01-data-and-vocab.ipynb

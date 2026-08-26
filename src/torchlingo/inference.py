@@ -27,6 +27,7 @@ break ties differently and silently change output.
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Sequence
 
 import torch
@@ -36,6 +37,41 @@ from torch.nn.utils.rnn import pad_sequence
 
 from .config import Config, get_default_config
 from .data_processing.vocab import BaseVocab
+
+# Beam decoding more sentences than this through the reference implementation is
+# slow enough to be worth flagging. Tuned to stay quiet for the tutorials and
+# test suites, and to fire on anything resembling a real evaluation set.
+_LARGE_INPUT_WARN_THRESHOLD = 100
+
+_warned_about_large_beam_input = False
+
+
+def _warn_if_large_beam_input(num_sentences: int) -> None:
+    """Point the user at the fast path when beam decoding a large input.
+
+    Fires at most once per process. A student running the reference beam search
+    over an evaluation set will otherwise conclude that beam search is
+    impractical and fall back to greedy, which is the failure this exists to
+    prevent -- and they will reach that conclusion mid-experiment, not while
+    reading documentation.
+
+    Args:
+        num_sentences: How many sentences are about to be beam decoded.
+    """
+    global _warned_about_large_beam_input
+    if _warned_about_large_beam_input or num_sentences <= _LARGE_INPUT_WARN_THRESHOLD:
+        return
+    _warned_about_large_beam_input = True
+    warnings.warn(
+        f"Beam decoding {num_sentences} sentences with the reference "
+        "implementation, which evaluates one beam per model call and is "
+        "written for readability rather than speed. For inputs this size use "
+        "torchlingo.inference_fast.translate_batch_fast, which produces "
+        "identical output. Silence with "
+        "warnings.filterwarnings('ignore', module='torchlingo.inference').",
+        UserWarning,
+        stacklevel=3,
+    )
 
 
 def _canonical_topk(
@@ -235,6 +271,18 @@ def beam_search_decode(
         Output is deterministic for a fixed model and input on any device.
         Exact score ties are broken toward the lower token IDs; see the
         module docstring for the full rule.
+
+    Note:
+        This is the **reference** implementation, written to be read: the whole
+        search is visible in about 40 lines. It issues one ``model.decode()``
+        call per beam per step, which is roughly ``beam_size`` times more calls
+        than necessary. For decoding a real test set, prefer
+        :func:`torchlingo.inference_fast.beam_search_decode_batched`, which has
+        the same signature and returns token-identical output.
+
+    See Also:
+        :func:`torchlingo.inference_fast.beam_search_decode_batched`: the
+        batched counterpart, same output and substantially faster.
     """
 
     cfg = config if config is not None else get_default_config()
@@ -326,10 +374,22 @@ def translate_batch(
 
     Returns:
         List of decoded text strings aligned with input sentences.
+
+    Warns:
+        UserWarning: Once per process, when beam decoding more than
+            ``_LARGE_INPUT_WARN_THRESHOLD`` sentences, pointing at
+            :func:`torchlingo.inference_fast.translate_batch_fast`.
+
+    See Also:
+        :func:`torchlingo.inference_fast.translate_batch_fast`: same output,
+        substantially faster for beam decoding on large inputs.
     """
 
     cfg = config if config is not None else get_default_config()
     device = device if device is not None else next(model.parameters()).device
+
+    if decode_strategy == "beam":
+        _warn_if_large_beam_input(len(sentences))
 
     encoded = [
         torch.tensor(src_vocab.encode(s, add_special_tokens=True), dtype=torch.long)

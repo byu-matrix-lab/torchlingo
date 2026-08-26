@@ -43,6 +43,7 @@ from torchlingo.inference import (
     beam_search_decode,
     greedy_decode,
 )
+from torchlingo.inference_fast import beam_search_decode_batched
 from torchlingo.models.transformer_simple import SimpleTransformer
 
 D_MEM = 4
@@ -256,7 +257,7 @@ class FixtureSensitivityTests(unittest.TestCase):
             model.decode(tgt, memory)
 
 
-class DecodingInvariantTests(unittest.TestCase):
+class DecodingInvariantContract:
     """Properties that must hold before AND after the batching refactors."""
 
     def test_beam_size_one_matches_greedy(self):
@@ -265,7 +266,7 @@ class DecodingInvariantTests(unittest.TestCase):
         src = _sentence(cfg, [7, 8, 9])
 
         greedy = greedy_decode(model, src, max_len=12, config=cfg)[0]
-        beam = beam_search_decode(model, src, beam_size=1, max_len=12, config=cfg)
+        beam = self.BEAM_DECODE(model, src, beam_size=1, max_len=12, config=cfg)
 
         self.assertEqual(greedy, beam)
 
@@ -312,10 +313,10 @@ class DecodingInvariantTests(unittest.TestCase):
         short = _sentence(cfg, [7, 8])
         long = _sentence(cfg, [11, 12, 13, 14, 15])
 
-        solo = beam_search_decode(model, short, beam_size=3, max_len=12, config=cfg)
+        solo = self.BEAM_DECODE(model, short, beam_size=3, max_len=12, config=cfg)
 
         padded_row = _pad_into_batch(cfg, [short, long])[0].unsqueeze(0)
-        padded = beam_search_decode(
+        padded = self.BEAM_DECODE(
             model, padded_row, beam_size=3, max_len=12, config=cfg
         )
 
@@ -327,7 +328,7 @@ class DecodingInvariantTests(unittest.TestCase):
         src = _sentence(cfg, [7, 8, 9])
 
         runs = [
-            beam_search_decode(model, src, beam_size=4, max_len=12, config=cfg)
+            self.BEAM_DECODE(model, src, beam_size=4, max_len=12, config=cfg)
             for _ in range(3)
         ]
 
@@ -339,10 +340,10 @@ class DecodingInvariantTests(unittest.TestCase):
         cfg = _cfg()
         model = _make_fixture(cfg)
 
-        a = beam_search_decode(
+        a = self.BEAM_DECODE(
             model, _sentence(cfg, [7, 8]), beam_size=3, max_len=12, config=cfg
         )
-        b = beam_search_decode(
+        b = self.BEAM_DECODE(
             model, _sentence(cfg, [12, 13]), beam_size=3, max_len=12, config=cfg
         )
 
@@ -355,14 +356,14 @@ class DecodingInvariantTests(unittest.TestCase):
 
         for beam_size in (1, 2, 3, 5, 8):
             with self.subTest(beam_size=beam_size):
-                tokens = beam_search_decode(
+                tokens = self.BEAM_DECODE(
                     model, src, beam_size=beam_size, max_len=20, config=cfg
                 )
                 self.assertEqual(tokens[0], cfg.sos_idx)
                 self.assertIn(cfg.eos_idx, tokens)
 
 
-class BeamSearchGoldenTests(unittest.TestCase):
+class BeamSearchGoldenContract:
     """Exact-output characterization tests: the oracle for the refactors.
 
     A batched reimplementation must reproduce these token sequences exactly.
@@ -382,7 +383,7 @@ class BeamSearchGoldenTests(unittest.TestCase):
         src = _sentence(cfg, self.SRC_TOKENS)
 
         observed = {
-            beam_size: beam_search_decode(
+            beam_size: self.BEAM_DECODE(
                 model, src, beam_size=beam_size, max_len=20, config=cfg
             )
             for beam_size in (1, 2, 3, 5)
@@ -406,7 +407,7 @@ class BeamSearchGoldenTests(unittest.TestCase):
         self.assertEqual(decoded, [2, 11, 10, 8, 4, 8, 3])
 
 
-class LengthNormalizationSemanticsTests(unittest.TestCase):
+class LengthNormalizationSemanticsContract:
     """Pin the current length-normalization behavior (task #4).
 
     ``beam_search_decode`` applies length normalization while *pruning*, not
@@ -422,7 +423,7 @@ class LengthNormalizationSemanticsTests(unittest.TestCase):
 
         lengths = {
             alpha: len(
-                beam_search_decode(
+                self.BEAM_DECODE(
                     model,
                     src,
                     beam_size=4,
@@ -448,16 +449,12 @@ class LengthNormalizationSemanticsTests(unittest.TestCase):
         model = _make_fixture(cfg)
         src = _sentence(cfg, [7, 8, 9])
 
-        a = beam_search_decode(
-            model, src, beam_size=3, max_len=20, alpha=0.0, config=cfg
-        )
-        b = beam_search_decode(
-            model, src, beam_size=3, max_len=20, alpha=0.0, config=cfg
-        )
+        a = self.BEAM_DECODE(model, src, beam_size=3, max_len=20, alpha=0.0, config=cfg)
+        b = self.BEAM_DECODE(model, src, beam_size=3, max_len=20, alpha=0.0, config=cfg)
         self.assertEqual(a, b)
 
 
-class RealModelConsistencyTests(unittest.TestCase):
+class RealModelConsistencyContract:
     """Cross-check the invariants on a real SimpleTransformer.
 
     These compare results *within a single run* rather than against hardcoded
@@ -499,7 +496,7 @@ class RealModelConsistencyTests(unittest.TestCase):
         src = _sentence(cfg, [11, 12])
 
         greedy = greedy_decode(model, src, max_len=12, config=cfg)[0]
-        beam = beam_search_decode(model, src, beam_size=1, max_len=12, config=cfg)
+        beam = self.BEAM_DECODE(model, src, beam_size=1, max_len=12, config=cfg)
 
         self.assertEqual(greedy, beam)
 
@@ -508,12 +505,12 @@ class RealModelConsistencyTests(unittest.TestCase):
         model = self._model(cfg)
         src = _sentence(cfg, [11, 12])
 
-        a = beam_search_decode(model, src, beam_size=3, max_len=12, config=cfg)
-        b = beam_search_decode(model, src, beam_size=3, max_len=12, config=cfg)
+        a = self.BEAM_DECODE(model, src, beam_size=3, max_len=12, config=cfg)
+        b = self.BEAM_DECODE(model, src, beam_size=3, max_len=12, config=cfg)
         self.assertEqual(a, b)
 
 
-class PlannedBatchingContractTests(unittest.TestCase):
+class BatchSizeRestrictionContract:
     """Document the API contract that tasks #1 and #2 will change.
 
     ``test_batch_size_gt_one_currently_rejected`` is the test that INVERTS when
@@ -527,7 +524,7 @@ class PlannedBatchingContractTests(unittest.TestCase):
         batch = _pad_into_batch(cfg, [_sentence(cfg, [7, 8]), _sentence(cfg, [9, 10])])
 
         with self.assertRaises(ValueError):
-            beam_search_decode(model, batch, beam_size=2, max_len=12, config=cfg)
+            self.BEAM_DECODE(model, batch, beam_size=2, max_len=12, config=cfg)
 
     def test_per_sentence_reference_for_future_batched_impl(self):
         """Reference outputs a batched implementation must reproduce.
@@ -544,7 +541,7 @@ class PlannedBatchingContractTests(unittest.TestCase):
         ]
 
         reference = [
-            beam_search_decode(model, s, beam_size=3, max_len=20, config=cfg)
+            self.BEAM_DECODE(model, s, beam_size=3, max_len=20, config=cfg)
             for s in sentences
         ]
 
@@ -557,7 +554,7 @@ class PlannedBatchingContractTests(unittest.TestCase):
         batch = _pad_into_batch(cfg, sentences)
         for row, expected in enumerate(reference):
             with self.subTest(row=row):
-                got = beam_search_decode(
+                got = self.BEAM_DECODE(
                     model,
                     batch[row].unsqueeze(0),
                     beam_size=3,
@@ -633,7 +630,7 @@ class TrapTransformer(nn.Module):
         return self.decode(tgt, self.encode(src))
 
 
-class BeamSuperiorityTests(unittest.TestCase):
+class BeamSuperiorityContract:
     """Prove beam search actually explores, and pin what it finds.
 
     These are the strongest oracle in this module: they fail if a refactor
@@ -657,7 +654,7 @@ class BeamSuperiorityTests(unittest.TestCase):
     def test_beam_two_escapes_the_trap(self):
         cfg = _cfg()
         model = self._model(cfg)
-        decoded = beam_search_decode(
+        decoded = self.BEAM_DECODE(
             model, _sentence(cfg, [9]), beam_size=2, max_len=6, config=cfg
         )
 
@@ -671,7 +668,7 @@ class BeamSuperiorityTests(unittest.TestCase):
         src = _sentence(cfg, [9])
 
         greedy = greedy_decode(model, src, max_len=6, config=cfg)[0]
-        beam = beam_search_decode(model, src, beam_size=1, max_len=6, config=cfg)
+        beam = self.BEAM_DECODE(model, src, beam_size=1, max_len=6, config=cfg)
 
         self.assertEqual(greedy, beam)
 
@@ -682,9 +679,7 @@ class BeamSuperiorityTests(unittest.TestCase):
         src = _sentence(cfg, [9])
 
         observed = {
-            width: beam_search_decode(
-                model, src, beam_size=width, max_len=6, config=cfg
-            )
+            width: self.BEAM_DECODE(model, src, beam_size=width, max_len=6, config=cfg)
             for width in (1, 2, 4)
         }
         expected = {
@@ -700,18 +695,18 @@ class BeamSuperiorityTests(unittest.TestCase):
         model = self._model(cfg)
         src = _sentence(cfg, [9])
 
-        best = beam_search_decode(model, src, beam_size=2, max_len=6, config=cfg)
+        best = self.BEAM_DECODE(model, src, beam_size=2, max_len=6, config=cfg)
         for width in (3, 4, 6, 8):
             with self.subTest(beam_size=width):
                 self.assertEqual(
-                    beam_search_decode(
+                    self.BEAM_DECODE(
                         model, src, beam_size=width, max_len=6, config=cfg
                     ),
                     best,
                 )
 
 
-class TieBreakingTests(unittest.TestCase):
+class TieBreakingContract:
     """Assert the documented tie-breaking rule (task #13).
 
     The rule: prefer the higher score; among exactly equal scores prefer the
@@ -807,7 +802,7 @@ class TieBreakingTests(unittest.TestCase):
         src = _sentence(cfg, [9])
 
         greedy = greedy_decode(model, src, max_len=6, config=cfg)[0]
-        beam = beam_search_decode(model, src, beam_size=1, max_len=6, config=cfg)
+        beam = self.BEAM_DECODE(model, src, beam_size=1, max_len=6, config=cfg)
 
         self.assertEqual(greedy, beam)
 
@@ -818,7 +813,7 @@ class TieBreakingTests(unittest.TestCase):
 
         for beam_size in (1, 2, 3, 5):
             with self.subTest(beam_size=beam_size):
-                tokens = beam_search_decode(
+                tokens = self.BEAM_DECODE(
                     model, src, beam_size=beam_size, max_len=6, config=cfg
                 )
                 self.assertEqual(
@@ -833,10 +828,80 @@ class TieBreakingTests(unittest.TestCase):
         src = _sentence(cfg, [9])
 
         runs = [
-            beam_search_decode(model, src, beam_size=3, max_len=6, config=cfg)
+            self.BEAM_DECODE(model, src, beam_size=3, max_len=6, config=cfg)
             for _ in range(4)
         ]
         self.assertEqual(len({tuple(r) for r in runs}), 1)
+
+
+# --- reference implementation -------------------------------------------------
+
+
+class ReferenceDecodingInvariantTests(DecodingInvariantContract, unittest.TestCase):
+    BEAM_DECODE = staticmethod(beam_search_decode)
+
+
+class ReferenceBeamSearchGoldenTests(BeamSearchGoldenContract, unittest.TestCase):
+    BEAM_DECODE = staticmethod(beam_search_decode)
+
+
+class ReferenceLengthNormalizationSemanticsTests(
+    LengthNormalizationSemanticsContract, unittest.TestCase
+):
+    BEAM_DECODE = staticmethod(beam_search_decode)
+
+
+class ReferenceRealModelConsistencyTests(
+    RealModelConsistencyContract, unittest.TestCase
+):
+    BEAM_DECODE = staticmethod(beam_search_decode)
+
+
+class ReferenceBatchSizeRestrictionTests(
+    BatchSizeRestrictionContract, unittest.TestCase
+):
+    BEAM_DECODE = staticmethod(beam_search_decode)
+
+
+class ReferenceBeamSuperiorityTests(BeamSuperiorityContract, unittest.TestCase):
+    BEAM_DECODE = staticmethod(beam_search_decode)
+
+
+class ReferenceTieBreakingTests(TieBreakingContract, unittest.TestCase):
+    BEAM_DECODE = staticmethod(beam_search_decode)
+
+
+# --- batched implementation ---------------------------------------------------
+
+
+class BatchedDecodingInvariantTests(DecodingInvariantContract, unittest.TestCase):
+    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+
+
+class BatchedBeamSearchGoldenTests(BeamSearchGoldenContract, unittest.TestCase):
+    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+
+
+class BatchedLengthNormalizationSemanticsTests(
+    LengthNormalizationSemanticsContract, unittest.TestCase
+):
+    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+
+
+class BatchedRealModelConsistencyTests(RealModelConsistencyContract, unittest.TestCase):
+    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+
+
+class BatchedBatchSizeRestrictionTests(BatchSizeRestrictionContract, unittest.TestCase):
+    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+
+
+class BatchedBeamSuperiorityTests(BeamSuperiorityContract, unittest.TestCase):
+    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+
+
+class BatchedTieBreakingTests(TieBreakingContract, unittest.TestCase):
+    BEAM_DECODE = staticmethod(beam_search_decode_batched)
 
 
 if __name__ == "__main__":
