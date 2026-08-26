@@ -15,37 +15,13 @@ The two are held together by a contract:
 invariants live in a shared contract base class that every implementation is
 run against, so the two cannot silently diverge and the reference cannot rot.
 
-Why a faster beam search is needed
-----------------------------------
-The reference issues one ``model.decode()`` call per *beam* per step. Measured
-on 8 sentences with ``max_len=25`` and ``beam_size=5``:
+Batching beam search offers two independent speedups whose effects multiply:
+across the **beams** (worth about ``beam_size``) and across the **sentences**
+(worth about the number of sentences). This module pulls the first lever;
+decoding still happens one sentence at a time.
 
-===================  ================  ===============  ==================
-Implementation       ``decode()``      seqs per batch   positions forwarded
-===================  ================  ===============  ==================
-greedy                            25              8.0               2,600
-reference beam                   968              1.0              12,968
-ratio                          38.7x             4.8x                5.0x
-===================  ================  ===============  ==================
-
-Beam search does roughly 5x the arithmetic of greedy -- about what
-``beam_size=5`` should cost -- but issues 38.7x more kernel launches, every one
-at batch size 1. That is latency-bound on dispatch, not compute-bound, which is
-exactly what batching fixes.
-
-Read that 38.7x carefully: greedy in the table is already batched across
-*sentences*, while the reference beam search batches neither sentences nor
-beams. The figure is therefore two independent inefficiencies multiplied
-together::
-
-    reference beam vs greedy :  38.7x
-      of which, beam axis    :   4.8x   <- one call per beam, per step
-      of which, sentence axis:   8.0x   <- one sentence at a time
-      product                :  38.7x
-
-:func:`beam_search_decode_batched` removes the **beam** factor only, recovering
-roughly ``beam_size``. It still decodes one sentence at a time, so the sentence
-factor remains. Expect about ``beam_size``, not 38.7x.
+Measured against the reference: 4.8x fewer ``model.decode()`` calls and 3.6x
+lower wall clock on a small CPU model, with byte-identical output.
 
 Which to use
 ------------
@@ -56,6 +32,8 @@ it discourages using beam search at all.
 
 See Also:
     :mod:`torchlingo.inference`: the reference implementations these mirror.
+    ``docs/concepts/decoding.md``: why the reference is slow, where the 38.7x
+    figure comes from, and how the two levers decompose.
 """
 
 from __future__ import annotations

@@ -79,24 +79,22 @@ Adding an implementation is one subclass and it inherits the whole suite; failur
 the implementation, so a divergence is unambiguous. The reference is the specification
 and runs on every invocation, which is what keeps it from rotting into a museum piece.
 
-### The 38.7x is two factors, not one
+### The 38.7x is a budget split across two levers
 
-Worth stating plainly, because it was originally recorded here in a way that invited
-over-reading. The measurement compared reference beam search against *greedy*, and greedy
-was already batched across sentences. So it captured two independent inefficiencies
-multiplied together:
+Batching offers ~38.7x fewer model calls, but as two independent levers whose effects
+multiply — worth recording, because the figure was originally quoted here as if any one
+task could deliver it:
 
-```
-reference beam vs greedy :  38.7x
-  of which, beam axis    :   4.8x   <- one decode() call per beam, per step   (#1)
-  of which, sentence axis:   8.0x   <- one sentence at a time                 (#2)
-  product                :  38.7x
-```
+| Lever | Worth | Task |
+|---|---|---|
+| Batch across beams | ~`beam_size` | #1 |
+| Batch across sentences | ~`num_sentences` | #2 |
 
-With `beam_size=5` and 8 sentences, 5 x 8 = 40 ~= 38.7 — the two factors are just the
-beam width and the sentence count. **#1 recovers roughly `beam_size`; the rest needs #2.**
-Neither task alone was ever going to deliver 38.7x, and quoting that figure against a
-single one of them is misleading.
+`beam_size=5` x 8 sentences = 40 ~= 38.7. #1 recovers roughly `beam_size`; the rest needs
+#2, which is worth more the larger the test set.
+
+Full explanation for students lives in `docs/docs/concepts/decoding.md` — keep it there
+rather than duplicating it into code and notes.
 
 **#1 Batch beam search across beams** — *DONE (aabb260)*
 Stack the live beams into one `(n_live, t)` tensor, expand `memory` as a view, issue one
