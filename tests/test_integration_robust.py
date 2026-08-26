@@ -15,9 +15,9 @@ import torch
 from torchlingo.config import Config
 from torchlingo.data_processing.batching import collate_fn
 from torchlingo.data_processing.dataset import NMTDataset
-from torchlingo.data_processing.vocab import SimpleVocab, SentencePieceVocab
+from torchlingo.data_processing.vocab import SentencePieceVocab, SimpleVocab
 from torchlingo.inference import greedy_decode, translate_batch
-from torchlingo.models import SimpleTransformer, SimpleSeq2SeqLSTM
+from torchlingo.models import SimpleSeq2SeqLSTM, SimpleTransformer
 from torchlingo.preprocessing.sentencepiece import train_sentencepiece
 from torchlingo.training import train_model
 
@@ -25,7 +25,9 @@ from torchlingo.training import train_model
 class TestEndToEndTransformerPipeline(unittest.TestCase):
     """Test complete pipeline from raw data to trained model and inference."""
 
-    @unittest.skip("Flaky: loss convergence unreliable with only 3 epochs on 8 examples")
+    @unittest.skip(
+        "Flaky: loss convergence unreliable with only 3 epochs on 8 examples"
+    )
     def test_full_pipeline_with_simple_vocab(self):
         """Test complete pipeline: data → vocab → dataset → train → inference."""
         # Seed so the briefly-trained model behaves the same regardless of

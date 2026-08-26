@@ -58,7 +58,17 @@ docs = [
     "mkdocs-jupyter>=0.24",
     "griffe>=0.40",
 ]
-dev = ["pytest>=7.0", "ruff>=0.12", "isort>=5.12", "build>=1.0", "twine>=4.0", "pre-commit>=3.0"]
+# ruff is pinned exactly, and must match the rev in .pre-commit-config.yaml:
+# its default rule set widens across releases, so an unpinned install reports
+# findings that pre-commit does not, and vice versa.
+dev = [
+    "pytest>=7.0",
+    "ruff==0.16.3",
+    "isort>=5.12",
+    "build>=1.0",
+    "twine>=4.0",
+    "pre-commit>=3.0",
+]
 japanese = ["fugashi>=1.3", "unidic-lite>=1.0"]
 chinese = ["jieba>=0.42"]
 asian = [
@@ -84,8 +94,19 @@ ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 88
-# Ignore E402 (imports not at top) in documentation notebooks since they often
-# manipulate sys.path and import packages mid-cell for interactivity.
+
 [tool.ruff.lint]
-per-file-ignores = { "docs/**/*.ipynb" = ["E402", "F401"] }
+# E402 (imports not at top) and F401 (unused import) in documentation notebooks:
+#   notebooks often manipulate sys.path and import packages mid-cell for
+#   interactivity.
+# RUF059 (unused unpacked variable) in tests: naming every element of a returned
+#   tuple documents that function's contract at the call site, e.g.
+#   `train, val, test = split_data(...)` when a test only asserts on `train`.
+#   Underscore-prefixing them would obscure what the function returns.
+per-file-ignores = { "docs/**/*.ipynb" = [
+    "E402",
+    "F401",
+], "tests/**/*.py" = [
+    "RUF059",
+] }
 

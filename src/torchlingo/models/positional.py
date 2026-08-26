@@ -18,10 +18,9 @@ Typical usage:
 """
 
 import math
-from typing import Optional
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ..config import Config, get_default_config
 
@@ -61,11 +60,11 @@ class SinusoidalPositionalEncoding(nn.Module):
 
     def __init__(
         self,
-        d_model: Optional[int] = None,
-        max_seq_len: Optional[int] = None,
-        dropout: Optional[float] = None,
+        d_model: int | None = None,
+        max_seq_len: int | None = None,
+        dropout: float | None = None,
         base: float = 10000.0,
-        config: Optional[Config] = None,
+        config: Config | None = None,
     ) -> None:
         super().__init__()
         cfg = config if config is not None else get_default_config()
@@ -86,7 +85,7 @@ class SinusoidalPositionalEncoding(nn.Module):
         seq_len: int,
         d_model: int,
         base: float,
-        device: Optional[torch.device] = None,
+        device: torch.device | None = None,
     ) -> torch.Tensor:
         """Compute the sinusoidal encoding table.
 

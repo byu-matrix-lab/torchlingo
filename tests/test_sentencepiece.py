@@ -7,12 +7,12 @@ import sentencepiece as spm
 import torch
 
 from torchlingo.config import Config
+from torchlingo.data_processing.vocab import SentencePieceVocab
 from torchlingo.preprocessing.sentencepiece import (
     apply_sentencepiece,
     preprocess_sentencepiece,
     train_sentencepiece,
 )
-from torchlingo.data_processing.vocab import SentencePieceVocab
 
 
 def _make_parallel(df_dir: Path, n: int = 12) -> tuple[Path, Path, Path]:

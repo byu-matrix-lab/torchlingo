@@ -6,32 +6,33 @@ efficient tokenization suitable for multilingual and low-resource scenarios.
 """
 
 from pathlib import Path
-from typing import List, Optional
+
 import sentencepiece as spm
+
 from ..config import Config, get_default_config
-from .base import load_data, save_data, preprocess_base
+from .base import load_data, preprocess_base, save_data
 
 
 def train_sentencepiece(
-    input_files: List[Path],
+    input_files: list[Path],
     model_prefix: str,
-    vocab_size: int = None,
-    columns: Optional[List[str]] = None,
-    src_col: str = None,
-    tgt_col: str = None,
-    model_type: str = None,
-    character_coverage: float = None,
-    normalization_rule_name: str = None,
-    pad_idx: int = None,
-    unk_idx: int = None,
-    sos_idx: int = None,
-    eos_idx: int = None,
-    pad_token: str = None,
-    unk_token: str = None,
-    sos_token: str = None,
-    eos_token: str = None,
-    user_defined_symbols: Optional[List[str]] = None,
-    config: Config = None,
+    vocab_size: int | None = None,
+    columns: list[str] | None = None,
+    src_col: str | None = None,
+    tgt_col: str | None = None,
+    model_type: str | None = None,
+    character_coverage: float | None = None,
+    normalization_rule_name: str | None = None,
+    pad_idx: int | None = None,
+    unk_idx: int | None = None,
+    sos_idx: int | None = None,
+    eos_idx: int | None = None,
+    pad_token: str | None = None,
+    unk_token: str | None = None,
+    sos_token: str | None = None,
+    eos_token: str | None = None,
+    user_defined_symbols: list[str] | None = None,
+    config: Config | None = None,
 ):
     """Train a SentencePiece tokenization model on raw text data.
 
@@ -139,10 +140,10 @@ def apply_sentencepiece(
     input_file: Path,
     output_file: Path,
     sp_src_model: spm.SentencePieceProcessor,
-    sp_tgt_model: Optional[spm.SentencePieceProcessor] = None,
-    src_col: str = None,
-    tgt_col: str = None,
-    config: Config = None,
+    sp_tgt_model: spm.SentencePieceProcessor | None = None,
+    src_col: str | None = None,
+    tgt_col: str | None = None,
+    config: Config | None = None,
 ):
     """Apply trained SentencePiece tokenization to all src/tgt columns.
 
@@ -186,9 +187,10 @@ def apply_sentencepiece(
         try:
             if isinstance(m, spm.SentencePieceProcessor):
                 return m
-        except Exception:
-            # If spm.SentencePieceProcessor isn't importable or isinstance
-            # raises for some reason, fall back to duck typing below.
+        except (AttributeError, TypeError):
+            # AttributeError if spm.SentencePieceProcessor is missing;
+            # TypeError if it is not a class isinstance() can test against.
+            # Either way, fall back to the duck-typing check below.
             pass
 
         # Duck-typing: accept any object exposing the encode method
@@ -212,28 +214,31 @@ def apply_sentencepiece(
     for col in [src_col, tgt_col]:
         if col in df.columns:
             model = sp_src_model if col == src_col else sp_tgt_model
+            # Bind `model` as a default argument: the lambda is consumed by
+            # apply() within this iteration, but binding makes that explicit
+            # and keeps the closure correct if the call ever becomes lazy.
             df[col] = (
                 df[col]
                 .astype(str)
-                .apply(lambda x: " ".join(model.encode(x, out_type=str)))
+                .apply(lambda x, _m=model: " ".join(_m.encode(x, out_type=str)))
             )
     save_data(df, output_file)
 
 
 def preprocess_sentencepiece(
-    train_file: Path = None,
-    val_file: Path = None,
-    test_file: Path = None,
-    sp_src_model_prefix: str = None,
-    sp_tgt_model_prefix: str = None,
-    sp_src_model: str = None,
-    sp_tgt_model: str = None,
-    vocab_size: int = None,
-    src_col: str = None,
-    tgt_col: str = None,
-    data_dir: Path = None,
-    data_format: str = None,
-    config: Config = None,
+    train_file: Path | None = None,
+    val_file: Path | None = None,
+    test_file: Path | None = None,
+    sp_src_model_prefix: str | None = None,
+    sp_tgt_model_prefix: str | None = None,
+    sp_src_model: str | None = None,
+    sp_tgt_model: str | None = None,
+    vocab_size: int | None = None,
+    src_col: str | None = None,
+    tgt_col: str | None = None,
+    data_dir: Path | None = None,
+    data_format: str | None = None,
+    config: Config | None = None,
 ):
     """Execute SentencePiece tokenization preprocessing pipeline.
 

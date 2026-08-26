@@ -17,23 +17,25 @@ Key Components:
    with optional SentencePiece tokenization and bucketing.
 """
 
-from functools import partial
-from typing import List, Tuple, Optional, Iterator, Union
-from pathlib import Path
 import random
+from collections.abc import Iterator
+from functools import partial
+from pathlib import Path
+
 import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Sampler
+
 from ..config import Config, get_default_config
 from .dataset import NMTDataset
 from .vocab import BaseVocab, SentencePieceVocab
 
 
 def collate_fn(
-    batch: List[Tuple[torch.Tensor, torch.Tensor]],
-    pad_idx: Optional[int] = None,
-    config: Optional[Config] = None,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+    batch: list[tuple[torch.Tensor, torch.Tensor]],
+    pad_idx: int | None = None,
+    config: Config | None = None,
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Collate a batch of (source, target) tensor pairs with padding.
 
     Pads all sequences in the batch to the same length (the length of the
@@ -101,7 +103,7 @@ class BucketBatchSampler(Sampler):
         self,
         dataset: NMTDataset,
         batch_size: int,
-        bucket_boundaries: Optional[List[int]] = None,
+        bucket_boundaries: list[int] | None = None,
     ) -> None:
         """Initialize the sampler and assign samples to buckets.
 
@@ -116,7 +118,7 @@ class BucketBatchSampler(Sampler):
         if bucket_boundaries is None:
             bucket_boundaries = self._calculate_bucket_boundaries()
         self.bucket_boundaries = sorted(bucket_boundaries)
-        self.buckets: List[List[int]] = [[] for _ in range(len(bucket_boundaries) + 1)]
+        self.buckets: list[list[int]] = [[] for _ in range(len(bucket_boundaries) + 1)]
         for idx in range(len(dataset)):
             src_tensor, _ = dataset[idx]
             src_len = len(src_tensor)
@@ -135,7 +137,7 @@ class BucketBatchSampler(Sampler):
                 f"provide more training data."
             )
 
-    def _calculate_bucket_boundaries(self) -> List[int]:
+    def _calculate_bucket_boundaries(self) -> list[int]:
         """Compute bucket boundaries automatically from sequence length distribution.
 
         Uses sequence length percentiles (20, 40, 60, 80, 95) to determine
@@ -166,13 +168,13 @@ class BucketBatchSampler(Sampler):
             sample_size = min(SAMPLE_MAX, max(SAMPLE_MIN, int(total * SAMPLE_FRAC)))
             # random.sample on a range is efficient and avoids constructing a large list.
             sample_indices = random.sample(range(total), sample_size)
-            lengths: List[int] = [len(self.dataset[i][0]) for i in sample_indices]
+            lengths: list[int] = [len(self.dataset[i][0]) for i in sample_indices]
         else:
             lengths = [len(self.dataset[i][0]) for i in range(total)]
 
         lengths.sort()
         percentiles = [20, 40, 60, 80, 95]
-        boundaries: List[int] = []
+        boundaries: list[int] = []
         m = len(lengths)
         for p in percentiles:
             # use (m-1) to map percentiles into valid index range [0, m-1]
@@ -181,7 +183,7 @@ class BucketBatchSampler(Sampler):
             boundaries.append(boundary)
 
         # remove duplicates and sort
-        boundaries = sorted(list(set(boundaries)))
+        boundaries = sorted(set(boundaries))
 
         # If there aren't enough distinct boundaries, fall back to reasonable defaults
         # based on the observed max length (from the inspected set).
@@ -224,7 +226,7 @@ class BucketBatchSampler(Sampler):
             len(bucket) // self.batch_size for bucket in self.buckets
         )
 
-    def __iter__(self) -> Iterator[List[int]]:
+    def __iter__(self) -> Iterator[list[int]]:
         """Iterate over batches of sample indices.
 
         Yields batches by:
@@ -243,15 +245,14 @@ class BucketBatchSampler(Sampler):
         """
         for bucket in self.buckets:
             random.shuffle(bucket)
-        all_batches: List[List[int]] = []
+        all_batches: list[list[int]] = []
         for bucket in self.buckets:
             for i in range(
                 0, len(bucket) - len(bucket) % self.batch_size, self.batch_size
             ):
                 all_batches.append(bucket[i : i + self.batch_size])
         random.shuffle(all_batches)
-        for batch in all_batches:
-            yield batch
+        yield from all_batches
 
     def __len__(self) -> int:
         """Return the number of complete batches.
@@ -264,19 +265,19 @@ class BucketBatchSampler(Sampler):
 
 
 def create_dataloaders(
-    train_file: Union[Path, NMTDataset],
-    val_file: Optional[Union[Path, NMTDataset]] = None,
-    batch_size: Optional[int] = None,
-    num_workers: Optional[int] = None,
+    train_file: Path | NMTDataset,
+    val_file: Path | NMTDataset | None = None,
+    batch_size: int | None = None,
+    num_workers: int | None = None,
     use_sentencepiece: bool = False,
-    sp_model_path: Optional[str] = None,
-    sp_tgt_model_path: Optional[str] = None,
+    sp_model_path: str | None = None,
+    sp_tgt_model_path: str | None = None,
     use_bucketing: bool = False,
-    bucket_boundaries: Optional[List[int]] = None,
-    device: Optional[str] = None,
-    pad_idx: Optional[int] = None,
-    config: Optional[Config] = None,
-) -> Tuple[DataLoader, Optional[DataLoader], BaseVocab, BaseVocab]:
+    bucket_boundaries: list[int] | None = None,
+    device: str | None = None,
+    pad_idx: int | None = None,
+    config: Config | None = None,
+) -> tuple[DataLoader, DataLoader | None, BaseVocab, BaseVocab]:
     """Create PyTorch DataLoaders for training and validation.
 
     Constructs train and optional validation DataLoaders from structured data
@@ -406,7 +407,7 @@ def create_dataloaders(
             assert src_vocab is not None and tgt_vocab is not None
         train_dataset = NMTDataset(train_data, src_vocab=src_vocab, tgt_vocab=tgt_vocab)
 
-    val_dataset: Optional[NMTDataset]
+    val_dataset: NMTDataset | None
     if val_file is not None:
         if isinstance(val_file, NMTDataset):
             val_dataset = val_file
@@ -426,7 +427,7 @@ def create_dataloaders(
             batch_sampler=train_sampler,
             num_workers=num_workers,
             collate_fn=collate,
-            pin_memory=True if device == "cuda" else False,
+            pin_memory=device == "cuda",
         )
     else:
         train_loader = DataLoader(
@@ -435,7 +436,7 @@ def create_dataloaders(
             shuffle=True,
             num_workers=num_workers,
             collate_fn=collate,
-            pin_memory=True if device == "cuda" else False,
+            pin_memory=device == "cuda",
         )
     if len(train_loader) == 0:
         raise ValueError(
@@ -451,7 +452,7 @@ def create_dataloaders(
             shuffle=False,
             num_workers=num_workers,
             collate_fn=collate,
-            pin_memory=True if device == "cuda" else False,
+            pin_memory=device == "cuda",
         )
     else:
         val_loader = None

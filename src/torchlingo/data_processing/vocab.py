@@ -34,15 +34,15 @@ Note:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Sequence, Union
+from collections.abc import Sequence
 
 import sentencepiece as spm
 import torch
 
 from ..config import Config, get_default_config
 
-IndexInput = Union[Sequence[int], Sequence[Sequence[int]], torch.Tensor]
-DecodedOutput = Union[str, List[str]]
+IndexInput = Sequence[int] | Sequence[Sequence[int]] | torch.Tensor
+DecodedOutput = str | list[str]
 
 
 class BaseVocab(ABC):
@@ -68,15 +68,15 @@ class BaseVocab(ABC):
     def __init__(
         self,
         *,
-        pad_token: Optional[str] = None,
-        unk_token: Optional[str] = None,
-        sos_token: Optional[str] = None,
-        eos_token: Optional[str] = None,
-        pad_idx: Optional[int] = None,
-        unk_idx: Optional[int] = None,
-        sos_idx: Optional[int] = None,
-        eos_idx: Optional[int] = None,
-        config: Optional[Config] = None,
+        pad_token: str | None = None,
+        unk_token: str | None = None,
+        sos_token: str | None = None,
+        eos_token: str | None = None,
+        pad_idx: int | None = None,
+        unk_idx: int | None = None,
+        sos_idx: int | None = None,
+        eos_idx: int | None = None,
+        config: Config | None = None,
     ) -> None:
         cfg = config if config is not None else get_default_config()
 
@@ -148,7 +148,7 @@ class BaseVocab(ABC):
         """
 
     @abstractmethod
-    def encode(self, sentence: str, add_special_tokens: bool = True) -> List[int]:
+    def encode(self, sentence: str, add_special_tokens: bool = True) -> list[int]:
         """Convert a raw sentence to a list of token ids.
 
         Args:
@@ -187,7 +187,7 @@ class BaseVocab(ABC):
     # ------------------------------------------------------------------
     # Shared helpers
     # ------------------------------------------------------------------
-    def tokens_to_indices(self, tokens: Sequence[str]) -> List[int]:
+    def tokens_to_indices(self, tokens: Sequence[str]) -> list[int]:
         """Helper: map a sequence of tokens to their indices.
 
         Implemented in terms of `token_to_idx` to guarantee consistent UNK
@@ -202,7 +202,7 @@ class BaseVocab(ABC):
 
         return [self.token_to_idx(token) for token in tokens]
 
-    def indices_to_tokens(self, indices: Sequence[int]) -> List[str]:
+    def indices_to_tokens(self, indices: Sequence[int]) -> list[str]:
         """Helper: map a sequence of indices to their token strings.
 
         Implemented in terms of `idx_to_token` and preserves the order of the
@@ -218,7 +218,7 @@ class BaseVocab(ABC):
         return [self.idx_to_token(idx) for idx in indices]
 
     @staticmethod
-    def _coerce_indices(indices: IndexInput) -> Union[List[int], List[List[int]]]:
+    def _coerce_indices(indices: IndexInput) -> list[int] | list[list[int]]:
         """Internal helper: coerce tensors into native Python lists.
 
         Accepts 1-D or 2-D `torch.Tensor` inputs and returns a list or nested
@@ -244,7 +244,7 @@ class BaseVocab(ABC):
         return indices  # type: ignore[return-value]
 
     @staticmethod
-    def _is_batch(indices: Sequence[Union[int, Sequence[int]]]) -> bool:
+    def _is_batch(indices: Sequence[int | Sequence[int]]) -> bool:
         """Return True when `indices` is a batch (a sequence of sequences).
 
         This is used to distinguish between flat and batched decoding
@@ -316,17 +316,17 @@ class SimpleVocab(BaseVocab):
 
     def __init__(
         self,
-        min_freq: Optional[int] = None,
+        min_freq: int | None = None,
         *,
-        pad_token: Optional[str] = None,
-        unk_token: Optional[str] = None,
-        sos_token: Optional[str] = None,
-        eos_token: Optional[str] = None,
-        pad_idx: Optional[int] = None,
-        unk_idx: Optional[int] = None,
-        sos_idx: Optional[int] = None,
-        eos_idx: Optional[int] = None,
-        config: Optional[Config] = None,
+        pad_token: str | None = None,
+        unk_token: str | None = None,
+        sos_token: str | None = None,
+        eos_token: str | None = None,
+        pad_idx: int | None = None,
+        unk_idx: int | None = None,
+        sos_idx: int | None = None,
+        eos_idx: int | None = None,
+        config: Config | None = None,
     ) -> None:
         cfg = config if config is not None else get_default_config()
         super().__init__(
@@ -413,7 +413,7 @@ class SimpleVocab(BaseVocab):
 
         return self.idx2token.get(idx, self.unk_token)
 
-    def encode(self, sentence: str, add_special_tokens: bool = True) -> List[int]:
+    def encode(self, sentence: str, add_special_tokens: bool = True) -> list[int]:
         """Encode a sentence to a list of vocabulary indices.
 
         Splits the sentence on whitespace and converts each token to its
@@ -480,7 +480,7 @@ class SimpleVocab(BaseVocab):
                 for seq in normalized
             ]
 
-        flat: List[int] = list(normalized)  # type: ignore[list-item]
+        flat: list[int] = list(normalized)  # type: ignore[list-item]
         tokens = self.indices_to_tokens(flat)
 
         if skip_special_tokens:
@@ -525,11 +525,11 @@ class SentencePieceVocab(BaseVocab):
     def __init__(
         self,
         model_path: str,
-        pad_idx: Optional[int] = None,
-        unk_idx: Optional[int] = None,
-        sos_idx: Optional[int] = None,
-        eos_idx: Optional[int] = None,
-        config: Optional[Config] = None,
+        pad_idx: int | None = None,
+        unk_idx: int | None = None,
+        sos_idx: int | None = None,
+        eos_idx: int | None = None,
+        config: Config | None = None,
     ) -> None:
         cfg = config if config is not None else get_default_config()
         super().__init__(
@@ -607,7 +607,7 @@ class SentencePieceVocab(BaseVocab):
 
         return self.sp.id_to_piece(idx)
 
-    def encode(self, sentence: str, add_special_tokens: bool = True) -> List[int]:
+    def encode(self, sentence: str, add_special_tokens: bool = True) -> list[int]:
         """Encode a sentence using the SentencePiece model.
 
         Args:
@@ -651,7 +651,7 @@ class SentencePieceVocab(BaseVocab):
                 for seq in normalized
             ]
 
-        flat: List[int] = list(normalized)  # type: ignore[list-item]
+        flat: list[int] = list(normalized)  # type: ignore[list-item]
         if skip_special_tokens:
             flat = [
                 idx
@@ -719,17 +719,17 @@ class MeCabVocab(BaseVocab):
 
     def __init__(
         self,
-        min_freq: Optional[int] = None,
+        min_freq: int | None = None,
         *,
-        pad_token: Optional[str] = None,
-        unk_token: Optional[str] = None,
-        sos_token: Optional[str] = None,
-        eos_token: Optional[str] = None,
-        pad_idx: Optional[int] = None,
-        unk_idx: Optional[int] = None,
-        sos_idx: Optional[int] = None,
-        eos_idx: Optional[int] = None,
-        config: Optional[Config] = None,
+        pad_token: str | None = None,
+        unk_token: str | None = None,
+        sos_token: str | None = None,
+        eos_token: str | None = None,
+        pad_idx: int | None = None,
+        unk_idx: int | None = None,
+        sos_idx: int | None = None,
+        eos_idx: int | None = None,
+        config: Config | None = None,
     ) -> None:
         try:
             import fugashi
@@ -765,7 +765,7 @@ class MeCabVocab(BaseVocab):
         }
         self.token_freqs: dict[str, int] = {}
 
-    def _tokenize(self, sentence: str) -> List[str]:
+    def _tokenize(self, sentence: str) -> list[str]:
         """Tokenize a Japanese sentence using MeCab.
 
         Args:
@@ -834,7 +834,7 @@ class MeCabVocab(BaseVocab):
         """
         return self.idx2token.get(idx, self.unk_token)
 
-    def encode(self, sentence: str, add_special_tokens: bool = True) -> List[int]:
+    def encode(self, sentence: str, add_special_tokens: bool = True) -> list[int]:
         """Encode a Japanese sentence to a list of vocabulary indices.
 
         Tokenizes the sentence using MeCab and converts each token to its
@@ -896,7 +896,7 @@ class MeCabVocab(BaseVocab):
                 for seq in normalized
             ]
 
-        flat: List[int] = list(normalized)  # type: ignore[list-item]
+        flat: list[int] = list(normalized)  # type: ignore[list-item]
         tokens = self.indices_to_tokens(flat)
 
         if skip_special_tokens:
@@ -967,19 +967,19 @@ class JiebaVocab(BaseVocab):
 
     def __init__(
         self,
-        min_freq: Optional[int] = None,
+        min_freq: int | None = None,
         cut_all: bool = False,
         use_paddle: bool = False,
         *,
-        pad_token: Optional[str] = None,
-        unk_token: Optional[str] = None,
-        sos_token: Optional[str] = None,
-        eos_token: Optional[str] = None,
-        pad_idx: Optional[int] = None,
-        unk_idx: Optional[int] = None,
-        sos_idx: Optional[int] = None,
-        eos_idx: Optional[int] = None,
-        config: Optional[Config] = None,
+        pad_token: str | None = None,
+        unk_token: str | None = None,
+        sos_token: str | None = None,
+        eos_token: str | None = None,
+        pad_idx: int | None = None,
+        unk_idx: int | None = None,
+        sos_idx: int | None = None,
+        eos_idx: int | None = None,
+        config: Config | None = None,
     ) -> None:
         try:
             import jieba as _jieba
@@ -1021,7 +1021,7 @@ class JiebaVocab(BaseVocab):
         }
         self.token_freqs: dict[str, int] = {}
 
-    def _tokenize(self, sentence: str) -> List[str]:
+    def _tokenize(self, sentence: str) -> list[str]:
         """Tokenize a Chinese sentence using jieba.
 
         Args:
@@ -1092,7 +1092,7 @@ class JiebaVocab(BaseVocab):
         """
         return self.idx2token.get(idx, self.unk_token)
 
-    def encode(self, sentence: str, add_special_tokens: bool = True) -> List[int]:
+    def encode(self, sentence: str, add_special_tokens: bool = True) -> list[int]:
         """Encode a Chinese sentence to a list of vocabulary indices.
 
         Tokenizes the sentence using jieba and converts each token to its
@@ -1154,7 +1154,7 @@ class JiebaVocab(BaseVocab):
                 for seq in normalized
             ]
 
-        flat: List[int] = list(normalized)  # type: ignore[list-item]
+        flat: list[int] = list(normalized)  # type: ignore[list-item]
         tokens = self.indices_to_tokens(flat)
 
         if skip_special_tokens:

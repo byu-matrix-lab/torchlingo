@@ -20,10 +20,11 @@ References:
     - Vaswani et al. (2017): "Attention is All You Need"
 """
 
-from typing import Optional, Tuple
 import math
+
 import torch
-import torch.nn as nn
+from torch import nn
+
 from ..config import Config, get_default_config
 from .positional import SinusoidalPositionalEncoding
 
@@ -65,15 +66,15 @@ class SimpleTransformer(nn.Module):
         self,
         src_vocab_size: int,
         tgt_vocab_size: int,
-        d_model: Optional[int] = None,
-        n_heads: Optional[int] = None,
-        num_encoder_layers: Optional[int] = None,
-        num_decoder_layers: Optional[int] = None,
-        d_ff: Optional[int] = None,
-        max_seq_length: Optional[int] = None,
-        dropout: Optional[float] = None,
-        pad_idx: Optional[int] = None,
-        config: Optional[Config] = None,
+        d_model: int | None = None,
+        n_heads: int | None = None,
+        num_encoder_layers: int | None = None,
+        num_decoder_layers: int | None = None,
+        d_ff: int | None = None,
+        max_seq_length: int | None = None,
+        dropout: float | None = None,
+        pad_idx: int | None = None,
+        config: Config | None = None,
     ) -> None:
         super().__init__()
         cfg = config if config is not None else get_default_config()
@@ -135,7 +136,7 @@ class SimpleTransformer(nn.Module):
                     nn.init.zeros_(m.bias)
 
     def encode(
-        self, src: torch.Tensor, src_key_padding_mask: Optional[torch.Tensor] = None
+        self, src: torch.Tensor, src_key_padding_mask: torch.Tensor | None = None
     ) -> torch.Tensor:
         """Encode source sequence using the transformer encoder.
 
@@ -159,9 +160,9 @@ class SimpleTransformer(nn.Module):
         self,
         tgt: torch.Tensor,
         memory: torch.Tensor,
-        src_key_padding_mask: Optional[torch.Tensor] = None,
-        tgt_key_padding_mask: Optional[torch.Tensor] = None,
-        tgt_mask: Optional[torch.Tensor] = None,
+        src_key_padding_mask: torch.Tensor | None = None,
+        tgt_key_padding_mask: torch.Tensor | None = None,
+        tgt_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Decode target sequence using the transformer decoder and encoder output.
 
@@ -196,9 +197,9 @@ class SimpleTransformer(nn.Module):
         self,
         src: torch.Tensor,
         tgt: torch.Tensor,
-        src_key_padding_mask: Optional[torch.Tensor] = None,
-        tgt_key_padding_mask: Optional[torch.Tensor] = None,
-        tgt_mask: Optional[torch.Tensor] = None,
+        src_key_padding_mask: torch.Tensor | None = None,
+        tgt_key_padding_mask: torch.Tensor | None = None,
+        tgt_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Encode source and decode target in a single forward pass.
 
@@ -255,8 +256,8 @@ class SimpleTransformer(nn.Module):
 
 def create_key_padding_mask(
     seq: torch.Tensor,
-    pad_idx: Optional[int] = None,
-    config: Optional[Config] = None,
+    pad_idx: int | None = None,
+    config: Config | None = None,
 ) -> torch.Tensor:
     """Create a key padding mask from a sequence.
 
@@ -299,9 +300,9 @@ def create_causal_mask(seq_len: int, device: torch.device) -> torch.Tensor:
 def create_masks(
     src: torch.Tensor,
     tgt: torch.Tensor,
-    pad_idx: Optional[int] = None,
-    config: Optional[Config] = None,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    pad_idx: int | None = None,
+    config: Config | None = None,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Create all necessary masks for transformer encoder-decoder.
 
     Convenience function to generate source padding mask, target padding mask,

@@ -12,15 +12,15 @@ Typical usage:
     >>> print(f"BLEU: {bleu.score:.2f}")
 """
 
-from typing import List, Dict, Optional, Union
-import torch
-import sacrebleu
 from pathlib import Path
+
+import sacrebleu
+import torch
 
 from .data_processing.vocab import BaseVocab
 
 
-def _needs_char_tokenization(text_samples: List[str]) -> bool:
+def _needs_char_tokenization(text_samples: list[str]) -> bool:
     """Detect if text uses CJK or other non-space-separated scripts.
 
     Args:
@@ -33,12 +33,12 @@ def _needs_char_tokenization(text_samples: List[str]) -> bool:
 
     # Check for Chinese, Japanese, Korean, Thai, Burmese, Khmer, Lao
     cjk_pattern = re.compile(
-        r'[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\u0e00-\u0e7f'
-        r'\u1000-\u109f\u1780-\u17ff\u0e80-\u0eff]'
+        r"[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\u0e00-\u0e7f"
+        r"\u1000-\u109f\u1780-\u17ff\u0e80-\u0eff]"
     )
 
     # Sample first 10 texts
-    sample_text = ' '.join(text_samples[:10])
+    sample_text = " ".join(text_samples[:10])
     return bool(cjk_pattern.search(sample_text))
 
 
@@ -51,13 +51,13 @@ def _char_tokenize(text: str) -> str:
     Returns:
         Character-tokenized text with spaces between each character.
     """
-    text = text.replace(' ', '')  # Remove existing spaces
-    return ' '.join(list(text))
+    text = text.replace(" ", "")  # Remove existing spaces
+    return " ".join(list(text))
 
 
 def compute_bleu(
-    predictions: List[str],
-    references: Union[List[str], List[List[str]]],
+    predictions: list[str],
+    references: list[str] | list[list[str]],
     lowercase: bool = False,
     tokenize: str = "13a",
     tokenization: str = "auto",
@@ -111,7 +111,9 @@ def compute_bleu(
     # Apply character tokenization if needed
     if use_char_tokenization:
         predictions = [_char_tokenize(p) for p in predictions]
-        references = [[_char_tokenize(ref) for ref in ref_list] for ref_list in references]
+        references = [
+            [_char_tokenize(ref) for ref in ref_list] for ref_list in references
+        ]
         # Use 'none' tokenizer since we've already tokenized at char level
         tokenize = "none"
 
@@ -135,8 +137,8 @@ def compute_bleu(
 
 
 def compute_chrf(
-    predictions: List[str],
-    references: Union[List[str], List[List[str]]],
+    predictions: list[str],
+    references: list[str] | list[list[str]],
     word_order: int = 2,
 ) -> sacrebleu.metrics.CHRF:
     """Compute corpus-level chrF score for translations.
@@ -170,8 +172,8 @@ def compute_chrf(
 
 
 def compute_ter(
-    predictions: List[str],
-    references: Union[List[str], List[List[str]]],
+    predictions: list[str],
+    references: list[str] | list[list[str]],
     normalized: bool = False,
 ) -> sacrebleu.metrics.TER:
     """Compute corpus-level TER (Translation Error Rate) score.
@@ -206,10 +208,10 @@ def compute_ter(
 
 def evaluate_model(
     model: torch.nn.Module,
-    dataloader: torch.utils.data.DataLoader = None,
-    src_vocab: BaseVocab = None,
-    tgt_vocab: BaseVocab = None,
-    device: Optional[torch.device] = None,
+    dataloader: torch.utils.data.DataLoader | None = None,
+    src_vocab: BaseVocab | None = None,
+    tgt_vocab: BaseVocab | None = None,
+    device: torch.device | None = None,
     decode_strategy: str = "greedy",
     beam_size: int = 5,
     max_decode_length: int = 200,
@@ -217,11 +219,11 @@ def evaluate_model(
     compute_chrf_score: bool = True,
     compute_ter_score: bool = False,
     tokenization: str = "auto",
-    src_sentences: Optional[list] = None,
-    tgt_sentences: Optional[list] = None,
+    src_sentences: list | None = None,
+    tgt_sentences: list | None = None,
     batch_size: int = 32,
-    config: Optional[object] = None,
-) -> Dict[str, float]:
+    config: object | None = None,
+) -> dict[str, float]:
     """Evaluate a trained model on a dataset using multiple metrics.
 
     Generates translations for all samples and computes BLEU, chrF, and
@@ -280,7 +282,7 @@ def evaluate_model(
         # Translate in batches
         with torch.no_grad():
             for i in range(0, len(src_sentences), batch_size):
-                batch_src = src_sentences[i:i + batch_size]
+                batch_src = src_sentences[i : i + batch_size]
 
                 batch_translations = translate_batch(
                     model=model,
@@ -307,7 +309,8 @@ def evaluate_model(
                     ref_tokens = [
                         idx.item()
                         for idx in tgt_seq
-                        if idx.item() not in [tgt_vocab.pad_idx, tgt_vocab.sos_idx, tgt_vocab.eos_idx]
+                        if idx.item()
+                        not in [tgt_vocab.pad_idx, tgt_vocab.sos_idx, tgt_vocab.eos_idx]
                     ]
                     ref_text = tgt_vocab.decode(ref_tokens)
                     references.append(ref_text)
@@ -318,7 +321,8 @@ def evaluate_model(
                     src_tokens = [
                         idx.item()
                         for idx in src_seq
-                        if idx.item() not in [src_vocab.pad_idx, src_vocab.sos_idx, src_vocab.eos_idx]
+                        if idx.item()
+                        not in [src_vocab.pad_idx, src_vocab.sos_idx, src_vocab.eos_idx]
                     ]
                     src_text = src_vocab.decode(src_tokens)
                     src_texts.append(src_text)
@@ -338,19 +342,21 @@ def evaluate_model(
 
                 predictions.extend(batch_translations)
     else:
-        raise ValueError("Must provide either dataloader or src_sentences+tgt_sentences")
+        raise ValueError(
+            "Must provide either dataloader or src_sentences+tgt_sentences"
+        )
 
     # Compute metrics with language-aware tokenization
     results = {}
 
     bleu_result = compute_bleu(
-        predictions, references,
-        lowercase=lowercase,
-        tokenization=tokenization
+        predictions, references, lowercase=lowercase, tokenization=tokenization
     )
 
     # Use appropriate metric label based on tokenization
-    if tokenization == "char" or (tokenization == "auto" and _needs_char_tokenization(references)):
+    if tokenization == "char" or (
+        tokenization == "auto" and _needs_char_tokenization(references)
+    ):
         results["bleu_char"] = bleu_result.score
     else:
         results["bleu"] = bleu_result.score
@@ -367,9 +373,9 @@ def evaluate_model(
 
 
 def save_translations(
-    predictions: List[str],
-    references: Optional[List[str]] = None,
-    output_path: Union[str, Path] = "translations.txt",
+    predictions: list[str],
+    references: list[str] | None = None,
+    output_path: str | Path = "translations.txt",
     include_metrics: bool = True,
 ) -> None:
     """Save predictions and optionally references to a file.

@@ -31,23 +31,23 @@ Examples:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import torch
 from torch import nn
 
 CHECKPOINT_FORMAT = "torchlingo-checkpoint-v1"
 
-__all__ = ["CHECKPOINT_FORMAT", "save_checkpoint", "load_checkpoint"]
+__all__ = ["CHECKPOINT_FORMAT", "load_checkpoint", "save_checkpoint"]
 
 
 def save_checkpoint(
-    path: Union[str, Path],
+    path: str | Path,
     model: nn.Module,
     *,
-    model_config: Dict[str, Any],
-    src_sp_model: Optional[Union[str, Path]] = None,
-    tgt_sp_model: Optional[Union[str, Path]] = None,
+    model_config: dict[str, Any],
+    src_sp_model: str | Path | None = None,
+    tgt_sp_model: str | Path | None = None,
 ) -> None:
     """Save model weights, architecture config, and tokenizer(s) in one file.
 
@@ -71,7 +71,7 @@ def save_checkpoint(
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    bundle: Dict[str, Any] = {
+    bundle: dict[str, Any] = {
         "format": CHECKPOINT_FORMAT,
         "model_state_dict": model.state_dict(),
         "model_config": dict(model_config),
@@ -85,9 +85,9 @@ def save_checkpoint(
 
 
 def load_checkpoint(
-    path: Union[str, Path],
-    map_location: Union[str, torch.device] = "cpu",
-) -> Dict[str, Any]:
+    path: str | Path,
+    map_location: str | torch.device = "cpu",
+) -> dict[str, Any]:
     """Load a checkpoint saved by :func:`save_checkpoint` (or a legacy file).
 
     Args:

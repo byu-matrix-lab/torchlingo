@@ -10,7 +10,6 @@ from __future__ import annotations
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
 
 import torch
 from torch import nn, optim
@@ -18,7 +17,7 @@ from torch.nn.utils import clip_grad_norm_
 
 try:
     from tqdm.auto import tqdm
-except Exception:  # pragma: no cover - optional dependency
+except ImportError:  # pragma: no cover - optional dependency
     # Fallback: simple identity when tqdm is not available (keeps behavior testable)
     def tqdm(x, **kwargs):
         return x
@@ -26,7 +25,7 @@ except Exception:  # pragma: no cover - optional dependency
 
 try:
     from torch.utils.tensorboard import SummaryWriter
-except Exception:  # pragma: no cover - optional dependency
+except ImportError:  # pragma: no cover - optional dependency
     SummaryWriter = None
 
 
@@ -43,12 +42,12 @@ class TrainResult:
         best_checkpoint: Path to the best checkpoint file if saved, else None.
     """
 
-    train_losses: List[float]
-    val_losses: List[float]
-    best_checkpoint: Optional[Path]
+    train_losses: list[float]
+    val_losses: list[float]
+    best_checkpoint: Path | None
 
 
-def _resolve_device(device: Optional[torch.device]) -> torch.device:
+def _resolve_device(device: torch.device | None) -> torch.device:
     return (
         device
         if device is not None
@@ -153,15 +152,15 @@ def get_cosine_annealing_scheduler(
 def train_model(
     model: nn.Module,
     train_loader: torch.utils.data.DataLoader,
-    val_loader: Optional[torch.utils.data.DataLoader] = None,
+    val_loader: torch.utils.data.DataLoader | None = None,
     num_epochs: int = 10,
-    optimizer: Optional[optim.Optimizer] = None,
-    criterion: Optional[nn.Module] = None,
-    scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
-    gradient_clip: Optional[float] = None,
-    device: Optional[torch.device] = None,
-    config: Optional[Config] = None,
-    save_dir: Optional[Path] = None,
+    optimizer: optim.Optimizer | None = None,
+    criterion: nn.Module | None = None,
+    scheduler: torch.optim.lr_scheduler._LRScheduler | None = None,
+    gradient_clip: float | None = None,
+    device: torch.device | None = None,
+    config: Config | None = None,
+    save_dir: Path | None = None,
     use_amp: bool = False,
     log_every: int = 0,
     accumulation_steps: int = 1,
@@ -288,9 +287,9 @@ def train_model(
     scaler = torch.amp.GradScaler(device=device, enabled=use_scaler)
     skipped_steps = 0
     best_val = float("inf")
-    best_path: Optional[Path] = None
-    train_losses: List[float] = []
-    val_losses: List[float] = []
+    best_path: Path | None = None
+    train_losses: list[float] = []
+    val_losses: list[float] = []
     global_step = 0
     stop_training = False
     no_improve_steps = 0
@@ -384,56 +383,59 @@ def train_model(
                     stop_training = True
 
                 # Periodic validation (counted in optimizer steps)
-                if val_loader is not None and getattr(cfg, "val_interval", None):
-                    if global_step % cfg.val_interval == 0:
-                        model.eval()
-                        total_val = 0.0
-                        with torch.no_grad():
-                            for v_src, v_tgt in val_loader:
-                                v_src = v_src.to(device)
-                                v_tgt = v_tgt.to(device)
-                                v_logits = model(v_src, v_tgt[:, :-1])
-                                v_loss = loss_fn(
-                                    v_logits.reshape(-1, v_logits.size(-1)),
-                                    v_tgt[:, 1:].reshape(-1),
-                                )
-                                total_val += v_loss.item()
-                        avg_val = total_val / max(1, len(val_loader))
-                        val_losses.append(avg_val)
-                        # Step plateau scheduler on validation loss
-                        if is_plateau_scheduler:
-                            sched.step(avg_val)
-                        # early stopping logic (patience)
-                        if avg_val < best_val:
-                            best_val = avg_val
-                            no_improve_steps = 0
-                            # save best checkpoint with full training state
-                            state = {
-                                "epoch": epoch,
-                                "global_step": global_step,
-                                "model_state_dict": model.state_dict(),
-                                "optimizer_state_dict": opt.state_dict(),
-                                "scheduler_state_dict": sched.state_dict(),
-                                "val_loss": avg_val,
-                                "train_losses": train_losses,
-                                "val_losses": val_losses,
-                            }
-                            if save_dir is not None:
-                                save_dir.mkdir(parents=True, exist_ok=True)
-                                best_path = Path(save_dir) / "model_best.pt"
-                                torch.save(state, best_path)
-                            else:
-                                cfg.checkpoint_path.parent.mkdir(
-                                    parents=True, exist_ok=True
-                                )
-                                torch.save(state, cfg.checkpoint_path)
+                if (
+                    val_loader is not None
+                    and getattr(cfg, "val_interval", None)
+                    and global_step % cfg.val_interval == 0
+                ):
+                    model.eval()
+                    total_val = 0.0
+                    with torch.no_grad():
+                        for v_src, v_tgt in val_loader:
+                            v_src = v_src.to(device)
+                            v_tgt = v_tgt.to(device)
+                            v_logits = model(v_src, v_tgt[:, :-1])
+                            v_loss = loss_fn(
+                                v_logits.reshape(-1, v_logits.size(-1)),
+                                v_tgt[:, 1:].reshape(-1),
+                            )
+                            total_val += v_loss.item()
+                    avg_val = total_val / max(1, len(val_loader))
+                    val_losses.append(avg_val)
+                    # Step plateau scheduler on validation loss
+                    if is_plateau_scheduler:
+                        sched.step(avg_val)
+                    # early stopping logic (patience)
+                    if avg_val < best_val:
+                        best_val = avg_val
+                        no_improve_steps = 0
+                        # save best checkpoint with full training state
+                        state = {
+                            "epoch": epoch,
+                            "global_step": global_step,
+                            "model_state_dict": model.state_dict(),
+                            "optimizer_state_dict": opt.state_dict(),
+                            "scheduler_state_dict": sched.state_dict(),
+                            "val_loss": avg_val,
+                            "train_losses": train_losses,
+                            "val_losses": val_losses,
+                        }
+                        if save_dir is not None:
+                            save_dir.mkdir(parents=True, exist_ok=True)
+                            best_path = Path(save_dir) / "model_best.pt"
+                            torch.save(state, best_path)
                         else:
-                            no_improve_steps += 1
-                            if no_improve_steps >= getattr(cfg, "patience", 0):
-                                stop_training = True
-                        if writer is not None:
-                            writer.add_scalar("val/loss", avg_val, global_step)
-                        model.train()
+                            cfg.checkpoint_path.parent.mkdir(
+                                parents=True, exist_ok=True
+                            )
+                            torch.save(state, cfg.checkpoint_path)
+                    else:
+                        no_improve_steps += 1
+                        if no_improve_steps >= getattr(cfg, "patience", 0):
+                            stop_training = True
+                    if writer is not None:
+                        writer.add_scalar("val/loss", avg_val, global_step)
+                    model.train()
 
                 # Periodic save of last checkpoint with full training state
                 if (

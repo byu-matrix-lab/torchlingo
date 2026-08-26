@@ -7,7 +7,7 @@ kept separate from training logic to keep responsibilities focused.
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Tuple
+from collections.abc import Sequence
 
 import torch
 import torch.nn.functional as F
@@ -22,9 +22,9 @@ def greedy_decode(
     model: nn.Module,
     src: torch.Tensor,
     max_len: int = 100,
-    device: Optional[torch.device] = None,
-    config: Optional[Config] = None,
-) -> List[List[int]]:
+    device: torch.device | None = None,
+    config: Config | None = None,
+) -> list[list[int]]:
     """Greedy autoregressive decoding for Transformer or LSTM models.
 
     Decodes in mini-batches sized by ``config.batch_size`` to limit device
@@ -60,7 +60,7 @@ def greedy_decode(
             "Model must expose encode/decode or LSTM modules for greedy decoding."
         )
 
-    def _decode_transformer(src_chunk: torch.Tensor) -> List[List[int]]:
+    def _decode_transformer(src_chunk: torch.Tensor) -> list[list[int]]:
         src_chunk = src_chunk.to(device)
         pad_mask = src_chunk.eq(cfg.pad_idx)
         with torch.no_grad():
@@ -87,7 +87,7 @@ def greedy_decode(
                     break
         return ys.cpu().tolist()
 
-    def _decode_lstm(src_chunk: torch.Tensor) -> List[List[int]]:
+    def _decode_lstm(src_chunk: torch.Tensor) -> list[list[int]]:
         src_chunk = src_chunk.to(device)
         with torch.no_grad():
             src_emb = model.src_embed(src_chunk)
@@ -116,7 +116,7 @@ def greedy_decode(
                     break
         return ys.cpu().tolist()
 
-    decoded: List[List[int]] = []
+    decoded: list[list[int]] = []
     for src_chunk in src.split(batch_limit):
         if is_transformer:
             decoded.extend(_decode_transformer(src_chunk))
@@ -132,9 +132,9 @@ def beam_search_decode(
     beam_size: int = 5,
     max_len: int = 100,
     alpha: float = 0.6,
-    device: Optional[torch.device] = None,
-    config: Optional[Config] = None,
-) -> List[int]:
+    device: torch.device | None = None,
+    config: Config | None = None,
+) -> list[int]:
     """Beam search decoding for Transformer-style models.
 
     Args:
@@ -167,14 +167,14 @@ def beam_search_decode(
     with torch.no_grad():
         memory = model.encode(src, src_key_padding_mask=pad_mask)
 
-    beams: List[Tuple[List[int], float]] = [([cfg.sos_idx], 0.0)]
-    completed: List[Tuple[List[int], float]] = []
+    beams: list[tuple[list[int], float]] = [([cfg.sos_idx], 0.0)]
+    completed: list[tuple[list[int], float]] = []
 
     def length_norm(log_prob: float, length: int) -> float:
         return log_prob / (((5 + length) / 6) ** alpha)
 
     for _ in range(max_len):
-        candidates: List[Tuple[List[int], float]] = []
+        candidates: list[tuple[list[int], float]] = []
         for tokens, score in beams:
             if tokens[-1] == cfg.eos_idx:
                 completed.append((tokens, score))
@@ -218,9 +218,9 @@ def translate_batch(
     decode_strategy: str = "greedy",
     beam_size: int = 5,
     max_len: int = 100,
-    device: Optional[torch.device] = None,
-    config: Optional[Config] = None,
-) -> List[str]:
+    device: torch.device | None = None,
+    config: Config | None = None,
+) -> list[str]:
     """Translate a batch of raw sentences using provided vocabularies.
 
     Processes inputs in chunks of ``config.batch_size`` to avoid moving very
@@ -257,7 +257,7 @@ def translate_batch(
     sos_idx = getattr(tgt_vocab, "sos_idx", cfg.sos_idx)
     eos_idx = getattr(tgt_vocab, "eos_idx", cfg.eos_idx)
 
-    outputs: List[List[int]] = []
+    outputs: list[list[int]] = []
 
     for start in range(0, len(encoded), batch_limit):
         batch_tokens = encoded[start : start + batch_limit]
@@ -279,11 +279,11 @@ def translate_batch(
                 greedy_decode(model, padded, max_len=max_len, device=device, config=cfg)
             )
 
-    decoded: List[str] = []
+    decoded: list[str] = []
 
-    def _strip_after_special(tokens: Sequence[int]) -> List[int]:
+    def _strip_after_special(tokens: Sequence[int]) -> list[int]:
         # Drop SOS and everything after the first EOS/PAD using vocab-aware IDs.
-        cleaned: List[int] = []
+        cleaned: list[int] = []
         for t in tokens:
             if t in (eos_idx, pad_idx):
                 break
@@ -303,7 +303,7 @@ def translate_batch(
 
 
 __all__ = [
-    "greedy_decode",
     "beam_search_decode",
+    "greedy_decode",
     "translate_batch",
 ]

@@ -5,14 +5,12 @@ languages in a single model (e.g., EN→{ES, FR, DE, ...}).
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import pandas as pd
 
 from ..config import Config, get_default_config
 from .base import load_data, save_data
 from .multilingual import add_language_tags
-
 
 # Default language tags following mBART/M2M-100 convention
 DEFAULT_LANGUAGE_TAGS = {
@@ -38,9 +36,9 @@ DEFAULT_LANGUAGE_TAGS = {
 def add_language_tags_multi(
     df: pd.DataFrame,
     target_lang: str,
-    language_tags: Optional[Dict[str, str]] = None,
-    src_col: Optional[str] = None,
-    config: Optional[Config] = None,
+    language_tags: dict[str, str] | None = None,
+    src_col: str | None = None,
+    config: Config | None = None,
 ) -> pd.DataFrame:
     """Prepend language tag based on target language code.
 
@@ -87,12 +85,12 @@ def add_language_tags_multi(
 
 
 def create_multilingual_dataset(
-    data_sources: Dict[str, Path],
-    language_tags: Optional[Dict[str, str]] = None,
-    src_col: Optional[str] = None,
-    tgt_col: Optional[str] = None,
-    seed: Optional[int] = None,
-    config: Optional[Config] = None,
+    data_sources: dict[str, Path],
+    language_tags: dict[str, str] | None = None,
+    src_col: str | None = None,
+    tgt_col: str | None = None,
+    seed: int | None = None,
+    config: Config | None = None,
 ) -> pd.DataFrame:
     """Combine multiple language pairs into a single multilingual dataset.
 
@@ -133,7 +131,7 @@ def create_multilingual_dataset(
     seed = seed if seed is not None else cfg.seed
     tags = language_tags if language_tags is not None else DEFAULT_LANGUAGE_TAGS
 
-    combined_dfs: List[pd.DataFrame] = []
+    combined_dfs: list[pd.DataFrame] = []
 
     for lang_code, data_file in data_sources.items():
         if not data_file.exists():
@@ -179,14 +177,14 @@ def create_multilingual_dataset(
 
 
 def save_multilingual_splits(
-    data_sources: Dict[str, Dict[str, Path]],
+    data_sources: dict[str, dict[str, Path]],
     output_dir: Path,
-    language_tags: Optional[Dict[str, str]] = None,
-    train_file: Optional[str] = None,
-    val_file: Optional[str] = None,
-    test_file: Optional[str] = None,
-    data_format: Optional[str] = None,
-    config: Optional[Config] = None,
+    language_tags: dict[str, str] | None = None,
+    train_file: str | None = None,
+    val_file: str | None = None,
+    test_file: str | None = None,
+    data_format: str | None = None,
+    config: Config | None = None,
 ) -> None:
     """Create and save multilingual train/val/test splits.
 
@@ -260,7 +258,7 @@ def save_multilingual_splits(
     print(f"Saved multilingual splits to {output_dir}/")
 
 
-def get_language_tags_from_vocab(vocab) -> List[str]:
+def get_language_tags_from_vocab(vocab) -> list[str]:
     """Extract language tags from vocabulary.
 
     Scans vocabulary for tokens matching the language tag pattern <2X>, where
@@ -291,7 +289,7 @@ def get_language_tags_from_vocab(vocab) -> List[str]:
 
     # Handle different vocab types
     if hasattr(vocab, "token2idx"):  # SimpleVocab
-        for token in vocab.token2idx.keys():
+        for token in vocab.token2idx:
             if pattern.fullmatch(token):
                 tags.append(token)
     elif hasattr(vocab, "sp"):  # SentencePieceVocab
@@ -306,8 +304,8 @@ def get_language_tags_from_vocab(vocab) -> List[str]:
 
 def ensure_language_tags_in_vocab(
     vocab,
-    language_codes: List[str],
-    language_tags: Optional[Dict[str, str]] = None,
+    language_codes: list[str],
+    language_tags: dict[str, str] | None = None,
 ) -> None:
     """Ensure language tags are registered in vocabulary.
 
@@ -328,7 +326,7 @@ def ensure_language_tags_in_vocab(
         >>> ensure_language_tags_in_vocab(vocab, ['es', 'fr', 'de'])
         Added 3 language tags to vocabulary: <2es>, <2fr>, <2de>
     """
-    from ..data_processing.vocab import SimpleVocab, SentencePieceVocab
+    from ..data_processing.vocab import SentencePieceVocab, SimpleVocab
 
     tags = language_tags if language_tags is not None else DEFAULT_LANGUAGE_TAGS
 
@@ -361,7 +359,7 @@ __all__ = [
     "DEFAULT_LANGUAGE_TAGS",
     "add_language_tags_multi",
     "create_multilingual_dataset",
-    "save_multilingual_splits",
-    "get_language_tags_from_vocab",
     "ensure_language_tags_in_vocab",
+    "get_language_tags_from_vocab",
+    "save_multilingual_splits",
 ]

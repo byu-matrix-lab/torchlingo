@@ -1,13 +1,15 @@
 import unittest
+
 import torch
-from torchlingo.models import SimpleTransformer, SimpleSeq2SeqLSTM
-from torchlingo.models.transformer_simple import (
-    create_key_padding_mask,
-    create_causal_mask,
-    create_masks,
-)
+
 from torchlingo import config
 from torchlingo.config import Config
+from torchlingo.models import SimpleSeq2SeqLSTM, SimpleTransformer
+from torchlingo.models.transformer_simple import (
+    create_causal_mask,
+    create_key_padding_mask,
+    create_masks,
+)
 
 
 class TestTransformerInitialization(unittest.TestCase):

@@ -11,13 +11,13 @@ from pathlib import Path
 
 import pandas as pd
 import torch
-import torch.optim as optim
+from torch import optim
 
 from torchlingo.config import Config
 from torchlingo.data_processing.batching import collate_fn
 from torchlingo.data_processing.dataset import NMTDataset
 from torchlingo.data_processing.vocab import SimpleVocab
-from torchlingo.models import SimpleTransformer, SimpleSeq2SeqLSTM
+from torchlingo.models import SimpleSeq2SeqLSTM, SimpleTransformer
 from torchlingo.training import train_model
 
 

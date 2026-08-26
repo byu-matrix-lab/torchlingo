@@ -14,7 +14,8 @@ Typical usage:
 """
 
 import torch
-import torch.nn as nn
+from torch import nn
+
 from ..config import Config, get_default_config
 
 
@@ -49,12 +50,12 @@ class SimpleSeq2SeqLSTM(nn.Module):
         self,
         src_vocab_size: int,
         tgt_vocab_size: int,
-        emb_dim: int = None,
-        hidden_dim: int = None,
-        num_layers: int = None,
-        dropout: float = None,
-        pad_idx: int = None,
-        config: Config = None,
+        emb_dim: int | None = None,
+        hidden_dim: int | None = None,
+        num_layers: int | None = None,
+        dropout: float | None = None,
+        pad_idx: int | None = None,
+        config: Config | None = None,
     ):
         super().__init__()
         cfg = config if config is not None else get_default_config()
@@ -95,13 +96,13 @@ class SimpleSeq2SeqLSTM(nn.Module):
         PyTorch initialization.
         """
         for name, param in self.named_parameters():
-            if 'weight_ih' in name:
+            if "weight_ih" in name:
                 # Input-to-hidden weights: Xavier uniform
                 nn.init.xavier_uniform_(param)
-            elif 'weight_hh' in name:
+            elif "weight_hh" in name:
                 # Hidden-to-hidden weights: Orthogonal (preserves gradient flow)
                 nn.init.orthogonal_(param)
-            elif 'bias' in name:
+            elif "bias" in name:
                 # Biases: Initialize to zero
                 nn.init.zeros_(param)
 
@@ -128,7 +129,7 @@ class SimpleSeq2SeqLSTM(nn.Module):
                 probability distributions over the target vocabulary for each position.
         """
         src_emb = self.src_embed(src)
-        enc_out, (h, c) = self.encoder(src_emb)
+        _enc_out, (h, c) = self.encoder(src_emb)
         tgt_emb = self.tgt_embed(tgt)
         dec_out, _ = self.decoder(tgt_emb, (h, c))
         return self.output(dec_out)

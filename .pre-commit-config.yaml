@@ -16,8 +16,12 @@ repos:
       - id: check-case-conflict
       - id: mixed-line-ending
 
+  # Keep this rev in sync with the pinned ruff in pyproject.toml [dev].
+  # A mismatch silently changes which rules are enabled: ruff's default rule
+  # set has widened substantially across releases, so two versions disagree
+  # on hundreds of findings for identical code.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.0
+    rev: v0.16.3
     hooks:
       # Run the linter
       - id: ruff
