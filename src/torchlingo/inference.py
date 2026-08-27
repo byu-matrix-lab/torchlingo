@@ -3,10 +3,31 @@
 Provides decoding helpers and a batch translation convenience wrapper that
 work across Transformer-style and LSTM seq2seq models. These functions are
 kept separate from training logic to keep responsibilities focused.
+
+Tie-breaking rule
+-----------------
+Decoding must be reproducible: for a fixed model and input, the output is
+always identical, on any device, with any PyTorch build. Scores tie often in
+practice - early in training, with padded or degenerate inputs, and whenever
+several continuations are genuinely equally likely - so the rule is explicit:
+
+    Prefer the higher score. Among exactly equal scores, prefer the
+    sequence with the lower token IDs, comparing position by position.
+
+``torch.argmax`` already documents that it returns the *first* maximal index,
+so greedy decoding satisfies this rule as written. ``torch.topk`` explicitly
+does **not** guarantee an order for tied elements, so beam search must not
+rely on it; :func:`_canonical_topk` restores a deterministic order without
+depending on backend behavior.
+
+Any batched reimplementation of beam search must preserve this rule. Selecting
+with ``topk`` over a flattened ``(batch * beam, vocab)`` tensor will otherwise
+break ties differently and silently change output.
 """
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Sequence
 
 import torch
@@ -16,6 +37,101 @@ from torch.nn.utils.rnn import pad_sequence
 
 from .config import Config, get_default_config
 from .data_processing.vocab import BaseVocab
+
+# Beam decoding more sentences than this through the reference implementation is
+# slow enough to be worth flagging. Tuned to stay quiet for the tutorials and
+# test suites, and to fire on anything resembling a real evaluation set.
+_LARGE_INPUT_WARN_THRESHOLD = 100
+
+_warned_about_large_beam_input = False
+
+
+def _warn_if_large_beam_input(num_sentences: int) -> None:
+    """Point the user at the fast path when beam decoding a large input.
+
+    Fires at most once per process. A student running the reference beam search
+    over an evaluation set will otherwise conclude that beam search is
+    impractical and fall back to greedy, which is the failure this exists to
+    prevent -- and they will reach that conclusion mid-experiment, not while
+    reading documentation.
+
+    Args:
+        num_sentences: How many sentences are about to be beam decoded.
+    """
+    global _warned_about_large_beam_input
+    if _warned_about_large_beam_input or num_sentences <= _LARGE_INPUT_WARN_THRESHOLD:
+        return
+    _warned_about_large_beam_input = True
+    warnings.warn(
+        f"Beam decoding {num_sentences} sentences with the reference "
+        "implementation, which evaluates one beam per model call and is "
+        "written for readability rather than speed. For inputs this size use "
+        "torchlingo.inference_fast.translate_batch_fast, which produces "
+        "identical output. Silence with "
+        "warnings.filterwarnings('ignore', module='torchlingo.inference').",
+        UserWarning,
+        stacklevel=3,
+    )
+
+
+def _canonical_topk(
+    log_probs: torch.Tensor, k: int
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Select the ``k`` highest scores, breaking exact ties by lowest index.
+
+    ``torch.topk`` documents that the indices of tied elements are not
+    guaranteed to be stable, which makes beam search output device-dependent
+    whenever scores tie. This helper takes the same k elements by value but
+    fixes the order: strictly better scores first, then the lowest token IDs
+    among any tied at the selection boundary.
+
+    Only the boundary tie set is sorted, so the extra cost over ``topk`` is
+    proportional to ``k`` rather than to the vocabulary size.
+
+    Args:
+        log_probs: 1-D tensor of scores, one per vocabulary entry.
+        k: Number of entries to select. Clamped to the tensor length.
+
+    Returns:
+        Tuple of (scores, indices), both length ``min(k, len(log_probs))``,
+        ordered by descending score then ascending index.
+
+    Example:
+        >>> scores = torch.tensor([0.0, 5.0, 5.0, 5.0])
+        >>> _canonical_topk(scores, 2)[1].tolist()
+        [1, 2]
+    """
+    k = min(k, log_probs.numel())
+    threshold = torch.topk(log_probs, k).values[-1]
+
+    # Everything that could belong in the top-k, including boundary ties.
+    candidates = (log_probs >= threshold).nonzero(as_tuple=False).flatten()
+    candidates, _ = torch.sort(candidates)  # explicit ascending index order
+
+    # Stable sort keeps that ascending order among equal scores.
+    order = torch.argsort(-log_probs[candidates], stable=True)
+    chosen = candidates[order][:k]
+    return log_probs[chosen], chosen
+
+
+def _rank_key(tokens: list[int], score: float, alpha: float) -> tuple[float, list[int]]:
+    """Build the total-order sort key implementing the tie-breaking rule.
+
+    Sorting ascending by this key puts the preferred hypothesis first: highest
+    length-normalized score, then lowest token IDs. Because no two live
+    hypotheses share a token sequence, the ordering is total - never ambiguous.
+
+    Args:
+        tokens: Hypothesis token IDs.
+        score: Cumulative (unnormalized) log probability.
+        alpha: Length-normalization strength (Wu et al., 2016).
+
+    Returns:
+        Tuple of (negated normalized score, tokens) suitable as a sort key.
+    """
+    length = len(tokens)
+    normalized = score / (((5 + length) / 6) ** alpha)
+    return (-normalized, tokens)
 
 
 def greedy_decode(
@@ -142,12 +258,31 @@ def beam_search_decode(
         src: Source tensor with shape (1, src_len). Batch size 1 is assumed.
         beam_size: Number of beams to maintain.
         max_len: Maximum generated length.
-        alpha: Length normalization factor (Wu et al., 2016).
+        alpha: Length normalization factor (Wu et al., 2016). Applied during
+            pruning as well as final selection, so it shapes which hypotheses
+            survive rather than only which one is returned.
         device: Torch device. Defaults to model device.
         config: TorchLingo Config for special token indices.
 
     Returns:
         Best decoded token ID sequence (including SOS/EOS).
+
+    Note:
+        Output is deterministic for a fixed model and input on any device.
+        Exact score ties are broken toward the lower token IDs; see the
+        module docstring for the full rule.
+
+    Note:
+        This is the **reference** implementation, written to be read: the whole
+        search is visible in about 40 lines. It issues one ``model.decode()``
+        call per beam per step, which is roughly ``beam_size`` times more calls
+        than necessary. For decoding a real test set, prefer
+        :func:`torchlingo.inference_fast.beam_search_decode_batched`, which has
+        the same signature and returns token-identical output.
+
+    See Also:
+        :func:`torchlingo.inference_fast.beam_search_decode_batched`: the
+        batched counterpart, same output and substantially faster.
     """
 
     cfg = config if config is not None else get_default_config()
@@ -170,9 +305,6 @@ def beam_search_decode(
     beams: list[tuple[list[int], float]] = [([cfg.sos_idx], 0.0)]
     completed: list[tuple[list[int], float]] = []
 
-    def length_norm(log_prob: float, length: int) -> float:
-        return log_prob / (((5 + length) / 6) ** alpha)
-
     for _ in range(max_len):
         candidates: list[tuple[list[int], float]] = []
         for tokens, score in beams:
@@ -192,13 +324,16 @@ def beam_search_decode(
                     tgt_mask=tgt_mask,
                 )
             log_probs = F.log_softmax(out[0, -1, :], dim=-1)
-            top_log_probs, top_idx = torch.topk(log_probs, beam_size)
+            top_log_probs, top_idx = _canonical_topk(log_probs, beam_size)
             for lp, idx in zip(top_log_probs.tolist(), top_idx.tolist()):
                 candidates.append((tokens + [idx], score + lp))
 
         if not candidates:
             break
-        candidates.sort(key=lambda x: length_norm(x[1], len(x[0])), reverse=True)
+        # Ascending by _rank_key puts the preferred hypothesis first; the
+        # token sequence in the key makes the order total, so exact score ties
+        # resolve identically on every device.
+        candidates.sort(key=lambda item: _rank_key(item[0], item[1], alpha))
         beams = candidates[:beam_size]
 
         if all(tokens[-1] == cfg.eos_idx for tokens, _ in beams):
@@ -206,7 +341,7 @@ def beam_search_decode(
             break
 
     completed.extend(beams)
-    best_tokens, _ = max(completed, key=lambda x: length_norm(x[1], len(x[0])))
+    best_tokens, _ = min(completed, key=lambda item: _rank_key(item[0], item[1], alpha))
     return best_tokens
 
 
@@ -239,10 +374,22 @@ def translate_batch(
 
     Returns:
         List of decoded text strings aligned with input sentences.
+
+    Warns:
+        UserWarning: Once per process, when beam decoding more than
+            ``_LARGE_INPUT_WARN_THRESHOLD`` sentences, pointing at
+            :func:`torchlingo.inference_fast.translate_batch_fast`.
+
+    See Also:
+        :func:`torchlingo.inference_fast.translate_batch_fast`: same output,
+        substantially faster for beam decoding on large inputs.
     """
 
     cfg = config if config is not None else get_default_config()
     device = device if device is not None else next(model.parameters()).device
+
+    if decode_strategy == "beam":
+        _warn_if_large_beam_input(len(sentences))
 
     encoded = [
         torch.tensor(src_vocab.encode(s, add_special_tokens=True), dtype=torch.long)
