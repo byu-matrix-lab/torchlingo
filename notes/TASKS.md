@@ -44,7 +44,7 @@ and an `inference/` subpackage, which makes a reader navigate a directory to fin
 85-line function.
 
 **`translate_batch` — mirrored, not switched.** The reference wrapper stays as-is;
-`inference_fast.py` gets its own `translate_batch_fast`. This keeps the dependency arrow
+`inference_fast.py` gets its own `translate_batch`. This keeps the dependency arrow
 one-way: **fast imports from reference, never the reverse.** A selector parameter or a
 fast-by-default wrapper would force `inference.py` to import `inference_fast.py`,
 coupling the module a student is meant to read to the one they are not.
@@ -55,7 +55,7 @@ coupling the module a student is meant to read to the one they are not.
 2. Bidirectional docstring cross-references between each implementation and its
    counterpart.
 3. A threshold-based, once-per-process `warnings.warn` when the reference path is used
-   on a large input, naming `translate_batch_fast` and noting the output is identical.
+   on a large input, naming `inference_fast.translate_batch` and noting the output is identical.
    This is the layer that actually works: it fires at the moment of pain, whereas the
    student who most needs it is mid-experiment and not reading docs.
 
@@ -72,7 +72,7 @@ class ReferenceBeamTests(DecoderContractTests, unittest.TestCase):
     DECODE = staticmethod(beam_search_decode)
 
 class BatchedBeamTests(DecoderContractTests, unittest.TestCase):
-    DECODE = staticmethod(beam_search_decode_batched)
+    DECODE = staticmethod(inference_fast.beam_search_decode)
 ```
 
 Adding an implementation is one subclass and it inherits the whole suite; failures name
@@ -99,7 +99,7 @@ rather than duplicating it into code and notes.
 **#1 Batch beam search across beams** — *DONE (aabb260)*
 Stack the live beams into one `(n_live, t)` tensor, expand `memory` as a view, issue one
 `model.decode()` call per step instead of one per beam.
-- Implemented as `beam_search_decode_batched` in `src/torchlingo/inference_fast.py`.
+- Implemented as `inference_fast.beam_search_decode` in `src/torchlingo/inference_fast.py`.
 - Delivered: 125/125 token-identical across 25 sources x 5 beam widths; `decode()` calls
   121 -> 25 (4.8x fewer); wall clock 140.9 -> 39.1 ms/sentence (3.6x) on a small CPU model.
 - The wall-clock gain trails the call-count gain because eliminating calls does not
@@ -113,7 +113,7 @@ Remove the batch-size-1 restriction in `inference_fast.py`; flatten to `(batch x
 **This is where the remaining ~8x lives** (the sentence axis above) — and it scales with
 the number of sentences decoded, so it matters more on a real test set than #1 does.
 - Files: `src/torchlingo/inference_fast.py` (the raise, and the per-row loop in
-  `translate_batch_fast`)
+  `inference_fast.translate_batch`)
 - Hard part is bookkeeping for ragged completion — sentences finishing at different steps.
 - Needs a contract adapter: it takes a batch rather than one sentence, so it does not slot
   into the current `BEAM_DECODE` shape unchanged.

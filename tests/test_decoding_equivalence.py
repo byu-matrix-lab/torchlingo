@@ -36,6 +36,7 @@ from typing import ClassVar
 import torch
 from torch import nn
 
+from torchlingo import inference_fast
 from torchlingo.config import get_default_config
 from torchlingo.inference import (
     _canonical_topk,
@@ -43,7 +44,6 @@ from torchlingo.inference import (
     beam_search_decode,
     greedy_decode,
 )
-from torchlingo.inference_fast import beam_search_decode_batched
 from torchlingo.models.transformer_simple import SimpleTransformer
 
 D_MEM = 4
@@ -875,33 +875,33 @@ class ReferenceTieBreakingTests(TieBreakingContract, unittest.TestCase):
 
 
 class BatchedDecodingInvariantTests(DecodingInvariantContract, unittest.TestCase):
-    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+    BEAM_DECODE = staticmethod(inference_fast.beam_search_decode)
 
 
 class BatchedBeamSearchGoldenTests(BeamSearchGoldenContract, unittest.TestCase):
-    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+    BEAM_DECODE = staticmethod(inference_fast.beam_search_decode)
 
 
 class BatchedLengthNormalizationSemanticsTests(
     LengthNormalizationSemanticsContract, unittest.TestCase
 ):
-    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+    BEAM_DECODE = staticmethod(inference_fast.beam_search_decode)
 
 
 class BatchedRealModelConsistencyTests(RealModelConsistencyContract, unittest.TestCase):
-    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+    BEAM_DECODE = staticmethod(inference_fast.beam_search_decode)
 
 
 class BatchedBatchSizeRestrictionTests(BatchSizeRestrictionContract, unittest.TestCase):
-    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+    BEAM_DECODE = staticmethod(inference_fast.beam_search_decode)
 
 
 class BatchedBeamSuperiorityTests(BeamSuperiorityContract, unittest.TestCase):
-    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+    BEAM_DECODE = staticmethod(inference_fast.beam_search_decode)
 
 
 class BatchedTieBreakingTests(TieBreakingContract, unittest.TestCase):
-    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+    BEAM_DECODE = staticmethod(inference_fast.beam_search_decode)
 
 
 if __name__ == "__main__":

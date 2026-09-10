@@ -1,4 +1,42 @@
-# Decoding: Reference and Fast Implementations
+# Decoding
+
+## Greedy is the default — beam search is opt-in
+
+!!! warning "Read this before reporting a BLEU score"
+    Everywhere TorchLingo takes a `decode_strategy` argument, it defaults to
+    `"greedy"`. That includes `translate_batch()` and, most importantly,
+    `evaluate_model()`.
+
+    Greedy decoding is fast and simple, but it usually scores **lower** than beam
+    search. A BLEU number produced with the defaults is not your model's best score.
+
+```python
+# Default: greedy
+translate_batch(model, sentences, src_vocab, tgt_vocab)
+
+# Beam search: opt in explicitly
+translate_batch(model, sentences, src_vocab, tgt_vocab,
+                decode_strategy="beam", beam_size=5)
+
+evaluate_model(model, dataloader, src_vocab, tgt_vocab,
+               decode_strategy="beam", beam_size=5)
+```
+
+Always say which strategy produced a score you report. Comparing a greedy BLEU against
+a published beam BLEU is not a like-for-like comparison, and the gap can be a point or
+more.
+
+### Choosing a strategy
+
+| Strategy | What it does | When |
+|---|---|---|
+| `"greedy"` | Takes the single highest-probability token at every step | Quick checks, debugging, during training |
+| `"beam"` | Keeps `beam_size` hypotheses and picks the best complete one | Reporting results, final translations |
+
+Beam search costs roughly `beam_size` times more computation. That cost is the reason
+the rest of this page exists.
+
+## Reference and fast implementations
 
 TorchLingo ships **two implementations of beam search**. They produce exactly the
 same translations. They differ only in how much of the work happens in one call to
@@ -9,16 +47,35 @@ the model.
 | Reference | `torchlingo.inference` | Reading, teaching, debugging, small inputs |
 | Fast | `torchlingo.inference_fast` | Decoding a real test set |
 
-This page explains why both exist, which to use, and what the difference costs.
+The rest of this page explains why both exist, which to use, and what the difference
+costs.
 
 ## The short version
+
+The two modules expose **the same function names**. Switching between them is a one-line
+import change, and nothing else in your code moves:
 
 ```python
 # Reading the algorithm, or translating a handful of sentences:
 from torchlingo.inference import beam_search_decode, translate_batch
 
-# Translating an evaluation set:
-from torchlingo.inference_fast import beam_search_decode_batched, translate_batch_fast
+# Translating an evaluation set — note only the module name differs:
+from torchlingo.inference_fast import beam_search_decode, translate_batch
+```
+
+That is deliberate. The two implementations are interchangeable: same signature, same
+arguments, byte-identical output. If they were not interchangeable, they would not share
+a name.
+
+When you need both in one file, import the modules instead of the functions, so it stays
+obvious which is which:
+
+```python
+from torchlingo import inference, inference_fast
+
+slow = inference.beam_search_decode(model, src, beam_size=5)
+fast = inference_fast.beam_search_decode(model, src, beam_size=5)
+assert slow == fast          # always true
 ```
 
 The output is identical either way. If you are unsure, use the fast one — nothing about
@@ -89,7 +146,7 @@ With `beam_size=5` and 8 sentences: 5 × 8 = 40 ≈ 38.7. Greedy in the table ab
 pulls the sentence lever (all 8 sentences go through together), which is why it looks so
 much better.
 
-`beam_search_decode_batched` pulls the **beam** lever. Measured: 4.8×, a little under
+`inference_fast.beam_search_decode` pulls the **beam** lever. Measured: 4.8×, a little under
 `beam_size` because fewer beams remain live late in the search. It still decodes one
 sentence at a time, so the sentence lever is untouched and available.
 
@@ -139,7 +196,7 @@ class ReferenceBeamSuperiorityTests(BeamSuperiorityContract, unittest.TestCase):
     BEAM_DECODE = staticmethod(beam_search_decode)
 
 class BatchedBeamSuperiorityTests(BeamSuperiorityContract, unittest.TestCase):
-    BEAM_DECODE = staticmethod(beam_search_decode_batched)
+    BEAM_DECODE = staticmethod(inference_fast.beam_search_decode)
 ```
 
 Every fixture and invariant runs against **both** implementations. Adding a third is one
@@ -156,7 +213,7 @@ greedy would fail loudly.
 ```
 UserWarning: Beam decoding 3000 sentences with the reference implementation,
 which evaluates one beam per model call and is written for readability rather
-than speed. For inputs this size use torchlingo.inference_fast.translate_batch_fast,
+than speed. For inputs this size use torchlingo.inference_fast.translate_batch,
 which produces identical output.
 ```
 
