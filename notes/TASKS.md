@@ -6,12 +6,14 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 
 | | Task | State |
 |---|---|---|
-| **#16** | Release pipeline broken — nothing ships | **BLOCKING** |
+| **#20** | `data/example.tsv` is not sentence-aligned | **BLOCKING (new)** |
 | **#17** | Coulson's review points (naming, greedy default) | **In review — PR #9** |
+| #16 | Release pipeline broken — nothing ships | Open (downgraded) |
 | #2 | Batch beam search across sentences (~8x, scales with test-set size) | Open |
 | #3 | Incremental decoding / KV cache | Open |
 | #4 | Resolve length-normalization semantics | Open |
-| #5 | Add attention to the LSTM decoder | Open |
+| #21 | Beam search does not support LSTM models at all | Open (new) |
+| #22 | `examples/` is outside the lint gate | Open (new) |
 | #6 | Multi-GPU training via DDP | Open |
 | #7 | PyTorch deprecation warnings | Open |
 | #8 | Verify Eole claims before syllabus use | Open |
@@ -19,6 +21,8 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 | #12 | Decode benchmark harness | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
 | #1 | Batch beam search across beams | Done — `aabb260` |
+| #5 | Add attention to the LSTM decoder | Done — this session |
+| #23 | Encoder consumed padding (found via #5) | Done — fixed in #5 |
 | #10 | `notes/` scope decision | Done |
 | #11 | Push / PR the notes branch | Done — PR #8 |
 | #18 | Answer Coulson's curriculum question | Done — it's CS 479 |
@@ -166,9 +170,65 @@ a separate question.
 
 ## Code — other gaps
 
-**#5 Add attention to the LSTM decoder**
-`models/lstm_simple.py:117` notes attention masks are "currently unused." Blocks the
-classic Bahdanau/Luong lesson and the with-vs-without ablation.
+**#5 Add attention to the LSTM decoder** — *DONE (2026-09-10)*
+The case was stronger than this entry originally recorded. `docs/concepts/what-is-nmt.md`
+taught attention as a concept and then its summary table said
+`| Attention | Built into Transformer layers |` — so the single most important idea in
+modern NMT was the one core concept with **no readable implementation anywhere** in a
+library whose entire reason for existing is readable implementations.
+
+**Decisions (user, 2026-09-10):**
+- **Both scorers, selectable** via `attn_type="dot"` (Luong 2015) / `"additive"`
+  (Bahdanau 2014), so the 2014 → 2015 → 2017 progression is teachable directly.
+- **`attention=False` by default.** Preserves existing behavior and checkpoints, and
+  makes the ablation one visible flag rather than hidden history.
+- **Weights are returned and plottable** — the payoff, not an extra.
+
+**Delivered:**
+- `src/torchlingo/models/attention.py`: `DotProductAttention` (parameter-free),
+  `AdditiveAttention`, `build_attention`. Masked softmax uses `finfo.min`, not `-inf`,
+  so a fully-padded row degrades to uniform instead of `NaN`.
+- `SimpleSeq2SeqLSTM(attention=, attn_type=)`, plus `encode_source()` / `decode_step()`
+  and `forward(..., return_attention=True)`.
+- `src/torchlingo/visualization.py`: `plot_attention` (matplotlib) and
+  `format_attention` (dependency-free shaded text grid).
+- `matplotlib>=3.7` added to core `dependencies` at the user's direction.
+- Config: `lstm_attention`, `lstm_attn_type`, with `ATTENTION_TYPES` as the single
+  source of truth. It lives in `config.py`, not `models/attention.py`, because `Config`
+  validates the field while it is still importing and `models` imports `Config` — the
+  natural placement is circular. Caught at runtime, not guessed.
+- `tests/test_attention.py`: 38 tests. Suite 527, OK (21 skipped).
+- Docs: new `reference/models/attention.md` and `reference/visualization.md`, nav
+  entries, and corrections to `reference/models/lstm.md` (see below) and
+  `concepts/what-is-nmt.md`.
+
+**`examples/attention_alignment.py`** trains on a task whose correct alignment is known
+in advance — target is the source translated word-for-word and reversed, so the truth is
+an anti-diagonal. That converts "did attention work?" into a measurable number:
+
+| configuration | val loss | alignment accuracy |
+|---|---|---|
+| no attention | 1.1031 | n/a |
+| dot (Luong) | 0.6801 | 98.4% |
+| additive (Bahdanau) | 0.6533 | 93.6% |
+
+Chance is ~12.5%. Synthetic on purpose — see #20, the repo has no usable parallel corpus.
+
+**Two docs corrections worth noting**, because both were actively misleading:
+- `reference/models/lstm.md` claimed "No attention: this simple model doesn't use
+  attention ... This is not implemented in TorchLingo's simple model."
+- The same page's greedy-decoding example hand-rolled the decoder loop from the final
+  `(h, c)`, discarding encoder outputs. On an attention model that **silently disables
+  attention** while appearing to work. Replaced with `greedy_decode` / `decode_step`,
+  and a warning box explaining the trap.
+
+**#23 The encoder consumed padding** — *DONE, found while doing #5*
+A test asserting "trailing padding must not change the output" failed even with attention
+masking correct. The leak was upstream of attention and predates it: `encode_source` ran
+the encoder LSTM across `PAD`, so the `(h, c)` handed to the decoder described the padding
+rather than the sentence — meaning a sentence decoded in a batch differed from the same
+sentence decoded alone. Fixed with `pack_padded_sequence`. Masking attention weights alone
+does not fix this; the leak is in the recurrence, not the alignment.
 
 **#6 Multi-GPU training via DDP**
 Not implemented. `config.py:663` states multi-GPU "requires custom DataParallel setup."
@@ -279,7 +339,12 @@ therefore cannot detect scrambled beam state or bad memory expansion.
 
 ## Added 2026-09-10
 
-**#16 The release pipeline is broken — nothing since Feb 2026 has shipped** — *BLOCKING*
+**#16 The release pipeline is broken — nothing since Feb 2026 has shipped**
+
+*Downgraded from BLOCKING on 2026-09-10:* nobody is installing from PyPI yet, so this is
+a latent breakage rather than an active one. Still must be fixed before the first
+classroom install, and the tag-vs-`pyproject` CI check should land **before** the next
+tag so the mismatch fails loudly instead of silently for a third time.
 
 Found while reviewing backlog status. `pyproject.toml` has said `version = "0.0.8"`
 since February and is never bumped, so tagging a release builds a stale-version artifact:
@@ -328,3 +393,75 @@ Not blocking anything, but a courtesy heads-up before he next picks it up.
 - Also found while checking: GitHub reports the branch as **conflicting** with `main`,
   which the original entry did not capture. Both facts are in the comment.
 - Left with @commanderjcc to act on; nothing further owed from this side.
+
+---
+
+## Added 2026-09-10 (while implementing #5)
+
+**#20 `data/example.tsv` is not sentence-aligned** — *BLOCKING*
+
+The shipped 100,000-row "parallel corpus" is not parallel. The first few dozen rows line
+up, then `src` and `tgt` drift apart and never recover. Measured by checking how often a
+row's English and Spanish sides share a proper noun or a number — quantities that survive
+translation:
+
+```
+rows      0-  500:  8%
+rows    500- 1000:  3%
+rows   2000- 2500:  1%
+rows   5000- 5500:  0%
+rows  10000-10500:  0%
+rows  20000-20500:  0%
+rows  50000-50500:  0%
+rows  90000-90500:  0%
+```
+
+Eyeballing confirms it: row 11000 pairs "So, the bacteria grows hair on the crab." with
+"Lo llevo a terapia."
+
+**It is not a fixable offset.** Sweeping shifts of -300..+300 against windows at rows 0,
+5000 and 20000 finds no peak anywhere — the best shifted match rate is 0-1%, i.e. noise.
+The two columns were built from sources that desynchronized progressively (plausibly TED
+transcript vs. translation, which merge and split sentences at different rates), so there
+is no single realignment that recovers it.
+
+**Consequences:**
+- Any model trained on it learns a mapping between unrelated sentences. Confirmed: a
+  1-epoch run sat at loss 8.69 against `ln(vocab) = 8.69` — exactly chance.
+- Every tutorial or exercise pointing a student at this file produces garbage, and the
+  student has no way to tell the difference between "my model is wrong" and "the data is
+  wrong." That is the worst possible failure mode for a teaching library.
+- `data/multilingual_example/` is clean but is 5 unique phrases repeated ten times, so it
+  is not a substitute.
+
+**Fix options, in order of preference:** ship a genuinely aligned small corpus (Tatoeba
+en-es is permissively licensed and sentence-aligned by construction); or realign
+`example.tsv` with a sentence aligner and keep only high-confidence pairs; or delete it
+and document that users bring their own data. Whichever way, it must not stay as-is with
+a name that invites students to use it.
+
+Same class of defect as #14 and #16: something nothing was checking. A cheap guard is a
+test asserting the shipped corpus clears a minimum proper-noun/number overlap rate.
+
+**#21 Beam search does not support LSTM models at all**
+`inference.py:295` raises unless the model exposes `encode`/`decode`, which only the
+Transformer does. So `greedy_decode` works for both architectures but
+`beam_search_decode` is Transformer-only, and the docs do not say so. Noticed while
+wiring attention through the LSTM inference path. Now that the LSTM has attention it is a
+real model rather than a toy baseline, which makes the gap more visible.
+- Cheap partial fix: a clear error message naming the limitation.
+- Real fix: route beam search through `encode_source`/`decode_step`, which #5 added
+  precisely so the decoder need not be reimplemented per call site.
+
+**#22 `examples/` is outside the lint gate**
+CLAUDE.md and CI lint `src` and `tests` only. Running `ruff check examples` turns up 32
+pre-existing errors across `train.py`, `evaluate.py`, `inference_ceb_cmn.py`,
+`train_ceb_cmn_simple.py` and `multilingual_training_example.py` — unsorted imports,
+unused imports and variables, `f`-strings with no placeholders, deprecated `typing.List`,
+a blind `except Exception`.
+- These are *examples*, i.e. the code students are most likely to copy, so they are
+  arguably the worst place in the repo to let style rot.
+- Not fixed here: it is unrelated to attention and a 5-file mechanical diff would bury
+  the review, exactly the reasoning applied to the ruff split in #14.
+- Suggested: fix under its own PR, then add `examples` to the lint scope so it stays
+  fixed.

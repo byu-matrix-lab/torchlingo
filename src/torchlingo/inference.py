@@ -205,9 +205,21 @@ def greedy_decode(
 
     def _decode_lstm(src_chunk: torch.Tensor) -> list[list[int]]:
         src_chunk = src_chunk.to(device)
+        # A model exposing encode_source/decode_step drives its own decoder, so
+        # the encoder outputs -- and any attention over them -- reach this path.
+        # Reimplementing the loop here is what silently dropped them before.
+        # Duck-typed LSTM models without those methods keep the inline loop.
+        uses_model_step = hasattr(model, "encode_source") and hasattr(
+            model, "decode_step"
+        )
         with torch.no_grad():
-            src_emb = model.src_embed(src_chunk)
-            _, (h, c) = model.encoder(src_emb)
+            if uses_model_step:
+                enc_out, hidden, src_pad_mask = model.encode_source(src_chunk)
+            else:
+                src_emb = model.src_embed(src_chunk)
+                _, hidden = model.encoder(src_emb)
+                enc_out = None
+                src_pad_mask = None
 
             batch_size = src_chunk.size(0)
             ys = torch.full(
@@ -215,16 +227,20 @@ def greedy_decode(
             )
             finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
 
-            hidden = (h, c)
             tgt_embed = getattr(model, "tgt_embed", None) or getattr(
                 model, "src_embed", None
             )
 
             for _ in range(max_len):
                 last_token = ys[:, -1].unsqueeze(1)
-                emb = tgt_embed(last_token)
-                dec_out, hidden = model.decoder(emb, hidden)
-                logits = model.output(dec_out)
+                if uses_model_step:
+                    logits, hidden, _weights = model.decode_step(
+                        last_token, hidden, enc_out, src_pad_mask
+                    )
+                else:
+                    emb = tgt_embed(last_token)
+                    dec_out, hidden = model.decoder(emb, hidden)
+                    logits = model.output(dec_out)
                 next_token = logits[:, -1, :].argmax(-1)
                 ys = torch.cat([ys, next_token.unsqueeze(1)], dim=1)
                 finished |= next_token.eq(cfg.eos_idx)

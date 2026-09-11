@@ -82,6 +82,8 @@ logits = model(src_batch, tgt_batch)  # [batch, tgt_len, vocab]
 | `num_layers` | int | 2 | Number of stacked LSTM layers |
 | `dropout` | float | 0.1 | Dropout between LSTM layers |
 | `pad_idx` | int | 0 | Padding token index |
+| `attention` | bool | False | Let the decoder attend over encoder outputs |
+| `attn_type` | str | `"dot"` | Scorer: `"dot"` (Luong) or `"additive"` (Bahdanau) |
 | `config` | Config | None | Configuration object |
 
 ## Examples
@@ -135,31 +137,38 @@ model = SimpleSeq2SeqLSTM(
 
 ### Inference (Greedy Decoding)
 
+Use the library's decoder rather than writing the loop yourself:
+
 ```python
-def greedy_decode_lstm(model, src, tgt_vocab, max_len=50, device="cpu"):
-    model.eval()
-    src = src.to(device).unsqueeze(0)  # Add batch dim
-    
-    # Encode
-    src_emb = model.src_embed(src)
-    _, (h, c) = model.encoder(src_emb)
-    
-    # Decode
-    ys = [tgt_vocab.sos_idx]
-    
-    for _ in range(max_len):
-        tgt_tensor = torch.tensor([ys[-1:]], device=device)
-        tgt_emb = model.tgt_embed(tgt_tensor)
-        output, (h, c) = model.decoder(tgt_emb, (h, c))
-        logits = model.output(output)
-        next_token = logits[:, -1, :].argmax().item()
-        ys.append(next_token)
-        
-        if next_token == tgt_vocab.eos_idx:
-            break
-    
-    return ys
+from torchlingo.inference import greedy_decode
+
+decoded = greedy_decode(model, src_batch, max_len=50)  # list[list[int]]
 ```
+
+If you do want to step manually — to inspect attention at each step, say — use
+`encode_source` and `decode_step` so the encoder outputs actually reach the
+decoder:
+
+```python
+enc_out, hidden, src_pad_mask = model.encode_source(src)
+ys = [tgt_vocab.sos_idx]
+alignments = []
+
+for _ in range(max_len):
+    last = torch.tensor([ys[-1:]], device=src.device)
+    logits, hidden, weights = model.decode_step(last, hidden, enc_out, src_pad_mask)
+    alignments.append(weights)          # None when attention is disabled
+    next_token = logits[:, -1, :].argmax().item()
+    ys.append(next_token)
+    if next_token == tgt_vocab.eos_idx:
+        break
+```
+
+!!! warning "Don't re-implement the decoder loop"
+    Driving `model.decoder` directly from the encoder's final `(h, c)` — as
+    earlier versions of this page showed — throws away the per-token encoder
+    outputs. On an attention model that silently disables attention, and the
+    model will appear to work while producing worse translations.
 
 ## How LSTMs Work
 
@@ -172,6 +181,11 @@ The encoder compresses the entire source sequence into a fixed-size vector (the 
 ```
 
 **Limitation**: Long sequences can be hard to compress into a single vector.
+
+With `attention=True`, the decoder additionally reads *every* encoder output,
+weighted per step, so the sentence no longer has to survive that squeeze. Run
+`python examples/attention_alignment.py` to see the difference measured on a
+task with a known correct alignment.
 
 ### Hidden and Cell States
 
@@ -205,7 +219,7 @@ Input embeddings
 | Aspect | LSTM | Transformer |
 | ------ | ---- | ----------- |
 | Processing | Sequential | Parallel |
-| Long dependencies | Difficult | Easy (attention) |
+| Long dependencies | Difficult; easier with `attention=True` | Easy (attention) |
 | Training speed | Slower | Faster |
 | Memory efficiency | O(n) | O(n²) |
 | Simplicity | Simpler | More complex |
@@ -265,9 +279,11 @@ model = SimpleSeq2SeqLSTM(
 
 ## Limitations
 
-1. **No attention**: This simple model doesn't use attention, so it struggles with long sequences
-2. **Information bottleneck**: All source information must fit in the hidden state
-3. **Sequential processing**: Can't parallelize across time steps
+1. **Information bottleneck** (default): with `attention=False`, all source information must fit in the final hidden state
+2. **Sequential processing**: can't parallelize across time steps
 
 !!! tip "Adding Attention"
-    For production LSTM models, consider adding Bahdanau or Luong attention to allow the decoder to look back at the encoder outputs. This is not implemented in TorchLingo's simple model.
+    Pass `attention=True` to let the decoder look back at every encoder output
+    instead of relying on the final hidden state alone. Both classic scorers are
+    implemented — see [Attention](attention.md). Attention is **off by default**,
+    so the bottlenecked model remains the baseline you compare against.
