@@ -7,7 +7,7 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 | | Task | State |
 |---|---|---|
 | **#16** | Release pipeline broken — nothing ships | **BLOCKING** |
-| **#17** | Coulson's review points (naming, greedy default) | Done, **PR not opened** |
+| **#17** | Coulson's review points (naming, greedy default) | **In review — PR #9** |
 | #2 | Batch beam search across sentences (~8x, scales with test-set size) | Open |
 | #3 | Incremental decoding / KV cache | Open |
 | #4 | Resolve length-normalization semantics | Open |
@@ -18,11 +18,11 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 | #9 | `pre-commit install` (still not installed) | Open |
 | #12 | Decode benchmark harness | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
-| #19 | Josh's PR #1 will now fail CI | Open |
 | #1 | Batch beam search across beams | Done — `aabb260` |
 | #10 | `notes/` scope decision | Done |
 | #11 | Push / PR the notes branch | Done — PR #8 |
 | #18 | Answer Coulson's curriculum question | Done — it's CS 479 |
+| #19 | Josh's PR #1 heads-up | Done — flagged on PR #1 |
 | #13 | Decoding tie-breaking rule | Done — `5b3e326` |
 | #14 | Ruff version drift | Done — PR #7 |
 
@@ -306,10 +306,10 @@ Fix should cover both halves:
   mismatch is loud rather than silent. Same class of problem as #14 (ruff version drift):
   two sources of truth with nothing checking they agree.
 
-**#17 Coulson's review points from PR #8** — *DONE, pending PR*
+**#17 Coulson's review points from PR #8** — *IN REVIEW (PR #9)*
 Naming schema (mirrored names across `inference` / `inference_fast`) and the greedy
-default documented. On branch `decoding/naming-and-defaults`, commit `5403271`, pushed
-but **no PR opened yet**.
+default documented. On branch `decoding/naming-and-defaults`, commit `5403271`. Opened
+as PR #9 on 2026-09-10 with Coulson-Rich requested as reviewer.
 - Also registered `inference_fast` in the package `__init__`, missed when it was added.
 
 **#18 Answer Coulson's curriculum question** — *DONE (answered on PR #8, 2026-09-10)*
@@ -321,7 +321,10 @@ He asked on PR #8 (2026-08-26) whether the beam-search walkthrough belongs in th
 - The same reply pointed him at `5403271` for his other review point (naming schema and
   the greedy default), which is #17.
 
-**#19 Josh's PR #1 will now fail CI**
-`colab-checkpointing`, dormant since 2026-01-30, is two merges behind and will hit the
+**#19 Josh's PR #1 will now fail CI** — *DONE (flagged on PR #1, 2026-09-10)*
+`colab-checkpointing`, dormant since 2026-01-30, is behind `main` and will hit the
 lint gate added in #7 — against a much wider ruleset than existed when it was written.
 Not blocking anything, but a courtesy heads-up before he next picks it up.
+- Also found while checking: GitHub reports the branch as **conflicting** with `main`,
+  which the original entry did not capture. Both facts are in the comment.
+- Left with @commanderjcc to act on; nothing further owed from this side.
