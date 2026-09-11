@@ -6,9 +6,11 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 
 | | Task | State |
 |---|---|---|
-| **#20** | `data/example.tsv` is not sentence-aligned | **BLOCKING (new)** |
 | **#17** | Coulson's review points (naming, greedy default) | **In review — PR #9** |
+| **#24** | Push `lstm/attention`, open PR (merges after #9) | **Next** |
 | #16 | Release pipeline broken — nothing ships | Open (downgraded) |
+| #25 | Tutorial 02 needs re-running on the repaired corpus | Open (new) |
+| #29 | Recover the last 98 talks with a sentence aligner | Open (new) |
 | #2 | Batch beam search across sentences (~8x, scales with test-set size) | Open |
 | #3 | Incremental decoding / KV cache | Open |
 | #4 | Resolve length-normalization semantics | Open |
@@ -20,9 +22,13 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 | #9 | `pre-commit install` (still not installed) | Open |
 | #12 | Decode benchmark harness | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
+| #26 | Broken doc links block `mkdocs --strict` | Open (new) |
+| #27 | Attention tutorial notebook | Open (new) |
+| #28 | Attention params skip `_init_weights` | Open (new) |
 | #1 | Batch beam search across beams | Done — `aabb260` |
 | #5 | Add attention to the LSTM decoder | Done — this session |
 | #23 | Encoder consumed padding (found via #5) | Done — fixed in #5 |
+| #20 | `data/example.tsv` misaligned | Done — repaired in place |
 | #10 | `notes/` scope decision | Done |
 | #11 | Push / PR the notes branch | Done — PR #8 |
 | #18 | Answer Coulson's curriculum question | Done — it's CS 479 |
@@ -398,7 +404,11 @@ Not blocking anything, but a courtesy heads-up before he next picks it up.
 
 ## Added 2026-09-10 (while implementing #5)
 
-**#20 `data/example.tsv` is not sentence-aligned** — *BLOCKING*
+**#20 `data/example.tsv` is not sentence-aligned** — *DONE (repaired 2026-09-10)*
+
+**Resolved: the data was never bad, it was assembled wrong, and it is repaired in place.**
+No replacement corpus needed. Jump to "The repair" below for the outcome; the diagnosis
+is kept because the same failure mode can recur.
 
 The shipped 100,000-row "parallel corpus" is not parallel. The first few dozen rows line
 up, then `src` and `tgt` drift apart and never recover. Measured by checking how often a
@@ -434,14 +444,73 @@ is no single realignment that recovers it.
 - `data/multilingual_example/` is clean but is 5 unique phrases repeated ten times, so it
   is not a substitute.
 
-**Fix options, in order of preference:** ship a genuinely aligned small corpus (Tatoeba
-en-es is permissively licensed and sentence-aligned by construction); or realign
-`example.tsv` with a sentence aligner and keep only high-confidence pairs; or delete it
-and document that users bring their own data. Whichever way, it must not stay as-is with
-a name that invites students to use it.
+### The repair
 
-Same class of defect as #14 and #16: something nothing was checking. A cheap guard is a
-test asserting the shipped corpus clears a minimum proper-noun/number overlap rate.
+The "no fixable offset" finding was right but the conclusion drawn from it was too
+pessimistic. Looking at the *structure* rather than the offset showed what actually
+happened: **the two columns are independent documents that were zipped together.**
+
+Each column is a concatenation of per-talk records — `url, description, tags, views,
+title`, then the transcript — and each carries its own URL lines as boundaries. The
+English side has **751 talks**, the Spanish side **735**. Because the talk lists differ,
+the columns desynchronize almost immediately and the drift compounds. Row 150 shows it
+plainly: `src` is at a talk's URL while `tgt` is already at that talk's description.
+
+So the fix is to de-interleave rather than to re-align:
+
+1. Read each column as its own document.
+2. Segment both into talk records on their URL lines.
+3. Match talks by the slug that appears in both URLs — **662 talks are in both streams,
+   and in the same order.**
+4. Emit pairs only where the two transcripts have the **same line count** (564 talks,
+   85%), which means both sides kept TED's own sentence segmentation and a line-for-line
+   pairing is sound. The 98 talks with differing counts are dropped rather than guessed
+   at; recovering them needs a real sentence aligner (Gale-Church) and would add ~13k
+   rows to the 73k already recovered — see #29.
+
+Implemented as `scripts/realign_corpus.py`, a reusable tool rather than a one-off, since
+this diagnosis applies to any TED-style dump assembled the same way.
+
+**Result — two independent diagnostics, both decisive:**
+
+| metric | before | after |
+|---|---|---|
+| rows | 100,000 | 73,083 |
+| sentence-length correlation | **0.001** | **0.969** |
+| rows sharing a proper noun / number | **1.4%** | **38.9%** |
+
+0.97 length correlation is the textbook signature of genuinely parallel text. Random
+sampled pairs are all correct translations.
+
+**Training confirms it independently** — the same script and model on both files:
+
+| | old corpus | repaired corpus |
+|---|---|---|
+| chance (`ln vocab`) | 8.69 | 9.16 |
+| val loss, epoch 1 | 8.67 | 9.09 |
+| val loss, epoch 2 | — | 8.53 |
+| val loss, epoch 3 | — | **6.29**, still falling |
+
+The old file sat *at* chance and stayed there, which is exactly what learning a mapping
+between unrelated sentences looks like. The repaired file drops steeply and had not
+plateaued when the run stopped. As a side effect the usable short-sentence subset nearly
+doubled (12,107 → 22,337 pairs at 3-10 words per side), because both sides are now short
+*together* rather than by coincidence.
+
+**Guard added** — `tests/test_data_integrity.py`, 6 tests asserting the shipped corpus
+clears minimum length-correlation (0.80) and anchor-agreement (0.25) thresholds, has no
+empty rows, and is not the same language twice. Thresholds sit far above what the broken
+corpus scored and well below what the repaired one achieves, so anything landing between
+them is a real regression. **The guard was verified against the broken file** — it fails
+on it with 2 failures — rather than only confirmed green on the good one.
+
+Same class of defect as #14, #16 and #26: something nothing was checking. That is now
+four instances, which is a pattern worth naming rather than four coincidences.
+
+*Original assessment of fix options, kept for the record:* ship a different corpus
+(Tatoeba en-es), realign with a sentence aligner, or delete it. The de-interleaving route
+turned out to dominate all three — it keeps a real, domain-appropriate 73k-pair corpus at
+no licensing or download cost.
 
 **#21 Beam search does not support LSTM models at all**
 `inference.py:295` raises unless the model exposes `encode`/`decode`, which only the
@@ -465,3 +534,68 @@ a blind `except Exception`.
   the review, exactly the reasoning applied to the ruff split in #14.
 - Suggested: fix under its own PR, then add `examples` to the lint scope so it stays
   fixed.
+- **`scripts/` has the same gap**, found the same way: `generate_sentencepiece_models.py`
+  trips EXE001 (shebang, not executable) and BLE001 (blind `except Exception`). Widen the
+  scope to `src tests examples scripts` in one go.
+
+---
+
+## Added 2026-09-10 (loose ends and next steps)
+
+**#24 Push `lstm/attention` and open its PR** — *NEXT*
+Committed as `2ee6bdb`, stacked on `decoding/naming-and-defaults`. Not pushed; no PR.
+Must merge **after** PR #9, the same stacking pattern used for ruff/decoding in #14.
+Flag in the PR description:
+- `matplotlib>=3.7` added to core `dependencies` (user's call). Reviewers may object to a
+  new runtime dependency on a library; the rationale is that `plot_attention` should just
+  work in a student environment, with the `ImportError` guard kept as a safety net.
+- The `pack_padded_sequence` fix (#23) changes numeric output for **any** LSTM trained on
+  padded batches, `attention=False` included. It is a correctness fix, not a regression,
+  but it is a behavior change and should not arrive silently.
+- The corpus repair (#20) is in the same branch. If review prefers, it separates cleanly
+  into its own PR — `scripts/realign_corpus.py`, `tests/test_data_integrity.py` and
+  `data/example.tsv` touch nothing the attention work touches.
+
+**#25 Tutorial 02 trained students on the misaligned corpus**
+`docs/docs/tutorials/02-train-tiny-model.ipynb` loads `data/example.tsv`. Until the #20
+repair it was teaching on pairs that were not translations, with no way for a student to
+distinguish that from their own error. The data is now fixed, so what remains is to
+**re-run the notebook and commit refreshed outputs**, and to check the other two notebooks
+for the same dependency.
+- `tests/test_sentencepiece.py` also reads `example.tsv`, but only to train a tokenizer,
+  where alignment is irrelevant. That use was always fine and still passes.
+
+**#26 Four broken doc links block `mkdocs build --strict`**
+All four link to source files as though they were doc pages, so docs cannot be gated in
+CI as-is:
+`MULTILINGUAL_ANALYSIS.md` → `preprocessing/multilingual.py` and → `config.py`;
+`MULTILINGUAL_QUICKSTART.md` → `examples/multilingual_training_example.py`;
+`TESTING_GUIDE.md` → `preprocessing/sentencepiece.py#L102`.
+Point them at the mkdocstrings reference pages or at GitHub URLs, then add a docs build to
+CI. A fifth warning (missing return annotation in `visualization.py`) was introduced by #5
+and fixed there.
+
+**#27 Add an attention tutorial notebook**
+Tutorials run 01-data-and-vocab, 02-train-tiny-model, 03-inference-and-beamsearch.
+Attention now has reference docs and a runnable example but no tutorial, which is the
+format the course actually uses. Cover the bottleneck, the one-flag switch, the ablation,
+and reading an alignment heatmap. Now unblocked by #20: it can use real en-es pairs, with
+the synthetic reversal task as the warm-up where ground truth is known.
+
+**#28 Attention parameters skip `_init_weights`**
+`SimpleSeq2SeqLSTM._init_weights` matches on `weight_ih` / `weight_hh` / `bias`, so
+`AdditiveAttention`'s `W_dec`/`W_enc`/`v` and `attn_combine` keep PyTorch's default Linear
+init. Defensible — they train well, additive reaches 93.6% alignment accuracy — but it is
+currently implicit rather than chosen. Either extend `_init_weights` deliberately or leave
+a comment saying the default is intended. Small, and worth settling while it is fresh.
+
+**#29 Recover the last 98 talks with a sentence aligner**
+#20 keeps only talks whose two transcripts have identical line counts (564 of 662). The
+remaining 98 have differing counts — median delta 0, 90th percentile 1, max 19 — so their
+segmentation diverged slightly rather than catastrophically. A Gale-Church length-based
+aligner handling 1-1, 1-2, 2-1, 1-0 and 0-1 would recover roughly **13k additional pairs**
+on top of the 73k already in hand.
+- Explicitly *not* done in #20: guessing at alignment is how this corpus got into trouble
+  in the first place, and 73k correct pairs beat 86k uncertain ones for a teaching library.
+- Worth doing only if the extra data is actually wanted; it is a real aligner, not a
+  one-liner, and `scripts/realign_corpus.py` is the natural place for it.
