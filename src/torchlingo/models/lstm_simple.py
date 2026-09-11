@@ -266,11 +266,43 @@ class SimpleSeq2SeqLSTM(nn.Module):
             torch.Size([2, 3, 5])
         """
         enc_out, hidden, src_pad_mask = self.encode_source(src)
-        tgt_emb = self.tgt_embed(tgt)
-        dec_out, _ = self.decoder(tgt_emb, hidden)
-        dec_out, weights = self._apply_attention(dec_out, enc_out, src_pad_mask)
-        logits = self.output(dec_out)
+        logits, _hidden, weights = self.decode_prefix(
+            tgt, hidden, enc_out, src_pad_mask
+        )
         return (logits, weights) if return_attention else logits
+
+    def decode_prefix(
+        self,
+        tgt: torch.Tensor,
+        hidden: tuple[torch.Tensor, torch.Tensor],
+        enc_out: torch.Tensor,
+        src_pad_mask: torch.Tensor | None = None,
+    ) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor], torch.Tensor | None]:
+        """Run the decoder over a whole target prefix from a given state.
+
+        This is the LSTM counterpart to a Transformer's ``decode(tgt, memory)``:
+        given the encoded source, score every position of a target sequence.
+        Beam search uses it to re-score a candidate prefix from scratch, which
+        keeps the search free of per-beam recurrent state.
+
+        Args:
+            tgt (torch.Tensor): Target token indices, shape (batch_size, tgt_len).
+            hidden (tuple): Decoder ``(h, c)`` to start from — from
+                :meth:`encode_source` for a fresh prefix, or a previous step's
+                return value to continue one.
+            enc_out (torch.Tensor): Encoder outputs from :meth:`encode_source`.
+            src_pad_mask (torch.Tensor, optional): Padding mask from :meth:`encode_source`.
+
+        Returns:
+            tuple: ``(logits, hidden, weights)`` where ``logits`` has shape
+                (batch_size, tgt_len, tgt_vocab_size), ``hidden`` is the state
+                after the final token, and ``weights`` has shape
+                (batch_size, tgt_len, src_len) or is ``None`` without attention.
+        """
+        emb = self.tgt_embed(tgt)
+        dec_out, hidden = self.decoder(emb, hidden)
+        dec_out, weights = self._apply_attention(dec_out, enc_out, src_pad_mask)
+        return self.output(dec_out), hidden, weights
 
     def decode_step(
         self,
@@ -298,8 +330,11 @@ class SimpleSeq2SeqLSTM(nn.Module):
                 (batch_size, 1, tgt_vocab_size), ``hidden`` is the updated LSTM
                 state, and ``weights`` has shape (batch_size, 1, src_len) or is
                 ``None`` when attention is disabled.
+
+        Note:
+            A single step is just a one-token prefix, so this delegates to
+            :meth:`decode_prefix`. The separate name is kept because the two
+            are used for genuinely different things: stepping carries state
+            forward, while beam search re-scores a prefix from the start.
         """
-        emb = self.tgt_embed(last_token)
-        dec_out, hidden = self.decoder(emb, hidden)
-        dec_out, weights = self._apply_attention(dec_out, enc_out, src_pad_mask)
-        return self.output(dec_out), hidden, weights
+        return self.decode_prefix(last_token, hidden, enc_out, src_pad_mask)
