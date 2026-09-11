@@ -135,7 +135,11 @@ jobs:
 
   build:
     name: Build wheels and sdist
-    needs: [tests, lint]
+    # Notebooks gate the build, and therefore the release and publish jobs that
+    # depend on it. In a teaching library the tutorials are the product: shipping
+    # a version whose tutorials do not run is worse than not shipping. This is
+    # what makes the check binding rather than advisory.
+    needs: [tests, lint, notebooks]
     runs-on: ubuntu-latest
     permissions:
       contents: read

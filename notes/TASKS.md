@@ -233,6 +233,17 @@ Fix should cover both halves:
   mismatch is loud rather than silent. Same class of problem as #14 (ruff version drift):
   two sources of truth with nothing checking they agree.
 
+**Untested hypothesis worth checking first** — noticed while gating `build` on the
+notebooks job, since that put the release chain under a microscope. The workflow declares
+`tags: ['v*']` *and* a `paths:` filter under the same `push:` trigger. GitHub applies both
+filters conjunctively, so a tag push may well need to also touch one of those paths for
+the workflow to fire at all. If that is what happens, then part of the "two tags failed
+silently" story is not that publish failed — it is that **nothing ran**, which would also
+explain `v0.1.1` having no assets whatsoever rather than a rejected upload.
+- Cheap to verify: push a throwaway tag on a branch and see whether any run appears.
+- If confirmed, move `tags:` into its own trigger block with no `paths:` filter. A release
+  must never be skipped because the tagged commit happened not to touch `src/`.
+
 **#17 Coulson's review points from PR #8** — *IN REVIEW (PR #9)*
 Naming schema (mirrored names across `inference` / `inference_fast`) and the greedy
 default documented. On branch `decoding/naming-and-defaults`, commit `5403271`. Opened
