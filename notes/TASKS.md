@@ -9,7 +9,8 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 | **#17** | Coulson's review points (naming, greedy default) | **In review — PR #9** |
 | **#24** | Push `lstm/attention`, open PR (merges after #9) | **Next** |
 | #16 | Release pipeline broken — nothing ships | Open (downgraded) |
-| #25 | Tutorial 02 needs re-running on the repaired corpus | Open (new) |
+| #30 | Nothing executes the tutorial notebooks | Open (new) |
+| #31 | Tutorial 03 soft-fails into a `NameError` | Open (new) |
 | #29 | Recover the last 98 talks with a sentence aligner | Open (new) |
 | #2 | Batch beam search across sentences (~8x, scales with test-set size) | Open |
 | #3 | Incremental decoding / KV cache | Open |
@@ -29,6 +30,7 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 | #5 | Add attention to the LSTM decoder | Done — this session |
 | #23 | Encoder consumed padding (found via #5) | Done — fixed in #5 |
 | #20 | `data/example.tsv` misaligned | Done — repaired in place |
+| #25 | Tutorial 02 produced empty translations | Done — premise was wrong, real bug fixed |
 | #10 | `notes/` scope decision | Done |
 | #11 | Push / PR the notes branch | Done — PR #8 |
 | #18 | Answer Coulson's curriculum question | Done — it's CS 479 |
@@ -556,12 +558,46 @@ Flag in the PR description:
   into its own PR — `scripts/realign_corpus.py`, `tests/test_data_integrity.py` and
   `data/example.tsv` touch nothing the attention work touches.
 
-**#25 Tutorial 02 trained students on the misaligned corpus**
-`docs/docs/tutorials/02-train-tiny-model.ipynb` loads `data/example.tsv`. Until the #20
-repair it was teaching on pairs that were not translations, with no way for a student to
-distinguish that from their own error. The data is now fixed, so what remains is to
-**re-run the notebook and commit refreshed outputs**, and to check the other two notebooks
-for the same dependency.
+**#25 Tutorial 02** — *DONE (2026-09-10)*
+
+**The premise this task was filed under was wrong.** It claimed tutorial 02 "trains
+students on the misaligned corpus." It does not. It builds a 12-phrase toy corpus inline
+and trains on that; the only mention of `example.tsv` is one parenthetical in a markdown
+cell. The original entry was written from a `grep` hit for the filename without checking
+what the notebook actually does. Recorded here because the same shortcut would produce the
+same error again.
+
+What was actually wrong is worse, and unrelated to the corpus:
+
+**The tutorial ran clean and produced nothing.** Executing it end to end gave empty
+translations for every test phrase — `Hello world → ` — and the save/load demo printed
+`'Hello world' -> ''`. At `num_epochs = 5` the final loss was 3.02 against
+`ln(24) = 3.18`: barely below chance, so greedy decoding emitted EOS immediately. The
+markdown promised the model "can fully memorize it in a few epochs" and the summary
+claimed the reader had learned greedy decoding.
+
+Nothing caught it because **nothing executes these notebooks**. `docs/mkdocs.yml` sets
+`execute: false` *and* `allow_errors: true` for mkdocs-jupyter, and tutorials 02 and 03
+carried **zero stored outputs**, so neither the docs build nor a reader would reveal it.
+Tutorial 01 does store outputs, so the inconsistency was invisible too. Another instance
+of the "nothing was checking" pattern — see #30.
+
+**Fixed:**
+- `num_epochs` 5 → 40. Final loss 3.56 → **0.667**, and all four test phrases now
+  translate correctly, including the load-from-checkpoint round trip. Still runs in
+  seconds. Verified **30 epochs suffices across 5 seeds (5/5 exact)**; 40 is margin.
+- Added `torch.manual_seed(0)` so a reader's run matches the committed output.
+- Executed the notebook and **committed its outputs**, matching tutorial 01's convention.
+  `stderr` streams were stripped first: they carried a PyTorch nested-tensor deprecation
+  warning (that is #7) embedding an absolute local venv path, which should not ship in
+  published docs.
+- Corrected the stale parenthetical: `example.tsv` is 73,083 pairs after #20, not 100k.
+
+**Tutorial 03 was checked and is fine, but only because 02 is fixed.** It loads 02's
+checkpoint, so before this fix it would have shown blank translations and BLEU 0
+throughout. Verified end to end with the checkpoint present: BLEU 100, correct
+greedy-vs-beam tables. Its own defect is filed as #31.
+
 - `tests/test_sentencepiece.py` also reads `example.tsv`, but only to train a tokenizer,
   where alignment is irrelevant. That use was always fine and still passes.
 
@@ -599,3 +635,34 @@ on top of the 73k already in hand.
   in the first place, and 73k correct pairs beat 86k uncertain ones for a teaching library.
 - Worth doing only if the extra data is actually wanted; it is a real aligner, not a
   one-liner, and `scripts/realign_corpus.py` is the natural place for it.
+
+**#30 Nothing executes the tutorial notebooks**
+`docs/mkdocs.yml` configures mkdocs-jupyter with `execute: false` **and**
+`allow_errors: true`. Combined with tutorials 02 and 03 storing no outputs, a notebook can
+rot completely — wrong results, or an outright exception — and neither the docs build nor
+a reader will surface it. #25 is the proof: tutorial 02 shipped producing empty
+translations, and tutorial 03 raises `NameError` on a clean run.
+- Fix: execute the notebooks in CI. `jupyter nbconvert --to notebook --execute` is enough
+  and takes seconds for all three.
+- Execute in a scratch directory: both notebooks write `data/` and `checkpoints/`
+  relative to their own location, and those paths are only gitignored at the repo root.
+- Note that 03 depends on 02's checkpoint, so CI must run them in order or the job must
+  make that dependency explicit.
+- Fourth instance of "two things that must agree with nothing checking," after #14, #16,
+  #20 and #26. That is a pattern, not a run of coincidences; worth one deliberate audit
+  for the remaining cases rather than finding them one at a time.
+
+**#31 Tutorial 03 soft-fails into a confusing `NameError`**
+`03-inference-and-beamsearch.ipynb` cell 3 loads tutorial 02's checkpoint inside an
+`if/else`. When the checkpoint is missing it prints a friendly
+"⚠️ No checkpoint found. Please run Tutorial 2 first!" and continues — so `model`,
+`src_vocab` and `tgt_vocab` are never bound, and the notebook dies three cells later with
+`NameError: name 'model' is not defined`. The reader sees the crash, not the explanation.
+- Fix: raise immediately with the guidance in the message, rather than printing and
+  limping on.
+- Then execute it and commit its outputs, as #25 did for 02. Verified working once the
+  checkpoint exists: BLEU 100 on the toy corpus, greedy and beam agreeing.
+- Also worth deciding: 03 hand-rolls its own `greedy_decode` and beam search rather than
+  using `torchlingo.inference`. Defensible as a teaching exercise, but it can drift from
+  the library — and #17 has just standardized the real decoders' naming and defaults, so
+  the duplicate is now a second source of truth for how decoding works.
