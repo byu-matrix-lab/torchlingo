@@ -8,7 +8,6 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 |---|---|---|
 | **#16** | Release pipeline broken — nothing ships | **BLOCKING** |
 | **#17** | Coulson's review points (naming, greedy default) | Done, **PR not opened** |
-| **#18** | Answer Coulson's curriculum question (270 vs 312) | **For maintainers** |
 | #2 | Batch beam search across sentences (~8x, scales with test-set size) | Open |
 | #3 | Incremental decoding / KV cache | Open |
 | #4 | Resolve length-normalization semantics | Open |
@@ -23,6 +22,7 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 | #1 | Batch beam search across beams | Done — `aabb260` |
 | #10 | `notes/` scope decision | Done |
 | #11 | Push / PR the notes branch | Done — PR #8 |
+| #18 | Answer Coulson's curriculum question | Done — it's CS 479 |
 | #13 | Decoding tie-breaking rule | Done — `5b3e326` |
 | #14 | Ruff version drift | Done — PR #7 |
 
@@ -312,9 +312,14 @@ default documented. On branch `decoding/naming-and-defaults`, commit `5403271`, 
 but **no PR opened yet**.
 - Also registered `inference_fast` in the package `__init__`, missed when it was added.
 
-**#18 Answer Coulson's curriculum question** — *for the maintainers*
+**#18 Answer Coulson's curriculum question** — *DONE (answered on PR #8, 2026-09-10)*
 He asked on PR #8 (2026-08-26) whether the beam-search walkthrough belongs in the 270 or
-312 curriculum, and explicitly asked for thoughts. Still unanswered.
+312 curriculum, and explicitly asked for thoughts.
+- Answered: the walkthrough is in **CS 479** for now — neither of the two courses he
+  named. Whether beam search should be taught earlier than 479 is left open as a real
+  question, not closed.
+- The same reply pointed him at `5403271` for his other review point (naming schema and
+  the greedy default), which is #17.
 
 **#19 Josh's PR #1 will now fail CI**
 `colab-checkpointing`, dormant since 2026-01-30, is two merges behind and will hit the
