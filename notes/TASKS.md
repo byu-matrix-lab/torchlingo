@@ -21,7 +21,6 @@ Completed work is removed rather than marked done — git history is the record.
 | #21 | Beam search does not support LSTM models at all | Open |
 | #22 | `examples/` and `scripts/` are outside the lint gate | Open |
 | #26 | Broken doc links block `mkdocs --strict` | Open |
-| #27 | Attention tutorial notebook | Open |
 | #28 | Attention params skip `_init_weights` | Open |
 | #29 | Recover the last 98 talks with a sentence aligner | Open |
 | #32 | Tutorial 03 reimplements the decoders | Open |
@@ -291,13 +290,6 @@ CI as-is:
 Point them at the mkdocstrings reference pages or at GitHub URLs, then add a docs build to
 CI. A fifth warning (missing return annotation in `visualization.py`) was introduced by #5
 and fixed there.
-
-**#27 Add an attention tutorial notebook**
-Tutorials run 01-data-and-vocab, 02-train-tiny-model, 03-inference-and-beamsearch.
-Attention now has reference docs and a runnable example but no tutorial, which is the
-format the course actually uses. Cover the bottleneck, the one-flag switch, the ablation,
-and reading an alignment heatmap. Now unblocked by #20: it can use real en-es pairs, with
-the synthetic reversal task as the warm-up where ground truth is known.
 
 **#28 Attention parameters skip `_init_weights`**
 `SimpleSeq2SeqLSTM._init_weights` matches on `weight_ih` / `weight_hh` / `bias`, so

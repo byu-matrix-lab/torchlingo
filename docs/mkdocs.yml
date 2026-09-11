@@ -131,6 +131,7 @@ nav:
     - Data and Vocabulary: tutorials/01-data-and-vocab.ipynb
     - Training a Tiny Model: tutorials/02-train-tiny-model.ipynb
     - Inference and Beam Search: tutorials/03-inference-and-beamsearch.ipynb
+    - Attention and Alignment: tutorials/04-attention-and-alignment.ipynb
   - API Reference:
     - reference/index.md
     - Config: reference/config.md
