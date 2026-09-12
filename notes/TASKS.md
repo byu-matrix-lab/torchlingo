@@ -23,7 +23,6 @@ Completed work is removed rather than marked done — git history is the record.
 | #26 | Broken doc links block `mkdocs --strict` | Open |
 | #28 | Attention params skip `_init_weights` | Open |
 | #29 | Recover the last 98 talks with a sentence aligner | Open |
-| #32 | Tutorial 03 reimplements the decoders | Open |
 
 **In flight:** PR #9 (naming schema, greedy default) awaiting review; PR #10 (LSTM
 attention, corpus repair, tutorial fixes) open and green, merges after #9.
@@ -162,8 +161,30 @@ Not implemented. `config.py:663` states multi-GPU "requires custom DataParallel 
 **#7 Address PyTorch deprecation warnings**
 Surfaced while benchmarking on torch 2.13.0:
 - "Support for mismatched key_padding_mask and attn_mask is deprecated" — raised from
-  the decode path, will eventually break.
-- Nested-tensor prototype warning from `nn.Transformer`.
+  the decode path, will eventually break. **Still open.** The decode path passes a
+  boolean `tgt_key_padding_mask` alongside a float `tgt_mask`; making both the same
+  dtype should settle it.
+- ~~Nested-tensor prototype warning from `nn.Transformer`~~ — **fixed**, as a side effect
+  of the MPS crash fix: `transformer.encoder.use_nested_tensor` is now False, so the
+  fast path never runs and never warns.
+
+**#33 The encoder's fast path crashed on Apple Silicon** — *fixed 2026-09-11*
+Recorded because the failure mode is worth recognizing, not because work remains.
+`nn.Transformer` enables the encoder's nested-tensor fast path by default. In eval mode
+with a padding mask — exactly what `greedy_decode` and `beam_search_decode` do — it calls
+`aten::_nested_tensor_from_mask_left_aligned`, which **is not implemented for MPS**. So
+every library decoder raised `NotImplementedError` on any Apple Silicon GPU, while a
+hand-written decoder that skips the mask worked fine.
+- Found only because tutorial 3's new agreement cell (#32) runs the library's decoders,
+  and the notebook selects `mps` when available. CPU-only testing cannot see it: the
+  first comparison script ran on CPU and reported clean agreement.
+- **Nothing in CI can catch this.** GitHub runners are x86 Linux; there is no MPS device
+  in the matrix. The lab's Macs are the only place it reproduces, which is also where the
+  students are. Worth remembering the next time a device-specific bug is suspected.
+- Fixed by setting `use_nested_tensor = False` on the encoder. Verified output is
+  bit-identical on CPU and that MPS now matches CPU exactly. Guarded by two tests in
+  `tests/test_models.py`, though both necessarily assert the flag and the call shape
+  rather than the device behavior.
 
 ## Evaluation / tooling
 
@@ -309,14 +330,3 @@ on top of the 73k already in hand.
 - Worth doing only if the extra data is actually wanted; it is a real aligner, not a
   one-liner, and `scripts/realign_corpus.py` is the natural place for it.
 
-**#32 Tutorial 03 reimplements the decoders**
-`03-inference-and-beamsearch.ipynb` defines its own `greedy_decode` and
-`beam_search_decode` rather than importing them. As a lesson that is the right call — a
-student should see beam search written out. As maintenance it is a duplicate that can
-silently drift from `torchlingo.inference`, which #17 has just given a naming schema and a
-documented greedy default. The notebook's version also predates the #13 tie-breaking rule,
-so it can legitimately disagree with the library on tied logits.
-- Options: keep the teaching implementation but add a cell asserting it agrees with the
-  library on the tutorial's own examples; or import the library version and show its source
-  inline.
-- Now cheap to check, since #30 executes the notebook on every PR.
