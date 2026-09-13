@@ -11,6 +11,7 @@ The easiest way to run these tutorials is in **Google Colab**—no installation 
 | **1. Data and Vocabulary** | Load data, build vocabularies | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/01-data-and-vocab.ipynb) |
 | **2. Train a Tiny Model** | Build and train a Transformer | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/02-train-tiny-model.ipynb) |
 | **3. Inference and Beam Search** | Generate translations | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/03-inference-and-beamsearch.ipynb) |
+| **4. Attention and Alignment** | Measure what attention learns | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/04-attention-and-alignment.ipynb) |
 
 !!! tip "Enable GPU in Colab"
     For faster training, enable GPU: **Runtime → Change runtime type → GPU**
@@ -46,6 +47,14 @@ Follow these tutorials in order for the best learning experience:
     Generate translations using greedy and beam search decoding strategies.
 
     [:octicons-arrow-right-24: Start Tutorial](03-inference-and-beamsearch.ipynb)
+
+-   :material-numeric-4-circle:{ .lg .middle } **Attention and Alignment**
+
+    ---
+
+    Train the same model with and without attention, then check whether it learned the *correct* alignment.
+
+    [:octicons-arrow-right-24: Start Tutorial](04-attention-and-alignment.ipynb)
 
 </div>
 
@@ -125,6 +134,20 @@ You'll learn:
 - Evaluating with BLEU score
 
 **Key concepts**: Inference modes, decoding algorithms, evaluation metrics
+
+### Tutorial 4: Attention and Alignment
+
+**Time**: ~20 minutes
+
+You'll learn:
+
+- Why a fixed-size hidden state is a bottleneck — seen in the code, as a discarded variable
+- Running the with-versus-without ablation on one flag
+- Measuring whether attention learned the *correct* alignment, not just a lower loss
+- Reading an alignment heatmap
+- Why Transformer self-attention is the same operation
+
+**Key classes covered**: `SimpleSeq2SeqLSTM(attention=True)`, `plot_attention`, `format_attention`
 
 ## Tips for Success
 

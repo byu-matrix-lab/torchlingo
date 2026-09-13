@@ -1,6 +1,7 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-09-13. Numbered for reference in conversation.
+Completed work is removed rather than marked done — git history is the record.
 
 ## Status
 
@@ -18,13 +19,9 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
 | #22 | `examples/` and `scripts/` are outside the lint gate | Open |
 | #26 | Broken doc links block `mkdocs --strict` | Open |
-| #27 | Attention tutorial notebook | Open |
 | #28 | Attention params skip `_init_weights` | Open |
 | #29 | Recover the last 98 talks with a sentence aligner | Open |
-
-**Shipped to `main` but unreleased:** PR #7 (ruff pinned + CI lint gate, `3dca4d1`),
-PR #8 (decoding oracle suite, tie-breaking rule, 3.6x batched beam search, `ff03631`),
-and PR #9 (decoder naming schema, greedy default documented). See #16.
+| #34 | Surface attention weights from greedy and beam decoding | Open |
 
 ## Code — decoding performance
 
@@ -228,6 +225,24 @@ Fix should cover both halves:
 
 ## Inference gaps
 
+**#34 Surface attention weights from greedy and beam decoding**
+Raised by Coulson on PR #10: can we visualize alignments for beam search too?
+
+Not today. Weights come only from a teacher-forced `model(src, tgt, return_attention=True)`,
+which aligns a translation you already have. Both decoders compute weights and throw them
+away — `inference.py:237` in greedy, and the LSTM beam path added in #12. So you can plot
+the alignment of a *reference* translation but not of one the model generated, which is
+the more interesting picture.
+- Greedy is straightforward: accumulate the per-step weights.
+- Beam is not. Weights belong to a hypothesis and hypotheses get pruned, so either carry
+  per-beam weight history and filter to the winner, or re-run `decode_prefix` on the
+  winning sequence once the search finishes. The second is cheaper and matches how the
+  reference already re-scores prefixes.
+- Shape it as an opt-in `return_attention=False` on both decoders so the default return
+  type does not move — #9 has just standardized those, along with the contract tests.
+
+## Lint and tooling gaps
+
 **#22 `examples/` is outside the lint gate**
 CLAUDE.md and CI lint `src` and `tests` only. Running `ruff check examples` turns up 32
 pre-existing errors across `train.py`, `evaluate.py`, `inference_ceb_cmn.py`,
@@ -257,13 +272,6 @@ CI as-is:
 Point them at the mkdocstrings reference pages or at GitHub URLs, then add a docs build to
 CI. A fifth warning (missing return annotation in `visualization.py`) was introduced by #5
 and fixed there.
-
-**#27 Add an attention tutorial notebook**
-Tutorials run 01-data-and-vocab, 02-train-tiny-model, 03-inference-and-beamsearch.
-Attention now has reference docs and a runnable example but no tutorial, which is the
-format the course actually uses. Cover the bottleneck, the one-flag switch, the ablation,
-and reading an alignment heatmap. Now unblocked by #20: it can use real en-es pairs, with
-the synthetic reversal task as the warm-up where ground truth is known.
 
 **#28 Attention parameters skip `_init_weights`**
 `SimpleSeq2SeqLSTM._init_weights` matches on `weight_ih` / `weight_hh` / `bias`, so
