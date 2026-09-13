@@ -36,6 +36,25 @@ more.
 Beam search costs roughly `beam_size` times more computation. That cost is the reason
 the rest of this page exists.
 
+### Both strategies work on both architectures
+
+`greedy_decode` and `beam_search_decode` each accept a `SimpleTransformer` or a
+`SimpleSeq2SeqLSTM`, and the search is identical either way — the same beams, the same
+pruning, the same length normalization, the same tie-breaking rule.
+
+That is worth pausing on, because it is easy to absorb the opposite idea from the
+Transformer-centric literature: **beam search is a property of decoding, not of the
+model.** Anything that can score the next token given a prefix can be beam-searched. In
+`inference.py` that is literally all the two paths differ by — one calls the
+Transformer's `decode(tgt, memory)`, the other the LSTM's
+`decode_prefix(tgt, hidden, enc_out)`, and the forty lines of search below them are
+shared.
+
+```python
+# Identical call, either architecture
+tokens = beam_search_decode(model, src, beam_size=5)
+```
+
 ## Reference and fast implementations
 
 TorchLingo ships **two implementations of beam search**. They produce exactly the

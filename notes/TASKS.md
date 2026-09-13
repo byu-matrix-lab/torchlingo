@@ -1,13 +1,12 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-09-11. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-09-13. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 ## Status
 
 | | Task | State |
 |---|---|---|
-| **#17** | Coulson's review points (naming, greedy default) | **In review — PR #9** |
 | #16 | Release pipeline broken — nothing ships | Open |
 | #2 | Batch beam search across sentences (~8x, scales with test-set size) | Open |
 | #3 | Incremental decoding / KV cache | Open |
@@ -18,18 +17,11 @@ Completed work is removed rather than marked done — git history is the record.
 | #9 | `pre-commit install` (still not installed) | Open |
 | #12 | Decode benchmark harness | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
-| #21 | Beam search does not support LSTM models at all | Open |
 | #22 | `examples/` and `scripts/` are outside the lint gate | Open |
 | #26 | Broken doc links block `mkdocs --strict` | Open |
 | #28 | Attention params skip `_init_weights` | Open |
 | #29 | Recover the last 98 talks with a sentence aligner | Open |
-
-**In flight:** PR #9 (naming schema, greedy default) awaiting review; PR #10 (LSTM
-attention, corpus repair, tutorial fixes) open and green, merges after #9.
-
-**Shipped to `main` but unreleased:** PR #7 (ruff pinned + CI lint gate, `3dca4d1`) and
-PR #8 (decoding oracle suite, tie-breaking rule, 3.6x batched beam search, `ff03631`).
-See #16.
+| #34 | Surface attention weights from greedy and beam decoding | Open |
 
 ## Code — decoding performance
 
@@ -158,33 +150,19 @@ a separate question.
 **#6 Multi-GPU training via DDP**
 Not implemented. `config.py:663` states multi-GPU "requires custom DataParallel setup."
 
-**#7 Address PyTorch deprecation warnings**
-Surfaced while benchmarking on torch 2.13.0:
-- "Support for mismatched key_padding_mask and attn_mask is deprecated" — raised from
-  the decode path, will eventually break. **Still open.** The decode path passes a
-  boolean `tgt_key_padding_mask` alongside a float `tgt_mask`; making both the same
-  dtype should settle it.
-- ~~Nested-tensor prototype warning from `nn.Transformer`~~ — **fixed**, as a side effect
-  of the MPS crash fix: `transformer.encoder.use_nested_tensor` is now False, so the
-  fast path never runs and never warns.
+**#7 One PyTorch deprecation warning left**
+On torch 2.13.0, "Support for mismatched key_padding_mask and attn_mask is deprecated",
+raised from the decode path. It will eventually break. The decode path passes a boolean
+`tgt_key_padding_mask` alongside a float `tgt_mask`; making both the same dtype should
+settle it.
 
-**#33 The encoder's fast path crashed on Apple Silicon** — *fixed 2026-09-11*
-Recorded because the failure mode is worth recognizing, not because work remains.
-`nn.Transformer` enables the encoder's nested-tensor fast path by default. In eval mode
-with a padding mask — exactly what `greedy_decode` and `beam_search_decode` do — it calls
-`aten::_nested_tensor_from_mask_left_aligned`, which **is not implemented for MPS**. So
-every library decoder raised `NotImplementedError` on any Apple Silicon GPU, while a
-hand-written decoder that skips the mask worked fine.
-- Found only because tutorial 3's new agreement cell (#32) runs the library's decoders,
-  and the notebook selects `mps` when available. CPU-only testing cannot see it: the
-  first comparison script ran on CPU and reported clean agreement.
-- **Nothing in CI can catch this.** GitHub runners are x86 Linux; there is no MPS device
-  in the matrix. The lab's Macs are the only place it reproduces, which is also where the
-  students are. Worth remembering the next time a device-specific bug is suspected.
-- Fixed by setting `use_nested_tensor = False` on the encoder. Verified output is
-  bit-identical on CPU and that MPS now matches CPU exactly. Guarded by two tests in
-  `tests/test_models.py`, though both necessarily assert the flag and the call shape
-  rather than the device behavior.
+The other warning this entry used to list, the nested-tensor prototype notice from
+`nn.Transformer`, is gone. It was a side effect of disabling the encoder's nested-tensor
+fast path, which had to go because the op behind it is unimplemented on Apple's MPS
+backend and made every library decoder raise `NotImplementedError` on Apple Silicon.
+Worth knowing for the next device-specific bug: CI runners are x86 Linux, so nothing in
+the matrix can reproduce that class of failure — the lab's Macs are the only place it
+shows up, which is also where the students are.
 
 ## Evaluation / tooling
 
@@ -219,7 +197,7 @@ therefore cannot detect scrambled beam state or bad memory expansion.
 
 ---
 
-## Release and review
+## Release
 
 **#16 The release pipeline is broken — nothing since Feb 2026 has shipped**
 
@@ -253,34 +231,25 @@ Fix should cover both halves:
   mismatch is loud rather than silent. Same class of problem as #14 (ruff version drift):
   two sources of truth with nothing checking they agree.
 
-**Untested hypothesis worth checking first** — noticed while gating `build` on the
-notebooks job, since that put the release chain under a microscope. The workflow declares
-`tags: ['v*']` *and* a `paths:` filter under the same `push:` trigger. GitHub applies both
-filters conjunctively, so a tag push may well need to also touch one of those paths for
-the workflow to fire at all. If that is what happens, then part of the "two tags failed
-silently" story is not that publish failed — it is that **nothing ran**, which would also
-explain `v0.1.1` having no assets whatsoever rather than a rejected upload.
-- Cheap to verify: push a throwaway tag on a branch and see whether any run appears.
-- If confirmed, move `tags:` into its own trigger block with no `paths:` filter. A release
-  must never be skipped because the tagged commit happened not to touch `src/`.
-
-**#17 Coulson's review points from PR #8** — *IN REVIEW (PR #9)*
-Naming schema (mirrored names across `inference` / `inference_fast`) and the greedy
-default documented. On branch `decoding/naming-and-defaults`, commit `5403271`. Opened
-as PR #9 on 2026-09-10 with Coulson-Rich requested as reviewer.
-- Also registered `inference_fast` in the package `__init__`, missed when it was added.
-
 ## Inference gaps
 
-**#21 Beam search does not support LSTM models at all**
-`inference.py:295` raises unless the model exposes `encode`/`decode`, which only the
-Transformer does. So `greedy_decode` works for both architectures but
-`beam_search_decode` is Transformer-only, and the docs do not say so. Noticed while
-wiring attention through the LSTM inference path. Now that the LSTM has attention it is a
-real model rather than a toy baseline, which makes the gap more visible.
-- Cheap partial fix: a clear error message naming the limitation.
-- Real fix: route beam search through `encode_source`/`decode_step`, which #5 added
-  precisely so the decoder need not be reimplemented per call site.
+**#34 Surface attention weights from greedy and beam decoding**
+Raised by Coulson on PR #10: can we visualize alignments for beam search too?
+
+Not today. Weights come only from a teacher-forced `model(src, tgt, return_attention=True)`,
+which aligns a translation you already have. Both decoders compute weights and throw them
+away — `inference.py:237` in greedy, and the LSTM beam path added in #12. So you can plot
+the alignment of a *reference* translation but not of one the model generated, which is
+the more interesting picture.
+- Greedy is straightforward: accumulate the per-step weights.
+- Beam is not. Weights belong to a hypothesis and hypotheses get pruned, so either carry
+  per-beam weight history and filter to the winner, or re-run `decode_prefix` on the
+  winning sequence once the search finishes. The second is cheaper and matches how the
+  reference already re-scores prefixes.
+- Shape it as an opt-in `return_attention=False` on both decoders so the default return
+  type does not move — #9 has just standardized those, along with the contract tests.
+
+## Lint and tooling gaps
 
 **#22 `examples/` is outside the lint gate**
 CLAUDE.md and CI lint `src` and `tests` only. Running `ruff check examples` turns up 32

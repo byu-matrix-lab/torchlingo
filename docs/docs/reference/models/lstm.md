@@ -135,15 +135,26 @@ model = SimpleSeq2SeqLSTM(
 )
 ```
 
-### Inference (Greedy Decoding)
+### Inference (Greedy and Beam Search)
 
-Use the library's decoder rather than writing the loop yourself:
+Use the library's decoders rather than writing the loop yourself. Both accept an LSTM
+model:
 
 ```python
-from torchlingo.inference import greedy_decode
+from torchlingo.inference import beam_search_decode, greedy_decode
 
-decoded = greedy_decode(model, src_batch, max_len=50)  # list[list[int]]
+decoded = greedy_decode(model, src_batch, max_len=50)      # list[list[int]]
+tokens = beam_search_decode(model, src, beam_size=5)       # one sentence
 ```
+
+The search is the same code that decodes a Transformer — see
+[Decoding](../../concepts/decoding.md). Three methods make that possible:
+
+| Method | Purpose |
+| ------ | ------- |
+| `encode_source(src)` | Returns `(enc_out, hidden, src_pad_mask)` — everything the decoder may need |
+| `decode_prefix(tgt, hidden, enc_out, mask)` | Scores a whole target prefix; the counterpart to a Transformer's `decode(tgt, memory)` |
+| `decode_step(token, hidden, enc_out, mask)` | Advances one token, carrying state forward |
 
 If you do want to step manually — to inspect attention at each step, say — use
 `encode_source` and `decode_step` so the encoder outputs actually reach the
