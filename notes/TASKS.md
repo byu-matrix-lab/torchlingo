@@ -16,7 +16,6 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 | #9 | `pre-commit install` (still not installed) | Open |
 | #12 | Decode benchmark harness | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
-| #21 | Beam search does not support LSTM models at all | Open |
 | #22 | `examples/` and `scripts/` are outside the lint gate | Open |
 | #26 | Broken doc links block `mkdocs --strict` | Open |
 | #27 | Attention tutorial notebook | Open |
@@ -500,16 +499,6 @@ four instances, which is a pattern worth naming rather than four coincidences.
 (Tatoeba en-es), realign with a sentence aligner, or delete it. The de-interleaving route
 turned out to dominate all three — it keeps a real, domain-appropriate 73k-pair corpus at
 no licensing or download cost.
-
-**#21 Beam search does not support LSTM models at all**
-`inference.py:295` raises unless the model exposes `encode`/`decode`, which only the
-Transformer does. So `greedy_decode` works for both architectures but
-`beam_search_decode` is Transformer-only, and the docs do not say so. Noticed while
-wiring attention through the LSTM inference path. Now that the LSTM has attention it is a
-real model rather than a toy baseline, which makes the gap more visible.
-- Cheap partial fix: a clear error message naming the limitation.
-- Real fix: route beam search through `encode_source`/`decode_step`, which #5 added
-  precisely so the decoder need not be reimplemented per call site.
 
 **#22 `examples/` is outside the lint gate**
 CLAUDE.md and CI lint `src` and `tests` only. Running `ruff check examples` turns up 32
