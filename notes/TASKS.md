@@ -1,13 +1,11 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-09-11. Numbered for reference in conversation.
-Completed work is removed rather than marked done — git history is the record.
+Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversation.
 
 ## Status
 
 | | Task | State |
 |---|---|---|
-| **#17** | Coulson's review points (naming, greedy default) | **In review — PR #9** |
 | #16 | Release pipeline broken — nothing ships | Open |
 | #2 | Batch beam search across sentences (~8x, scales with test-set size) | Open |
 | #3 | Incremental decoding / KV cache | Open |
@@ -24,14 +22,10 @@ Completed work is removed rather than marked done — git history is the record.
 | #27 | Attention tutorial notebook | Open |
 | #28 | Attention params skip `_init_weights` | Open |
 | #29 | Recover the last 98 talks with a sentence aligner | Open |
-| #32 | Tutorial 03 reimplements the decoders | Open |
 
-**In flight:** PR #9 (naming schema, greedy default) awaiting review; PR #10 (LSTM
-attention, corpus repair, tutorial fixes) open and green, merges after #9.
-
-**Shipped to `main` but unreleased:** PR #7 (ruff pinned + CI lint gate, `3dca4d1`) and
-PR #8 (decoding oracle suite, tie-breaking rule, 3.6x batched beam search, `ff03631`).
-See #16.
+**Shipped to `main` but unreleased:** PR #7 (ruff pinned + CI lint gate, `3dca4d1`),
+PR #8 (decoding oracle suite, tie-breaking rule, 3.6x batched beam search, `ff03631`),
+and PR #9 (decoder naming schema, greedy default documented). See #16.
 
 ## Code — decoding performance
 
@@ -199,7 +193,7 @@ therefore cannot detect scrambled beam state or bad memory expansion.
 
 ---
 
-## Release and review
+## Release
 
 **#16 The release pipeline is broken — nothing since Feb 2026 has shipped**
 
@@ -232,23 +226,6 @@ Fix should cover both halves:
 - Make CI **fail** a tag build when the git tag and `pyproject.toml` disagree, so a
   mismatch is loud rather than silent. Same class of problem as #14 (ruff version drift):
   two sources of truth with nothing checking they agree.
-
-**Untested hypothesis worth checking first** — noticed while gating `build` on the
-notebooks job, since that put the release chain under a microscope. The workflow declares
-`tags: ['v*']` *and* a `paths:` filter under the same `push:` trigger. GitHub applies both
-filters conjunctively, so a tag push may well need to also touch one of those paths for
-the workflow to fire at all. If that is what happens, then part of the "two tags failed
-silently" story is not that publish failed — it is that **nothing ran**, which would also
-explain `v0.1.1` having no assets whatsoever rather than a rejected upload.
-- Cheap to verify: push a throwaway tag on a branch and see whether any run appears.
-- If confirmed, move `tags:` into its own trigger block with no `paths:` filter. A release
-  must never be skipped because the tagged commit happened not to touch `src/`.
-
-**#17 Coulson's review points from PR #8** — *IN REVIEW (PR #9)*
-Naming schema (mirrored names across `inference` / `inference_fast`) and the greedy
-default documented. On branch `decoding/naming-and-defaults`, commit `5403271`. Opened
-as PR #9 on 2026-09-10 with Coulson-Rich requested as reviewer.
-- Also registered `inference_fast` in the package `__init__`, missed when it was added.
 
 ## Inference gaps
 
@@ -317,14 +294,3 @@ on top of the 73k already in hand.
 - Worth doing only if the extra data is actually wanted; it is a real aligner, not a
   one-liner, and `scripts/realign_corpus.py` is the natural place for it.
 
-**#32 Tutorial 03 reimplements the decoders**
-`03-inference-and-beamsearch.ipynb` defines its own `greedy_decode` and
-`beam_search_decode` rather than importing them. As a lesson that is the right call — a
-student should see beam search written out. As maintenance it is a duplicate that can
-silently drift from `torchlingo.inference`, which #17 has just given a naming schema and a
-documented greedy default. The notebook's version also predates the #13 tie-breaking rule,
-so it can legitimately disagree with the library on tied logits.
-- Options: keep the teaching implementation but add a cell asserting it agrees with the
-  library on the tutorial's own examples; or import the library version and show its source
-  inline.
-- Now cheap to check, since #30 executes the notebook on every PR.
