@@ -21,10 +21,7 @@ Completed work is removed rather than marked done — git history is the record.
 | #26 | Broken doc links block `mkdocs --strict` | Open |
 | #28 | Attention params skip `_init_weights` | Open |
 | #29 | Recover the last 98 talks with a sentence aligner | Open |
-
-**Shipped to `main` but unreleased:** PR #7 (ruff pinned + CI lint gate, `3dca4d1`),
-PR #8 (decoding oracle suite, tie-breaking rule, 3.6x batched beam search, `ff03631`),
-and PR #9 (decoder naming schema, greedy default documented). See #16.
+| #34 | Surface attention weights from greedy and beam decoding | Open |
 
 ## Code — decoding performance
 
@@ -227,6 +224,24 @@ Fix should cover both halves:
   two sources of truth with nothing checking they agree.
 
 ## Inference gaps
+
+**#34 Surface attention weights from greedy and beam decoding**
+Raised by Coulson on PR #10: can we visualize alignments for beam search too?
+
+Not today. Weights come only from a teacher-forced `model(src, tgt, return_attention=True)`,
+which aligns a translation you already have. Both decoders compute weights and throw them
+away — `inference.py:237` in greedy, and the LSTM beam path added in #12. So you can plot
+the alignment of a *reference* translation but not of one the model generated, which is
+the more interesting picture.
+- Greedy is straightforward: accumulate the per-step weights.
+- Beam is not. Weights belong to a hypothesis and hypotheses get pruned, so either carry
+  per-beam weight history and filter to the winner, or re-run `decode_prefix` on the
+  winning sequence once the search finishes. The second is cheaper and matches how the
+  reference already re-scores prefixes.
+- Shape it as an opt-in `return_attention=False` on both decoders so the default return
+  type does not move — #9 has just standardized those, along with the contract tests.
+
+## Lint and tooling gaps
 
 **#22 `examples/` is outside the lint gate**
 CLAUDE.md and CI lint `src` and `tests` only. Running `ruff check examples` turns up 32
