@@ -66,7 +66,7 @@ def _warn_if_large_beam_input(num_sentences: int) -> None:
         f"Beam decoding {num_sentences} sentences with the reference "
         "implementation, which evaluates one beam per model call and is "
         "written for readability rather than speed. For inputs this size use "
-        "torchlingo.inference_fast.translate_batch_fast, which produces "
+        "torchlingo.inference_fast.translate_batch, which produces "
         "identical output. Silence with "
         "warnings.filterwarnings('ignore', module='torchlingo.inference').",
         UserWarning,
@@ -277,11 +277,11 @@ def beam_search_decode(
         search is visible in about 40 lines. It issues one ``model.decode()``
         call per beam per step, which is roughly ``beam_size`` times more calls
         than necessary. For decoding a real test set, prefer
-        :func:`torchlingo.inference_fast.beam_search_decode_batched`, which has
+        :func:`torchlingo.inference_fast.beam_search_decode`, which has
         the same signature and returns token-identical output.
 
     See Also:
-        :func:`torchlingo.inference_fast.beam_search_decode_batched`: the
+        :func:`torchlingo.inference_fast.beam_search_decode`: the
         batched counterpart, same output and substantially faster.
     """
 
@@ -366,7 +366,8 @@ def translate_batch(
         sentences: Iterable of raw source sentences.
         src_vocab: Vocabulary implementing BaseVocab.encode(add_special_tokens=True).
         tgt_vocab: Vocabulary implementing BaseVocab.decode(skip_special_tokens=True).
-        decode_strategy: "greedy" or "beam".
+        decode_strategy: "greedy" or "beam". Defaults to "greedy" -- beam
+            search is opt-in, and usually produces better translations.
         beam_size: Beam width when decode_strategy == "beam".
         max_len: Maximum generation length.
         device: Torch device. Defaults to model device.
@@ -378,10 +379,10 @@ def translate_batch(
     Warns:
         UserWarning: Once per process, when beam decoding more than
             ``_LARGE_INPUT_WARN_THRESHOLD`` sentences, pointing at
-            :func:`torchlingo.inference_fast.translate_batch_fast`.
+            :func:`torchlingo.inference_fast.translate_batch`.
 
     See Also:
-        :func:`torchlingo.inference_fast.translate_batch_fast`: same output,
+        :func:`torchlingo.inference_fast.translate_batch`: same output,
         substantially faster for beam decoding on large inputs.
     """
 

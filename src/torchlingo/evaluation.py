@@ -229,6 +229,14 @@ def evaluate_model(
     Generates translations for all samples and computes BLEU, chrF, and
     optionally TER scores against reference translations.
 
+    Important:
+        ``decode_strategy`` defaults to ``"greedy"``. Greedy decoding is fast
+        but usually scores lower than beam search, so a BLEU figure produced
+        with the defaults is **not** this model's best achievable score. Pass
+        ``decode_strategy="beam"`` when reporting results, and say which you
+        used -- comparing a greedy BLEU against a published beam BLEU is not a
+        like-for-like comparison.
+
     Args:
         model: Trained seq2seq model (Transformer or LSTM).
         dataloader: DataLoader yielding (src, tgt) batches.
@@ -236,7 +244,8 @@ def evaluate_model(
         src_vocab: Source vocabulary for encoding/decoding.
         tgt_vocab: Target vocabulary for encoding/decoding.
         device: Torch device. Defaults to CUDA if available, else CPU.
-        decode_strategy: "greedy" or "beam" search decoding.
+        decode_strategy: "greedy" or "beam" search decoding. Defaults to
+            "greedy"; see the note above before reporting scores.
         beam_size: Beam width for beam search (ignored if greedy).
         max_decode_length: Maximum length for generated translations.
         lowercase: If True, lowercase before computing BLEU.

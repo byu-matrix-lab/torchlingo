@@ -50,7 +50,7 @@ from .data_processing.vocab import BaseVocab
 from .inference import _canonical_topk, _rank_key
 
 
-def beam_search_decode_batched(
+def beam_search_decode(
     model: nn.Module,
     src: torch.Tensor,
     beam_size: int = 5,
@@ -61,9 +61,11 @@ def beam_search_decode_batched(
 ) -> list[int]:
     """Beam search that evaluates all live beams in one decoder call per step.
 
-    Drop-in replacement for :func:`~torchlingo.inference.beam_search_decode`
-    with an identical signature and identical output. The search itself is
-    unchanged; only how the model is invoked differs.
+    Deliberately shares its name with
+    :func:`torchlingo.inference.beam_search_decode`: the two are
+    interchangeable, so switching implementations is a one-line import change
+    and nothing else in your code moves. The search itself is unchanged; only
+    how the model is invoked differs.
 
     The key observation is that **every live beam always has the same length**:
     each step appends exactly one token to every hypothesis, and hypotheses that
@@ -97,7 +99,8 @@ def beam_search_decode_batched(
         so the two implementations cannot drift apart on ties.
 
     Example:
-        >>> tokens = beam_search_decode_batched(model, src, beam_size=5)
+        >>> from torchlingo.inference_fast import beam_search_decode
+        >>> tokens = beam_search_decode(model, src, beam_size=5)
 
     See Also:
         :func:`torchlingo.inference.beam_search_decode`: the readable reference.
@@ -108,11 +111,15 @@ def beam_search_decode_batched(
     model.eval()
 
     if src.size(0) != 1:
-        raise ValueError("beam_search_decode_batched currently expects batch size = 1")
+        # Name the module: this function shares its name with the reference,
+        # so an unqualified message would not say which one raised.
+        raise ValueError(
+            "inference_fast.beam_search_decode currently expects batch size = 1"
+        )
     if not (hasattr(model, "encode") and hasattr(model, "decode")):
         raise ValueError(
-            "beam_search_decode_batched requires a Transformer-style model "
-            "with encode/decode"
+            "inference_fast.beam_search_decode requires a Transformer-style "
+            "model with encode/decode"
         )
 
     src = src.to(device)
@@ -178,7 +185,7 @@ def beam_search_decode_batched(
     return best_tokens
 
 
-def translate_batch_fast(
+def translate_batch(
     model: nn.Module,
     sentences: Sequence[str],
     src_vocab: BaseVocab,
@@ -191,17 +198,22 @@ def translate_batch_fast(
 ) -> list[str]:
     """Translate sentences using the optimized decoders.
 
-    Mirrors :func:`torchlingo.inference.translate_batch` exactly, including its
-    output, but routes beam decoding through
-    :func:`beam_search_decode_batched`. Greedy decoding is already batched in
+    Mirrors :func:`torchlingo.inference.translate_batch` exactly -- same name,
+    same signature, same output -- but routes beam decoding through this
+    module's :func:`beam_search_decode`. Greedy decoding is already batched in
     the reference and is reused unchanged.
+
+    ``decode_strategy`` defaults to ``"greedy"``. Beam search is opt-in here
+    exactly as it is in the reference; this module changes how beam search
+    runs, not whether it is used.
 
     Args:
         model: Seq2seq model (Transformer or LSTM).
         sentences: Iterable of raw source sentences.
         src_vocab: Vocabulary implementing BaseVocab.encode(add_special_tokens=True).
         tgt_vocab: Vocabulary implementing BaseVocab.decode(skip_special_tokens=True).
-        decode_strategy: "greedy" or "beam".
+        decode_strategy: "greedy" or "beam". Defaults to "greedy" -- beam
+            search is opt-in, and usually produces better translations.
         beam_size: Beam width when decode_strategy == "beam".
         max_len: Maximum generation length.
         device: Torch device. Defaults to model device.
@@ -239,7 +251,7 @@ def translate_batch_fast(
         if decode_strategy == "beam":
             for row in padded:
                 outputs.append(
-                    beam_search_decode_batched(
+                    beam_search_decode(
                         model,
                         row.unsqueeze(0),
                         beam_size=beam_size,
@@ -275,6 +287,6 @@ def translate_batch_fast(
 
 
 __all__ = [
-    "beam_search_decode_batched",
-    "translate_batch_fast",
+    "beam_search_decode",
+    "translate_batch",
 ]

@@ -1,6 +1,34 @@
 # TorchLingo — Session Task List
 
-Captured 2026-08-22. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversation.
+
+## Status
+
+| | Task | State |
+|---|---|---|
+| **#16** | Release pipeline broken — nothing ships | **BLOCKING** |
+| **#17** | Coulson's review points (naming, greedy default) | **In review — PR #9** |
+| #2 | Batch beam search across sentences (~8x, scales with test-set size) | Open |
+| #3 | Incremental decoding / KV cache | Open |
+| #4 | Resolve length-normalization semantics | Open |
+| #5 | Add attention to the LSTM decoder | Open |
+| #6 | Multi-GPU training via DDP | Open |
+| #7 | PyTorch deprecation warnings | Open |
+| #8 | Verify Eole claims before syllabus use | Open |
+| #9 | `pre-commit install` (still not installed) | Open |
+| #12 | Decode benchmark harness | Open |
+| #15 | Migrate history-blind `DummyTransformer` tests | Open |
+| #1 | Batch beam search across beams | Done — `aabb260` |
+| #10 | `notes/` scope decision | Done |
+| #11 | Push / PR the notes branch | Done — PR #8 |
+| #18 | Answer Coulson's curriculum question | Done — it's CS 479 |
+| #19 | Josh's PR #1 heads-up | Done — flagged on PR #1 |
+| #13 | Decoding tie-breaking rule | Done — `5b3e326` |
+| #14 | Ruff version drift | Done — PR #7 |
+
+**Shipped to `main`:** PR #7 (ruff pinned + CI lint gate, `3dca4d1`) and PR #8 (decoding
+oracle suite, tie-breaking rule, 3.6x batched beam search, `ff03631`). Neither is
+released — see #16.
 
 ## Code — decoding performance
 
@@ -44,7 +72,7 @@ and an `inference/` subpackage, which makes a reader navigate a directory to fin
 85-line function.
 
 **`translate_batch` — mirrored, not switched.** The reference wrapper stays as-is;
-`inference_fast.py` gets its own `translate_batch_fast`. This keeps the dependency arrow
+`inference_fast.py` gets its own `translate_batch`. This keeps the dependency arrow
 one-way: **fast imports from reference, never the reverse.** A selector parameter or a
 fast-by-default wrapper would force `inference.py` to import `inference_fast.py`,
 coupling the module a student is meant to read to the one they are not.
@@ -55,7 +83,7 @@ coupling the module a student is meant to read to the one they are not.
 2. Bidirectional docstring cross-references between each implementation and its
    counterpart.
 3. A threshold-based, once-per-process `warnings.warn` when the reference path is used
-   on a large input, naming `translate_batch_fast` and noting the output is identical.
+   on a large input, naming `inference_fast.translate_batch` and noting the output is identical.
    This is the layer that actually works: it fires at the moment of pain, whereas the
    student who most needs it is mid-experiment and not reading docs.
 
@@ -72,7 +100,7 @@ class ReferenceBeamTests(DecoderContractTests, unittest.TestCase):
     DECODE = staticmethod(beam_search_decode)
 
 class BatchedBeamTests(DecoderContractTests, unittest.TestCase):
-    DECODE = staticmethod(beam_search_decode_batched)
+    DECODE = staticmethod(inference_fast.beam_search_decode)
 ```
 
 Adding an implementation is one subclass and it inherits the whole suite; failures name
@@ -99,7 +127,7 @@ rather than duplicating it into code and notes.
 **#1 Batch beam search across beams** — *DONE (aabb260)*
 Stack the live beams into one `(n_live, t)` tensor, expand `memory` as a view, issue one
 `model.decode()` call per step instead of one per beam.
-- Implemented as `beam_search_decode_batched` in `src/torchlingo/inference_fast.py`.
+- Implemented as `inference_fast.beam_search_decode` in `src/torchlingo/inference_fast.py`.
 - Delivered: 125/125 token-identical across 25 sources x 5 beam widths; `decode()` calls
   121 -> 25 (4.8x fewer); wall clock 140.9 -> 39.1 ms/sentence (3.6x) on a small CPU model.
 - The wall-clock gain trails the call-count gain because eliminating calls does not
@@ -113,7 +141,7 @@ Remove the batch-size-1 restriction in `inference_fast.py`; flatten to `(batch x
 **This is where the remaining ~8x lives** (the sentence axis above) — and it scales with
 the number of sentences decoded, so it matters more on a real test set than #1 does.
 - Files: `src/torchlingo/inference_fast.py` (the raise, and the per-row loop in
-  `translate_batch_fast`)
+  `inference_fast.translate_batch`)
 - Hard part is bookkeeping for ragged completion — sentences finishing at different steps.
 - Needs a contract adapter: it takes a batch rather than one sentence, so it does not slot
   into the current `BEAM_DECODE` shape unchanged.
@@ -164,13 +192,12 @@ single 24GB GPU. Both are from Eole's README, not from running it.
 
 ## Process decisions
 
-**#10 Decide whether `notes/` is personal scratch or upstream-facing**
-Now tracked on branch `notes/opennmt-eole-comparison`. Candid framing confirmed OK for
-notes. Changes how future notes are written if they become public.
+**#10 Decide whether `notes/` is personal scratch or upstream-facing** — *DONE*
+Resolved: upstream-facing and tracked. Merged to `main` via PR #8. Candid framing
+confirmed appropriate, and presented on its merits rather than hedged.
 
-**#11 Decide push / PR for `notes/opennmt-eole-comparison`**
-Branch is local only; commit `bd9cd9d` has not been pushed to
-`byu-matrix-lab/torchlingo`.
+**#11 Decide push / PR for `notes/opennmt-eole-comparison`** — *DONE*
+Resolved: pushed and merged as PR #8 (`ff03631`), approved by Coulson-Rich.
 
 ## Possible tooling to productize
 
@@ -247,3 +274,57 @@ decoder histories AND for different encoder memories. The three existing beam te
 therefore cannot detect scrambled beam state or bad memory expansion.
 - Mitigated by the new `tests/test_decoding_equivalence.py`, but the old tests should
   eventually migrate to the history-sensitive fixture rather than sitting alongside it.
+
+---
+
+## Added 2026-09-10
+
+**#16 The release pipeline is broken — nothing since Feb 2026 has shipped** — *BLOCKING*
+
+Found while reviewing backlog status. `pyproject.toml` has said `version = "0.0.8"`
+since February and is never bumped, so tagging a release builds a stale-version artifact:
+
+```
+pyproject.toml version   0.0.8      (unchanged since Feb 2026)
+latest PyPI release      0.0.8      (uploaded 2026-02-18)
+GitHub tags              v0.1.0, v0.1.1
+  v0.1.0 assets          torchlingo-0.0.7-*.whl   <- tag says 0.1.0, artifact says 0.0.7
+  v0.1.1 assets          (none)                   <- build or publish failed silently
+```
+
+PyPI rejects duplicate versions, so a build that produces `0.0.8` when `0.0.8` already
+exists cannot upload. **Two tags have failed this way without anyone noticing**, because
+the publish job's failure is not surfaced anywhere.
+
+`main` is two merges ahead of `v0.1.1` (#7 and #8), so the beam search speedup, the
+decoding contract suite, and the tie-breaking rule are all unreachable via
+`pip install torchlingo`.
+
+Fix should cover both halves:
+- Bump `pyproject.toml` and cut a release that actually publishes.
+- Make CI **fail** a tag build when the git tag and `pyproject.toml` disagree, so a
+  mismatch is loud rather than silent. Same class of problem as #14 (ruff version drift):
+  two sources of truth with nothing checking they agree.
+
+**#17 Coulson's review points from PR #8** — *IN REVIEW (PR #9)*
+Naming schema (mirrored names across `inference` / `inference_fast`) and the greedy
+default documented. On branch `decoding/naming-and-defaults`, commit `5403271`. Opened
+as PR #9 on 2026-09-10 with Coulson-Rich requested as reviewer.
+- Also registered `inference_fast` in the package `__init__`, missed when it was added.
+
+**#18 Answer Coulson's curriculum question** — *DONE (answered on PR #8, 2026-09-10)*
+He asked on PR #8 (2026-08-26) whether the beam-search walkthrough belongs in the 270 or
+312 curriculum, and explicitly asked for thoughts.
+- Answered: the walkthrough is in **CS 479** for now — neither of the two courses he
+  named. Whether beam search should be taught earlier than 479 is left open as a real
+  question, not closed.
+- The same reply pointed him at `5403271` for his other review point (naming schema and
+  the greedy default), which is #17.
+
+**#19 Josh's PR #1 will now fail CI** — *DONE (flagged on PR #1, 2026-09-10)*
+`colab-checkpointing`, dormant since 2026-01-30, is behind `main` and will hit the
+lint gate added in #7 — against a much wider ruleset than existed when it was written.
+Not blocking anything, but a courtesy heads-up before he next picks it up.
+- Also found while checking: GitHub reports the branch as **conflicting** with `main`,
+  which the original entry did not capture. Both facts are in the comment.
+- Left with @commanderjcc to act on; nothing further owed from this side.
