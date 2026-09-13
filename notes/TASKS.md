@@ -6,40 +6,28 @@ Opened 2026-08-22, last updated 2026-09-10. Numbered for reference in conversati
 
 | | Task | State |
 |---|---|---|
-| **#17** | Coulson's review points (naming, greedy default) | **In review — PR #9** |
-| **#24** | Push `lstm/attention`, open PR (merges after #9) | **Next** |
-| #16 | Release pipeline broken — nothing ships | Open (downgraded) |
-| #30 | Nothing executes the tutorial notebooks | Open (new) |
-| #31 | Tutorial 03 soft-fails into a `NameError` | Open (new) |
-| #29 | Recover the last 98 talks with a sentence aligner | Open (new) |
+| #16 | Release pipeline broken — nothing ships | Open |
 | #2 | Batch beam search across sentences (~8x, scales with test-set size) | Open |
 | #3 | Incremental decoding / KV cache | Open |
 | #4 | Resolve length-normalization semantics | Open |
-| #22 | `examples/` is outside the lint gate | Open (new) |
 | #6 | Multi-GPU training via DDP | Open |
 | #7 | PyTorch deprecation warnings | Open |
 | #8 | Verify Eole claims before syllabus use | Open |
 | #9 | `pre-commit install` (still not installed) | Open |
 | #12 | Decode benchmark harness | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
-| #26 | Broken doc links block `mkdocs --strict` | Open (new) |
-| #27 | Attention tutorial notebook | Open (new) |
-| #28 | Attention params skip `_init_weights` | Open (new) |
-| #1 | Batch beam search across beams | Done — `aabb260` |
-| #5 | Add attention to the LSTM decoder | Done — this session |
-| #23 | Encoder consumed padding (found via #5) | Done — fixed in #5 |
-| #20 | `data/example.tsv` misaligned | Done — repaired in place |
-| #25 | Tutorial 02 produced empty translations | Done — premise was wrong, real bug fixed |
-| #10 | `notes/` scope decision | Done |
-| #11 | Push / PR the notes branch | Done — PR #8 |
-| #18 | Answer Coulson's curriculum question | Done — it's CS 479 |
-| #19 | Josh's PR #1 heads-up | Done — flagged on PR #1 |
-| #13 | Decoding tie-breaking rule | Done — `5b3e326` |
-| #14 | Ruff version drift | Done — PR #7 |
+| #21 | Beam search does not support LSTM models at all | Open |
+| #22 | `examples/` and `scripts/` are outside the lint gate | Open |
+| #26 | Broken doc links block `mkdocs --strict` | Open |
+| #27 | Attention tutorial notebook | Open |
+| #28 | Attention params skip `_init_weights` | Open |
+| #29 | Recover the last 98 talks with a sentence aligner | Open |
+| #30 | Nothing executes the tutorial notebooks | Open |
+| #31 | Tutorial 03 soft-fails into a `NameError` | Open |
 
-**Shipped to `main`:** PR #7 (ruff pinned + CI lint gate, `3dca4d1`) and PR #8 (decoding
-oracle suite, tie-breaking rule, 3.6x batched beam search, `ff03631`). Neither is
-released — see #16.
+**Shipped to `main` but unreleased:** PR #7 (ruff pinned + CI lint gate, `3dca4d1`),
+PR #8 (decoding oracle suite, tie-breaking rule, 3.6x batched beam search, `ff03631`),
+and PR #9 (decoder naming schema, greedy default documented). See #16.
 
 ## Code — decoding performance
 
@@ -512,6 +500,16 @@ four instances, which is a pattern worth naming rather than four coincidences.
 (Tatoeba en-es), realign with a sentence aligner, or delete it. The de-interleaving route
 turned out to dominate all three — it keeps a real, domain-appropriate 73k-pair corpus at
 no licensing or download cost.
+
+**#21 Beam search does not support LSTM models at all**
+`inference.py:295` raises unless the model exposes `encode`/`decode`, which only the
+Transformer does. So `greedy_decode` works for both architectures but
+`beam_search_decode` is Transformer-only, and the docs do not say so. Noticed while
+wiring attention through the LSTM inference path. Now that the LSTM has attention it is a
+real model rather than a toy baseline, which makes the gap more visible.
+- Cheap partial fix: a clear error message naming the limitation.
+- Real fix: route beam search through `encode_source`/`decode_step`, which #5 added
+  precisely so the decoder need not be reimplemented per call site.
 
 **#22 `examples/` is outside the lint gate**
 CLAUDE.md and CI lint `src` and `tests` only. Running `ruff check examples` turns up 32
