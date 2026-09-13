@@ -267,10 +267,17 @@ def beam_search_decode(
     device: torch.device | None = None,
     config: Config | None = None,
 ) -> list[int]:
-    """Beam search decoding for Transformer-style models.
+    """Beam search decoding for Transformer or LSTM models.
+
+    The search itself is architecture-agnostic — beams, pruning, length
+    normalization and tie-breaking are identical either way. Only the step that
+    scores the next token given a prefix differs, which is worth noticing: beam
+    search is a property of *decoding*, not of the model that does it.
 
     Args:
-        model: Transformer model exposing encode() and decode().
+        model: Seq2seq model. Transformer models must expose encode/decode;
+            the LSTM path uses encode_source/decode_prefix, present on
+            SimpleSeq2SeqLSTM.
         src: Source tensor with shape (1, src_len). Batch size 1 is assumed.
         beam_size: Number of beams to maintain.
         max_len: Maximum generated length.
@@ -308,25 +315,26 @@ def beam_search_decode(
 
     if src.size(0) != 1:
         raise ValueError("beam_search_decode currently expects batch size = 1")
-    if not (hasattr(model, "encode") and hasattr(model, "decode")):
+
+    is_transformer = hasattr(model, "encode") and hasattr(model, "decode")
+    is_lstm = hasattr(model, "encode_source") and hasattr(model, "decode_prefix")
+    if not (is_transformer or is_lstm):
         raise ValueError(
-            "beam_search_decode requires a Transformer-style model with encode/decode"
+            "beam_search_decode requires a Transformer-style model with "
+            "encode/decode, or an LSTM model with encode_source/decode_prefix."
         )
 
     src = src.to(device)
     pad_mask = src.eq(cfg.pad_idx)
-    with torch.no_grad():
-        memory = model.encode(src, src_key_padding_mask=pad_mask)
 
-    beams: list[tuple[list[int], float]] = [([cfg.sos_idx], 0.0)]
-    completed: list[tuple[list[int], float]] = []
+    # The search below is architecture-agnostic. The only thing that differs is
+    # how you score the next token given a prefix, so that is all we specialize:
+    # encode once, then hand the loop a function from prefix to log-probs.
+    if is_transformer:
+        with torch.no_grad():
+            memory = model.encode(src, src_key_padding_mask=pad_mask)
 
-    for _ in range(max_len):
-        candidates: list[tuple[list[int], float]] = []
-        for tokens, score in beams:
-            if tokens[-1] == cfg.eos_idx:
-                completed.append((tokens, score))
-                continue
+        def next_log_probs(tokens: list[int]) -> torch.Tensor:
             tgt = torch.tensor([tokens], dtype=torch.long, device=device)
             tgt_mask = nn.Transformer.generate_square_subsequent_mask(len(tokens)).to(
                 device
@@ -339,7 +347,32 @@ def beam_search_decode(
                     tgt_key_padding_mask=tgt.eq(cfg.pad_idx),
                     tgt_mask=tgt_mask,
                 )
-            log_probs = F.log_softmax(out[0, -1, :], dim=-1)
+            return F.log_softmax(out[0, -1, :], dim=-1)
+    else:
+        enc_out, init_hidden, src_pad_mask = model.encode_source(src)
+
+        def next_log_probs(tokens: list[int]) -> torch.Tensor:
+            # Re-scored from the encoder's initial state every step, exactly as
+            # the Transformer path recomputes its prefix. Carrying per-beam
+            # (h, c) instead would be faster and would put recurrent-state
+            # bookkeeping into the implementation meant to stay readable.
+            tgt = torch.tensor([tokens], dtype=torch.long, device=device)
+            with torch.no_grad():
+                out, _hidden, _weights = model.decode_prefix(
+                    tgt, init_hidden, enc_out, src_pad_mask
+                )
+            return F.log_softmax(out[0, -1, :], dim=-1)
+
+    beams: list[tuple[list[int], float]] = [([cfg.sos_idx], 0.0)]
+    completed: list[tuple[list[int], float]] = []
+
+    for _ in range(max_len):
+        candidates: list[tuple[list[int], float]] = []
+        for tokens, score in beams:
+            if tokens[-1] == cfg.eos_idx:
+                completed.append((tokens, score))
+                continue
+            log_probs = next_log_probs(tokens)
             top_log_probs, top_idx = _canonical_topk(log_probs, beam_size)
             for lp, idx in zip(top_log_probs.tolist(), top_idx.tolist()):
                 candidates.append((tokens + [idx], score + lp))

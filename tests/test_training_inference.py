@@ -10,6 +10,7 @@ import torch
 from torchlingo.config import get_default_config
 from torchlingo.data_processing.vocab import SentencePieceVocab, SimpleVocab
 from torchlingo.inference import beam_search_decode, greedy_decode, translate_batch
+from torchlingo.models import SimpleSeq2SeqLSTM
 from torchlingo.training import TrainResult, train_model
 
 
@@ -537,6 +538,156 @@ class BeamSearchDecodeTests(unittest.TestCase):
         src = torch.tensor([[cfg.sos_idx, 5, cfg.eos_idx]])
         tokens = beam_search_decode(model, src, beam_size=2, max_len=4, config=cfg)
         self.assertIn(4, tokens)
+
+
+class LSTMBeamSearchTests(unittest.TestCase):
+    """Beam search on the LSTM path.
+
+    The search loop is shared with the Transformer; only next-token scoring
+    differs. These assert the LSTM path obeys the same contract, especially the
+    tie-breaking rule that makes ``beam_size=1`` provably equal greedy.
+    """
+
+    def _model(self, attention: bool = False, attn_type: str = "dot"):
+        """Build a small deterministic LSTM model."""
+        torch.manual_seed(0)
+        return SimpleSeq2SeqLSTM(
+            src_vocab_size=30,
+            tgt_vocab_size=30,
+            emb_dim=16,
+            hidden_dim=16,
+            num_layers=1,
+            dropout=0.0,
+            attention=attention,
+            attn_type=attn_type,
+        ).eval()
+
+    def test_returns_sequence_starting_with_sos(self):
+        """Beam search must emit a well-formed sequence."""
+        cfg = get_default_config()
+        src = torch.tensor([[cfg.sos_idx, 8, 9, cfg.eos_idx]])
+        for attention in (False, True):
+            with self.subTest(attention=attention):
+                tokens = beam_search_decode(
+                    self._model(attention), src, beam_size=3, max_len=6, config=cfg
+                )
+                self.assertEqual(tokens[0], cfg.sos_idx)
+                self.assertGreater(len(tokens), 1)
+
+    def test_beam_size_one_equals_greedy(self):
+        """The tie-breaking rule must hold on the LSTM path too.
+
+        This is the invariant adopted for the Transformer decoders; a new
+        scoring path is exactly where it could silently stop holding.
+        """
+        cfg = get_default_config()
+        src = torch.tensor([[cfg.sos_idx, 8, 9, cfg.eos_idx]])
+        for attention in (False, True):
+            with self.subTest(attention=attention):
+                model = self._model(attention)
+                beam = beam_search_decode(
+                    model, src, beam_size=1, max_len=6, config=cfg
+                )
+                greedy = greedy_decode(model, src, max_len=6, config=cfg)[0]
+                self.assertEqual(beam, greedy[: len(beam)])
+
+    def test_is_deterministic(self):
+        """Repeated calls must return identical tokens."""
+        cfg = get_default_config()
+        src = torch.tensor([[cfg.sos_idx, 8, 9, cfg.eos_idx]])
+        model = self._model(attention=True)
+        first = beam_search_decode(model, src, beam_size=3, max_len=6, config=cfg)
+        second = beam_search_decode(model, src, beam_size=3, max_len=6, config=cfg)
+        self.assertEqual(first, second)
+
+    def test_attention_changes_the_result(self):
+        """Attention must reach the beam path, not just the greedy one."""
+        cfg = get_default_config()
+        src = torch.tensor([[cfg.sos_idx, 8, 9, 10, cfg.eos_idx]])
+        without = beam_search_decode(
+            self._model(attention=False), src, beam_size=3, max_len=6, config=cfg
+        )
+        with_attn = beam_search_decode(
+            self._model(attention=True), src, beam_size=3, max_len=6, config=cfg
+        )
+        self.assertNotEqual(without, with_attn)
+
+    def test_padding_does_not_change_the_result(self):
+        """Trailing padding must not affect the decoded sequence."""
+        cfg = get_default_config()
+        short = torch.tensor([[cfg.sos_idx, 8, 9, cfg.eos_idx]])
+        padded = torch.tensor(
+            [[cfg.sos_idx, 8, 9, cfg.eos_idx, cfg.pad_idx, cfg.pad_idx]]
+        )
+        model = self._model(attention=True)
+        self.assertEqual(
+            beam_search_decode(model, short, beam_size=3, max_len=6, config=cfg),
+            beam_search_decode(model, padded, beam_size=3, max_len=6, config=cfg),
+        )
+
+    def test_raises_on_batch_size_gt_one(self):
+        """The reference implementation keeps its batch-size-1 restriction."""
+        cfg = get_default_config()
+        src = torch.tensor(
+            [
+                [cfg.sos_idx, 8, cfg.eos_idx],
+                [cfg.sos_idx, 9, cfg.eos_idx],
+            ]
+        )
+        with self.assertRaises(ValueError):
+            beam_search_decode(self._model(), src, beam_size=2, config=cfg)
+
+    def test_duck_typed_lstm_without_the_interface_raises(self):
+        """A model exposing neither interface must fail with a clear message."""
+        cfg = get_default_config()
+        model = DummyLSTMModel(eos_idx=cfg.eos_idx)
+        src = torch.tensor([[cfg.sos_idx, 8, cfg.eos_idx]])
+        with self.assertRaises(ValueError) as ctx:
+            beam_search_decode(model, src, beam_size=2, config=cfg)
+        message = str(ctx.exception)
+        self.assertIn("encode_source", message)
+        self.assertIn("decode_prefix", message)
+
+
+class DecodePrefixTests(unittest.TestCase):
+    """decode_prefix is the LSTM counterpart to a Transformer's decode()."""
+
+    def _model(self):
+        torch.manual_seed(0)
+        return SimpleSeq2SeqLSTM(
+            src_vocab_size=30,
+            tgt_vocab_size=30,
+            emb_dim=16,
+            hidden_dim=16,
+            num_layers=1,
+            dropout=0.0,
+            attention=True,
+        ).eval()
+
+    def test_matches_forward(self):
+        """Encoding then decoding a prefix must equal a plain forward pass."""
+        model = self._model()
+        src = torch.randint(1, 30, (2, 5))
+        tgt = torch.randint(1, 30, (2, 4))
+        with torch.no_grad():
+            expected = model(src, tgt)
+            enc_out, hidden, mask = model.encode_source(src)
+            actual, _hidden, _weights = model.decode_prefix(tgt, hidden, enc_out, mask)
+        torch.testing.assert_close(actual, expected)
+
+    def test_decode_step_is_a_one_token_prefix(self):
+        """decode_step must agree with decode_prefix on a single token."""
+        model = self._model()
+        src = torch.randint(1, 30, (1, 5))
+        token = torch.tensor([[7]])
+        with torch.no_grad():
+            enc_out, hidden, mask = model.encode_source(src)
+            stepped, step_hidden, _ = model.decode_step(token, hidden, enc_out, mask)
+            prefixed, prefix_hidden, _ = model.decode_prefix(
+                token, hidden, enc_out, mask
+            )
+        torch.testing.assert_close(stepped, prefixed)
+        torch.testing.assert_close(step_hidden[0], prefix_hidden[0])
 
 
 class TranslateBatchTests(unittest.TestCase):
