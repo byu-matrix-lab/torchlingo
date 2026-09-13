@@ -110,6 +110,14 @@ context = weights @ values         # Weighted combination
 !!! tip "Why 'Attention'?"
     The name comes from how humans translate: we pay **attention** to specific words in the source while writing each word of the translation.
 
+You can read the whole mechanism in about fifteen lines in
+`torchlingo/models/attention.py`, and switch it on with
+`SimpleSeq2SeqLSTM(..., attention=True)`. Both historical scorers are there:
+additive (Bahdanau et al., 2014) and dot-product (Luong et al., 2015). The
+Transformer below keeps the dot product, adds a `1/sqrt(d_k)` scale, and runs it
+in parallel heads — so reading these two first makes the next section familiar
+rather than new.
+
 ### The Transformer
 
 The Transformer architecture (used in TorchLingo's `SimpleTransformer`) stacks multiple attention layers:
@@ -238,7 +246,7 @@ TorchLingo implements these concepts in a beginner-friendly way:
 | -------------------- | --------------------------------------- |
 | Embeddings           | `nn.Embedding` in models                |
 | Encoder-Decoder      | `SimpleTransformer`, `SimpleSeq2SeqLSTM` |
-| Attention            | Built into Transformer layers           |
+| Attention            | `DotProductAttention`, `AdditiveAttention`; built into Transformer layers |
 | Vocabulary           | `SimpleVocab`, `SentencePieceVocab`     |
 | Data loading         | `NMTDataset`, `create_dataloaders`      |
 | Training utilities   | Config-driven training loops            |

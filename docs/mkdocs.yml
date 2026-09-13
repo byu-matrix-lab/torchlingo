@@ -143,12 +143,14 @@ nav:
       - reference/models/index.md
       - Transformer: reference/models/transformer.md
       - LSTM: reference/models/lstm.md
+      - Attention: reference/models/attention.md
       - Positional Encoding: reference/models/positional.md
     - Preprocessing:
       - reference/preprocessing/index.md
       - Base Utilities: reference/preprocessing/base.md
       - SentencePiece: reference/preprocessing/sentencepiece.md
       - Multilingual: reference/preprocessing/multilingual.md
+    - Visualization: reference/visualization.md
   - Contributing: contributing.md
 
 extra:

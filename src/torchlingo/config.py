@@ -361,6 +361,32 @@ LSTM_DROPOUT = 0.2
 #   - Default: 0.2
 #   - Description: Dropout rate for LSTM models.
 
+ATTENTION_TYPES = ("dot", "additive")
+# ATTENTION_TYPES: tuple[str, ...]
+#   - Type: tuple of str
+#   - Description: Attention scoring functions available to the LSTM decoder,
+#     listed in publication order. "dot" is Luong et al. (2015); "additive" is
+#     Bahdanau et al. (2014). Defined here rather than in models/attention.py
+#     because Config validates this field at import time, and models/ imports
+#     Config -- so the reverse import would be circular.
+
+LSTM_ATTENTION = False
+# LSTM_ATTENTION: bool
+#   - Type: bool
+#   - Typical values: False, True
+#   - Default: False
+#   - Description: Whether the LSTM decoder attends over encoder outputs.
+#     False keeps the classic fixed-size-bottleneck seq2seq as the baseline,
+#     so the with-versus-without ablation is an explicit one-flag change.
+
+LSTM_ATTN_TYPE = "dot"
+# LSTM_ATTN_TYPE: str
+#   - Type: str, one of ATTENTION_TYPES
+#   - Typical values: "dot", "additive"
+#   - Default: "dot"
+#   - Description: Scoring function for LSTM decoder attention. Ignored when
+#     LSTM_ATTENTION is False.
+
 # ============================================================================
 # PERFORMANCE AND EXPERIMENTAL TOGGLES (ADVANCED)
 # ============================================================================
@@ -830,6 +856,8 @@ class Config:
         lstm_hidden_dim: int = 512,
         lstm_num_layers: int = 2,
         lstm_dropout: float = 0.2,
+        lstm_attention: bool = False,
+        lstm_attn_type: str = "dot",
         # Experimental toggles
         use_packed_projection: bool = False,
         use_scaled_dot_product_attention: bool = False,
@@ -987,6 +1015,8 @@ class Config:
         self.lstm_hidden_dim = lstm_hidden_dim
         self.lstm_num_layers = lstm_num_layers
         self.lstm_dropout = lstm_dropout
+        self.lstm_attention = lstm_attention
+        self.lstm_attn_type = lstm_attn_type
 
         # Experimental toggles
         self.use_packed_projection = use_packed_projection
@@ -1214,6 +1244,13 @@ class Config:
         return val
 
     @staticmethod
+    def _ensure_attn_type(value: Any) -> str:
+        val = Config._ensure_str(value)
+        if val not in ATTENTION_TYPES:
+            raise ValueError(f"lstm_attn_type must be one of {list(ATTENTION_TYPES)}")
+        return val
+
+    @staticmethod
     def _ensure_data_format(value: Any) -> str:
         allowed = {"tsv", "csv", "parquet", "json", "txt"}
         val = Config._ensure_str(value)
@@ -1318,6 +1355,8 @@ class Config:
         "lstm_dropout": lambda self, v: self._ensure_float_in_range(
             v, 0.0, 1.0, inclusive_high=False
         ),
+        "lstm_attention": lambda self, v: self._ensure_bool(v),
+        "lstm_attn_type": lambda self, v: self._ensure_attn_type(v),
         "use_packed_projection": lambda self, v: self._ensure_bool(v),
         "use_scaled_dot_product_attention": lambda self, v: self._ensure_bool(v),
         "tie_embeddings": lambda self, v: self._ensure_bool(v),
@@ -2318,6 +2357,44 @@ class Config:
             value (float): Dropout rate for LSTM models (in range [0.0, 1.0)).
         """
         self._validate_and_set("lstm_dropout", value)
+
+    @property
+    def lstm_attention(self) -> bool:
+        """Return whether the LSTM decoder attends over encoder outputs.
+
+        Returns:
+            bool: True if the LSTM decoder uses attention. Defaults to False,
+                which keeps the classic bottlenecked seq2seq baseline.
+        """
+        return self._get_field("lstm_attention")
+
+    @lstm_attention.setter
+    def lstm_attention(self, value: bool) -> None:
+        """Set whether the LSTM decoder attends over encoder outputs.
+
+        Args:
+            value (bool): True to enable attention in the LSTM decoder.
+        """
+        self._validate_and_set("lstm_attention", value)
+
+    @property
+    def lstm_attn_type(self) -> str:
+        """Return the scoring function used by LSTM decoder attention.
+
+        Returns:
+            str: Either "dot" (Luong et al., 2015) or "additive"
+                (Bahdanau et al., 2014). Ignored when lstm_attention is False.
+        """
+        return self._get_field("lstm_attn_type")
+
+    @lstm_attn_type.setter
+    def lstm_attn_type(self, value: str) -> None:
+        """Set the scoring function used by LSTM decoder attention.
+
+        Args:
+            value (str): Either "dot" (Luong) or "additive" (Bahdanau).
+        """
+        self._validate_and_set("lstm_attn_type", value)
 
     @property
     def use_packed_projection(self) -> bool:
