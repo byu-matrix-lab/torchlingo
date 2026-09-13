@@ -119,6 +119,15 @@ class SimpleTransformer(nn.Module):
             dropout=dropout,
             batch_first=True,
         )
+        # Disable the encoder's nested-tensor fast path. In eval mode with a
+        # padding mask, PyTorch converts the batch to a nested tensor, and the
+        # op that does it is not implemented for Apple's MPS backend -- so
+        # encode() raises NotImplementedError on any Apple Silicon GPU. The fast
+        # path is a padding optimization only: disabling it changes speed, not
+        # results, which the decoding tests assert. nn.Transformer does not
+        # expose the constructor argument, so it is set on the encoder here.
+        self.transformer.encoder.use_nested_tensor = False
+
         self.generator = nn.Linear(d_model, tgt_vocab_size)
         self._init_parameters()
 

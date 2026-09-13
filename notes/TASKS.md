@@ -150,11 +150,19 @@ a separate question.
 **#6 Multi-GPU training via DDP**
 Not implemented. `config.py:663` states multi-GPU "requires custom DataParallel setup."
 
-**#7 Address PyTorch deprecation warnings**
-Surfaced while benchmarking on torch 2.13.0:
-- "Support for mismatched key_padding_mask and attn_mask is deprecated" — raised from
-  the decode path, will eventually break.
-- Nested-tensor prototype warning from `nn.Transformer`.
+**#7 One PyTorch deprecation warning left**
+On torch 2.13.0, "Support for mismatched key_padding_mask and attn_mask is deprecated",
+raised from the decode path. It will eventually break. The decode path passes a boolean
+`tgt_key_padding_mask` alongside a float `tgt_mask`; making both the same dtype should
+settle it.
+
+The other warning this entry used to list, the nested-tensor prototype notice from
+`nn.Transformer`, is gone. It was a side effect of disabling the encoder's nested-tensor
+fast path, which had to go because the op behind it is unimplemented on Apple's MPS
+backend and made every library decoder raise `NotImplementedError` on Apple Silicon.
+Worth knowing for the next device-specific bug: CI runners are x86 Linux, so nothing in
+the matrix can reproduce that class of failure — the lab's Macs are the only place it
+shows up, which is also where the students are.
 
 ## Evaluation / tooling
 

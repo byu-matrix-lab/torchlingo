@@ -617,5 +617,35 @@ class TestLSTMConfigOverridePadIdx(unittest.TestCase):
         self.assertEqual(model.pad_idx, 3)
 
 
+class TransformerDeviceCompatibilityTests(unittest.TestCase):
+    """The encoder must not take PyTorch's MPS-incompatible fast path.
+
+    These assert the flag and the call shape rather than device behavior,
+    because CI has no MPS device. They would not have caught the original bug;
+    they exist to stop it coming back.
+    """
+
+    def test_encoder_nested_tensor_fast_path_is_disabled(self):
+        """The nested-tensor conversion calls an op unimplemented on MPS.
+
+        It only optimizes padded batches, so disabling it costs speed, not
+        correctness.
+        """
+        model = SimpleTransformer(
+            src_vocab_size=50, tgt_vocab_size=50, d_model=32, n_heads=4
+        )
+        self.assertFalse(model.transformer.encoder.use_nested_tensor)
+
+    def test_encode_accepts_a_padding_mask_in_eval_mode(self):
+        """This is the exact call shape that raised NotImplementedError on MPS."""
+        model = SimpleTransformer(
+            src_vocab_size=50, tgt_vocab_size=50, d_model=32, n_heads=4
+        ).eval()
+        src = torch.tensor([[2, 7, 8, 3, 0, 0]])
+        with torch.no_grad():
+            memory = model.encode(src, src_key_padding_mask=src.eq(0))
+        self.assertEqual(memory.shape, (1, 6, 32))
+
+
 if __name__ == "__main__":
     unittest.main()
