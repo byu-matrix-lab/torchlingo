@@ -22,6 +22,9 @@ Completed work is removed rather than marked done — git history is the record.
 | #28 | Attention params skip `_init_weights` | Open |
 | #29 | Recover the last 98 talks with a sentence aligner | Open |
 | #34 | Surface attention weights from greedy and beam decoding | Open |
+| #35 | Malformed tag `v.0.0.8` on the remote | Open |
+| #36 | CI actions pinned to a deprecated Node runtime | Open |
+| #37 | Stacked PRs fight the stale-review rule | Open |
 
 ## Code — decoding performance
 
@@ -221,15 +224,94 @@ PyPI rejects duplicate versions, so a build that produces `0.0.8` when `0.0.8` a
 exists cannot upload. **Two tags have failed this way without anyone noticing**, because
 the publish job's failure is not surfaced anywhere.
 
-`main` is two merges ahead of `v0.1.1` (#7 and #8), so the beam search speedup, the
-decoding contract suite, and the tie-breaking rule are all unreachable via
-`pip install torchlingo`.
+`main` is now eight merges ahead of `v0.1.1` (#7 through #14), so the beam search speedup,
+the decoding contract suite, the tie-breaking rule, LSTM attention, the repaired corpus
+and every tutorial fix are all unreachable via `pip install torchlingo`.
+
+### Verified 2026-09-13, from the Actions history
+
+An earlier guess recorded here — that the workflow might never fire on a tag, because
+`tags:` sits under the same `push:` trigger as a `paths:` filter — is **wrong**. Every
+`v*` tag has a run. Path filters do not suppress tag pushes:
+
+```
+v0.1.1    push   failure   2026-07-18
+v0.0.8    push   success   2026-02-18
+v.0.0.8   push   failure   2026-02-18   <- malformed tag name, see below
+v0.1.0    push   failure   2026-02-18
+v0.0.7    push   success   2026-01-30
+v0.0.6    push   success   2026-01-30
+```
+
+So the pipeline runs; it fails at the end. Per-job results for the two failed releases:
+
+| | v0.1.0 | v0.1.1 |
+|---|---|---|
+| tests 3.10-3.13 | pass | pass |
+| Build wheels and sdist | pass | pass |
+| Create GitHub Release | pass | **fail** |
+| Publish to PyPI | **fail** | **fail** |
+
+The publish log gives the cause outright:
+
+```
+ERROR  HTTPError: 400 Bad Request from https://upload.pypi.org/legacy/
+```
+
+which is what PyPI returns for a filename that already exists. That confirms the original
+diagnosis: the build produced `0.0.8` because `pyproject.toml` says so, and `0.0.8` was
+already on PyPI from February. The version collision is real and is the primary fault.
+
+**Still unexplained:** why `Create GitHub Release` failed on v0.1.1 but succeeded on
+v0.1.0. The step's own output is not in the archived log, so the cause is not recoverable
+from here. It explains the "no assets" observation above, and it is a *second*,
+independent failure — worth confirming before trusting the next tag, since fixing the
+version collision alone would not have fixed v0.1.1.
 
 Fix should cover both halves:
 - Bump `pyproject.toml` and cut a release that actually publishes.
 - Make CI **fail** a tag build when the git tag and `pyproject.toml` disagree, so a
   mismatch is loud rather than silent. Same class of problem as #14 (ruff version drift):
   two sources of truth with nothing checking they agree.
+- Do the tag-vs-version check **first**, so the next tag cannot fail the same way.
+
+**Do not test this by pushing a `v*` tag.** The `publish` job fires on any ref matching
+`refs/tags/v*` and will attempt a real PyPI upload. The Actions history answers most
+questions without that risk, which is how the table above was produced.
+
+**#35 A malformed tag `v.0.0.8` exists on the remote**
+Found while auditing the Actions history for #16. Someone typed `v.0.0.8` instead of
+`v0.0.8`; it matches the `v*` trigger, ran, and failed. Both tags exist on origin today.
+Harmless but confusing, and it is the kind of thing the tag-vs-version check in #16 would
+have caught at push time. Decide whether to delete it or leave it as history.
+
+**#36 CI actions are pinned to a deprecated Node runtime**
+Every run now warns: `actions/checkout@v4`, `actions/setup-python@v5` and
+`actions/download-artifact@v4` target Node 20, which GitHub deprecated, and are being
+forced onto Node 24. It is a warning today and a hard failure whenever GitHub drops the
+shim. Bump the action versions. Unrelated to anything in flight, and cheap.
+
+**#37 Stacked PRs fight the repo's stale-review rule**
+Not a code defect; a process one, recorded because it cost real time merging #9 through
+#14 and will recur the next time work is stacked.
+
+The `main` ruleset sets `dismiss_stale_reviews_on_push: true` and requires one approving
+review. A stacked PR must merge its parent's changes in before it can land, and that merge
+commit is a push, so it dismisses the approval it just earned. Every PR in the stack then
+needed an admin override even though all six had been reviewed and approved on substance.
+
+Two traps found the hard way, both worth avoiding next time:
+- **Do not merge with `--delete-branch` while another PR is based on that branch.**
+  GitHub auto-closes the dependents. Retarget them to `main` *first*, then delete.
+  Recovering from it means pushing the deleted branch back temporarily, because GitHub
+  refuses to reopen a PR whose base is missing and refuses to retarget a closed one.
+- A PR retargeted to `main` after its base merged has **no status checks**, because no
+  `pull_request` event with `base: main` ever fired for it. Closing and reopening the PR
+  fires one without adding an empty commit.
+
+Options, if this shape comes up again: keep branches independent off `main` where the work
+allows; or ask for one re-approval pass after all branches are rebased; or accept admin
+overrides as the normal cost of stacking.
 
 ## Inference gaps
 
