@@ -127,5 +127,49 @@ class TestExampleCorpusAlignment(unittest.TestCase):
         self.assertLess(identical, 0.10)
 
 
+PRETRAINED = Path(__file__).resolve().parent.parent / "data" / "pretrained"
+
+
+@unittest.skipUnless(PRETRAINED.exists(), "pretrained model not generated")
+class TestPretrainedArtifacts(unittest.TestCase):
+    """Tutorial 5 loads these; if they go missing it fails in CI, not silently."""
+
+    def test_checkpoint_and_tokenizer_are_present(self):
+        self.assertTrue((PRETRAINED / "model.pt").exists())
+        self.assertTrue((PRETRAINED / "spm.model").exists())
+        self.assertTrue((PRETRAINED / "test.tsv").exists())
+
+    def test_checkpoint_stays_small_enough_to_commit(self):
+        """A checkpoint in git is forever. Keep it modest or do not ship it."""
+        megabytes = (PRETRAINED / "model.pt").stat().st_size / 1e6
+        self.assertLess(megabytes, 20)
+
+    def test_held_out_set_came_from_whole_talks(self):
+        """The property the whole tutorial rests on.
+
+        The held-out set must be a handful of complete talks, not sentences
+        scattered across the corpus. If it ever becomes the latter, the
+        translations the tutorial shows are of effectively memorized text and
+        the lesson inverts without anything looking wrong.
+
+        Asserted on the ``talk`` column rather than by matching sentence text,
+        because short formulaic lines like "Thank you." appear in hundreds of
+        talks and make text matching meaningless.
+        """
+        held_out = pd.read_csv(
+            PRETRAINED / "test.tsv", sep="\t", dtype=str, keep_default_na=False
+        )
+        self.assertIn("talk", held_out.columns)
+        talks = held_out["talk"].nunique()
+        self.assertLess(talks, 40, "held-out set is spread over too many talks")
+        self.assertGreater(talks, 5, "too few talks to be a meaningful test set")
+
+        # And those talks must be complete: every sentence of a held-out talk is
+        # held out, which is what "split by talk" means.
+        corpus = pd.read_csv(CORPUS, sep="\t", dtype=str, keep_default_na=False)
+        in_test_talks = corpus[corpus["talk"].isin(set(held_out["talk"]))]
+        self.assertGreater(len(in_test_talks), len(held_out) * 0.5)
+
+
 if __name__ == "__main__":
     unittest.main()
