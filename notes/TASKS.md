@@ -29,6 +29,7 @@ Completed work is removed rather than marked done — git history is the record.
 | #39 | Visualize the beam search itself | Open |
 | #40 | Visualize the effect of decoding options | Open |
 | #41 | Connect beam search back to prior coursework | Open |
+| #42 | Lecture 7 assignment | Open — scope needed |
 
 ## Code — decoding performance
 
@@ -373,6 +374,29 @@ a blind `except Exception`.
   scope to `src tests examples scripts` in one go.
 
 ---
+
+## Course material
+
+**#42 Lecture 7 assignment** — *placeholder, scope needed*
+Captured so it is not lost. Not startable yet: what lecture 7 covers, which course it
+belongs to, what students are meant to produce, which parts of TorchLingo it should
+exercise, and when it is needed are all unknown here.
+
+Found while filing this: `docs/docs/contributing.md` documents a repository layout
+including `assignments/  # Course assignments`, and **no such directory exists**. Either
+assignments live elsewhere entirely or the documented structure is aspirational. Worth
+settling first — adding a directory the docs already promise is either exactly right or a
+sign the docs need correcting instead.
+
+Material an assignment could build on, all now on `main`:
+- Tutorial 4 ends with an ablation and a measurable alignment accuracy, which is already
+  close to an assignment shape.
+- `scripts/bench_decode.py` measures decode call counts against wall clock; the original
+  #12 entry flagged this as "useful as a student exercise in its own right", and the gap
+  between the two numbers is a real lesson.
+- `examples/attention_alignment.py` runs the same comparison at larger scale.
+- The decoding contract tests demonstrate specification-by-test, if the assignment is
+  about correctness rather than modelling.
 
 ## Visualization
 
