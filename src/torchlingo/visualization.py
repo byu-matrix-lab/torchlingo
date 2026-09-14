@@ -1,4 +1,13 @@
-"""Visualizing what a model attends to.
+"""Visualizing what a model attends to, and what a search considered.
+
+Two things here, answering two different questions about the same decode:
+
+- **Attention** shows what the decoder *looked at* while producing each token.
+- **Beam search** shows what it *considered and discarded* on the way there.
+
+The second is the one students find least intuitive, because pruning is
+invisible in the output: a translation tells you what won, never what lost, and
+the whole argument for beam search is about the paths greedy never explores.
 
 Attention weights are the most directly *inspectable* quantity in an NMT model:
 each row is a probability distribution saying "while producing this target
@@ -23,6 +32,8 @@ Typical usage:
 """
 
 import torch
+
+from .inference import BeamStep
 
 _SHADES = "·░▒▓█"
 """Ramp from no attention to full attention, five levels.
@@ -218,4 +229,169 @@ def plot_attention(
     return ax
 
 
-__all__ = ["format_attention", "plot_attention"]
+def _decode_tokens(tokens: list[int], itos: list[str] | None) -> str:
+    """Render a hypothesis as text, falling back to raw ids without a vocabulary."""
+    if itos is None:
+        return " ".join(str(t) for t in tokens)
+    return " ".join(itos[t] if t < len(itos) else f"<{t}>" for t in tokens)
+
+
+def format_beam_search(
+    trace: list[BeamStep],
+    itos: list[str] | None = None,
+    winner: list[int] | None = None,
+    top: int = 6,
+    max_steps: int | None = None,
+) -> str:
+    """Render a beam search as text: what was considered, kept, and discarded.
+
+    Produced from the ``trace`` argument of
+    :func:`torchlingo.inference.beam_search_decode`.
+
+    Each step lists candidates in the order the search ranked them. The marker
+    in the first column is the point of the whole display:
+
+    ==========  ==========================================================
+    ``>``       kept, and a prefix of the hypothesis that eventually won
+    ``+``       kept into the next step
+    ``.``       pruned here
+    ==========  ==========================================================
+
+    The steps worth looking at are the ones where a ``>`` sits below a ``+``:
+    the eventual winner ranked *below* another hypothesis at that moment and
+    survived only because the beam was wide enough to carry it. That is exactly
+    the situation greedy decoding cannot recover from, and it is otherwise
+    invisible in the output.
+
+    Args:
+        trace (list[BeamStep]): Steps recorded during decoding.
+        itos (list[str], optional): Index-to-token mapping. Raw ids are shown
+            when omitted.
+        winner (list[int], optional): The returned token sequence, used to mark
+            which candidates were on the winning path.
+        top (int, optional): Candidates to show per step. Defaults to 6.
+        max_steps (int, optional): Steps to show. All of them when omitted.
+
+    Returns:
+        str: A multi-line string suitable for printing.
+
+    Raises:
+        ValueError: If the trace is empty.
+
+    Examples:
+        >>> from torchlingo.inference import BeamCandidate, BeamStep
+        >>> step = BeamStep(0, [BeamCandidate([2, 7], -0.2, -0.2, True)])
+        >>> print(format_beam_search([step], itos=["<pad>", "<unk>", "<s>", "</s>", "", "", "", "hola"]))
+        step 0
+          + -0.200  <s> hola
+    """
+    if not trace:
+        raise ValueError("Empty trace: pass trace=[] to beam_search_decode first.")
+
+    steps = trace if max_steps is None else trace[:max_steps]
+    winning_prefixes = set()
+    if winner is not None:
+        winning_prefixes = {tuple(winner[: i + 1]) for i in range(len(winner))}
+
+    lines: list[str] = []
+    for record in steps:
+        lines.append(f"step {record.step}")
+        for candidate in record.candidates[:top]:
+            if candidate.kept and tuple(candidate.tokens) in winning_prefixes:
+                marker = ">"
+            elif candidate.kept:
+                marker = "+"
+            else:
+                marker = "."
+            lines.append(
+                f"  {marker} {candidate.normalized:6.3f}  "
+                f"{_decode_tokens(candidate.tokens, itos)}"
+            )
+        pruned = len(record.candidates) - top
+        if pruned > 0:
+            lines.append(f"    ... {pruned} more considered")
+    return "\n".join(lines)
+
+
+def plot_beam_search(
+    trace: list[BeamStep],
+    winner: list[int] | None = None,
+    top: int = 6,
+    title: str | None = None,
+    ax: "matplotlib.axes.Axes | None" = None,  # noqa: F821
+) -> "matplotlib.axes.Axes":  # noqa: F821
+    """Plot candidate scores per step, separating survivors from pruned paths.
+
+    Kept candidates are drawn filled, pruned ones hollow, and the winning path
+    is connected by a line. The visual question the plot answers is whether the
+    winning line ever dips below other kept points — which is precisely when
+    beam search earns its cost over greedy.
+
+    Args:
+        trace (list[BeamStep]): Steps recorded during decoding.
+        winner (list[int], optional): The returned token sequence.
+        top (int, optional): Candidates to plot per step.
+        title (str, optional): Title for the plot.
+        ax (matplotlib.axes.Axes, optional): Existing axes to draw into.
+
+    Returns:
+        matplotlib.axes.Axes: The axes drawn into.
+
+    Raises:
+        ImportError: If matplotlib is unavailable.
+        ValueError: If the trace is empty.
+    """
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as exc:
+        raise ImportError(
+            "plot_beam_search requires matplotlib. Use format_beam_search for a "
+            "text rendering that needs no extra packages."
+        ) from exc
+
+    if not trace:
+        raise ValueError("Empty trace: pass trace=[] to beam_search_decode first.")
+
+    if ax is None:
+        _fig, ax = plt.subplots(figsize=(max(5, len(trace) * 0.7), 4))
+
+    winning_prefixes = set()
+    if winner is not None:
+        winning_prefixes = {tuple(winner[: i + 1]) for i in range(len(winner))}
+
+    winning_x: list[int] = []
+    winning_y: list[float] = []
+    for record in trace:
+        for candidate in record.candidates[:top]:
+            on_winning_path = tuple(candidate.tokens) in winning_prefixes
+            ax.scatter(
+                record.step,
+                candidate.normalized,
+                facecolors="tab:blue" if candidate.kept else "none",
+                edgecolors="tab:blue" if candidate.kept else "tab:grey",
+                zorder=3 if candidate.kept else 2,
+            )
+            if on_winning_path:
+                winning_x.append(record.step)
+                winning_y.append(candidate.normalized)
+
+    if winning_x:
+        ax.plot(
+            winning_x, winning_y, color="tab:red", linewidth=2, zorder=4, label="winner"
+        )
+        ax.legend(loc="best")
+
+    ax.set_xlabel("step")
+    ax.set_ylabel("length-normalized score")
+    if title:
+        ax.set_title(title)
+    ax.figure.tight_layout()
+    return ax
+
+
+__all__ = [
+    "format_attention",
+    "format_beam_search",
+    "plot_attention",
+    "plot_beam_search",
+]

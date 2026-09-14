@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 import torch
 import torch.nn.functional as F
@@ -112,6 +113,37 @@ def _canonical_topk(
     order = torch.argsort(-log_probs[candidates], stable=True)
     chosen = candidates[order][:k]
     return log_probs[chosen], chosen
+
+
+@dataclass
+class BeamCandidate:
+    """One hypothesis considered at one step of beam search.
+
+    Attributes:
+        tokens: The hypothesis, including SOS and any EOS.
+        score: Cumulative log probability, unnormalized.
+        normalized: The length-normalized score the search actually ranks by.
+        kept: Whether this candidate survived pruning into the next step.
+    """
+
+    tokens: list[int]
+    score: float
+    normalized: float
+    kept: bool
+
+
+@dataclass
+class BeamStep:
+    """Every candidate considered at one step, in the order the search ranked them.
+
+    Attributes:
+        step: Zero-based step index.
+        candidates: All expansions scored at this step, best first. The first
+            ``beam_size`` of them have ``kept=True``.
+    """
+
+    step: int
+    candidates: list[BeamCandidate]
 
 
 def _rank_key(tokens: list[int], score: float, alpha: float) -> tuple[float, list[int]]:
@@ -266,6 +298,7 @@ def beam_search_decode(
     alpha: float = 0.6,
     device: torch.device | None = None,
     config: Config | None = None,
+    trace: list[BeamStep] | None = None,
 ) -> list[int]:
     """Beam search decoding for Transformer or LSTM models.
 
@@ -286,6 +319,10 @@ def beam_search_decode(
             survive rather than only which one is returned.
         device: Torch device. Defaults to model device.
         config: TorchLingo Config for special token indices.
+        trace: If a list is given, one :class:`BeamStep` per step is appended to
+            it, recording every candidate considered and whether it survived
+            pruning. Costs nothing when omitted and never changes the result;
+            see :func:`torchlingo.visualization.format_beam_search`.
 
     Returns:
         Best decoded token ID sequence (including SOS/EOS).
@@ -383,6 +420,26 @@ def beam_search_decode(
         # token sequence in the key makes the order total, so exact score ties
         # resolve identically on every device.
         candidates.sort(key=lambda item: _rank_key(item[0], item[1], alpha))
+
+        # Record before pruning, because what was discarded is the interesting
+        # half: the sort order above is exactly the ranking, so the first
+        # beam_size entries are the survivors.
+        if trace is not None:
+            trace.append(
+                BeamStep(
+                    step=len(trace),
+                    candidates=[
+                        BeamCandidate(
+                            tokens=list(tokens),
+                            score=score,
+                            normalized=-_rank_key(tokens, score, alpha)[0],
+                            kept=rank < beam_size,
+                        )
+                        for rank, (tokens, score) in enumerate(candidates)
+                    ],
+                )
+            )
+
         beams = candidates[:beam_size]
 
         if all(tokens[-1] == cfg.eos_idx for tokens, _ in beams):
