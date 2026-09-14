@@ -211,9 +211,14 @@ torchlingo/
 │   ├── models/              # Neural network architectures
 │   └── preprocessing/       # Data loading, tokenization
 ├── tests/                   # Test suite
-├── docs/                    # Documentation (MkDocs)
-└── assignments/             # Course assignments
+├── examples/                # Runnable example scripts
+├── scripts/                 # Developer tooling (benchmarks, notebook checks)
+├── notes/                   # Design notes and the task list
+└── docs/                    # Documentation (MkDocs)
 ```
+
+Course assignments are not in this repository; they live in the LMS. TorchLingo
+provides the library, tutorials and examples that assignments build on.
 
 ## Questions?
 

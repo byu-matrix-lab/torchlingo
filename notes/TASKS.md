@@ -379,14 +379,15 @@ a blind `except Exception`.
 
 **#42 Lecture 7 assignment** — *placeholder, scope needed*
 Captured so it is not lost. Not startable yet: what lecture 7 covers, which course it
-belongs to, what students are meant to produce, which parts of TorchLingo it should
-exercise, and when it is needed are all unknown here.
+belongs to, what students are meant to produce, and when it is needed are all unknown here.
 
-Found while filing this: `docs/docs/contributing.md` documents a repository layout
-including `assignments/  # Course assignments`, and **no such directory exists**. Either
-assignments live elsewhere entirely or the documented structure is aspirational. Worth
-settling first — adding a directory the docs already promise is either exactly right or a
-sign the docs need correcting instead.
+**The assignment itself lives in the LMS, not in this repo.** So the work here is whatever
+*supporting material* the assignment needs — a starter notebook, a script with gaps to
+fill, a dataset slice — not the assignment text. That also means the deliverable may be
+small or may be nothing at all, depending on what the assignment asks students to do.
+
+`contributing.md` previously documented an `assignments/` directory that never existed.
+Corrected when this was filed, and the page now says where assignments actually live.
 
 Material an assignment could build on, all now on `main`:
 - Tutorial 4 ends with an ablation and a measurable alignment accuracy, which is already
