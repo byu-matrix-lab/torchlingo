@@ -128,13 +128,14 @@ step, each processing a single sequence.
 
 ## What that costs
 
-Measured on 8 sentences, `max_len=25`, `beam_size=5`:
+--8<-- "docs/_generated/decode_bench.md"
 
-| | `decode()` calls | sequences per call | positions forwarded |
-|---|---|---|---|
-| greedy | 25 | 8.0 | 2,600 |
-| beam (reference) | 968 | **1.0** | 12,968 |
-| ratio | **38.7×** | 4.8× | 5.0× |
+Every number on this page comes from `scripts/bench_decode.py`, and the table above is
+generated from its output rather than typed in. Run it yourself:
+
+```bash
+python scripts/bench_decode.py
+```
 
 Read the last column first. Beam search does about **5× the arithmetic** of greedy —
 which is roughly what `beam_size=5` should cost, and is not a problem.
@@ -165,9 +166,10 @@ With `beam_size=5` and 8 sentences: 5 × 8 = 40 ≈ 38.7. Greedy in the table ab
 pulls the sentence lever (all 8 sentences go through together), which is why it looks so
 much better.
 
-`inference_fast.beam_search_decode` pulls the **beam** lever. Measured: 4.8×, a little under
-`beam_size` because fewer beams remain live late in the search. It still decodes one
-sentence at a time, so the sentence lever is untouched and available.
+`inference_fast.beam_search_decode` pulls the **beam** lever. The measured reduction is in
+the second table above, a little under `beam_size` because fewer beams remain live late in
+the search. It still decodes one sentence at a time, so the sentence lever is untouched and
+available.
 
 So from the batched decoder, expect roughly `beam_size` — and note that the remaining
 lever is worth more the larger your test set is, since it scales with the number of
@@ -194,9 +196,15 @@ out = model.decode(tgt, memory_batch, ...)           # ONE call for all beams
 log_probs = F.log_softmax(out[:, -1, :], dim=-1)     # (n_live, vocab)
 ```
 
-Calls per decode drop from `O(max_len × beam_size)` to `O(max_len)`. Measured on a small
-CPU model: **140.9 ms/sentence → 39.1 ms/sentence**, a 3.6× speedup, with byte-identical
-output.
+Calls per decode drop from `O(max_len × beam_size)` to `O(max_len)`, with byte-identical
+output. The measured call reduction and speedup are in the second table above; both come
+from `scripts/bench_decode.py`.
+
+Note that the two do not match. Calls fall by more than wall clock does, because removing
+a call does not remove the per-step Python bookkeeping, the per-row tie-breaking, or the
+`log_softmax` — and each surviving call now does `beam_size` times more work, which is not
+free. Reproducing that gap yourself is the point of the harness: it is the difference
+between "fewer calls" and "faster", and they are not the same claim.
 
 ## How we know the output is identical
 

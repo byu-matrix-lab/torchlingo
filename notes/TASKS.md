@@ -15,7 +15,6 @@ Completed work is removed rather than marked done — git history is the record.
 | #7 | PyTorch deprecation warnings | Open |
 | #8 | Verify Eole claims before syllabus use | Open |
 | #9 | `pre-commit install` (still not installed) | Open |
-| #12 | Decode benchmark harness | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
 | #22 | `examples/` and `scripts/` are outside the lint gate | Open |
 | #26 | Broken doc links block `mkdocs --strict` | Open |
@@ -119,6 +118,10 @@ rather than duplicating it into code and notes.
 
 **#2 Batch beam search across sentences**
 Remove the batch-size-1 restriction in `inference_fast.py`; flatten to `(batch x k, t)`.
+Validate it with `python scripts/bench_decode.py`: the sentence lever should show up as a
+further drop in `decode()` calls with positions forwarded unchanged, and
+`tests/test_bench_decode.py` will fail until the committed numbers are regenerated, which
+is the intended prompt to update the docs.
 **This is where the remaining ~8x lives** (the sentence axis above) — and it scales with
 the number of sentences decoded, so it matters more on a real test set than #1 does.
 - Files: `src/torchlingo/inference_fast.py` (the raise, and the per-row loop in
@@ -138,6 +141,10 @@ work *inside* each call rather than the number of calls.
   teaching. Consider stopping at #2 for an educational library.~~ **Resolved by the
   side-by-side design above:** the reference implementation stays readable regardless, so
   the fast path is free to be dense. Worth doing.
+- `scripts/bench_decode.py` is the right instrument, but note it measures the wrong axis
+  for this one: a KV cache leaves the **call count unchanged** and cuts *positions
+  forwarded* instead. Read that column, not the call column, or the harness will make a
+  real improvement look like no change at all.
 
 **#4 Resolve length-normalization semantics**
 `inference.py:203` applies length normalization during *pruning*, not only at final
@@ -177,11 +184,6 @@ single 24GB GPU. Both are from Eole's README, not from running it.
 
 ## Possible tooling to productize
 
-**#12 Decode benchmark harness**
-The ad-hoc scripts written this session (greedy-vs-beam timing, `decode()` call counting
-via monkeypatched instrumentation) would be worth a reusable
-`scripts/bench_decode.py` — needed again to validate #1, #2, and #3, and useful as a
-student exercise in its own right.
 
 ---
 
