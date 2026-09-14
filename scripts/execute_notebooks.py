@@ -69,6 +69,30 @@ def execute(notebook: Path, workdir: Path, timeout: int) -> tuple[bool, str]:
     return result.returncode == 0, result.stdout + result.stderr
 
 
+def link_repo_data(workdir: Path) -> None:
+    """Expose the repository's read-only data inside the scratch directory.
+
+    Some tutorials read shipped files -- the corpus, the pretrained model --
+    while others *write* into ``data/`` as they go. So ``data/`` itself is a real
+    directory in the scratch, and only the read-only members are symlinked into
+    it. Linking the whole directory instead would let a notebook write into the
+    repository, which is exactly what running in a scratch directory is meant to
+    prevent.
+
+    Args:
+        workdir (Path): The scratch directory notebooks execute in.
+    """
+    source = Path("data").resolve()
+    if not source.is_dir():
+        return
+    target = workdir / "data"
+    target.mkdir(exist_ok=True)
+    for name in ("example.tsv", "pretrained", "multilingual_example"):
+        member = source / name
+        if member.exists():
+            (target / name).symlink_to(member)
+
+
 def main() -> int:
     """Execute every tutorial notebook in order and summarize."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -88,6 +112,7 @@ def main() -> int:
         workdir = Path(tmp)
         for notebook in notebooks:
             shutil.copy(notebook, workdir / notebook.name)
+        link_repo_data(workdir)
 
         for notebook in notebooks:
             print(f"executing {notebook.name} ...", flush=True)

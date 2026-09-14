@@ -53,12 +53,19 @@ data/tokenized/
 data/train.tsv
 data/val.tsv
 data/test.tsv
+data/quick_train.tsv
 
 # Checkpoints and outputs
 checkpoints/
 *.pt
 outputs/*.txt
 outputs/*.log
+
+# ...except the tutorial's pretrained model, which is committed on purpose.
+# A tutorial that must train a model before it can show anything is a tutorial
+# nobody finishes, and the whole point of this one is seeing real translations
+# immediately. Regenerate with scripts/train_example_model.py.
+!data/pretrained/model.pt
 
 # TensorBoard
 runs/
