@@ -22,6 +22,14 @@ Completed work is removed rather than marked done — git history is the record.
 | #28 | Attention params skip `_init_weights` | Open |
 | #29 | Recover the last 98 talks with a sentence aligner | Open |
 | #34 | Surface attention weights from greedy and beam decoding | Open |
+| #35 | Malformed tag `v.0.0.8` on the remote | Open |
+| #36 | CI actions pinned to a deprecated Node runtime | Open |
+| #37 | Stacked PRs fight the stale-review rule | Open |
+| #38 | Colab checkpointing has never been run in Colab | Open |
+| #39 | Visualize the beam search itself | Open |
+| #40 | Visualize the effect of decoding options | Open |
+| #41 | Connect beam search back to prior coursework | Open |
+| #42 | Lecture 7 assignment | Open — scope needed |
 
 ## Code — decoding performance
 
@@ -221,15 +229,113 @@ PyPI rejects duplicate versions, so a build that produces `0.0.8` when `0.0.8` a
 exists cannot upload. **Two tags have failed this way without anyone noticing**, because
 the publish job's failure is not surfaced anywhere.
 
-`main` is two merges ahead of `v0.1.1` (#7 and #8), so the beam search speedup, the
-decoding contract suite, and the tie-breaking rule are all unreachable via
-`pip install torchlingo`.
+`main` is now eight merges ahead of `v0.1.1` (#7 through #14), so the beam search speedup,
+the decoding contract suite, the tie-breaking rule, LSTM attention, the repaired corpus
+and every tutorial fix are all unreachable via `pip install torchlingo`.
+
+### Verified 2026-09-13, from the Actions history
+
+An earlier guess recorded here — that the workflow might never fire on a tag, because
+`tags:` sits under the same `push:` trigger as a `paths:` filter — is **wrong**. Every
+`v*` tag has a run. Path filters do not suppress tag pushes:
+
+```
+v0.1.1    push   failure   2026-07-18
+v0.0.8    push   success   2026-02-18
+v.0.0.8   push   failure   2026-02-18   <- malformed tag name, see below
+v0.1.0    push   failure   2026-02-18
+v0.0.7    push   success   2026-01-30
+v0.0.6    push   success   2026-01-30
+```
+
+So the pipeline runs; it fails at the end. Per-job results for the two failed releases:
+
+| | v0.1.0 | v0.1.1 |
+|---|---|---|
+| tests 3.10-3.13 | pass | pass |
+| Build wheels and sdist | pass | pass |
+| Create GitHub Release | pass | **fail** |
+| Publish to PyPI | **fail** | **fail** |
+
+The publish log gives the cause outright:
+
+```
+ERROR  HTTPError: 400 Bad Request from https://upload.pypi.org/legacy/
+```
+
+which is what PyPI returns for a filename that already exists. That confirms the original
+diagnosis: the build produced `0.0.8` because `pyproject.toml` says so, and `0.0.8` was
+already on PyPI from February. The version collision is real and is the primary fault.
+
+**Still unexplained:** why `Create GitHub Release` failed on v0.1.1 but succeeded on
+v0.1.0. The step's own output is not in the archived log, so the cause is not recoverable
+from here. It explains the "no assets" observation above, and it is a *second*,
+independent failure — worth confirming before trusting the next tag, since fixing the
+version collision alone would not have fixed v0.1.1.
 
 Fix should cover both halves:
 - Bump `pyproject.toml` and cut a release that actually publishes.
 - Make CI **fail** a tag build when the git tag and `pyproject.toml` disagree, so a
   mismatch is loud rather than silent. Same class of problem as #14 (ruff version drift):
   two sources of truth with nothing checking they agree.
+- Do the tag-vs-version check **first**, so the next tag cannot fail the same way.
+
+**Do not test this by pushing a `v*` tag.** The `publish` job fires on any ref matching
+`refs/tags/v*` and will attempt a real PyPI upload. The Actions history answers most
+questions without that risk, which is how the table above was produced.
+
+**#35 A malformed tag `v.0.0.8` exists on the remote**
+Found while auditing the Actions history for #16. Someone typed `v.0.0.8` instead of
+`v0.0.8`; it matches the `v*` trigger, ran, and failed. Both tags exist on origin today.
+Harmless but confusing, and it is the kind of thing the tag-vs-version check in #16 would
+have caught at push time. Decide whether to delete it or leave it as history.
+
+**#38 Colab checkpointing has never been run in Colab**
+PR #17 adds `training_checkpoint.py` with `is_colab()`, `mount_drive()` and a Drive-backed
+default directory. None of it has ever executed in Colab. CI cannot cover it: GitHub
+runners have no Drive to mount. Josh said the same of his original in PR #1, so this code
+path has now been **written twice and run zero times**.
+
+Asked Coulson on PR #17 to try it. What needs checking:
+1. `mount_drive()` actually mounts, and `default_checkpoint_dir` lands under `MyDrive`
+   rather than the runtime's own disk — a checkpoint on runtime disk dies with the
+   runtime, defeating the purpose.
+2. `latest.pt` and `best.pt` appear in Drive; the startup free-space line is sane.
+3. Interrupt the runtime partway, re-run the same cell: it should print a resume line and
+   train only the remaining epochs.
+
+Item 3 is the one that matters. If it restarts from epoch 0 the feature does not work,
+whatever the unit tests say.
+- Open: whether to gate the #17 merge on this, or merge with the limitation documented,
+  which it currently is in both the module docstring and the reference page.
+
+**#36 CI actions are pinned to a deprecated Node runtime**
+Every run now warns: `actions/checkout@v4`, `actions/setup-python@v5` and
+`actions/download-artifact@v4` target Node 20, which GitHub deprecated, and are being
+forced onto Node 24. It is a warning today and a hard failure whenever GitHub drops the
+shim. Bump the action versions. Unrelated to anything in flight, and cheap.
+
+**#37 Stacked PRs fight the repo's stale-review rule**
+Not a code defect; a process one, recorded because it cost real time merging #9 through
+#14 and will recur the next time work is stacked.
+
+The `main` ruleset sets `dismiss_stale_reviews_on_push: true` and requires one approving
+review. A stacked PR must merge its parent's changes in before it can land, and that merge
+commit is a push, so it dismisses the approval it just earned. Every PR in the stack then
+needed an admin override even though all six had been reviewed and approved on substance.
+
+Two traps found the hard way, both worth avoiding next time:
+- **Do not merge with `--delete-branch` while another PR is based on that branch.**
+  GitHub auto-closes the dependents. Retarget them to `main` *first*, then delete.
+  Recovering from it means pushing the deleted branch back temporarily, because GitHub
+  refuses to reopen a PR whose base is missing and refuses to retarget a closed one.
+- A PR retargeted to `main` after its base merged has **no status checks**, because no
+  `pull_request` event with `base: main` ever fired for it. Closing and reopening the PR
+  fires one without adding an empty commit.
+
+Options, if this shape comes up again: keep branches independent off `main` where the work
+allows; or ask for one re-approval pass after all branches are rebased; or accept admin
+overrides as the normal cost of stacking.
 
 ## Inference gaps
 
@@ -268,6 +374,92 @@ a blind `except Exception`.
   scope to `src tests examples scripts` in one go.
 
 ---
+
+## Course material
+
+**#42 Lecture 7 assignment** — *placeholder, scope needed*
+Captured so it is not lost. Not startable yet: what lecture 7 covers, which course it
+belongs to, what students are meant to produce, and when it is needed are all unknown here.
+
+**The assignment itself lives in the LMS, not in this repo.** So the work here is whatever
+*supporting material* the assignment needs — a starter notebook, a script with gaps to
+fill, a dataset slice — not the assignment text. That also means the deliverable may be
+small or may be nothing at all, depending on what the assignment asks students to do.
+
+`contributing.md` previously documented an `assignments/` directory that never existed.
+Corrected when this was filed, and the page now says where assignments actually live.
+
+Material an assignment could build on, all now on `main`:
+- Tutorial 4 ends with an ablation and a measurable alignment accuracy, which is already
+  close to an assignment shape.
+- `scripts/bench_decode.py` measures decode call counts against wall clock; the original
+  #12 entry flagged this as "useful as a student exercise in its own right", and the gap
+  between the two numbers is a real lesson.
+- `examples/attention_alignment.py` runs the same comparison at larger scale.
+- The decoding contract tests demonstrate specification-by-test, if the assignment is
+  about correctness rather than modelling.
+
+## Visualization
+
+All three raised by Coulson on Discord, 2026-09-14, after reviewing the open PRs:
+
+> "if we can add visualization to any of the options that we present it could be useful
+> for the students. I saw that it was added for attention, but did we add it for beam
+> search as well? ... students should have learned about this in 312 ... but I think a
+> reminder in this tool may be useful."
+
+**Answer to his direct question: no.** `visualization.py` has only `format_attention` and
+`plot_attention`. Nothing renders the search.
+
+**#39 Visualize the beam search itself**
+The biggest of the three. Attention visualization shows what the decoder **looked at**;
+this would show what it **considered and discarded** — a different lesson, and arguably
+the one beam search needs most, because pruning is the least intuitive part.
+
+Render, per step: the live hypotheses with cumulative and length-normalized scores, which
+survive pruning, which retire on EOS, and which finally wins. The interesting frames are
+the ones where the eventual winner is *not* the top hypothesis early on, since that is
+exactly why beam search beats greedy.
+
+- Follow the attention renderers' pattern: a text version needing nothing extra, so it
+  works in logs, CI and doctests, plus a matplotlib version for notebooks.
+- `beam_search_decode` already holds everything needed inside its loop — candidates,
+  scores, pruning decisions — and currently keeps none of it. Likely an opt-in trace or
+  callback rather than a changed return type, for the same reason as #34: #9 standardized
+  the decoder signatures and the contract tests pin them.
+- Pairs with #34. Both together give a complete picture of one decode: what it considered,
+  and what it attended to.
+
+**#40 Visualize the effect of decoding options**
+Distinct from #39: that shows how the search works on one run, this shows what the knobs
+do across runs — `beam_size`, `alpha`, greedy versus beam.
+
+Tutorial 3 already sweeps beam sizes 1, 2, 3, 5, 10 and prints a table where every row is
+identical, because the toy model is decisive. That teaches nothing. On a model where the
+answers differ, the sweep would show the diminishing returns past beam 3-5 that the docs
+currently **assert in prose without evidence** — the same gap #12 closed for the
+performance numbers.
+
+Also worth showing `alpha`: its effect on output length is easy to demonstrate and hard to
+intuit from the formula, and it connects to the open question in #4.
+
+Smaller than #39; can reuse `scripts/bench_decode.py`'s structure for sweeping and
+emitting JSON.
+
+**#41 Connect beam search back to prior coursework**
+The point stands regardless of which course number is right: students have likely met beam
+search as a general search algorithm before meeting it as a decoder. The docs teach it
+from scratch in NMT terms and never connect it to what they already know. A short framing
+— best-first search with a fixed-width frontier, where the heuristic is the model's log
+probability and pruning is what makes it tractable — lets them transfer understanding
+instead of rebuilding it.
+
+Cheap: a note box in `concepts/decoding.md` and a line in the tutorial. No code.
+
+- **Open question for Coulson, not for us to settle:** which course. He says 312 and flags
+  his own uncertainty; the answer recorded when he asked a related question on PR #8 was
+  that the walkthrough sits in CS 479, with whether it should be taught earlier left open.
+  Reference the concept rather than a number until that is confirmed.
 
 ## Docs and tutorials
 
