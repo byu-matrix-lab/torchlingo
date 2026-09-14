@@ -25,6 +25,10 @@ Completed work is removed rather than marked done — git history is the record.
 | #35 | Malformed tag `v.0.0.8` on the remote | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | Open |
 | #37 | Stacked PRs fight the stale-review rule | Open |
+| #38 | Colab checkpointing has never been run in Colab | Open |
+| #39 | Visualize the beam search itself | Open |
+| #40 | Visualize the effect of decoding options | Open |
+| #41 | Connect beam search back to prior coursework | Open |
 
 ## Code — decoding performance
 
@@ -285,6 +289,25 @@ Found while auditing the Actions history for #16. Someone typed `v.0.0.8` instea
 Harmless but confusing, and it is the kind of thing the tag-vs-version check in #16 would
 have caught at push time. Decide whether to delete it or leave it as history.
 
+**#38 Colab checkpointing has never been run in Colab**
+PR #17 adds `training_checkpoint.py` with `is_colab()`, `mount_drive()` and a Drive-backed
+default directory. None of it has ever executed in Colab. CI cannot cover it: GitHub
+runners have no Drive to mount. Josh said the same of his original in PR #1, so this code
+path has now been **written twice and run zero times**.
+
+Asked Coulson on PR #17 to try it. What needs checking:
+1. `mount_drive()` actually mounts, and `default_checkpoint_dir` lands under `MyDrive`
+   rather than the runtime's own disk — a checkpoint on runtime disk dies with the
+   runtime, defeating the purpose.
+2. `latest.pt` and `best.pt` appear in Drive; the startup free-space line is sane.
+3. Interrupt the runtime partway, re-run the same cell: it should print a resume line and
+   train only the remaining epochs.
+
+Item 3 is the one that matters. If it restarts from epoch 0 the feature does not work,
+whatever the unit tests say.
+- Open: whether to gate the #17 merge on this, or merge with the limitation documented,
+  which it currently is in both the module docstring and the reference page.
+
 **#36 CI actions are pinned to a deprecated Node runtime**
 Every run now warns: `actions/checkout@v4`, `actions/setup-python@v5` and
 `actions/download-artifact@v4` target Node 20, which GitHub deprecated, and are being
@@ -350,6 +373,68 @@ a blind `except Exception`.
   scope to `src tests examples scripts` in one go.
 
 ---
+
+## Visualization
+
+All three raised by Coulson on Discord, 2026-09-14, after reviewing the open PRs:
+
+> "if we can add visualization to any of the options that we present it could be useful
+> for the students. I saw that it was added for attention, but did we add it for beam
+> search as well? ... students should have learned about this in 312 ... but I think a
+> reminder in this tool may be useful."
+
+**Answer to his direct question: no.** `visualization.py` has only `format_attention` and
+`plot_attention`. Nothing renders the search.
+
+**#39 Visualize the beam search itself**
+The biggest of the three. Attention visualization shows what the decoder **looked at**;
+this would show what it **considered and discarded** — a different lesson, and arguably
+the one beam search needs most, because pruning is the least intuitive part.
+
+Render, per step: the live hypotheses with cumulative and length-normalized scores, which
+survive pruning, which retire on EOS, and which finally wins. The interesting frames are
+the ones where the eventual winner is *not* the top hypothesis early on, since that is
+exactly why beam search beats greedy.
+
+- Follow the attention renderers' pattern: a text version needing nothing extra, so it
+  works in logs, CI and doctests, plus a matplotlib version for notebooks.
+- `beam_search_decode` already holds everything needed inside its loop — candidates,
+  scores, pruning decisions — and currently keeps none of it. Likely an opt-in trace or
+  callback rather than a changed return type, for the same reason as #34: #9 standardized
+  the decoder signatures and the contract tests pin them.
+- Pairs with #34. Both together give a complete picture of one decode: what it considered,
+  and what it attended to.
+
+**#40 Visualize the effect of decoding options**
+Distinct from #39: that shows how the search works on one run, this shows what the knobs
+do across runs — `beam_size`, `alpha`, greedy versus beam.
+
+Tutorial 3 already sweeps beam sizes 1, 2, 3, 5, 10 and prints a table where every row is
+identical, because the toy model is decisive. That teaches nothing. On a model where the
+answers differ, the sweep would show the diminishing returns past beam 3-5 that the docs
+currently **assert in prose without evidence** — the same gap #12 closed for the
+performance numbers.
+
+Also worth showing `alpha`: its effect on output length is easy to demonstrate and hard to
+intuit from the formula, and it connects to the open question in #4.
+
+Smaller than #39; can reuse `scripts/bench_decode.py`'s structure for sweeping and
+emitting JSON.
+
+**#41 Connect beam search back to prior coursework**
+The point stands regardless of which course number is right: students have likely met beam
+search as a general search algorithm before meeting it as a decoder. The docs teach it
+from scratch in NMT terms and never connect it to what they already know. A short framing
+— best-first search with a fixed-width frontier, where the heuristic is the model's log
+probability and pruning is what makes it tractable — lets them transfer understanding
+instead of rebuilding it.
+
+Cheap: a note box in `concepts/decoding.md` and a line in the tutorial. No code.
+
+- **Open question for Coulson, not for us to settle:** which course. He says 312 and flags
+  his own uncertainty; the answer recorded when he asked a related question on PR #8 was
+  that the walkthrough sits in CS 479, with whether it should be taught earlier left open.
+  Reference the concept rather than a number until that is confirmed.
 
 ## Docs and tutorials
 
