@@ -17,6 +17,33 @@ import pandas as pd
 
 CORPUS = Path(__file__).resolve().parent.parent / "data" / "example.tsv"
 
+
+def is_available(path: Path) -> bool:
+    """Report whether a file holds real content rather than a Git LFS pointer.
+
+    `data/example.tsv` and `data/pretrained/model.pt` are tracked in Git LFS,
+    and CI checks out *without* it on purpose: they are tens of megabytes, they
+    change rarely, and fetching them on every run costs time and bandwidth quota
+    for the jobs that never read them.
+
+    In that checkout the files still exist and are still readable. They just
+    hold about 130 bytes of pointer text starting `version https://git-lfs...`.
+    Handing that to `pd.read_csv` fails with a complaint about column counts,
+    which tells whoever reads the CI log nothing about the real cause. So these
+    tests ask first and skip. A normal clone has the bytes and runs them all.
+
+    Args:
+        path (Path): File to test.
+
+    Returns:
+        bool: True if the file exists and its content has been fetched.
+    """
+    if not path.exists():
+        return False
+    with path.open("rb") as handle:
+        return not handle.read(23).startswith(b"version https://git-lfs")
+
+
 # Both thresholds sit well below the values the repaired corpus achieves
 # (0.97 correlation, 0.39 agreement) and far above what the broken one managed
 # (0.001 and 0.014). Anything landing between the two is a real regression.
@@ -33,7 +60,9 @@ def _anchors(text: str) -> set[str]:
     return set(_NAMES.findall(text)) | set(_DIGITS.findall(text))
 
 
-@unittest.skipUnless(CORPUS.exists(), "example corpus not present in this checkout")
+@unittest.skipUnless(
+    is_available(CORPUS), "example corpus not fetched in this checkout (Git LFS)"
+)
 class TestExampleCorpusAlignment(unittest.TestCase):
     """The shipped corpus must actually be parallel."""
 
@@ -130,7 +159,10 @@ class TestExampleCorpusAlignment(unittest.TestCase):
 PRETRAINED = Path(__file__).resolve().parent.parent / "data" / "pretrained"
 
 
-@unittest.skipUnless(PRETRAINED.exists(), "pretrained model not generated")
+@unittest.skipUnless(
+    is_available(PRETRAINED / "model.pt"),
+    "pretrained checkpoint not fetched in this checkout (Git LFS)",
+)
 class TestPretrainedArtifacts(unittest.TestCase):
     """Tutorial 5 loads these; if they go missing it fails in CI, not silently."""
 
@@ -144,6 +176,9 @@ class TestPretrainedArtifacts(unittest.TestCase):
         megabytes = (PRETRAINED / "model.pt").stat().st_size / 1e6
         self.assertLess(megabytes, 20)
 
+    @unittest.skipUnless(
+        is_available(CORPUS), "example corpus not fetched in this checkout (Git LFS)"
+    )
     def test_held_out_set_came_from_whole_talks(self):
         """The property the whole tutorial rests on.
 

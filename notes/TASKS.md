@@ -29,6 +29,7 @@ Completed work is removed rather than marked done — git history is the record.
 | #40 | Visualize the effect of decoding options | Open |
 | #41 | Connect beam search back to prior coursework | Open |
 | #42 | Lecture 7 assignment | Open — scope needed |
+| #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
 
 ## Code — decoding performance
 
@@ -338,6 +339,27 @@ Two traps found the hard way, both worth avoiding next time:
 Options, if this shape comes up again: keep branches independent off `main` where the work
 allows; or ask for one re-approval pass after all branches are rebased; or accept admin
 overrides as the normal cost of stacking.
+
+**#44 Gate the sdist on "no Git LFS pointer shipped"**
+
+`data/example.tsv` and `data/pretrained/model.pt` moved to Git LFS, and CI checks out
+without LFS on purpose to keep runs light. That combination has a sharp edge: a build
+that packages an LFS-tracked file in a no-LFS checkout ships 130 bytes of pointer text
+under the name of a 17 MB corpus, with nothing in the build complaining. It would reach
+PyPI looking fine and open as garbage.
+
+`MANIFEST.in` now excludes both explicitly, so this is closed *by construction* rather
+than *by check*. Two things that must agree with nothing checking they do, again:
+a future `recursive-include` would reopen it silently.
+
+- Add a release-job step that scans the built sdist and wheel for any member beginning
+  `version https://git-lfs` and fails on a hit.
+- Cheap, no LFS dependency, catches the whole class rather than today's two files.
+
+Related, worth watching rather than acting on: LFS storage and bandwidth come out of the
+org's quota. Two files at ~28 MB is nothing, but every clone by every student fetches
+them. If a course section of 60 blows through the free tier, the fallback is to host the
+corpus outside git and download it on first use.
 
 ## Inference gaps
 
