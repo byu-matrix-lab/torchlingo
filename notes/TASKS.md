@@ -356,6 +356,14 @@ a future `recursive-include` would reopen it silently.
 - Add a release-job step that scans the built sdist and wheel for any member beginning
   `version https://git-lfs` and fails on a hit.
 - Cheap, no LFS dependency, catches the whole class rather than today's two files.
+- **Match on the first line, not anywhere in the file.** A `grep -rl` for the string
+  flagged `tests/test_data_integrity.py` and `tests/test_sentencepiece.py`, which contain
+  it as the literal the skip logic compares against. The detector would fail the build on
+  the detector. Compare `head -c 23` instead.
+
+Verified once by hand against the CI-built artifacts from run 34992013848, which is the
+real case: a no-LFS checkout. The sdist carries only the small multilingual examples and
+the wheel carries no data at all.
 
 Related, worth watching rather than acting on: LFS storage and bandwidth come out of the
 org's quota. Two files at ~28 MB is nothing, but every clone by every student fetches
