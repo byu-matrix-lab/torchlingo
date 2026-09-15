@@ -30,6 +30,7 @@ Completed work is removed rather than marked done — git history is the record.
 | #41 | Connect beam search back to prior coursework | Open |
 | #42 | Lecture 7 assignment | Open — scope needed |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
+| #45 | A stacked PR gets no CI at all | Open |
 
 ## Code — decoding performance
 
@@ -380,6 +381,30 @@ the more interesting picture.
   type does not move — #9 has just standardized those, along with the contract tests.
 
 ## Lint and tooling gaps
+
+**#45 A stacked PR gets no CI at all**
+
+Found on #20, which reported "no checks reported on the branch" and has never triggered
+a single workflow run. The workflow's `pull_request` trigger is filtered to
+`branches: [main]`, and #20 targets `data/talk-ids-and-subwords` because it is stacked
+behind #19. A PR that does not target main therefore runs nothing.
+
+Checked all six open PRs: #15 through #19 target main and have checks; #20 is the only
+stacked one and the only one with none. So the rule is exactly "stacked means unverified."
+
+This matters because it is silent and it is backwards. The stacked PR is reviewed in that
+state, so a reviewer sees no green checks and has no way to tell "not run" from "not
+passing." CI only starts once the PR is retargeted to main, which happens *after* review.
+And stacking is the normal mode here while PRs wait for acceptance, so this recurs.
+
+Workaround used meanwhile: `gh workflow run tests_and_build.yml --ref <branch>`, since
+`workflow_dispatch` is already enabled.
+
+Fix is one line: drop `branches: [main]` from the `pull_request` trigger so a PR runs CI
+regardless of base. The `push` trigger should keep its `branches: [main]`, which is what
+stops every branch push from burning a run. Needs a decision because it changes CI
+behavior for every PR in the repo.
+
 
 **#22 `examples/` is outside the lint gate**
 CLAUDE.md and CI lint `src` and `tests` only. Running `ruff check examples` turns up 32
