@@ -18,6 +18,10 @@ Two details this script exists to get right:
 2. **Run in filename order, in one directory.** Tutorial 3 loads the checkpoint
    tutorial 2 saves, so the order matters and the two must share a working
    directory.
+3. **Skip, do not fail, when the data is not there.** The corpus and the
+   pretrained checkpoint live in Git LFS and CI checks out without it, so those
+   tutorials are skipped in CI and exercised in a normal clone. See
+   ``REQUIREMENTS``.
 
 Run:
     python scripts/execute_notebooks.py
@@ -34,6 +38,21 @@ from pathlib import Path
 
 TUTORIALS = Path("docs/docs/tutorials")
 TIMEOUT_SECONDS = 900
+
+# Which notebooks cannot run without a Git LFS artifact.
+#
+# CI checks out without LFS on purpose, so these files are pointers there and
+# the notebooks that need them are skipped rather than failed. A developer with
+# a normal clone runs all of them.
+#
+# Tutorial 3 lists the corpus even though it never names it: it loads the
+# checkpoint tutorial 2 trains, so it inherits tutorial 2's inputs.
+REQUIREMENTS = {
+    "02-train-tiny-model.ipynb": ["data/example.tsv"],
+    "03-inference-and-beamsearch.ipynb": ["data/example.tsv"],
+    "04-attention-and-alignment.ipynb": ["data/example.tsv"],
+    "05-real-translations.ipynb": ["data/example.tsv", "data/pretrained/model.pt"],
+}
 
 
 def execute(notebook: Path, workdir: Path, timeout: int) -> tuple[bool, str]:
@@ -67,6 +86,42 @@ def execute(notebook: Path, workdir: Path, timeout: int) -> tuple[bool, str]:
         check=False,
     )
     return result.returncode == 0, result.stdout + result.stderr
+
+
+def is_available(path: Path) -> bool:
+    """Report whether a file is really present, not just an LFS pointer.
+
+    CI checks out without LFS on purpose, to keep it fast and off the bandwidth
+    quota. Large artifacts therefore arrive as ~130-byte pointer files. They
+    exist, they are readable, and feeding one to pandas or torch produces a
+    baffling parse error rather than a useful message -- so callers check.
+
+    Args:
+        path (Path): File to test.
+
+    Returns:
+        bool: True if the real content is present.
+    """
+    if not path.exists():
+        return False
+    with path.open("rb") as handle:
+        return not handle.read(40).startswith(b"version https://git-lfs")
+
+
+def missing_requirements(notebook: Path) -> list[str]:
+    """List the artifacts this notebook needs that have not been fetched.
+
+    Args:
+        notebook (Path): The notebook, identified by filename.
+
+    Returns:
+        list[str]: Repo-relative paths that are absent or still LFS pointers.
+    """
+    return [
+        name
+        for name in REQUIREMENTS.get(notebook.name, [])
+        if not is_available(Path(name))
+    ]
 
 
 def link_repo_data(workdir: Path) -> None:
@@ -106,6 +161,7 @@ def main() -> int:
         return 1
 
     failures = []
+    skipped = []
     # One shared scratch directory: tutorial 3 needs the checkpoint tutorial 2
     # writes, so they cannot be isolated from each other.
     with tempfile.TemporaryDirectory(prefix="torchlingo-notebooks-") as tmp:
@@ -115,6 +171,13 @@ def main() -> int:
         link_repo_data(workdir)
 
         for notebook in notebooks:
+            absent = missing_requirements(notebook)
+            if absent:
+                skipped.append(notebook.name)
+                print(
+                    f"  SKIP  {notebook.name} (needs {', '.join(absent)})", flush=True
+                )
+                continue
             print(f"executing {notebook.name} ...", flush=True)
             ok, output = execute(workdir / notebook.name, workdir, args.timeout)
             if ok:
@@ -125,9 +188,13 @@ def main() -> int:
                 print(output, file=sys.stderr, flush=True)
 
     print()
-    print(
-        f"{len(notebooks) - len(failures)}/{len(notebooks)} notebooks executed cleanly"
-    )
+    ran = len(notebooks) - len(skipped)
+    print(f"{ran - len(failures)}/{ran} notebooks executed cleanly")
+    if skipped:
+        print(
+            f"{len(skipped)} skipped for unfetched data: " + ", ".join(skipped),
+            flush=True,
+        )
     if failures:
         print("failed: " + ", ".join(failures), file=sys.stderr)
         return 1
