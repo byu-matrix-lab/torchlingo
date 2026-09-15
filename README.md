@@ -27,6 +27,19 @@ For development:
 pip install torchlingo[dev]
 ```
 
+### Working from a clone
+
+The example corpus and the pretrained checkpoint are stored in [Git LFS](https://git-lfs.com).
+Install it before cloning, or the two files arrive as short text pointers instead
+of data and the tutorials that read them will not run:
+
+```bash
+git lfs install
+git clone https://github.com/BYU-Matrix-Lab/torchlingo.git
+```
+
+Already cloned without it? `git lfs install && git lfs pull` fetches them.
+
 ## Documentation
 
 For full documentation, tutorials, and API reference, visit:
