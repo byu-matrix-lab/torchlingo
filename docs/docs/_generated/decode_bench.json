@@ -1,0 +1,38 @@
+{
+  "greedy": {
+    "calls": 25,
+    "sequences_per_call": 8.0,
+    "positions": 2600,
+    "seconds": 0.24731758306734264,
+    "ms_per_sentence": 30.91469788341783
+  },
+  "beam_reference": {
+    "calls": 968,
+    "sequences_per_call": 1.0,
+    "positions": 12968,
+    "seconds": 0.8763506670948118,
+    "ms_per_sentence": 109.54383338685147
+  },
+  "beam_fast": {
+    "calls": 200,
+    "sequences_per_call": 4.84,
+    "positions": 12968,
+    "seconds": 0.21962220803834498,
+    "ms_per_sentence": 27.452776004793122
+  },
+  "ratios": {
+    "reference_beam_calls_vs_greedy": 38.7,
+    "reference_beam_positions_vs_greedy": 5.0,
+    "fast_beam_call_reduction": 4.8,
+    "fast_beam_speedup": 4.0
+  },
+  "settings": {
+    "n_sentences": 8,
+    "src_len": 12,
+    "max_len": 25,
+    "beam_size": 5,
+    "seed": 0,
+    "torch": "2.13.0",
+    "device": "cpu"
+  }
+}
