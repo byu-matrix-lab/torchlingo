@@ -31,6 +31,7 @@ Completed work is removed rather than marked done — git history is the record.
 | #42 | Lecture 7 assignment | Open — scope needed |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
 | #45 | A stacked PR gets no CI at all | Open |
+| #46 | Teach the corpus repair instead of doing it silently | Open |
 
 ## Code — decoding performance
 
@@ -519,6 +520,38 @@ Cheap: a note box in `concepts/decoding.md` and a line in the tutorial. No code.
   Reference the concept rather than a number until that is confirmed.
 
 ## Docs and tutorials
+
+**#46 Teach the corpus repair instead of doing it silently**
+
+Coulson's suggestion on his approval of #19: the data cleaning "could be recorded and used
+as an example for cleaning data. Instead of doing it quietly in the background we could
+explain it to the students to reinforce the idea of clean data."
+
+He is right, and right about its weak part too. The repair currently lives entirely in
+`scripts/realign_corpus.py`, so the single most pedagogically loaded thing in the repo is
+the one thing no student sees. What makes it teachable is that the diagnosis is already
+quantified and the numbers are dramatic:
+
+```
+                      broken    repaired
+length correlation     0.001       0.969
+anchor agreement        1.4%       38.9%
+```
+
+That is a complete lesson in how to tell misaligned parallel data from your own modeling
+mistake, which is exactly the confusion a student cannot resolve on their own.
+
+- Use the alignment diagnosis as the spine, not the cleaning filters. Coulson notes the
+  stage-direction removal "does almost nothing so it may be a poor example," and he is
+  right: it removes exactly one line. It belongs as a footnote at most.
+- The two checks are cheap enough to run live in a notebook on the shipped corpus, and
+  the broken state can be reconstructed by re-zipping the columns, so students can see
+  both numbers move.
+- `tests/test_data_integrity.py` already encodes the thresholds and the reasoning. The
+  tutorial and the test should quote the same source rather than restate the numbers.
+- Open question for the author: standalone tutorial, or a section inside tutorial 1 where
+  the corpus is first loaded.
+
 
 **#26 Four broken doc links block `mkdocs build --strict`**
 All four link to source files as though they were doc pages, so docs cannot be gated in
