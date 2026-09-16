@@ -29,7 +29,6 @@ Completed work is removed rather than marked done — git history is the record.
 | #41 | Connect beam search back to prior coursework | Open |
 | #42 | Lecture 7 assignment | Open — scope needed |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
-| #45 | A stacked PR gets no CI at all | In review — PR #21 |
 | #46 | Teach the corpus repair instead of doing it silently | Open |
 
 ## Code — decoding performance
@@ -393,36 +392,13 @@ the more interesting picture.
 
 ## Lint and tooling gaps
 
-**#45 A stacked PR gets no CI at all**
+**Standing gotcha from #45, which is now fixed in #21**
 
-Found on #20, which reported "no checks reported on the branch" and has never triggered
-a single workflow run. The workflow's `pull_request` trigger is filtered to
-`branches: [main]`, and #20 targets `data/talk-ids-and-subwords` because it is stacked
-behind #19. A PR that does not target main therefore runs nothing.
-
-Checked all six open PRs: #15 through #19 target main and have checks; #20 is the only
-stacked one and the only one with none. So the rule is exactly "stacked means unverified."
-
-This matters because it is silent and it is backwards. The stacked PR is reviewed in that
-state, so a reviewer sees no green checks and has no way to tell "not run" from "not
-passing." CI only starts once the PR is retargeted to main, which happens *after* review.
-And stacking is the normal mode here while PRs wait for acceptance, so this recurs.
-
-Retargeting does not fix it either, which widened the finding: after #19 merged, #20 was
-retargeted to main and still got nothing, because a retarget is not a `pull_request`
-event. So a stacked PR is unverified while stacked *and* after retargeting.
-
-Workaround used meanwhile: `gh workflow run tests_and_build.yml --ref <branch>`, since
-`workflow_dispatch` is already enabled.
-
-**Fix is out for review as PR #21** (green: lint, notebooks, 3.10 through 3.13, build):
-drop `branches: [main]` from the `pull_request` trigger so a PR runs CI regardless of
-base. The `push` trigger keeps its `branches: [main]`, which is what stops every branch
-push from burning a duplicate run alongside the pull_request run.
-
-One consequence to expect on merge: for `pull_request` events GitHub reads the workflow
-from the PR branch, not from main, so open PRs keep showing no checks until they are
-rebased onto a main containing #21. New PRs get it immediately.
+A PR opened *before* #21 merged still shows no checks, because for `pull_request` events
+GitHub reads the workflow from the PR branch rather than from main. Rebase such a PR onto
+current main, or dispatch a run with
+`gh workflow run tests_and_build.yml --ref <branch>`. PRs opened since #21 get checks
+automatically, whatever branch they target.
 
 
 **#22 `examples/` is outside the lint gate**
