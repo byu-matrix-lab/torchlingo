@@ -42,8 +42,47 @@ class TestExampleCorpusAlignment(unittest.TestCase):
         cls.frame = pd.read_csv(CORPUS, sep="\t", dtype=str, keep_default_na=False)
 
     def test_has_expected_columns(self):
-        """The corpus must expose the src/tgt columns the loaders expect."""
-        self.assertEqual(list(self.frame.columns), ["src", "tgt"])
+        """src and tgt come first so positional readers keep working.
+
+        `talk` and `kind` are additive metadata: which talk a pair came from,
+        and whether it is transcript, title or description.
+        """
+        self.assertEqual(list(self.frame.columns), ["src", "tgt", "talk", "kind"])
+
+    def test_talk_ids_are_present_and_plural(self):
+        """Without talk ids a held-out split can only be taken by sentence.
+
+        Consecutive sentences in a transcript share a speaker, topic and
+        vocabulary, so a random sentence split leaks and flatters any model
+        evaluated on it.
+        """
+        self.assertGreater(self.frame["talk"].nunique(), 100)
+        self.assertFalse((self.frame["talk"].str.strip() == "").any())
+
+    def test_kinds_are_known_values(self):
+        """Anything else means the generator changed without the tests noticing."""
+        self.assertEqual(
+            set(self.frame["kind"].unique()), {"transcript", "title", "description"}
+        )
+
+    def test_transcript_dominates(self):
+        """Titles and descriptions are two rows per talk; speech is the corpus."""
+        share = (self.frame["kind"] == "transcript").mean()
+        self.assertGreater(share, 0.95)
+
+    def test_a_talk_split_leaks_almost_nothing(self):
+        """The property that makes talk ids worth carrying.
+
+        Splitting by talk should leave very few held-out sentences that also
+        appear in training. What remains is short formulaic speech -- "Thank
+        you." and the like -- not topical overlap.
+        """
+        talks = sorted(self.frame["talk"].unique())
+        cut = int(len(talks) * 0.9)
+        train = self.frame[self.frame["talk"].isin(set(talks[:cut]))]
+        held_out = self.frame[~self.frame["talk"].isin(set(talks[:cut]))]
+        overlap = held_out["src"].isin(set(train["src"])).mean()
+        self.assertLess(overlap, 0.05)
 
     def test_has_enough_rows_to_train_on(self):
         """A corpus this small would not support the tutorials."""

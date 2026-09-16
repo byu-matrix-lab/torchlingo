@@ -47,6 +47,10 @@ TGT_URL = re.compile(r"^http://www\.ted\.com/talks/lang/[a-z]+/([a-z0-9_]+)\.htm
 HEADER_URL, HEADER_DESC, HEADER_TAGS, HEADER_VIEWS, HEADER_TITLE = range(5)
 HEADER_LEN = 5
 
+# A whole line that is nothing but a bracketed stage direction: (Laughter),
+# (Applause), [Music]. Not a translation pair.
+NON_SPEECH = re.compile(r"[\(\[][^)\]]{0,40}[\)\]]")
+
 
 def split_talks(lines: list[str], pattern: re.Pattern) -> dict[str, list[str]]:
     """Segment one stream into per-talk records keyed by talk slug.
@@ -66,32 +70,64 @@ def split_talks(lines: list[str], pattern: re.Pattern) -> dict[str, list[str]]:
     return talks
 
 
-def pair_talk(src_record: list[str], tgt_record: list[str]) -> list[tuple[str, str]]:
-    """Pair one talk's lines, or return nothing if the transcripts disagree.
+def is_non_speech(line: str) -> bool:
+    """Report whether a line is a transcript stage direction rather than speech.
 
-    The title and description are genuine translations and are kept. Tags and
-    view counts are byte-identical across languages -- they are metadata, not
-    translations, and training on them would teach the model to copy.
+    TED transcripts mark events like ``(Laughter)`` and ``(Applause)``. They are
+    not translations of each other and are useless as training pairs.
+
+    In practice this removes almost nothing from this corpus, because such
+    markers appear asymmetrically between languages -- a translator drops the
+    ``(Laughter)`` the English transcript kept -- which makes the talk's line
+    counts disagree, and :func:`pair_talk` already discards those talks
+    entirely. The check stays because relying on that side effect would be
+    fragile, and because it documents the intent.
 
     Args:
+        line (str): One transcript line.
+
+    Returns:
+        bool: True if the whole line is a single bracketed stage direction.
+    """
+    return bool(NON_SPEECH.fullmatch(line.strip()))
+
+
+def pair_talk(
+    slug: str, src_record: list[str], tgt_record: list[str]
+) -> list[tuple[str, str, str, str]]:
+    """Pair one talk's lines, or return nothing if the transcripts disagree.
+
+    The title and description are genuine translations and are kept, but tagged
+    so they can be excluded: a title is not a spoken sentence and belongs to a
+    different register. Tags and view counts are byte-identical across languages
+    -- metadata, not translations -- and training on them would teach the model
+    to copy.
+
+    Args:
+        slug (str): Talk identifier, carried onto every row so that a held-out
+            split can be taken by talk rather than by sentence.
         src_record (list[str]): Source-side lines for one talk, URL first.
         tgt_record (list[str]): Target-side lines for the same talk.
 
     Returns:
-        list[tuple[str, str]]: Aligned pairs, empty when the transcript line
-            counts differ.
+        list[tuple[str, str, str, str]]: ``(talk, kind, src, tgt)`` rows, empty
+            when the transcript line counts differ.
     """
     if len(src_record) != len(tgt_record):
         return []
     if len(src_record) <= HEADER_LEN:
         return []
 
-    pairs = [
-        (src_record[HEADER_DESC], tgt_record[HEADER_DESC]),
-        (src_record[HEADER_TITLE], tgt_record[HEADER_TITLE]),
+    rows = [
+        (slug, "description", src_record[HEADER_DESC], tgt_record[HEADER_DESC]),
+        (slug, "title", src_record[HEADER_TITLE], tgt_record[HEADER_TITLE]),
     ]
-    pairs.extend(zip(src_record[HEADER_LEN:], tgt_record[HEADER_LEN:]))
-    return pairs
+    rows.extend(
+        (slug, "transcript", src, tgt)
+        for src, tgt in zip(src_record[HEADER_LEN:], tgt_record[HEADER_LEN:])
+        if not (is_non_speech(src) or is_non_speech(tgt))
+    )
+    return rows
 
 
 def realign(input_path: Path) -> tuple[pd.DataFrame, dict]:
@@ -109,18 +145,26 @@ def realign(input_path: Path) -> tuple[pd.DataFrame, dict]:
     tgt_talks = split_talks(frame["tgt"].tolist(), TGT_URL)
 
     shared = [slug for slug in src_talks if slug in tgt_talks]
-    aligned: list[tuple[str, str]] = []
+    aligned: list[tuple[str, str, str, str]] = []
     kept_talks = 0
+    transcript_lines = 0
     for slug in shared:
-        pairs = pair_talk(src_talks[slug], tgt_talks[slug])
-        if pairs:
-            aligned.extend(pairs)
+        rows = pair_talk(slug, src_talks[slug], tgt_talks[slug])
+        if rows:
+            aligned.extend(rows)
             kept_talks += 1
+            transcript_lines += len(src_talks[slug]) - HEADER_LEN
 
     # Blank lines carry no signal and pandas would read them back as NaN.
-    aligned = [(s.strip(), t.strip()) for s, t in aligned]
-    aligned = [(s, t) for s, t in aligned if s and t]
+    aligned = [(talk, kind, s.strip(), t.strip()) for talk, kind, s, t in aligned]
+    aligned = [row for row in aligned if row[2] and row[3]]
 
+    frame_out = pd.DataFrame(aligned, columns=["talk", "kind", "src", "tgt"])
+    # src and tgt first: several loaders and every doc example read positionally
+    # or by name from the front, and the metadata is additive.
+    frame_out = frame_out[["src", "tgt", "talk", "kind"]]
+
+    kept_transcript = int((frame_out["kind"] == "transcript").sum())
     stats = {
         "input_rows": len(frame),
         "src_talks": len(src_talks),
@@ -129,9 +173,10 @@ def realign(input_path: Path) -> tuple[pd.DataFrame, dict]:
         "talks_kept": kept_talks,
         "talks_dropped_line_count_mismatch": len(shared) - kept_talks,
         "talks_dropped_not_in_both_streams": len(src_talks) - len(shared),
-        "output_rows": len(aligned),
+        "non_speech_lines_removed": transcript_lines - kept_transcript,
+        "output_rows": len(frame_out),
     }
-    return pd.DataFrame(aligned, columns=["src", "tgt"]), stats
+    return frame_out, stats
 
 
 def anchor_agreement(frame: pd.DataFrame, sample: int = 5000) -> float:
