@@ -55,6 +55,22 @@ shared.
 tokens = beam_search_decode(model, src, beam_size=5)
 ```
 
+### Watching the search prune
+
+The argument for beam search is about the paths greedy never explores — and those are
+invisible in the output, which only ever shows the winner. Pass a list as `trace` to see
+them:
+
+```python
+trace = []
+tokens = beam_search_decode(model, src, beam_size=3, trace=trace)
+print(format_beam_search(trace, itos=tgt_vocab.idx2token, winner=tokens))
+```
+
+The case worth finding is a step where the eventual winner was **not** ranked first. That
+is the moment greedy would have gone elsewhere and been unable to come back. See
+[Visualization](../reference/visualization.md#beam-search) for how to read it.
+
 ## Reference and fast implementations
 
 TorchLingo ships **two implementations of beam search**. They produce exactly the
