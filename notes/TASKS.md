@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-09-13. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-09-16. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 ## Status
@@ -24,13 +24,12 @@ Completed work is removed rather than marked done — git history is the record.
 | #35 | Malformed tag `v.0.0.8` on the remote | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | Open |
 | #37 | Stacked PRs fight the stale-review rule | Open |
-| #38 | Colab checkpointing has never been run in Colab | Open |
-| #39 | Visualize the beam search itself | Open |
+| #38 | Colab checkpointing has never been run in Colab | Open — Coulson testing |
 | #40 | Visualize the effect of decoding options | Open |
 | #41 | Connect beam search back to prior coursework | Open |
 | #42 | Lecture 7 assignment | Open — scope needed |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
-| #45 | A stacked PR gets no CI at all | Open |
+| #45 | A stacked PR gets no CI at all | In review — PR #21 |
 | #46 | Teach the corpus repair instead of doing it silently | Open |
 
 ## Code — decoding performance
@@ -313,6 +312,9 @@ Item 3 is the one that matters. If it restarts from epoch 0 the feature does not
 whatever the unit tests say.
 - Open: whether to gate the #17 merge on this, or merge with the limitation documented,
   which it currently is in both the module docstring and the reference page.
+- **Coulson accepted on 2026-09-16:** "I will return to this to review and test in Colab
+  when I finish the other PRs." He has since reviewed everything else, so #17 is next in
+  his queue and this is the one open item with a named owner.
 
 **#36 CI actions are pinned to a deprecated Node runtime**
 Every run now warns: `actions/checkout@v4`, `actions/setup-python@v5` and
@@ -406,13 +408,21 @@ state, so a reviewer sees no green checks and has no way to tell "not run" from 
 passing." CI only starts once the PR is retargeted to main, which happens *after* review.
 And stacking is the normal mode here while PRs wait for acceptance, so this recurs.
 
+Retargeting does not fix it either, which widened the finding: after #19 merged, #20 was
+retargeted to main and still got nothing, because a retarget is not a `pull_request`
+event. So a stacked PR is unverified while stacked *and* after retargeting.
+
 Workaround used meanwhile: `gh workflow run tests_and_build.yml --ref <branch>`, since
 `workflow_dispatch` is already enabled.
 
-Fix is one line: drop `branches: [main]` from the `pull_request` trigger so a PR runs CI
-regardless of base. The `push` trigger should keep its `branches: [main]`, which is what
-stops every branch push from burning a run. Needs a decision because it changes CI
-behavior for every PR in the repo.
+**Fix is out for review as PR #21** (green: lint, notebooks, 3.10 through 3.13, build):
+drop `branches: [main]` from the `pull_request` trigger so a PR runs CI regardless of
+base. The `push` trigger keeps its `branches: [main]`, which is what stops every branch
+push from burning a duplicate run alongside the pull_request run.
+
+One consequence to expect on merge: for `pull_request` events GitHub reads the workflow
+from the PR branch, not from main, so open PRs keep showing no checks until they are
+rebased onto a main containing #21. New PRs get it immediately.
 
 
 **#22 `examples/` is outside the lint gate**
@@ -466,27 +476,9 @@ All three raised by Coulson on Discord, 2026-09-14, after reviewing the open PRs
 > search as well? ... students should have learned about this in 312 ... but I think a
 > reminder in this tool may be useful."
 
-**Answer to his direct question: no.** `visualization.py` has only `format_attention` and
-`plot_attention`. Nothing renders the search.
-
-**#39 Visualize the beam search itself**
-The biggest of the three. Attention visualization shows what the decoder **looked at**;
-this would show what it **considered and discarded** — a different lesson, and arguably
-the one beam search needs most, because pruning is the least intuitive part.
-
-Render, per step: the live hypotheses with cumulative and length-normalized scores, which
-survive pruning, which retire on EOS, and which finally wins. The interesting frames are
-the ones where the eventual winner is *not* the top hypothesis early on, since that is
-exactly why beam search beats greedy.
-
-- Follow the attention renderers' pattern: a text version needing nothing extra, so it
-  works in logs, CI and doctests, plus a matplotlib version for notebooks.
-- `beam_search_decode` already holds everything needed inside its loop — candidates,
-  scores, pruning decisions — and currently keeps none of it. Likely an opt-in trace or
-  callback rather than a changed return type, for the same reason as #34: #9 standardized
-  the decoder signatures and the contract tests pin them.
-- Pairs with #34. Both together give a complete picture of one decode: what it considered,
-  and what it attended to.
+**The answer to his direct question was no.** That is now fixed: `visualization.py` gained
+`format_beam_search` and `plot_beam_search`, and `beam_search_decode` takes an optional
+trace recording candidates *before* pruning. The two below are what remains.
 
 **#40 Visualize the effect of decoding options**
 Distinct from #39: that shows how the search works on one run, this shows what the knobs
