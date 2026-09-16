@@ -15,8 +15,17 @@ on:
       - '.pre-commit-config.yaml'
       - '.github/workflows/tests_and_build.yml'
     tags: ['v*']
+  # Deliberately not filtered by base branch. A PR stacked behind another PR
+  # targets that PR's branch rather than main, and a `branches: [main]` filter
+  # here means it runs no checks at all. The reviewer then sees an empty check
+  # list and cannot tell "not run" from "not passing", which is the state the
+  # PR is actually reviewed in: CI would only start after it is retargeted to
+  # main, which happens after review. Retargeting does not help either, since
+  # that is not a `pull_request` event.
+  #
+  # The `push` trigger above keeps its `branches: [main]`, which is what stops
+  # every branch push from burning a duplicate run.
   pull_request:
-    branches: [main]
     paths:
       - 'src/**'
       - 'tests/**'
