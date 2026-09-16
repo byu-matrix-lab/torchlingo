@@ -29,6 +29,9 @@ Completed work is removed rather than marked done — git history is the record.
 | #40 | Visualize the effect of decoding options | Open |
 | #41 | Connect beam search back to prior coursework | Open |
 | #42 | Lecture 7 assignment | Open — scope needed |
+| #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
+| #45 | A stacked PR gets no CI at all | Open |
+| #46 | Teach the corpus repair instead of doing it silently | Open |
 
 ## Code — decoding performance
 
@@ -339,6 +342,35 @@ Options, if this shape comes up again: keep branches independent off `main` wher
 allows; or ask for one re-approval pass after all branches are rebased; or accept admin
 overrides as the normal cost of stacking.
 
+**#44 Gate the sdist on "no Git LFS pointer shipped"**
+
+`data/example.tsv` and `data/pretrained/model.pt` moved to Git LFS, and CI checks out
+without LFS on purpose to keep runs light. That combination has a sharp edge: a build
+that packages an LFS-tracked file in a no-LFS checkout ships 130 bytes of pointer text
+under the name of a 17 MB corpus, with nothing in the build complaining. It would reach
+PyPI looking fine and open as garbage.
+
+`MANIFEST.in` now excludes both explicitly, so this is closed *by construction* rather
+than *by check*. Two things that must agree with nothing checking they do, again:
+a future `recursive-include` would reopen it silently.
+
+- Add a release-job step that scans the built sdist and wheel for any member beginning
+  `version https://git-lfs` and fails on a hit.
+- Cheap, no LFS dependency, catches the whole class rather than today's two files.
+- **Match on the first line, not anywhere in the file.** A `grep -rl` for the string
+  flagged `tests/test_data_integrity.py` and `tests/test_sentencepiece.py`, which contain
+  it as the literal the skip logic compares against. The detector would fail the build on
+  the detector. Compare `head -c 23` instead.
+
+Verified once by hand against the CI-built artifacts from run 34992013848, which is the
+real case: a no-LFS checkout. The sdist carries only the small multilingual examples and
+the wheel carries no data at all.
+
+Related, worth watching rather than acting on: LFS storage and bandwidth come out of the
+org's quota. Two files at ~28 MB is nothing, but every clone by every student fetches
+them. If a course section of 60 blows through the free tier, the fallback is to host the
+corpus outside git and download it on first use.
+
 ## Inference gaps
 
 **#34 Surface attention weights from greedy and beam decoding**
@@ -358,6 +390,30 @@ the more interesting picture.
   type does not move — #9 has just standardized those, along with the contract tests.
 
 ## Lint and tooling gaps
+
+**#45 A stacked PR gets no CI at all**
+
+Found on #20, which reported "no checks reported on the branch" and has never triggered
+a single workflow run. The workflow's `pull_request` trigger is filtered to
+`branches: [main]`, and #20 targets `data/talk-ids-and-subwords` because it is stacked
+behind #19. A PR that does not target main therefore runs nothing.
+
+Checked all six open PRs: #15 through #19 target main and have checks; #20 is the only
+stacked one and the only one with none. So the rule is exactly "stacked means unverified."
+
+This matters because it is silent and it is backwards. The stacked PR is reviewed in that
+state, so a reviewer sees no green checks and has no way to tell "not run" from "not
+passing." CI only starts once the PR is retargeted to main, which happens *after* review.
+And stacking is the normal mode here while PRs wait for acceptance, so this recurs.
+
+Workaround used meanwhile: `gh workflow run tests_and_build.yml --ref <branch>`, since
+`workflow_dispatch` is already enabled.
+
+Fix is one line: drop `branches: [main]` from the `pull_request` trigger so a PR runs CI
+regardless of base. The `push` trigger should keep its `branches: [main]`, which is what
+stops every branch push from burning a run. Needs a decision because it changes CI
+behavior for every PR in the repo.
+
 
 **#22 `examples/` is outside the lint gate**
 CLAUDE.md and CI lint `src` and `tests` only. Running `ruff check examples` turns up 32
@@ -464,6 +520,38 @@ Cheap: a note box in `concepts/decoding.md` and a line in the tutorial. No code.
   Reference the concept rather than a number until that is confirmed.
 
 ## Docs and tutorials
+
+**#46 Teach the corpus repair instead of doing it silently**
+
+Coulson's suggestion on his approval of #19: the data cleaning "could be recorded and used
+as an example for cleaning data. Instead of doing it quietly in the background we could
+explain it to the students to reinforce the idea of clean data."
+
+He is right, and right about its weak part too. The repair currently lives entirely in
+`scripts/realign_corpus.py`, so the single most pedagogically loaded thing in the repo is
+the one thing no student sees. What makes it teachable is that the diagnosis is already
+quantified and the numbers are dramatic:
+
+```
+                      broken    repaired
+length correlation     0.001       0.969
+anchor agreement        1.4%       38.9%
+```
+
+That is a complete lesson in how to tell misaligned parallel data from your own modeling
+mistake, which is exactly the confusion a student cannot resolve on their own.
+
+- Use the alignment diagnosis as the spine, not the cleaning filters. Coulson notes the
+  stage-direction removal "does almost nothing so it may be a poor example," and he is
+  right: it removes exactly one line. It belongs as a footnote at most.
+- The two checks are cheap enough to run live in a notebook on the shipped corpus, and
+  the broken state can be reconstructed by re-zipping the columns, so students can see
+  both numbers move.
+- `tests/test_data_integrity.py` already encodes the thresholds and the reasoning. The
+  tutorial and the test should quote the same source rather than restate the numbers.
+- Open question for the author: standalone tutorial, or a section inside tutorial 1 where
+  the corpus is first loaded.
+
 
 **#26 Four broken doc links block `mkdocs build --strict`**
 All four link to source files as though they were doc pages, so docs cannot be gated in

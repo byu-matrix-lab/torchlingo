@@ -32,6 +32,14 @@ def main():
         print(f"{example_path} not found; skipping model generation.")
         return
 
+    # The corpus is a Git LFS artifact and CI checks out without LFS, so there
+    # the file exists but holds ~130 bytes of pointer text. Reading it would
+    # raise a KeyError on the "src" column and fail the step for no good reason.
+    with example_path.open("rb") as handle:
+        if handle.read(23).startswith(b"version https://git-lfs"):
+            print(f"{example_path} is an unfetched Git LFS pointer; skipping.")
+            return
+
     df = pd.read_csv(example_path, sep="\t")
     n = min(args.n, len(df))
     src_lines = df["src"].astype(str).head(n).tolist()

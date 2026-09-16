@@ -1,0 +1,21 @@
+# Large binary and data artifacts go to Git LFS, so cloning the repository does
+# not drag their full history along with it.
+#
+# Only genuinely large files belong here. Everything smaller stays in git
+# proper: LFS costs bandwidth quota on every fetch, including every CI run, so
+# adding a 300 KB file buys nothing and costs something.
+#
+# Currently tracked:
+#   data/example.tsv           ~17 MB  the parallel corpus
+#   data/pretrained/model.pt   ~10 MB  the checkpoint tutorial 5 loads
+#
+# CI deliberately checks out WITHOUT LFS, so these arrive as ~130-byte pointer
+# files there. That is a supported state, not a broken one: the tests that read
+# them skip, and the notebook gate skips the tutorials that need them. Anything
+# reading a tracked artifact must tolerate a pointer rather than assume content.
+# A developer with a normal clone gets the real files and runs the full set.
+data/example.tsv filter=lfs diff=lfs merge=lfs -text
+*.pt filter=lfs diff=lfs merge=lfs -text
+
+# Notebooks are text and diff better without normalization surprises.
+*.ipynb -text
