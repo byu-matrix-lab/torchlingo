@@ -142,6 +142,55 @@ jobs:
         run: |
           python scripts/execute_notebooks.py
 
+  docs:
+    name: Build docs strictly
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
+
+      # Read the `docs` extra out of pyproject.toml rather than restating the
+      # package list, the same way the lint job reads its pinned ruff spec.
+      # Two hand-written copies of one dependency list drift; this cannot.
+      #
+      # Deliberately NOT `pip install ".[docs]"`, which would also install the
+      # project and therefore torch. The docs build never imports torchlingo --
+      # mkdocstrings reads the source statically via griffe -- so pulling a
+      # ~200 MB wheel into this job would buy nothing.
+      - name: Install docs tooling
+        run: |
+          python -m pip install --upgrade pip
+          DOCS_SPECS=$(python -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              extras = tomllib.load(f)['project']['optional-dependencies']
+          print(' '.join(extras['docs']))
+          ")
+          echo "Installing $DOCS_SPECS"
+          pip install $DOCS_SPECS
+
+      # `--strict` turns MkDocs warnings into a failure. Without it a link to a
+      # page that does not exist is a line in a log nobody reads, and the site
+      # publishes with the link broken -- which is how four of them accumulated.
+      # The deploy workflow builds the same site, so a failure here is a failure
+      # that would otherwise have shipped.
+      #
+      # This does not execute notebooks: mkdocs-jupyter is configured with
+      # execute: false, so the job is fast and needs no data. Tutorials are
+      # executed by the `notebooks` job instead.
+      - name: Build docs
+        run: mkdocs build --strict --config-file docs/mkdocs.yml -d site
+
   build:
     name: Build wheels and sdist
     # Notebooks gate the build, and therefore the release and publish jobs that
