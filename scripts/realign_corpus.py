@@ -36,14 +36,20 @@ Pass ``--report`` to also write alignment statistics as JSON.
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
 
 import pandas as pd
 
-# The anchor probe that exposed this corpus as misaligned now lives in the
-# library, so students can run it on their own data and the tests assert on the
+# The probes that exposed this corpus as misaligned, and the aligner that
+# repairs the talks they would otherwise force us to discard, both live in the
+# library: students can run them on their own data, and the tests assert on the
 # same implementation this script reports.
-from torchlingo.preprocessing.alignment import anchor_agreement
+from torchlingo.preprocessing.alignment import (
+    align_one_to_one,
+    anchor_agreement,
+    diagnose_alignment,
+)
 
 SRC_URL = re.compile(r"^http://www\.ted\.com/talks/([a-z0-9_]+)\.html$")
 TGT_URL = re.compile(r"^http://www\.ted\.com/talks/lang/[a-z]+/([a-z0-9_]+)\.html$")
@@ -135,11 +141,52 @@ def pair_talk(
     return rows
 
 
-def realign(input_path: Path) -> tuple[pd.DataFrame, dict]:
+def recover_talk(
+    slug: str, src_record: list[str], tgt_record: list[str]
+) -> list[tuple[str, str, str, str]]:
+    """Rescue a talk whose two transcripts were segmented differently.
+
+    :func:`pair_talk` discards these outright, because pairing them by position
+    would be guessing and guessing is how this corpus broke in the first place.
+    A length-based aligner is not a guess: it finds the cheapest way to walk
+    both sides at once, and only its confident one-to-one beads are kept.
+
+    The title and description still pair by position. They are single lines in
+    a fixed slot, not a segmented transcript, so there is nothing to drift.
+
+    Args:
+        slug (str): Talk identifier, carried onto every row.
+        src_record (list[str]): Source-side lines for one talk, URL first.
+        tgt_record (list[str]): Target-side lines for the same talk.
+
+    Returns:
+        list[tuple[str, str, str, str]]: ``(talk, kind, src, tgt)`` rows.
+    """
+    if len(src_record) <= HEADER_LEN or len(tgt_record) <= HEADER_LEN:
+        return []
+
+    rows = [
+        (slug, "description", src_record[HEADER_DESC], tgt_record[HEADER_DESC]),
+        (slug, "title", src_record[HEADER_TITLE], tgt_record[HEADER_TITLE]),
+    ]
+    source = [line.strip() for line in src_record[HEADER_LEN:]]
+    target = [line.strip() for line in tgt_record[HEADER_LEN:]]
+    rows.extend(
+        (slug, "transcript", src, tgt)
+        for src, tgt in align_one_to_one(source, target)
+        if not (is_non_speech(src) or is_non_speech(tgt))
+    )
+    return rows
+
+
+def realign(input_path: Path, recover: bool = True) -> tuple[pd.DataFrame, dict]:
     """De-interleave and realign a drifted parallel corpus.
 
     Args:
         input_path (Path): The two-column TSV to repair.
+        recover (bool): Also rescue talks whose transcripts were segmented
+            differently, using the length-based aligner. When False, those
+            talks are dropped, which is what this script did originally.
 
     Returns:
         tuple: The realigned DataFrame with `src`/`tgt` columns, and a dict of
@@ -152,13 +199,25 @@ def realign(input_path: Path) -> tuple[pd.DataFrame, dict]:
     shared = [slug for slug in src_talks if slug in tgt_talks]
     aligned: list[tuple[str, str, str, str]] = []
     kept_talks = 0
-    transcript_lines = 0
+    kept_transcript_lines = 0
+    recovered_transcript_lines = 0
+    recovered_talks = 0
+    recovered_rows = 0
+    recovered_slugs: list[str] = []
     for slug in shared:
         rows = pair_talk(slug, src_talks[slug], tgt_talks[slug])
         if rows:
             aligned.extend(rows)
             kept_talks += 1
-            transcript_lines += len(src_talks[slug]) - HEADER_LEN
+            kept_transcript_lines += len(src_talks[slug]) - HEADER_LEN
+        elif recover:
+            rows = recover_talk(slug, src_talks[slug], tgt_talks[slug])
+            if rows:
+                aligned.extend(rows)
+                recovered_talks += 1
+                recovered_rows += len(rows)
+                recovered_slugs.append(slug)
+                recovered_transcript_lines += len(src_talks[slug]) - HEADER_LEN
 
     # Blank lines carry no signal and pandas would read them back as NaN.
     aligned = [(talk, kind, s.strip(), t.strip()) for talk, kind, s, t in aligned]
@@ -169,18 +228,65 @@ def realign(input_path: Path) -> tuple[pd.DataFrame, dict]:
     # or by name from the front, and the metadata is additive.
     frame_out = frame_out[["src", "tgt", "talk", "kind"]]
 
-    kept_transcript = int((frame_out["kind"] == "transcript").sum())
+    # What positional pairing would have produced on the same talks. This is
+    # the control: without it, "the aligner works" rests on the recovered rows
+    # scoring well, which they might have done anyway. It is computed here
+    # rather than typed into the docs so it cannot drift.
+    naive_rows: list[tuple[str, str]] = []
+    for slug in recovered_slugs:
+        source = [line.strip() for line in src_talks[slug][HEADER_LEN:]]
+        target = [line.strip() for line in tgt_talks[slug][HEADER_LEN:]]
+        naive_rows.extend(
+            (src, tgt)
+            for src, tgt in zip(source, target)
+            if src and tgt and not (is_non_speech(src) or is_non_speech(tgt))
+        )
+
+    # Split the accounting by cause. A talk kept by `pair_talk` loses lines
+    # only to the non-speech filter, so that difference really is non-speech.
+    # A talk rescued by the aligner also loses every bead that was not a
+    # confident one-to-one, and folding the two together would report 222
+    # "non-speech" lines in a corpus that has one.
+    is_transcript = frame_out["kind"] == "transcript"
+    was_recovered = frame_out["talk"].isin(set(recovered_slugs))
+    kept_transcript = int((is_transcript & ~was_recovered).sum())
+    recovered_transcript = int((is_transcript & was_recovered).sum())
+
     stats = {
         "input_rows": len(frame),
         "src_talks": len(src_talks),
         "tgt_talks": len(tgt_talks),
         "shared_talks": len(shared),
         "talks_kept": kept_talks,
-        "talks_dropped_line_count_mismatch": len(shared) - kept_talks,
+        "talks_recovered_by_aligner": recovered_talks,
+        "rows_recovered_by_aligner": recovered_rows,
+        # Transcript rows only. The total above also counts each recovered
+        # talk's title and description, which pair by position and are not the
+        # aligner's work, so comparing that total against a transcript-only
+        # baseline would flatter it.
+        "transcript_rows_recovered_by_aligner": recovered_transcript,
+        "talks_dropped_line_count_mismatch": len(shared)
+        - kept_talks
+        - recovered_talks,
         "talks_dropped_not_in_both_streams": len(src_talks) - len(shared),
-        "non_speech_lines_removed": transcript_lines - kept_transcript,
+        "recovered_slugs": recovered_slugs,
+        "non_speech_lines_removed": kept_transcript_lines - kept_transcript,
+        "lines_the_aligner_would_not_pair": (
+            recovered_transcript_lines - recovered_transcript
+        ),
         "output_rows": len(frame_out),
     }
+
+    if naive_rows:
+        naive = diagnose_alignment(
+            pd.DataFrame(naive_rows, columns=["src", "tgt"]), sample=len(naive_rows)
+        )
+        stats["naive_pairing"] = {
+            "rows": len(naive_rows),
+            "length_correlation": naive.length_correlation,
+            "anchor_agreement": naive.anchor_agreement,
+            "passes": naive.looks_aligned(),
+        }
     return frame_out, stats
 
 
@@ -190,24 +296,77 @@ def main() -> None:
     parser.add_argument("--input", type=Path, default=Path("data/example.tsv"))
     parser.add_argument("--output", type=Path, default=Path("data/example.tsv"))
     parser.add_argument("--report", type=Path, default=None)
+    parser.add_argument(
+        "--no-recover",
+        action="store_true",
+        help="Drop talks whose transcripts were segmented differently instead "
+        "of realigning them. Reproduces this script's original behaviour.",
+    )
     args = parser.parse_args()
 
     before = pd.read_csv(args.input, sep="\t", dtype=str, keep_default_na=False)
-    frame, stats = realign(args.input)
+    frame, stats = realign(args.input, recover=not args.no_recover)
     stats["anchor_agreement_before"] = round(anchor_agreement(before)[0], 4)
     stats["anchor_agreement_after"] = round(anchor_agreement(frame)[0], 4)
+
+    # The gate. Rows the aligner produced are the ones most likely to be wrong,
+    # so they are checked *on their own* rather than diluted into 73k rows that
+    # would mask a bad batch. Refusing to write is the whole point: this corpus
+    # shipped misaligned once because nothing stood between a plausible-looking
+    # file and `data/`.
+    recovered = frame[frame["talk"].isin(stats.get("recovered_slugs", []))]
+    if len(recovered):
+        report = diagnose_alignment(recovered, sample=len(recovered))
+        stats["recovered_length_correlation"] = report.length_correlation
+        stats["recovered_anchor_agreement"] = report.anchor_agreement
+        stats["recovered_passes"] = report.looks_aligned()
+        if not report.looks_aligned():
+            print(
+                f"REFUSING TO WRITE: recovered rows fail the alignment check "
+                f"({report}). Re-run with --no-recover to drop them instead.",
+                file=sys.stderr,
+            )
+            raise SystemExit(1)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     frame.to_csv(args.output, sep="\t", index=False)
 
-    width = max(len(key) for key in stats)
-    for key, value in stats.items():
+    printable = {k: v for k, v in stats.items() if k != "recovered_slugs"}
+    width = max(len(key) for key in printable)
+    for key, value in printable.items():
         print(f"{key:{width}s}  {value}")
     print(f"\nwrote {len(frame)} aligned pairs to {args.output}")
 
     if args.report:
         args.report.write_text(json.dumps(stats, indent=2) + "\n")
         print(f"wrote report to {args.report}")
+
+        naive = stats.get("naive_pairing")
+        if naive:
+            table = f"""<!-- Generated by scripts/realign_corpus.py. Do not edit by hand. -->
+
+Of {stats["shared_talks"]} talks present in both languages,
+{stats["talks_kept"]} had transcripts segmented identically and paired by
+position. The other {stats["talks_recovered_by_aligner"]} did not, and were
+realigned by length. Both ways of handling them, measured on the same talks:
+
+| | rows | length correlation | name/number agreement | passes the check |
+|---|---|---|---|---|
+| pair by position | {naive["rows"]:,} | {naive["length_correlation"]} | {naive["anchor_agreement"]:.1%} | {"yes" if naive["passes"] else "**no**"} |
+| align by length | {stats["transcript_rows_recovered_by_aligner"]:,} | {stats["recovered_length_correlation"]} | {stats["recovered_anchor_agreement"]:.1%} | {"**yes**" if stats["recovered_passes"] else "**no**"} |
+
+Transcript rows only, so the two columns are comparable; the aligner also
+recovers each talk's title and description, which pair by position.
+
+Pairing by position yields **more** rows and fails the check. Aligning by length
+gives up {naive["rows"] - stats["transcript_rows_recovered_by_aligner"]:,} of them
+and passes. That is the trade this corpus has presented from the beginning:
+fewer correct pairs beat more uncertain ones.
+Reproduce with `python scripts/realign_corpus.py`.
+"""
+            markdown = args.report.with_suffix(".md")
+            markdown.write_text(table)
+            print(f"wrote table to {markdown}")
 
 
 if __name__ == "__main__":

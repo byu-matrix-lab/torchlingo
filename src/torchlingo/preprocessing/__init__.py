@@ -2,9 +2,11 @@
 
 from .alignment import (
     AlignmentReport,
+    align_one_to_one,
     anchor_agreement,
     anchors,
     diagnose_alignment,
+    gale_church_align,
     length_correlation,
     shuffle_target_side,
 )
@@ -25,10 +27,12 @@ from .sentencepiece import (
 __all__ = [
     "AlignmentReport",
     "add_language_tags",
+    "align_one_to_one",
     "anchor_agreement",
     "anchors",
     "apply_sentencepiece",
     "diagnose_alignment",
+    "gale_church_align",
     "length_correlation",
     "load_data",
     "parallel_txt_to_dataframe",
