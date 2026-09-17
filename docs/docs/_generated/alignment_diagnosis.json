@@ -1,16 +1,16 @@
 {
   "corpus": "data/example.tsv",
-  "rows": 73082,
+  "rows": 86430,
   "as_shipped": {
-    "length_correlation": 0.9694,
-    "anchor_agreement": 0.4102,
-    "scorable_rows": 36821,
-    "rows": 73082
+    "length_correlation": 0.9691,
+    "anchor_agreement": 0.41,
+    "scorable_rows": 43690,
+    "rows": 86430
   },
   "scrambled": {
-    "length_correlation": 0.087,
-    "anchor_agreement": 0.0582,
-    "scorable_rows": 36821,
-    "rows": 73082
+    "length_correlation": 0.0949,
+    "anchor_agreement": 0.0576,
+    "scorable_rows": 43690,
+    "rows": 86430
   }
 }

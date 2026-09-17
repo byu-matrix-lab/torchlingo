@@ -2,11 +2,11 @@
 
 | Check | As shipped | Target side scrambled |
 |---|---|---|
-| Sentence length correlation | **0.9694** | 0.087 |
+| Sentence length correlation | **0.9691** | 0.0949 |
 | Name and number agreement | **41.0%** | 5.8% |
 
-Measured on all 73,082 rows of `data/example.tsv`, with agreement
-scored on the 36,821 rows carrying a checkable name or
+Measured on all 86,430 rows of `data/example.tsv`, with agreement
+scored on the 43,690 rows carrying a checkable name or
 number. Reproduce with `python scripts/diagnose_corpus.py`.
 
 The right-hand column is the same file with the target side rotated by one row,

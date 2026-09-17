@@ -44,6 +44,7 @@ Example:
     1.0
 """
 
+import math
 import re
 from dataclasses import dataclass
 
@@ -95,7 +96,10 @@ class AlignmentReport:
             min_agreement (float): Floor for ``anchor_agreement``.
 
         Returns:
-            bool: True if both checks pass.
+            bool: True if both checks pass. A frame with fewer than two usable
+                rows has no measurable length correlation and will not pass
+                whatever its content, so this is a corpus-level check rather
+                than a per-row one.
         """
         return (
             self.length_correlation >= min_correlation
@@ -195,12 +199,18 @@ def diagnose_alignment(
         AlignmentReport: Both measurements, plus how much was scorable.
 
     Example:
+        Two rows at minimum: a correlation needs something to correlate, and a
+        single pair has no length variation to measure.
+
         >>> import pandas as pd
         >>> frame = pd.DataFrame(
-        ...     {"src": ["Maria arrived in 1999."], "tgt": ["Maria llegó en 1999."]}
+        ...     {
+        ...         "src": ["Maria arrived in 1999.", "She spoke briefly."],
+        ...         "tgt": ["Maria llegó en 1999.", "Ella habló brevemente."],
+        ...     }
         ... )
-        >>> diagnose_alignment(frame).looks_aligned()
-        True
+        >>> diagnose_alignment(frame).anchor_agreement
+        1.0
     """
     agreement, scorable = anchor_agreement(frame, sample, src_col, tgt_col)
     return AlignmentReport(
@@ -237,3 +247,191 @@ def shuffle_target_side(frame: pd.DataFrame, tgt_col: str = "tgt") -> pd.DataFra
     rotated = list(broken[tgt_col])
     broken[tgt_col] = rotated[1:] + rotated[:1]
     return broken
+
+
+# --- Repairing a nearly-aligned corpus -------------------------------------
+#
+# The checks above tell you a corpus is misaligned. They do not fix it. When
+# the misalignment is *slight* -- two transcripts of the same talk that were
+# segmented into a slightly different number of sentences -- the pairing can
+# often be recovered, and that is what the rest of this module does.
+#
+# The method is Gale and Church (1993), and the insight behind it is the same
+# one behind `length_correlation` above: a translation is about as long as its
+# source. If sentence 4 on one side is twice as long as sentence 4 on the
+# other, but matches sentence 5 well, the two sides have probably slipped by
+# one sentence. Turn that into a cost and the best global alignment is a
+# shortest-path problem, solvable by dynamic programming.
+#
+# Students who have seen edit distance already know this algorithm's shape:
+# a table, a small set of allowed moves, and a cost per move.
+
+# Prior costs for each alignment pattern, in units of -100*log(probability),
+# taken from Gale and Church's measurements on the Hansards. One-to-one is by
+# far the most common, so it is free; anything else has to earn its place.
+BEAD_COSTS = {
+    (1, 1): 0,
+    (1, 0): 450,
+    (0, 1): 450,
+    (2, 1): 440,
+    (1, 2): 440,
+    (2, 2): 600,
+}
+
+
+def _length_cost(
+    src_len: int, tgt_len: int, mean_ratio: float, variance: float
+) -> float:
+    """Cost of believing a source span of one length matches a target span.
+
+    Models the target length as normally distributed around
+    ``src_len * mean_ratio``. A pairing whose lengths disagree badly sits far
+    out in the tail and costs a lot.
+
+    Args:
+        src_len (int): Characters on the source side of this bead.
+        tgt_len (int): Characters on the target side.
+        mean_ratio (float): Expected target-to-source character ratio.
+        variance (float): Variance of that ratio, per source character.
+
+    Returns:
+        float: Cost in units of -100*log(probability). Never infinite, so a
+            single implausible bead cannot make the whole search fail.
+    """
+    if src_len == 0 and tgt_len == 0:
+        return 0.0
+    expected = src_len * mean_ratio
+    spread = math.sqrt(max(src_len, 1) * variance)
+    deviation = abs(tgt_len - expected) / spread
+    # Two-sided normal tail: P(|Z| > deviation) == erfc(deviation / sqrt(2)).
+    tail = math.erfc(deviation / math.sqrt(2))
+    return -100.0 * math.log(max(tail, 1e-12))
+
+
+def _ratio_statistics(source: list[str], target: list[str]) -> tuple[float, float]:
+    """Estimate the character-length ratio between the two sides.
+
+    Estimated from the talk being aligned rather than hard-coded, so the same
+    code works for language pairs whose typical length ratio is not 1.0.
+
+    Args:
+        source (list[str]): Source sentences.
+        target (list[str]): Target sentences.
+
+    Returns:
+        tuple[float, float]: Mean ratio and its variance, both guarded away
+            from zero so the cost function stays finite on degenerate input.
+    """
+    src_total = sum(len(s) for s in source)
+    tgt_total = sum(len(t) for t in target)
+    if src_total == 0 or tgt_total == 0:
+        return 1.0, 6.8
+    mean_ratio = tgt_total / src_total
+    # Gale and Church's measured variance, scaled by this pair's ratio. Their
+    # 6.8 is for English-French character counts; scaling keeps it sensible
+    # when the sides have systematically different lengths.
+    return mean_ratio, max(6.8 * mean_ratio, 1e-6)
+
+
+def gale_church_align(
+    source: list[str], target: list[str]
+) -> list[tuple[list[int], list[int]]]:
+    """Align two lists of sentences by length, allowing for slight drift.
+
+    Finds the lowest-cost way to walk both sides at once, where each step is a
+    "bead" pairing some sentences on the left with some on the right. Only the
+    patterns in :data:`BEAD_COSTS` are allowed, which covers the ways
+    segmentation usually differs: a sentence split in two, a sentence dropped,
+    or two sentences merged.
+
+    Args:
+        source (list[str]): Source sentences in order.
+        target (list[str]): Target sentences in order.
+
+    Returns:
+        list[tuple[list[int], list[int]]]: One entry per bead, holding the
+            source indices and target indices it pairs. A 1-0 bead has an empty
+            target list, and vice versa.
+
+    Example:
+        >>> src = ["Hello there.", "How are you?", "Fine."]
+        >>> tgt = ["Hola.", "How are you?", "Bien."]
+        >>> beads = gale_church_align(src, tgt)
+        >>> len(beads)
+        3
+        >>> beads[0] == ([0], [0])
+        True
+    """
+    n, m = len(source), len(target)
+    mean_ratio, variance = _ratio_statistics(source, target)
+    src_lengths = [len(s) for s in source]
+    tgt_lengths = [len(t) for t in target]
+
+    # cost[i][j] is the cheapest alignment of the first i source sentences
+    # against the first j target sentences. back[i][j] records the bead that
+    # achieved it, so the path can be walked out at the end.
+    infinity = float("inf")
+    cost = [[infinity] * (m + 1) for _ in range(n + 1)]
+    back: list[list[tuple[int, int] | None]] = [[None] * (m + 1) for _ in range(n + 1)]
+    cost[0][0] = 0.0
+
+    for i in range(n + 1):
+        for j in range(m + 1):
+            if cost[i][j] == infinity:
+                continue
+            for (take_src, take_tgt), prior in BEAD_COSTS.items():
+                next_i, next_j = i + take_src, j + take_tgt
+                if next_i > n or next_j > m:
+                    continue
+                span_src = sum(src_lengths[i:next_i])
+                span_tgt = sum(tgt_lengths[j:next_j])
+                candidate = (
+                    cost[i][j]
+                    + prior
+                    + _length_cost(span_src, span_tgt, mean_ratio, variance)
+                )
+                if candidate < cost[next_i][next_j]:
+                    cost[next_i][next_j] = candidate
+                    back[next_i][next_j] = (take_src, take_tgt)
+
+    beads: list[tuple[list[int], list[int]]] = []
+    i, j = n, m
+    while i > 0 or j > 0:
+        step = back[i][j]
+        if step is None:
+            # No path reached this cell, which can only happen if the allowed
+            # bead patterns cannot span the input. Give up rather than return
+            # a partial alignment that looks complete.
+            return []
+        take_src, take_tgt = step
+        beads.append((list(range(i - take_src, i)), list(range(j - take_tgt, j))))
+        i, j = i - take_src, j - take_tgt
+    beads.reverse()
+    return beads
+
+
+def align_one_to_one(source: list[str], target: list[str]) -> list[tuple[str, str]]:
+    """Align two sentence lists and keep only the confident pairings.
+
+    Wraps :func:`gale_church_align` and returns just the one-to-one beads.
+    Merged and dropped sentences are discarded rather than concatenated: this
+    corpus got into trouble by guessing at alignment, and a teaching corpus is
+    better small and correct than large and uncertain.
+
+    Args:
+        source (list[str]): Source sentences in order.
+        target (list[str]): Target sentences in order.
+
+    Returns:
+        list[tuple[str, str]]: Confidently paired sentences.
+
+    Example:
+        >>> pairs = align_one_to_one(["A short line."], ["Una linea corta."])
+        >>> pairs == [("A short line.", "Una linea corta.")]
+        True
+    """
+    return [
+        (source[src_idx[0]], target[tgt_idx[0]])
+        for src_idx, tgt_idx in gale_church_align(source, target)
+        if len(src_idx) == 1 and len(tgt_idx) == 1
+    ]
