@@ -36,6 +36,36 @@ more.
 Beam search costs roughly `beam_size` times more computation. That cost is the reason
 the rest of this page exists.
 
+### You have already met this algorithm
+
+Beam search is usually introduced in NMT as though it were a translation technique. It
+is not. It is **best-first search with a fixed-width frontier**, and you have almost
+certainly seen it before under that description, in a course on search or AI.
+
+The mapping is exact:
+
+| General search | Beam search when decoding |
+|---|---|
+| State | The prefix generated so far |
+| Successors | Every possible next token |
+| Path cost | Cumulative log probability of the prefix |
+| Heuristic | The model itself — it scores how promising a prefix is |
+| Frontier | The `beam_size` live hypotheses |
+| Goal test | The `<eos>` token |
+
+The one thing that makes it *beam* search rather than plain best-first search is the
+fixed-width frontier. A complete best-first search over this space is hopeless: the
+branching factor is the vocabulary size, often tens of thousands, and the depth is the
+length of the output. Keeping only the best `beam_size` states at each level is what
+makes it tractable, and throwing the rest away is what makes it **incomplete** — it can
+miss the optimal sequence, and it regularly does.
+
+So the honest framing is not "beam search finds the best translation." It is: *greedy
+search is beam search with a frontier of one, and widening the frontier trades
+computation for a better chance of finding a high-scoring sequence, with no guarantee.*
+[What the knobs actually do](#what-the-knobs-actually-do) shows what that trade buys in
+practice, and it is less than you might expect.
+
 ### Both strategies work on both architectures
 
 `greedy_decode` and `beam_search_decode` each accept a `SimpleTransformer` or a
@@ -190,6 +220,93 @@ available.
 So from the batched decoder, expect roughly `beam_size` — and note that the remaining
 lever is worth more the larger your test set is, since it scales with the number of
 sentences.
+
+## What the knobs actually do
+
+Everything above is about cost. This section is about what you get back, which is a
+different question and has a less comfortable answer.
+
+Measured on the pretrained model from
+[Tutorial 5](../tutorials/05-real-translations.ipynb), because the answer depends on
+having a model that is wrong often enough to be interesting. Tutorial 3's toy model is
+so decisive that every beam size returns the same translation, which is why the sweep
+there teaches nothing.
+
+--8<-- "docs/_generated/decoding_sweep.md"
+
+### The first beam is worth a point. The rest is worth almost nothing.
+
+Read the paired table, not the columns.
+
+Going from greedy to **any** beam width buys about **one BLEU point**, and that gap is
+unmistakable: it holds across every subset, in the same direction, every time.
+
+Going from one beam width to another buys nothing you can measure. Beam 2 to beam 3,
+beam 3 to beam 5, beam 5 to beam 10, and beam 2 all the way to beam 10 are all
+indistinguishable from zero. Beam 10 costs **7x** what beam 2 costs, in seconds, and
+returns the same quality.
+
+That is the practical lesson, and it is not the one the literature's default of 4 or 5
+would lead you to expect: **the decision that matters is whether to use beam search at
+all, not how wide to make it.**
+
+!!! note "Why the error bars are the point"
+    Look at the BLEU column of the first table on its own and beam 3 appears best, at
+    6.04 against 5.76 for beam 5. Run it again on different sentences and the winner
+    moves. That is what the ± is telling you.
+
+    The paired comparison is what rescues the analysis. Because every configuration
+    decodes the *same* sentences, the per-run difference cancels the "which sentences
+    did we happen to sample" variance that dominates the raw error bars. Unpaired, even
+    the greedy-to-beam gap fails to reach significance. Paired, it is overwhelming.
+
+    Any claim of the form "beam size *n* is best for my model" needs this treatment. It
+    is very easy to publish the noise instead.
+
+### Wider beams produce shorter translations
+
+The `mean length` column falls in a straight line: **12.61** tokens at greedy down to
+**9.73** at beam 10, while the reference translations average **11.62**.
+
+This is not a quirk of this model. Beam search maximizes total log probability, and
+every additional token multiplies in another probability below 1, so a longer sequence
+is a lower-scoring sequence. Widen the search and it finds shorter, higher-scoring
+candidates that greedy walked straight past. Beam 10 finds sequences greedy never
+considered, and those sequences are systematically too short.
+
+That is the mechanism `alpha` exists to counteract.
+
+### `alpha` is doing less than you would think
+
+At the default `alpha=0.6`, length normalization is **indistinguishable from turning it
+off entirely** (`alpha=0.0` changes BLEU by −0.07 ± 0.03). Pushing to `alpha=1.0` is a
+real if small improvement, +0.25 ± 0.06, and it lengthens output toward the reference.
+Pushing to `alpha=1.5` overshoots badly: output jumps to 14.37 tokens, well past the
+reference's 11.62, and BLEU drops 0.75.
+
+Two cautions on that table.
+
+**Statistically distinguishable is not the same as worth having.** `alpha=0.3` is
+flagged as distinguishable from `0.6`, on a difference of 0.09 BLEU. That is a real
+effect and a meaningless one; it clears the bar only because the two settings produce
+nearly identical output, so the difference is consistent. Significance answers "is this
+difference real", never "is this difference worth anything."
+
+**This is measured on one model and one language pair.** A model with a different
+length bias will want a different `alpha`. The transferable part is the method: sweep
+it, pair the comparisons, and look at output length next to BLEU.
+
+### Exercise
+
+Reproduce the table, then break it:
+
+```bash
+python scripts/sweep_decoding.py --sentences 50 --seeds 1
+```
+
+One seed and 50 sentences gives you no error bars and a different "best" beam size than
+the table above. That is the experiment most people actually run. Add seeds until the
+answer stops moving, and notice how many it takes.
 
 ## What the fast version changes
 
