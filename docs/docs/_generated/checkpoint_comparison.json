@@ -1,0 +1,59 @@
+{
+  "note": "Two checkpoints scored on the same 1,889 held-out pairs. The controlled comparison holds training budget fixed at 36 epochs so the only difference is corpus size; the uncontrolled one is kept because the gap between them is the lesson.",
+  "test_set": "/private/tmp/claude-502/-Users-ringger-Projects-torchlingo/947830f8-5646-4d81-8e18-a62dadad968b/scratchpad/pretrained-baseline/test.tsv",
+  "pairs": 1889,
+  "talks": 20,
+  "reference_mean_length": 11.47,
+  "controlled": {
+    "what_varies": "corpus size only; both models trained 36 epochs, seed 0",
+    "baseline": {
+      "train_pairs": 53520,
+      "epochs": 36,
+      "bleu": 7.01,
+      "mean_length": 11.87
+    },
+    "candidate": {
+      "train_pairs": 64311,
+      "epochs": 36,
+      "bleu": 7.32,
+      "mean_length": 12.13
+    },
+    "bleu_delta": 0.31,
+    "bootstrap": {
+      "resamples": 300,
+      "mean_delta": 0.289,
+      "stderr": 0.22,
+      "ci_low": -0.162,
+      "ci_high": 0.706,
+      "candidate_wins": 0.8967
+    },
+    "distinguishable": false
+  },
+  "uncontrolled": {
+    "what_varies": "corpus size AND training budget (20 vs 36 epochs) -- confounded",
+    "baseline": {
+      "train_pairs": 54072,
+      "epochs": 20,
+      "bleu": 4.96
+    },
+    "candidate": {
+      "train_pairs": 64311,
+      "epochs": 36,
+      "bleu": 7.32
+    },
+    "bleu_delta": 2.36,
+    "bootstrap": {
+      "resamples": 300,
+      "mean_delta": 2.328,
+      "stderr": 0.225,
+      "ci_low": 1.915,
+      "ci_high": 2.78,
+      "candidate_wins": 1.0
+    }
+  },
+  "decomposition": {
+    "epochs_20_to_36_data_fixed": 2.05,
+    "data_plus_20pct_epochs_fixed": 0.31,
+    "ratio": 6.6
+  }
+}
