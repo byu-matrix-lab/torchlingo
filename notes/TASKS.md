@@ -31,7 +31,11 @@ Completed work is removed rather than marked done — git history is the record.
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
 | #46 | Teach the corpus repair instead of doing it silently | Open |
 | #47 | Docstring examples are not executed, and 30 fail | Open |
-| #48 | Audit pedagogical value; write down sequencing and outcomes | Open |
+| #48 | Audit pedagogical value; write down sequencing and outcomes | In progress — `notes/CURRICULUM.md` |
+| #49 | Pretrained checkpoint predates the enlarged corpus | Open |
+| #50 | Tutorial 3 still teaches the wrong lesson about beam size | Open |
+| #51 | The docs gate reports but does not block | Open — repo settings |
+| #52 | Try Moore (2002) if more of the corpus is wanted | Open |
 
 ## Code — decoding performance
 
@@ -162,6 +166,23 @@ work *inside* each call rather than the number of calls.
 selection — comparing normalized scores across different lengths mid-search. Defensible
 but non-standard. Preserve exactly during #1/#2 so perf work stays reviewable; raise as
 a separate question.
+
+**Now has evidence, from #40.** Measured on the tutorial 5 model across five held-out
+subsets, paired:
+
+- `alpha=0.6`, the shipped default, is **indistinguishable from `alpha=0.0`**
+  (−0.07 ± 0.03 BLEU). It is not doing the job it exists for.
+- `alpha=1.0` is a real if small gain, +0.25 ± 0.06.
+- The bias it targets is plainly present: mean output length falls monotonically with
+  beam width, 12.61 tokens at greedy to 9.73 at beam 10, against references averaging
+  11.62.
+
+So the question is no longer whether the semantics are defensible in the abstract. It is
+why a correction that measurably does nothing is on by default. Two candidate answers,
+and the evidence does not distinguish them: the default is too weak, or normalizing
+during pruning blunts it. Sweeping `alpha` with normalization applied only at final
+selection would separate the two, and that is now a cheap experiment because
+`scripts/sweep_decoding.py` exists.
 
 ## Code — other gaps
 
@@ -391,6 +412,13 @@ the more interesting picture.
   reference already re-scores prefixes.
 - Shape it as an opt-in `return_attention=False` on both decoders so the default return
   type does not move — #9 has just standardized those, along with the contract tests.
+- **Cheaper alternative worth doing first:** the capability already exists. Decode, then
+  teacher-force the decoded sequence back through
+  `model(src, tgt, return_attention=True)`, and you have the alignment of the
+  *generated* translation. This is ergonomics, not a missing feature, and nothing
+  currently says so. Documenting the recipe in `reference/visualization.md` captures
+  most of the value for a fraction of the work, and makes it obvious what the API change
+  would be buying.
 
 ## Lint and tooling gaps
 
@@ -418,6 +446,10 @@ a blind `except Exception`.
 - **`scripts/` has the same gap**, found the same way: `generate_sentencepiece_models.py`
   trips EXE001 (shebang, not executable) and BLE001 (blind `except Exception`). Widen the
   scope to `src tests examples scripts` in one go.
+- The gap keeps widening. `scripts/` has gained `bench_decode.py`, `execute_notebooks.py`,
+  `train_example_model.py`, `sweep_decoding.py` and `diagnose_corpus.py`, all linted by
+  hand on the way in and none of them gated. Hand-linting is exactly the thing that stops
+  happening once whoever is doing it moves on.
 
 ---
 
@@ -491,6 +523,80 @@ Cheap: a note box in `concepts/decoding.md` and a line in the tutorial. No code.
 
 ## Docs and tutorials
 
+**#49 The pretrained checkpoint predates the enlarged corpus**
+
+`data/pretrained/model.pt` was trained on 73,082 pairs. After #29 the corpus holds
+86,430, so the shipped model has never seen 18% of the data it is meant to represent.
+
+Nothing is broken: the model's held-out talks are still whole talks, still held out, and
+still present in the corpus, because #29 is a strict superset. It is stale rather than
+wrong.
+
+Worth retraining because everything downstream reads off this one checkpoint. Tutorial 5
+shows its translations, #40 measures decoding options on it, and its BLEU of roughly 5 is
+the number a student meets first.
+
+- Rerun `scripts/train_example_model.py`; about 20 epochs.
+- Regenerate `docs/docs/_generated/decoding_sweep.json` afterwards, since #40's numbers
+  are measured on this checkpoint. `--rerender` is not enough; the sweep itself must
+  re-run, which takes about an hour on CPU.
+- Check whether BLEU actually moves. 18% more data on a small model may buy very little,
+  and that is worth knowing either way. If it does not move, say so in tutorial 5 rather
+  than quietly retraining.
+
+**#50 Tutorial 3 still teaches the wrong lesson about beam size**
+
+#40 put the real measurement in `concepts/decoding.md`, but tutorial 3 is untouched: it
+still sweeps `beam_size` over 1, 2, 3, 5, 10 and prints a table where every row is
+identical, because its toy model is decisive. A student runs it, sees no difference, and
+draws the obvious and wrong conclusion.
+
+The cell is not wrong to exist — a sweep is the right thing to show. It just has nothing
+to show on that model.
+
+- Minimum: say so in the notebook. "Every row is identical because this model is too
+  small to be uncertain; see the measured version on a real model" costs two sentences
+  and removes the misconception.
+- Better: have the cell assert the rows are identical and explain why, so it becomes a
+  deliberate demonstration of when a sweep tells you nothing.
+- Tutorial 5 is where a real sweep belongs, since it has the model for it.
+
+**#51 The docs gate reports but does not block**
+
+#26 added a `docs` job running `mkdocs build --strict`. It runs on every PR and takes 30
+seconds, but it only *reports*: the repo ruleset decides what blocks a merge, and the job
+is not in it.
+
+A check nobody is required to pass is a check that gets ignored the first time it is
+inconvenient. Add "Build docs strictly" to the required status checks. Same for the
+notebook gate if it is not already there. Repository settings, not a code change.
+
+**#52 Try Moore (2002) if more of the corpus is wanted**
+
+Raised by Eric: Moore improved on Gale and Church for bitext alignment.
+[Moore (2002)](https://aclanthology.org/2002.amta-papers.14/) aligns in two passes — a
+length-based pass like the one #29 ships, whose confident pairs train an IBM Model 1
+word-translation model, then a second pass scoring length *and* word correspondence, with
+the search confined to segments the first pass found plausible.
+
+What it would buy here, honestly: not much, and that is why #29 shipped length alone.
+Gale-Church recovered 13,152 of a possible 13,305 pairs at a quality indistinguishable
+from the talks that never needed repair. The 153 it gave up are the ceiling.
+
+Where it would matter:
+
+- The limitation pinned by `test_a_long_dropped_sentence_is_handled_worse`. Length treats
+  a long deletion as so improbable that a poor one-to-one scores better; a dropped
+  sentence shares no *words* with anything, which is precisely what lexical evidence
+  sees.
+- The 89 talks present in only one language stream. Length cannot help there and neither
+  can Moore, so those are gone regardless.
+- Any future corpus noisier than this one. The method is the transferable part.
+
+Also a genuinely good teaching progression if #48 wants one: length alone, then why it
+fails, then lexical evidence. Cited in `concepts/data-pipeline.md` and in the module
+already, so the pointer exists whether or not the code follows.
+
 **#47 Docstring examples are not executed, and 30 of them fail**
 
 `pytest --doctest-modules src/torchlingo` reports **30 failed, 24 passed**. Nothing runs
@@ -548,13 +654,22 @@ Worth auditing against, since each was justified pedagogically when it was built
 | `reference/visualization.md` | Attention maps, beam search traces |
 | Generated measurements | `decode_bench`, `decoding_sweep`, `alignment_diagnosis`, `realign_report` |
 
-Open question: where it lives. `notes/` if it is an instructor's working document,
-`docs/` if students should see the outcomes too. Recommend `notes/CURRICULUM.md` first,
-since an honest audit needs to name gaps and redundancy, and that is not student-facing
-writing.
+**First pass written: `notes/CURRICULUM.md`.** What it found:
 
-Instructor-owned rather than something to generate: the outcomes have to match the
-course this feeds, and the lecture 7 assignment (#42) is the same shape.
+- Two load-bearing dependencies nobody had written down. Tutorial 3 cannot run without
+  tutorial 2's checkpoint, and tutorial 3's model is too small to demonstrate the thing
+  tutorial 3 teaches, which is why #40 had to measure on tutorial 5's model and why #50
+  exists.
+- Five coverage gaps, the largest being **why a model fails**. Everything teaches the
+  machinery working; nothing teaches diagnosis, which is what a student actually hits.
+  Others: evaluation beyond BLEU, training dynamics when training goes wrong, how much
+  data is enough, and inference cost in practice.
+- Beam search now appears four times and attention three. Defensible, but currently by
+  accumulation rather than decision.
+
+Still open, and genuinely instructor-owned: the outcomes in that file are reverse-
+engineered from the material, so they describe what exists rather than what the course
+needs. Four questions are listed at the bottom of it for you. #42 is the same shape.
 
 
 **#46 Teach the corpus repair instead of doing it silently**
