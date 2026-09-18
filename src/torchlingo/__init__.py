@@ -23,6 +23,7 @@ from . import (
     models,
     preprocessing,
     training,
+    training_checkpoint,
 )
 
 __all__ = [
@@ -36,4 +37,5 @@ __all__ = [
     "models",
     "preprocessing",
     "training",
+    "training_checkpoint",
 ]
