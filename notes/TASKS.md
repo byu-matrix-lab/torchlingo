@@ -36,6 +36,7 @@ Completed work is removed rather than marked done — git history is the record.
 | #50 | Tutorial 3 still teaches the wrong lesson about beam size | Open |
 | #51 | The docs gate reports but does not block | Open — repo settings |
 | #52 | Try Moore (2002) if more of the corpus is wanted | Open |
+| #53 | Notebook gate runs 1 of 5 tutorials in CI, and looks green | Open |
 
 ## Code — decoding performance
 
@@ -560,6 +561,37 @@ to show on that model.
 - Better: have the cell assert the rows are identical and explain why, so it becomes a
   deliberate demonstration of when a sweep tells you nothing.
 - Tutorial 5 is where a real sweep belongs, since it has the model for it.
+
+**#53 The notebook gate is weaker than its green check implies**
+
+CI checks out without Git LFS on purpose, so `data/example.tsv` is a pointer there and
+`scripts/execute_notebooks.py` skips tutorials 2 through 5. **The job passes having run
+exactly one notebook out of five**, and the check mark on the PR looks the same either
+way.
+
+That was the accepted trade when LFS went in, and it is still the right one. The problem
+is that nothing says so at the point where someone reads the green check.
+
+Found concretely in #50. That change adds an assertion inside tutorial 3, whose whole
+purpose is to fire when the model stops being decisive and the surrounding explanation
+stops being true. It cannot fire in CI, because tutorial 3 does not run there. It was
+verified by running the gate locally, twice, which is not a thing that keeps happening on
+its own.
+
+Options, roughly in order of cost:
+
+- **Say it in the check.** The job already prints "1/1 notebooks executed cleanly" and
+  lists what it skipped. Make the job summary carry that so it is visible on the PR
+  without opening the log. Cheapest, and removes the false impression.
+- **Fetch LFS for the notebook job only.** One `lfs: true` on one job, roughly 28 MB per
+  run. This is the option the keep-CI-light decision ruled out, but the reasoning there
+  was about every job on a four-version matrix, not about one job that is the only place
+  tutorials execute at all. Worth revisiting on those narrower terms.
+- **A scheduled full run.** Nightly or weekly with LFS, so drift is caught within a day
+  without touching per-PR cost.
+
+Related: #51, which is the same shape from the other direction. That gate runs and does
+not block; this one blocks and does not run.
 
 **#51 The docs gate reports but does not block**
 
