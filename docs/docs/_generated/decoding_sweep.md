@@ -3,7 +3,7 @@
 Measured on 200 held-out sentences per run, across 5 runs
 (seeds 1, 2, 3, 4, 5), `max_len=60`, torch
 2.13.0, cpu. The model is the tutorial 5 checkpoint, trained on
-54,072 real sentence pairs. The held-out references average
+64,311 real sentence pairs. The held-out references average
 11.62 whitespace tokens.
 
 Decoding is deterministic, so the only thing that varies between runs is which
@@ -15,22 +15,22 @@ smaller than the noise, and that is itself the finding.
 
 | `beam_size` | BLEU | mean length | same output as greedy | seconds |
 |---|---|---|---|---|
-| greedy | 4.74 ± 0.3 | 12.61 ± 0.28 | 100% | 8 |
-| 1 | 4.74 ± 0.3 | 12.61 ± 0.28 | 100% | 8 |
-| 2 | 5.62 ± 0.23 | 11.46 ± 0.28 | 14% | 26 |
-| 3 | 6.04 ± 0.38 | 10.85 ± 0.29 | 8% | 46 |
-| 5 | 5.76 ± 0.41 | 10.35 ± 0.26 | 7% | 86 |
-| 10 | 5.91 ± 0.35 | 9.73 ± 0.24 | 6% | 193 |
+| greedy | 7.55 ± 0.22 | 12.26 ± 0.24 | 100% | 8 |
+| 1 | 7.55 ± 0.22 | 12.26 ± 0.24 | 100% | 8 |
+| 2 | 8.77 ± 0.32 | 11.42 ± 0.24 | 17% | 27 |
+| 3 | 9.16 ± 0.23 | 10.81 ± 0.22 | 13% | 49 |
+| 5 | 9.2 ± 0.29 | 10.33 ± 0.17 | 10% | 90 |
+| 10 | 8.73 ± 0.26 | 9.69 ± 0.21 | 9% | 189 |
 
 **Length normalization**, at `beam_size=5`:
 
 | `alpha` | BLEU | mean length |
 |---|---|---|
-| 0.0 | 5.69 ± 0.4 | 10.29 ± 0.26 |
-| 0.3 | 5.67 ± 0.42 | 10.32 ± 0.26 |
-| 0.6 | 5.76 ± 0.41 | 10.35 ± 0.26 |
-| 1.0 | 6.01 ± 0.43 | 10.61 ± 0.27 |
-| 1.5 | 5.01 ± 0.25 | 14.37 ± 0.4 |
+| 0.0 | 9.08 ± 0.24 | 10.18 ± 0.17 |
+| 0.3 | 9.15 ± 0.27 | 10.24 ± 0.16 |
+| 0.6 | 9.2 ± 0.29 | 10.33 ± 0.17 |
+| 1.0 | 9.35 ± 0.38 | 10.69 ± 0.19 |
+| 1.5 | 8.35 ± 0.38 | 13.33 ± 0.28 |
 
 Every configuration decodes the **same** subsets, so the comparisons are paired
 and the per-run difference cancels the sampling variance that dominates the
@@ -39,18 +39,18 @@ eye, and it is what the claims on this page rest on:
 
 | Comparison | BLEU change | Distinguishable? |
 |---|---|---|
-| greedy → beam 2 | +0.88 ± 0.21 | **yes** |
-| greedy → beam 3 | +1.30 ± 0.26 | **yes** |
-| greedy → beam 5 | +1.02 ± 0.22 | **yes** |
-| greedy → beam 10 | +1.17 ± 0.14 | **yes** |
-| beam 2 → beam 3 | +0.42 ± 0.17 | no |
-| beam 3 → beam 5 | -0.28 ± 0.20 | no |
-| beam 5 → beam 10 | +0.15 ± 0.17 | no |
-| beam 2 → beam 10 | +0.29 ± 0.17 | no |
-| alpha 0.6 → 0.0 | -0.07 ± 0.03 | no |
-| alpha 0.6 → 0.3 | -0.09 ± 0.03 | **yes** |
-| alpha 0.6 → 1.0 | +0.25 ± 0.06 | **yes** |
-| alpha 0.6 → 1.5 | -0.75 ± 0.20 | **yes** |
+| greedy → beam 2 | +1.22 ± 0.16 | **yes** |
+| greedy → beam 3 | +1.61 ± 0.06 | **yes** |
+| greedy → beam 5 | +1.65 ± 0.17 | **yes** |
+| greedy → beam 10 | +1.18 ± 0.10 | **yes** |
+| beam 2 → beam 3 | +0.39 ± 0.14 | **yes** |
+| beam 3 → beam 5 | +0.04 ± 0.14 | no |
+| beam 5 → beam 10 | -0.47 ± 0.08 | **yes** |
+| beam 2 → beam 10 | -0.04 ± 0.08 | no |
+| alpha 0.6 → 0.0 | -0.12 ± 0.07 | no |
+| alpha 0.6 → 0.3 | -0.05 ± 0.06 | no |
+| alpha 0.6 → 1.0 | +0.15 ± 0.11 | no |
+| alpha 0.6 → 1.5 | -0.85 ± 0.12 | **yes** |
 
 Reproduce with `python scripts/sweep_decoding.py`. BLEU and lengths are
 deterministic given the sampled subset; seconds are machine-dependent.
