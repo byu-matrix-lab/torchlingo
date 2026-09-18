@@ -120,6 +120,10 @@ silent.
 specifically. Nothing covers model size against latency, or CPU against GPU, which is
 what a student meets when their Colab session is slow.
 
+**Attention on the architecture students actually use.** Covered for the LSTM in three
+places, and not at all for the Transformer, which cannot return its attention weights.
+See the correction under Redundancy below, and #34.
+
 ---
 
 ## Redundancy
@@ -134,6 +138,14 @@ deliberately rather than by accumulation.
 
 **Attention appears three times**: `concepts/models.md`, tutorial 4, and
 `reference/visualization.md`.
+
+*Corrected 2026-09-18, and this is a gap rather than redundancy.* All three cover the
+**LSTM**. `SimpleTransformer` has no attention-returning path at all, so a student who
+follows the tutorials onto the Transformer — which is what tutorials 2 and 5 train, and
+what the pretrained checkpoint is — cannot inspect attention on the model they are
+actually using. Tutorial 4 teaches the concept honestly on an LSTM and a synthetic task;
+nothing carries it across. See #34, whose scope was recorded too small for the same
+reason.
 
 **The corpus repair story now appears twice**: `concepts/data-pipeline.md` (#46, #29) and
 `scripts/realign_corpus.py`'s docstring. These are aimed at different readers and the
