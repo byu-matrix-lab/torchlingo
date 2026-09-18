@@ -126,6 +126,7 @@ nav:
     - Model Architectures: concepts/models.md
     - Training Loop: concepts/training.md
     - Decoding: concepts/decoding.md
+    - When It Fails: concepts/when-it-fails.md
   - Tutorials:
     - tutorials/index.md
     - Data and Vocabulary: tutorials/01-data-and-vocab.ipynb

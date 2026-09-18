@@ -26,7 +26,7 @@ of contents; this one is the audit behind it.
 ### Concept pages
 
 `what-is-nmt.md`, `data-pipeline.md`, `vocabulary.md`, `models.md`, `training.md`,
-`decoding.md`.
+`decoding.md`, `when-it-fails.md`.
 
 ### Measured artifacts
 
@@ -97,11 +97,22 @@ noise (#40).
 
 Ordered by how much they would cost a student.
 
-**Why a model fails.** Everything teaches how the machinery works when it works. Nothing
-teaches diagnosis: loss not falling, output collapsing to a single token, translations
-fluent but unrelated to the source, a model that scores well and translates badly. This
-is what a student actually hits, and the library's own history is full of examples —
-tutorial 2 once shipped producing empty translations for every phrase.
+**Why a model fails.** ~~Everything teaches how the machinery works when it works.
+Nothing teaches diagnosis.~~ **First pass written: `concepts/when-it-fails.md`.** A
+diagnostic order — data, then whether the model is learning at all, then whether it is
+learning the wrong thing, then whether the measurement is lying, then the environment —
+with each step's check drawn from a real incident in this repository's history rather
+than invented.
+
+The table at its head is the part worth keeping: six symptoms, the obvious explanation
+for each, and what it actually turned out to be. Every "looked like" column entry is a
+reasonable first guess and every one is wrong.
+
+Still missing, and harder: a *runnable* version. The alignment lesson in #46 works
+because `shuffle_target_side` lets a student break a corpus and watch the check fire.
+The equivalent here would be deliberately breaking a model — freezing a parameter,
+detaching a graph, training one epoch — and watching each diagnostic catch it. That is
+a tutorial, not a page.
 
 **Evaluation beyond BLEU.** BLEU is introduced and used. Its failure modes are not: it
 rewards length-matching, is unusable on single sentences, and is not comparable across
