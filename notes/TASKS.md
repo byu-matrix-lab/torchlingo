@@ -30,6 +30,8 @@ Completed work is removed rather than marked done — git history is the record.
 | #42 | Lecture 7 assignment | Open — scope needed |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
 | #46 | Teach the corpus repair instead of doing it silently | Open |
+| #47 | Docstring examples are not executed, and 30 fail | Open |
+| #48 | Audit pedagogical value; write down sequencing and outcomes | Open |
 
 ## Code — decoding performance
 
@@ -488,6 +490,72 @@ Cheap: a note box in `concepts/decoding.md` and a line in the tutorial. No code.
   Reference the concept rather than a number until that is confirmed.
 
 ## Docs and tutorials
+
+**#47 Docstring examples are not executed, and 30 of them fail**
+
+`pytest --doctest-modules src/torchlingo` reports **30 failed, 24 passed**. Nothing runs
+doctests, so CLAUDE.md's "keep examples runnable and concise" is unenforced and the
+examples students are most likely to copy have rotted.
+
+Found the usual way: an example written in #46 asserted `looks_aligned()` on a
+single-row frame, which cannot pass, because one row has no length variation to
+correlate. It was wrong the day it was written and nothing noticed.
+
+Failures span `preprocessing/base.py`, `multilingual.py`, `multilingual_helpers.py`,
+`sentencepiece.py` and `training.py`, among others. Only `preprocessing/alignment.py` is
+fixed so far, in #29.
+
+- Fix in batches by module, since the failures are unrelated to each other.
+- Then add `--doctest-modules` to the test job so it stays fixed. Fixing without gating
+  just resets the clock, the same lesson as #26.
+- Same shape as #14 and #16: two things that must agree, with nothing checking.
+
+**#48 Audit what we have built for pedagogical value, and write down the sequencing**
+
+Enough has accumulated that nobody can now say what a student is meant to learn, in what
+order, or where the gaps are. The material was built task by task, each one justified on
+its own, and never against a curriculum.
+
+**Does something like this already exist?** Partly, and not enough.
+`docs/docs/tutorials/index.md` has a "Learning Path" section, but it is student-facing
+navigation over the five notebooks: a card per tutorial with a one-line description. It
+states no outcomes, covers none of the concept pages or library modules, and predates
+most of what exists now. It is a table of contents, not an audit.
+
+What the artifact should carry:
+
+- **Sequencing.** What depends on what. Some of this is already load-bearing and
+  undocumented: tutorial 3 loads the checkpoint tutorial 2 trains, and #40's lesson only
+  works on a model that is wrong often enough to be interesting, which is why it uses
+  tutorial 5's checkpoint rather than tutorial 3's toy.
+- **Learning outcomes per unit**, stated as what a student can *do* afterwards, not what
+  was covered.
+- **Coverage gaps**, which is the real output. Likely candidates on a first glance:
+  training dynamics beyond "loss goes down", evaluation beyond BLEU, and anything about
+  why a model fails rather than how it works.
+- **Redundancy**, the other half. Beam search is now explained in `concepts/decoding.md`,
+  reimplemented in tutorial 3, and visualized in two places.
+
+Worth auditing against, since each was justified pedagogically when it was built:
+
+| Where | What it teaches |
+|---|---|
+| Tutorials 1-5 | The end-to-end path, toy model through real translations |
+| `concepts/decoding.md` | Greedy vs beam, cost, what the knobs buy (#40), search framing (#41) |
+| `concepts/data-pipeline.md` | Loading, cleaning, alignment detection (#46) and repair (#29) |
+| `concepts/vocabulary.md` | Words vs subwords |
+| `concepts/models.md`, `training.md`, `what-is-nmt.md` | Architecture and training |
+| `reference/visualization.md` | Attention maps, beam search traces |
+| Generated measurements | `decode_bench`, `decoding_sweep`, `alignment_diagnosis`, `realign_report` |
+
+Open question: where it lives. `notes/` if it is an instructor's working document,
+`docs/` if students should see the outcomes too. Recommend `notes/CURRICULUM.md` first,
+since an honest audit needs to name gaps and redundancy, and that is not student-facing
+writing.
+
+Instructor-owned rather than something to generate: the outcomes have to match the
+course this feeds, and the lecture 7 assignment (#42) is the same shape.
+
 
 **#46 Teach the corpus repair instead of doing it silently**
 
