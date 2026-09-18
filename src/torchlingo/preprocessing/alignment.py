@@ -265,6 +265,17 @@ def shuffle_target_side(frame: pd.DataFrame, tgt_col: str = "tgt") -> pd.DataFra
 #
 # Students who have seen edit distance already know this algorithm's shape:
 # a table, a small set of allowed moves, and a cost per move.
+#
+# Length alone has a known ceiling. Moore (2002), "Fast and Accurate Sentence
+# Alignment of Bilingual Corpora", AMTA, pp. 135-144, aligns in two passes: a
+# length-based pass like this one, whose confident pairs train an IBM Model 1
+# word-translation model, then a second pass scoring length *and* word
+# correspondence, searching only the segments the first pass found plausible.
+# Lexical evidence settles the case length cannot -- a dropped sentence shares
+# no words with anything -- which is the limitation documented below and pinned
+# by `test_a_long_dropped_sentence_is_handled_worse`. Not implemented here:
+# length alone recovered 13,152 of a possible 13,305 pairs on this corpus at a
+# quality indistinguishable from the talks that never needed repair.
 
 # Prior costs for each alignment pattern, in units of -100*log(probability),
 # taken from Gale and Church's measurements on the Hansards. One-to-one is by

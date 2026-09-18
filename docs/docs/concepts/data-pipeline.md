@@ -300,6 +300,14 @@ not clear them.
     deletion as so improbable that a poor one-to-one can score better. It resynchronizes
     afterwards, but emits one bad pair at the gap.
 
+    The known fix is to stop relying on length alone.
+    [Moore (2002)](https://aclanthology.org/2002.amta-papers.14/) aligns in two passes:
+    a length-based pass like this one, whose confident pairs then train an IBM Model 1
+    word-translation model, and a second pass scoring both length *and* word
+    correspondence. Lexical evidence settles exactly the case length cannot, because a
+    dropped sentence shares no words with anything. TorchLingo does not implement this;
+    length alone was enough here, and you can see that in the table above.
+
 ## Step 4: Building Vocabularies
 
 If you don't provide pre-built vocabularies, `NMTDataset` creates them:
