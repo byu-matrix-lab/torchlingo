@@ -413,13 +413,43 @@ the more interesting picture.
   reference already re-scores prefixes.
 - Shape it as an opt-in `return_attention=False` on both decoders so the default return
   type does not move — #9 has just standardized those, along with the contract tests.
-- **Cheaper alternative worth doing first:** the capability already exists. Decode, then
-  teacher-force the decoded sequence back through
-  `model(src, tgt, return_attention=True)`, and you have the alignment of the
-  *generated* translation. This is ergonomics, not a missing feature, and nothing
-  currently says so. Documenting the recipe in `reference/visualization.md` captures
-  most of the value for a fraction of the work, and makes it obvious what the API change
-  would be buying.
+**Correction (2026-09-18): this is bigger than recorded, and the "cheap alternative"
+above does not exist.** I claimed decode-then-teacher-force already yields the alignment,
+making this ergonomics rather than a missing feature. That is true of the LSTM only:
+
+```
+SimpleSeq2SeqLSTM.forward(src, tgt, return_attention=False)   <- exists
+SimpleTransformer.forward(src, tgt, ...)                      <- no such parameter
+```
+
+`SimpleTransformer` has **no attention-returning path at all**. There is nothing to
+teacher-force into and no recipe to document. And the Transformer is the architecture the
+tutorials train, the pretrained checkpoint uses, and a student is most likely to reach
+for, so the gap is in the worse place.
+
+Getting cross-attention out of `nn.Transformer` is also not a one-liner. PyTorch hardcodes
+`need_weights=False` inside `TransformerDecoderLayer._mha_block`, so a forward hook on
+`multihead_attn` captures `(output, None)`. The options are to wrap each layer's
+`multihead_attn.forward` to force `need_weights=True` while capturing, or to subclass the
+decoder layer and override `_mha_block`. The wrapper is less invasive and can be a context
+manager, which also keeps the cost off the default path.
+
+Revised shape:
+
+1. A way to capture Transformer cross-attention at all. This is the real work and
+   everything else depends on it.
+2. Then the original item: surface it from greedy and beam decoding rather than only from
+   a teacher-forced pass.
+
+Worth doing because it is also a good lesson. Explaining *why* the weights are not simply
+available — a fused fast path that discards them unless asked — teaches something true
+about how these libraries are built.
+
+Knock-on for #48: the audit lists "attention appears three times" under redundancy. The
+sharper problem is that it appears three times for the **LSTM** and zero times for the
+Transformer. Tutorial 4 teaches attention on an LSTM trained on a synthetic reversal task;
+a student who moves to the Transformer cannot inspect attention on the model they are
+using.
 
 ## Lint and tooling gaps
 
