@@ -14,8 +14,11 @@ running inference. :func:`load_checkpoint` also accepts a legacy bare
 tokenizer yourself).
 
 Examples:
+    Needs a built model and trained tokenizers, so these are illustrative
+    rather than executable. `tests/test_checkpoint.py` exercises them for real.
+
     >>> from torchlingo.checkpoint import save_checkpoint, load_checkpoint
-    >>> save_checkpoint(
+    >>> save_checkpoint(                                        # doctest: +SKIP
     ...     "model.pt",
     ...     model,
     ...     model_config={"src_vocab_size": 16000, "tgt_vocab_size": 16000,
@@ -23,8 +26,8 @@ Examples:
     ...     src_sp_model="data/sp_model.model",
     ...     tgt_sp_model="data/sp_model.model",
     ... )
-    >>> ckpt = load_checkpoint("model.pt")
-    >>> ckpt["model_config"]["d_model"]
+    >>> ckpt = load_checkpoint("model.pt")                      # doctest: +SKIP
+    >>> ckpt["model_config"]["d_model"]                         # doctest: +SKIP
     512
 """
 

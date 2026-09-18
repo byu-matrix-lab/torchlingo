@@ -99,8 +99,11 @@ def beam_search_decode(
         so the two implementations cannot drift apart on ties.
 
     Example:
+        Needs a trained model and an encoded source, so this is illustrative
+        rather than executable.
+
         >>> from torchlingo.inference_fast import beam_search_decode
-        >>> tokens = beam_search_decode(model, src, beam_size=5)
+        >>> tokens = beam_search_decode(model, src, beam_size=5)  # doctest: +SKIP
 
     See Also:
         :func:`torchlingo.inference.beam_search_decode`: the readable reference.

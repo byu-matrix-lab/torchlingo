@@ -110,6 +110,19 @@ jobs:
         run: |
           python -m pytest tests/
 
+      # Docstring examples are the code students are most likely to copy, and
+      # nothing executed them until now: 30 of the 48 in the package were
+      # broken, including one that printed a BLEU score the code does not
+      # produce. Fixing them without running them would just reset the clock.
+      #
+      # Examples that genuinely cannot run here -- they need a trained model, a
+      # corpus on disk, or an optional extra -- carry an explicit
+      # `# doctest: +SKIP`. That is a visible decision rather than a silent
+      # failure.
+      - name: Run docstring examples
+        run: |
+          python -m pytest --doctest-modules src/torchlingo
+
   notebooks:
     name: Execute tutorial notebooks
     runs-on: ubuntu-latest
