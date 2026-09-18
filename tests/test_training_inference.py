@@ -7,7 +7,7 @@ from unittest import mock
 
 import torch
 
-from torchlingo.config import get_default_config
+from torchlingo.config import Config, get_default_config
 from torchlingo.data_processing.vocab import SentencePieceVocab, SimpleVocab
 from torchlingo.inference import beam_search_decode, greedy_decode, translate_batch
 from torchlingo.models import SimpleSeq2SeqLSTM
@@ -212,6 +212,69 @@ class TrainModelTests(unittest.TestCase):
         self.assertEqual(len(result.train_losses), 2)
         self.assertEqual(result.val_losses, [])
         self.assertIsNone(result.best_checkpoint)
+
+    def test_val_losses_stays_one_entry_per_epoch_with_periodic_validation(self):
+        """`val_losses` must mean what its docstring says, even mid-epoch.
+
+        `config.val_interval` runs an extra validation pass partway through an
+        epoch. Those readings used to be appended to `val_losses` alongside the
+        epoch-end ones, so the list interleaved two different measurements and
+        its length was neither the epoch count nor anything else useful.
+
+        That is not a theoretical problem. It caused a real misreading: a
+        checkpoint whose `val_losses` had 36 entries was assumed to have
+        trained for 36 epochs when it had trained for 20, and a comparison
+        built on that assumption gave one model 80% more training than the
+        other while claiming the only difference was the data.
+
+        The default `val_interval` is 1000 steps and the toy loaders here run
+        3, which is exactly why the existing tests never caught it.
+        """
+        model = DummyTransformer()
+        cfg = Config(val_interval=1)  # fire on every step
+        result = train_model(
+            model,
+            train_loader=_toy_loader(),
+            val_loader=_toy_loader(),
+            num_epochs=3,
+            save_dir=None,
+            config=cfg,
+        )
+
+        self.assertEqual(len(result.train_losses), 3)
+        self.assertEqual(
+            len(result.val_losses),
+            3,
+            "val_losses must hold exactly one entry per epoch",
+        )
+        self.assertEqual(
+            len(result.val_losses),
+            len(result.train_losses),
+            "the two curves must be plottable against each other",
+        )
+        self.assertGreater(
+            len(result.periodic_val_losses),
+            0,
+            "the mid-epoch readings should still be recorded, just separately",
+        )
+
+    def test_periodic_val_losses_is_empty_when_the_interval_never_fires(self):
+        """The common case: `val_interval` is larger than the whole run.
+
+        Its default is 1000 steps, and these loaders run 3, so this is what
+        every other test in this file has been silently exercising.
+        """
+        model = DummyTransformer()
+        result = train_model(
+            model,
+            train_loader=_toy_loader(),
+            val_loader=_toy_loader(),
+            num_epochs=2,
+            save_dir=None,
+            config=Config(val_interval=10_000),
+        )
+        self.assertEqual(result.periodic_val_losses, [])
+        self.assertEqual(len(result.val_losses), 2)
 
     def test_train_model_with_validation_saves_best_checkpoint(self):
         model = DummyTransformer()
