@@ -37,6 +37,12 @@ Completed work is removed rather than marked done — git history is the record.
 | #51 | The docs gate reports but does not block | Open — repo settings |
 | #52 | Try Moore (2002) if more of the corpus is wanted | Open |
 | #53 | Notebook gate runs 1 of 5 tutorials in CI, and looks green | Open |
+| #54 | `val_losses` interleaved two measurements — fixed, needs PR | In review |
+| #55 | Correct tutorial 5: the model was undertrained, not data-starved | Open |
+| #56 | Correct #34's description and commit message | Open |
+| #57 | Note on #27 that the recovered data buys no measurable BLEU | Open |
+| #58 | `train_example_model.py` defaults to 20 epochs, which undertrains | Open |
+| #59 | Nothing checks that a comparison controlled its variables | Open |
 
 ## Code — decoding performance
 
@@ -219,6 +225,81 @@ single 24GB GPU. Both are from Eole's README, not from running it.
 
 
 ---
+
+## The training-budget finding, and what it invalidated
+
+Raised by Coulson on PR #34: "the BLEU scores are extremely low ... worth looking into
+if it wasn't flagged before." The scores were expected and documented. Looking into them
+anyway found a measurement error of mine.
+
+**The root cause (#54).** `train_model` appended to `val_losses` in two places: the
+periodic step-triggered validation from `config.val_interval`, and the epoch-end
+validation. One list, two different measurements, and a docstring promising "per epoch".
+
+```
+              train_losses   val_losses   true epochs
+  baseline         20            36            20
+  new              36            72            36
+```
+
+I read `len(val_losses) == 36` off the baseline, concluded 36 epochs, and passed
+`--epochs 36` to "match" it. The baseline had run **20**.
+
+**What that did to #49.** The comparison gave one model 19% more data *and* 80% more
+training, while its writeup claimed data was the only difference. Re-running with epochs
+actually matched:
+
+| data | epochs | BLEU | |
+|---|---|---|---|
+| 53,520 pairs | 20 | 4.96 | baseline as shipped |
+| 53,520 pairs | 36 | **7.01** | control: same data, more epochs |
+| 64,311 pairs | 36 | 7.32 | more data *and* more epochs |
+
+- epochs 20 → 36, data fixed: **+2.05 BLEU**
+- +20% data, epochs fixed: **+0.29 ± 0.22, 95% CI [−0.16, +0.71]**
+
+The data effect's interval crosses zero. Training budget mattered roughly **7x** more
+than the recovered data, and the recovered data bought nothing measurable.
+
+So the published claim was wrong twice: ~88% of the +2.33 was training length, and the
+residual is not significant. The diagnosis in tutorial 5 — "data-starved" — is also
+wrong; the model was **undertrained**, which has a different fix.
+
+**#55 Correct tutorial 5.** It currently teaches "more data" as the top lever, measured.
+The honest version is the better lesson: the interesting hypothesis was wrong, the boring
+one (you stopped training too early) was right, and only controlling the variable told
+them apart. Numbers to use are in the table above; artifacts in
+`docs/docs/_generated/checkpoint_comparison.json`, which also needs regenerating from the
+controlled run.
+
+**#56 Correct #34.** Its description and commit message both claim "same architecture,
+same 36 epochs, same seed — the only thing that changed is the data." False. The
+checkpoint itself is fine and worth shipping; only the explanation of why it is better
+needs replacing.
+
+**#57 Add a note to #27.** It claims "They are 18% more data", which is true, and makes
+no BLEU claim, so nothing there is wrong. But the implicit case for the work is quality,
+and the measured quality effect is indistinguishable from zero at this scale. Worth
+saying so plainly, and restating the real justification: it is a correctness fix for data
+being discarded for a fixable reason, it teaches Gale-Church, and it will matter at a
+scale where the model is not the binding constraint.
+
+**#58 The script's default undertrains.** `train_example_model.py` defaults to
+`--epochs 20`, which is what produced the BLEU 4.96 checkpoint. 36 epochs gives 7.01 on
+the same data, and by then validation loss has flattened (mean change over the last five
+epochs: −0.0010/epoch). A default that stops well short of convergence teaches the wrong
+thing about training, and it is what made "more data" look like the answer. Change the
+default to 36, or add early stopping on the validation curve so the run ends when it
+should rather than when a hardcoded count runs out.
+
+**#59 Nothing checks that a comparison controlled its variables.** This is the general
+version, and the reason the error survived review. `compare_checkpoints.py` pins the test
+set and bootstraps the difference, which is why the *measurement* was sound; it never
+looks at how the two checkpoints were trained. It has both checkpoint dicts in hand and
+could refuse, or at least warn loudly, when `len(train_losses)`, `train_pairs`,
+`model_config` or the seed differ — printing what differs alongside the BLEU delta so a
+reader sees the confound next to the number. Same shape as every other finding on this
+list: two things that must agree, with nothing checking they do.
 
 ## Tests
 

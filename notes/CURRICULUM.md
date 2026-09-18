@@ -112,9 +112,15 @@ say so, which is the only place this idea appears.
 clipping. It does not cover what a student does when training goes wrong: batch size
 against learning rate, when to stop, what overfitting looks like on a small corpus.
 
-**Data quantity.** #29 added 18% more data and nobody has checked whether it helps (#49).
-"How much data do I need" is among the first questions a student asks and the material is
-silent.
+**Data quantity.** ~~#29 added 18% more data and nobody has checked whether it helps.~~
+**Checked, and the answer is no** — at this scale. With training budget held fixed, +20%
+data is worth +0.29 ± 0.22 BLEU, an interval crossing zero, while going from 20 to 36
+epochs on the same data is worth +2.05. See the training-budget section in `TASKS.md`.
+
+"How much data do I need" is still a gap, but the material now has a real answer to a
+better question: *how do you tell which lever you are actually pulling?* The episode is
+worth teaching directly, because the first attempt to answer it got the wrong answer with
+error bars and a paired bootstrap attached, and only a control run caught it.
 
 **Inference cost in practice.** `decoding.md` covers this well for beam search
 specifically. Nothing covers model size against latency, or CPU against GPU, which is
