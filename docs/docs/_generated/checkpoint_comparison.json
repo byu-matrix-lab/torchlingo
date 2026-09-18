@@ -1,0 +1,33 @@
+{
+  "test_set": "data/pretrained/test.tsv",
+  "pairs": 1889,
+  "talks": 20,
+  "beam_size": null,
+  "reference_mean_length": 11.47,
+  "baseline": {
+    "bleu": 4.96,
+    "mean_length": 12.46,
+    "empty_outputs": 0,
+    "train_pairs": 54072,
+    "final_val_loss": 4.0347,
+    "seconds": 59.2
+  },
+  "candidate": {
+    "bleu": 7.32,
+    "mean_length": 12.13,
+    "empty_outputs": 1,
+    "train_pairs": 64311,
+    "final_val_loss": 3.6953,
+    "seconds": 61.8
+  },
+  "identical_outputs": 0.0281,
+  "bleu_delta": 2.36,
+  "bootstrap": {
+    "resamples": 300,
+    "mean_delta": 2.328,
+    "stderr": 0.225,
+    "ci_low": 1.915,
+    "ci_high": 2.78,
+    "candidate_wins": 1.0
+  }
+}
