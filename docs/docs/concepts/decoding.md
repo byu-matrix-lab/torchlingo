@@ -64,7 +64,9 @@ So the honest framing is not "beam search finds the best translation." It is: *g
 search is beam search with a frontier of one, and widening the frontier trades
 computation for a better chance of finding a high-scoring sequence, with no guarantee.*
 [What the knobs actually do](#what-the-knobs-actually-do) shows what that trade buys in
-practice, and it is less than you might expect.
+practice. It is less than you might expect, and past a point widening the frontier makes
+the translations *worse* — a searchable objective and a good translation are not the
+same thing.
 
 ### Both strategies work on both architectures
 
@@ -234,39 +236,58 @@ there teaches nothing.
 
 --8<-- "docs/_generated/decoding_sweep.md"
 
-### The first beam is worth a point. The rest is worth almost nothing.
+### Most of the gain is the first beam, and past the peak it reverses
 
 Read the paired table, not the columns.
 
-Going from greedy to **any** beam width buys about **one BLEU point**, and that gap is
-unmistakable: it holds across every subset, in the same direction, every time.
+**Greedy to any beam width is the big move**, worth between +1.18 and +1.65 BLEU, in the
+same direction on every subset.
 
-Going from one beam width to another buys nothing you can measure. Beam 2 to beam 3,
-beam 3 to beam 5, beam 5 to beam 10, and beam 2 all the way to beam 10 are all
-indistinguishable from zero. Beam 10 costs **7x** what beam 2 costs, in seconds, and
-returns the same quality.
+**After that it rises, plateaus, then declines.** Beam 2 to beam 3 is a real gain
+(+0.39 ± 0.14). Beam 3 to beam 5 is nothing (+0.04 ± 0.14). Beam 5 to beam 10 is a real
+**loss** (−0.47 ± 0.08), and the round trip from beam 2 to beam 10 nets out at zero.
+Beam 10 costs about **7x** beam 2 in seconds to arrive back where it started.
 
-That is the practical lesson, and it is not the one the literature's default of 4 or 5
-would lead you to expect: **the decision that matters is whether to use beam search at
-all, not how wide to make it.**
+So quality peaks around beam 3 to 5, which is roughly where the literature's usual
+default sits. The surprise is not the peak, it is that going past it actively hurts. The
+next section explains why.
+
+!!! warning "This conclusion depends on the model, and we watched it change"
+    An earlier version of this page, measured on a weaker checkpoint, reported that
+    **no** beam width was distinguishable from any other, and drew the lesson that only
+    the greedy-versus-beam decision matters.
+
+    That was an honest reading of the data at the time and it was wrong. Retraining on
+    ~19% more data lifted the model from BLEU 4.96 to 7.32, and at that quality the
+    beam-to-beam differences separate from the noise: what had been a flat line became a
+    peak with a measurable decline after it.
+
+    Nothing about the earlier table looked unreliable. It had five seeds, paired
+    comparisons and error bars, and it still supported a conclusion the next model
+    overturned. "No difference detectable" had meant *this model was too weak to show
+    one* — the same trap as Tutorial 3's five identical beam sizes, one level up.
+
+    The transferable habit is to state what a result was measured on, and to re-run it
+    when that changes. Every number here comes from one checkpoint, one language pair,
+    and one test set.
 
 !!! note "Why the error bars are the point"
-    Look at the BLEU column of the first table on its own and beam 3 appears best, at
-    6.04 against 5.76 for beam 5. Run it again on different sentences and the winner
-    moves. That is what the ± is telling you.
+    Look at the BLEU column of the first table on its own and beam 5 appears best, at
+    9.20 against 9.16 for beam 3. That gap is 0.04 with a standard error of 0.14: it is
+    not a result, and on a different draw of sentences the winner moves.
 
     The paired comparison is what rescues the analysis. Because every configuration
     decodes the *same* sentences, the per-run difference cancels the "which sentences
     did we happen to sample" variance that dominates the raw error bars. Unpaired, even
-    the greedy-to-beam gap fails to reach significance. Paired, it is overwhelming.
+    beam 5 versus beam 10 looks like a wash; paired, it is a clear loss.
 
     Any claim of the form "beam size *n* is best for my model" needs this treatment. It
     is very easy to publish the noise instead.
 
 ### Wider beams produce shorter translations
 
-The `mean length` column falls in a straight line: **12.61** tokens at greedy down to
-**9.73** at beam 10, while the reference translations average **11.62**.
+The `mean length` column falls in a straight line: **12.26** tokens at greedy down to
+**9.69** at beam 10, while the reference translations average **11.62**.
 
 This is not a quirk of this model. Beam search maximizes total log probability, and
 every additional token multiplies in another probability below 1, so a longer sequence
@@ -274,27 +295,47 @@ is a lower-scoring sequence. Widen the search and it finds shorter, higher-scori
 candidates that greedy walked straight past. Beam 10 finds sequences greedy never
 considered, and those sequences are systematically too short.
 
-That is the mechanism `alpha` exists to counteract.
+**This is why going past the peak hurts.** Follow the two columns together. Up to beam
+3, the search is still finding better translations and the shortening is mild. By beam
+10, mean length has fallen to 9.69 against a reference average of 11.62, and the
+sequences it is now finding are higher-probability but too short to contain the
+reference's n-grams. Quality and probability have come apart: the search is succeeding
+at its stated objective and failing at the task.
+
+That gap between "what the search maximizes" and "what you wanted" is the single most
+useful idea on this page, and it is what `alpha` exists to paper over.
 
 ### `alpha` is doing less than you would think
 
+Given the length bias just described, you would expect the correction for it to matter.
+It does not, over most of its range.
+
 At the default `alpha=0.6`, length normalization is **indistinguishable from turning it
-off entirely** (`alpha=0.0` changes BLEU by −0.07 ± 0.03). Pushing to `alpha=1.0` is a
-real if small improvement, +0.25 ± 0.06, and it lengthens output toward the reference.
-Pushing to `alpha=1.5` overshoots badly: output jumps to 14.37 tokens, well past the
-reference's 11.62, and BLEU drops 0.75.
+off entirely** (`alpha=0.0` changes BLEU by −0.12 ± 0.07). So are `alpha=0.3`
+(−0.05 ± 0.06) and `alpha=1.0` (+0.15 ± 0.11). Only `alpha=1.5` separates from the
+rest, and it is clearly *worse*: −0.85 ± 0.12, with output ballooning to 13.33 tokens
+against a reference average of 11.62.
 
-Two cautions on that table.
+Read that carefully, because it is a stronger claim than it looks. Across 0.0 to 1.0 —
+from no normalization at all to full per-token averaging — **this knob does nothing you
+can measure**, while the bias it exists to correct is plainly visible in the length
+column above. The shipped default is doing no work.
 
-**Statistically distinguishable is not the same as worth having.** `alpha=0.3` is
-flagged as distinguishable from `0.6`, on a difference of 0.09 BLEU. That is a real
-effect and a meaningless one; it clears the bar only because the two settings produce
-nearly identical output, so the difference is consistent. Significance answers "is this
-difference real", never "is this difference worth anything."
+Two things that does not mean.
 
-**This is measured on one model and one language pair.** A model with a different
-length bias will want a different `alpha`. The transferable part is the method: sweep
-it, pair the comparisons, and look at output length next to BLEU.
+**It is not evidence that length normalization is useless in general.** It is evidence
+about this model at this quality on this test set. A stronger model, a longer-sentence
+corpus, or a language pair with a different length ratio could all change it.
+
+**It is not settled why.** TorchLingo applies normalization during *pruning* as well as
+at final selection, which is defensible but non-standard, and that could blunt it.
+Distinguishing "the default is too weak" from "normalizing during pruning cancels it out"
+needs one more experiment: sweep `alpha` with the correction applied only at final
+selection and compare. That is the open question, now with numbers attached to it.
+
+**And the method is the transferable part.** Sweep the knob, pair the comparisons, put
+error bars on them, and read output length next to BLEU. That is what turned this from
+an assumption into a finding.
 
 ### Exercise
 
