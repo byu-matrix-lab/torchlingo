@@ -6,11 +6,11 @@
 
 The codebase has **basic multilingual support** for bidirectional EN↔X translation:
 
-1. **Language Tag Utilities** ([preprocessing/multilingual.py](src/torchlingo/preprocessing/multilingual.py))
+1. **Language Tag Utilities** ([preprocessing/multilingual.py](reference/preprocessing/multilingual.md))
    - `add_language_tags()`: Prepends language tags to source sentences
    - `preprocess_multilingual()`: Creates bidirectional training data (EN→X and X→EN)
 
-2. **Config Support** ([config.py](src/torchlingo/config.py))
+2. **Config Support** ([config.py](reference/config.md))
    - `lang_tag_en_to_x`: Default `"<2X>"` for EN→target language
    - `lang_tag_x_to_en`: Default `"<2E>"` for target→EN language
 

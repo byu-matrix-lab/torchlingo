@@ -86,6 +86,11 @@ Thumbs.db
 
 docs/site/
 docs/.cache/
+
+# mkdocs-jupyter caches relative to the working directory, so building with
+# `--config-file docs/mkdocs.yml` from the repo root (which CI does) writes
+# here rather than under docs/.
+.cache/
 attention_alignment.png
 
 .claude/

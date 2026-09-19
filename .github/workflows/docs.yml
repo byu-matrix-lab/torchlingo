@@ -32,22 +32,37 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          # 3.11 for `tomllib`, which the install step below uses to read the
+          # docs extra out of pyproject.toml. Nothing else here needs 3.10.
+          python-version: '3.11'
 
       - name: Cache pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-3.10-${{ hashFiles('**/pyproject.toml') }}
+          key: ${{ runner.os }}-pip-3.11-${{ hashFiles('**/pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-pip-3.10-
+            ${{ runner.os }}-pip-3.11-
 
+      # Read the `docs` extra out of pyproject.toml rather than restating the
+      # same four packages here, which is what this step used to do. Installing
+      # the specs rather than `.[docs]` keeps torch out of a job that never
+      # imports the package.
       - name: Install dependencies
         run: |
-          pip install "mkdocs-material>=9.5" "mkdocstrings[python]>=0.24" "mkdocs-jupyter>=0.24" "griffe>=0.40"
+          DOCS_SPECS=$(python -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              extras = tomllib.load(f)['project']['optional-dependencies']
+          print(' '.join(extras['docs']))
+          ")
+          echo "Installing $DOCS_SPECS"
+          pip install $DOCS_SPECS
 
+      # `--strict` matches the `docs` job in tests_and_build.yml. A build that
+      # would fail the PR gate must not quietly succeed here and publish.
       - name: Build MkDocs site
-        run: mkdocs build --config-file docs/mkdocs.yml -d site
+        run: mkdocs build --strict --config-file docs/mkdocs.yml -d site
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

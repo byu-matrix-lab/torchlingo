@@ -47,7 +47,7 @@ python -m unittest tests.test_integration_robust.TestEndToEndTransformerPipeline
 
 **Problem**: SentencePiece training failed on Windows when processing text with Unicode characters (accents, emojis, non-Latin scripts).
 
-**Solution**: Fixed `train_sentencepiece()` in [src/torchlingo/preprocessing/sentencepiece.py](src/torchlingo/preprocessing/sentencepiece.py#L102) to explicitly use UTF-8 encoding when creating temporary files.
+**Solution**: Fixed [`train_sentencepiece()`](reference/preprocessing/sentencepiece.md) to explicitly use UTF-8 encoding when creating temporary files.
 
 **Change**:
 ```python
