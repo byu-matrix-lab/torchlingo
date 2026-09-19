@@ -64,6 +64,63 @@ def load(checkpoint_path: Path, device: torch.device):
     return model, vocab, checkpoint
 
 
+def describe_setup(checkpoint: dict) -> dict:
+    """Pull out everything that has to match for a comparison to mean anything.
+
+    `epochs_run` rather than a requested count, because early stopping can end
+    a run sooner, and because reading an epoch count off the wrong field is the
+    specific mistake this function exists to catch.
+
+    Older checkpoints predate these fields. A missing value reads as None and
+    is reported as unknown rather than assumed equal, since "we cannot tell"
+    and "they match" are different answers.
+
+    Args:
+        checkpoint (dict): A loaded checkpoint.
+
+    Returns:
+        dict: The comparable training settings.
+    """
+    epochs = checkpoint.get("epochs_run")
+    if epochs is None and checkpoint.get("train_losses"):
+        # Inferable: train_losses holds exactly one entry per epoch.
+        epochs = len(checkpoint["train_losses"])
+    return {
+        "epochs": epochs,
+        "train_pairs": checkpoint.get("train_pairs"),
+        "seed": checkpoint.get("seed"),
+        "model_config": checkpoint.get("model_config"),
+        "vocab_size": checkpoint.get("vocab_size"),
+    }
+
+
+def compare_setups(baseline: dict, candidate: dict) -> list[str]:
+    """List the training settings that differ between two checkpoints.
+
+    A BLEU difference only tells you about the thing you changed if exactly one
+    thing changed. This does not decide what "the thing" is -- that is the
+    experimenter's intent, which no script can read -- it just refuses to let
+    the other differences stay invisible.
+
+    Args:
+        baseline (dict): Output of :func:`describe_setup` for the baseline.
+        candidate (dict): The same for the candidate.
+
+    Returns:
+        list[str]: One human-readable line per differing setting.
+    """
+    differences = []
+    for key in ("epochs", "train_pairs", "seed", "vocab_size", "model_config"):
+        before, after = baseline.get(key), candidate.get(key)
+        if before is None or after is None:
+            if before != after:
+                differences.append(f"{key}: {before} vs {after} (one is unknown)")
+            continue
+        if before != after:
+            differences.append(f"{key}: {before} vs {after}")
+    return differences
+
+
 def translate(
     sentences: list[str], model, vocab, device, max_len: int, beam_size: int | None
 ) -> list[str]:
@@ -189,22 +246,47 @@ def main() -> int:
     }
 
     outputs = {}
+    setups = {}
     for label, path in (("baseline", args.baseline), ("candidate", args.candidate)):
         model, vocab, checkpoint = load(path, device)
+        setups[label] = describe_setup(checkpoint)
         started = time.perf_counter()
         outputs[label] = translate(
             sources, model, vocab, device, args.max_len, args.beam_size
         )
         row = score(outputs[label], references)
         row["train_pairs"] = checkpoint.get("train_pairs")
+        row["epochs"] = setups[label]["epochs"]
         row["final_val_loss"] = round(checkpoint["val_losses"][-1], 4)
         row["seconds"] = round(time.perf_counter() - started, 1)
         results[label] = row
         print(
             f"{label:<10} BLEU={row['bleu']:<7} len={row['mean_length']:<7} "
-            f"train_pairs={row['train_pairs']:,} val_loss={row['final_val_loss']}",
+            f"train_pairs={row['train_pairs']:,} epochs={row['epochs']} "
+            f"val_loss={row['final_val_loss']}",
             flush=True,
         )
+
+    # Say what else moved. A BLEU difference is about the variable you changed
+    # only if that is the variable you changed, and this script used to report
+    # the delta without ever looking at how the two models were trained. It
+    # once compared a model trained for 36 epochs against one trained for 20
+    # and the writeup credited the corpus.
+    differences = compare_setups(setups["baseline"], setups["candidate"])
+    results["setup_differences"] = differences
+    results["controlled"] = len(differences) <= 1
+
+    print()
+    if not differences:
+        print("setups identical: nothing varies, so nothing is being measured.")
+    elif len(differences) == 1:
+        print(f"one variable differs -- {differences[0]}")
+    else:
+        print(f"WARNING: {len(differences)} settings differ, so this comparison")
+        print("cannot attribute the result to any one of them:")
+        for line in differences:
+            print(f"  - {line}")
+        print("Hold the others fixed and re-run before drawing a conclusion.")
 
     agree = sum(a == b for a, b in zip(outputs["baseline"], outputs["candidate"]))
     results["identical_outputs"] = round(agree / len(sources), 4)
