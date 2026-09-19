@@ -48,6 +48,86 @@ Both take a single sentence: either `[tgt_len, src_len]`, or
 `[1, tgt_len, src_len]`, which is unwrapped for you. A real batch raises, rather
 than silently showing you sentence zero — index it yourself with `weights[i]`.
 
+### Works on both architectures
+
+`return_attention=True` means the same thing on `SimpleSeq2SeqLSTM` and
+`SimpleTransformer`, and returns the same `(batch, tgt_len, src_len)` shape, so
+the code above does not care which model you hand it.
+
+On the Transformer the weights come from the **last decoder layer** with heads
+averaged. That is the conventional choice for alignment plots. For every layer,
+or per-head maps, use
+[`capture_cross_attention`](#torchlingo.models.transformer_simple.capture_cross_attention)
+directly.
+
+!!! warning "Call `eval()` first"
+    In training mode, attention dropout randomly zeroes weights and rescales
+    the survivors, so rows will not sum to 1 and the picture is not the one
+    inference uses. This is easy to miss because the plot still looks
+    plausible. Check it:
+
+    ```python
+    assert torch.allclose(weights.sum(-1), torch.ones(weights.shape[:-1]), atol=1e-5)
+    ```
+
+??? note "Why the Transformer needs extra machinery and the LSTM does not"
+    The LSTM computes attention in TorchLingo's own code, so returning the
+    weights is a matter of not throwing them away.
+
+    The Transformer uses PyTorch's `nn.Transformer`, and
+    `TransformerDecoderLayer._mha_block` calls attention with
+    `need_weights=False` hardcoded. That is a deliberate performance choice: it
+    allows a fused kernel that never materializes the attention matrix at all.
+    The weights are not hidden behind an option, they are genuinely never
+    computed, which is why a forward hook on `multihead_attn` comes back with
+    `None`.
+
+    `capture_cross_attention` temporarily replaces each layer's
+    `multihead_attn.forward` to force `need_weights=True`, records what comes
+    back, and restores the original afterwards — including if the forward pass
+    raises. The speed cost is why this is opt-in rather than always on.
+
+    This is worth knowing beyond TorchLingo. Fast paths that discard
+    intermediate values are common in deep learning libraries, and "the
+    framework will not give me X" often means "X is never computed on the path
+    you are taking."
+
+### What it looks like on a real model
+
+From the pretrained checkpoint in Tutorial 5, translating a sentence it has
+never seen:
+
+```
+EN  The cat sleeps on the mat.
+ES  El código de la catura.
+
+      <sos>  ▁The    ▁c    at    ▁s    le    ep     s   ▁on  ▁the  ▁mat     . <eos>
+▁El     ···   ▓▓▓   ···   ···   ···   ···   ···   ···   ···   ···   ···   ···   ···
+▁c      ···   ···   ░░░   ···   ░░░   ···   ···   ···   ···   ···   ···   ···   ···
+ó       ···   ···   ░░░   ░░░   ░░░   ···   ···   ···   ···   ···   ░░░   ···   ···
+d       ···   ···   ···   ···   ···   ···   ░░░   ░░░   ···   ···   ░░░   ···   ···
+igo     ···   ···   ···   ···   ···   ░░░   ░░░   ░░░   ···   ···   ░░░   ···   ···
+▁de     ···   ···   ···   ···   ···   ···   ···   ···   ░░░   ···   ···   ░░░   ···
+▁la     ···   ···   ···   ···   ···   ···   ···   ···   ···   ░░░   ···   ░░░   ···
+▁c      ···   ···   ░░░   ░░░   ░░░   ···   ···   ···   ···   ···   ···   ···   ···
+at      ···   ···   ░░░   ░░░   ░░░   ···   ···   ···   ···   ···   ░░░   ···   ···
+ura     ···   ···   ···   ···   ···   ░░░   ░░░   ░░░   ···   ···   ░░░   ···   ···
+```
+
+The translation is wrong, and the map shows *how* it is wrong, which a correct
+translation would not.
+
+`▁El` attends sharply to `▁The` — the one word it got right, and the one place
+the grid is dark. `▁c` and `at` attend to the `▁c`/`at` pieces of "cat", so the
+model half-recognized the word and produced *catura*. Everywhere else the row is
+a flat wash of `░░░`: attention spread thinly across the whole source, which is
+what "has not learned what to look at" looks like.
+
+Compare that to Tutorial 4's model, trained on a synthetic task with a known
+correct alignment, where the map is a clean diagonal. The contrast is the
+lesson: a sharp attention map is evidence the model learned *something*, and a
+diffuse one is evidence it did not.
+
 ## Reading the text grid
 
 Rows are target tokens, columns are source tokens, and shading runs

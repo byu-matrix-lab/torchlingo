@@ -21,12 +21,95 @@ References:
 """
 
 import math
+from contextlib import contextmanager
 
 import torch
 from torch import nn
 
 from ..config import Config, get_default_config
 from .positional import SinusoidalPositionalEncoding
+
+
+@contextmanager
+def capture_cross_attention(decoder: nn.TransformerDecoder):
+    """Temporarily make a PyTorch decoder hand back its cross-attention weights.
+
+    Getting these out of `nn.Transformer` is harder than it should be, and the
+    reason is worth understanding.
+
+    Attention weights are computed as an intermediate value inside
+    `nn.MultiheadAttention`, which will return them if asked. But
+    `TransformerDecoderLayer._mha_block` calls it with `need_weights=False`
+    hardcoded::
+
+        x = self.multihead_attn(x, mem, mem, ..., need_weights=False)[0]
+
+    That is a deliberate performance choice: `need_weights=False` lets PyTorch
+    take a fused attention kernel that never materializes the full attention
+    matrix, which is faster and uses less memory. The weights are not hidden,
+    they are genuinely never built.
+
+    So a forward hook on `multihead_attn` captures ``(output, None)``. To get
+    the weights you have to change the call itself. This wraps each layer's
+    `multihead_attn.forward` for the duration of the block, forcing
+    `need_weights=True`, recording what comes back, and restoring the original
+    afterwards. The cost is real, which is why it is opt-in rather than always
+    on.
+
+    Args:
+        decoder (nn.TransformerDecoder): The decoder whose layers to instrument.
+
+    Yields:
+        list[torch.Tensor]: Filled on exit with one tensor per decoder layer, in
+            layer order, each of shape ``(batch, tgt_len, src_len)`` with the
+            heads averaged.
+
+    Example:
+        >>> import torch
+        >>> model = SimpleTransformer(src_vocab_size=20, tgt_vocab_size=20,
+        ...                           d_model=16, n_heads=2,
+        ...                           num_encoder_layers=1, num_decoder_layers=1)
+        >>> src, tgt = torch.tensor([[2, 5, 3]]), torch.tensor([[2, 7]])
+        >>> with capture_cross_attention(model.transformer.decoder) as weights:
+        ...     _ = model(src, tgt)
+        >>> weights[0].shape
+        torch.Size([1, 2, 3])
+    """
+    captured: list[torch.Tensor] = []
+    originals = []
+
+    for layer in decoder.layers:
+        attn = layer.multihead_attn
+        original = attn.forward
+        # Whether `forward` was already an instance attribute decides how to
+        # undo this. Normally it is not -- it resolves to the class method --
+        # so restoring means deleting what we set, not assigning a bound method
+        # back, which would leave the object subtly different from how we found
+        # it.
+        originals.append((attn, original, "forward" in attn.__dict__))
+
+        def wrapped(*args, _original=original, **kwargs):
+            kwargs["need_weights"] = True
+            # Average across heads: one map per (target position, source
+            # position) is what a reader can actually look at. Per-head maps
+            # are available by passing average_attn_weights=False here.
+            kwargs.setdefault("average_attn_weights", True)
+            output, weights = _original(*args, **kwargs)
+            captured.append(weights)
+            return output, weights
+
+        attn.forward = wrapped
+
+    try:
+        yield captured
+    finally:
+        # Restore even if the forward pass raised, or the model stays slow and
+        # keeps appending to a list nobody is reading.
+        for attn, original, had_own_attribute in originals:
+            if had_own_attribute:
+                attn.forward = original
+            else:
+                del attn.forward
 
 
 class SimpleTransformer(nn.Module):
@@ -209,7 +292,8 @@ class SimpleTransformer(nn.Module):
         src_key_padding_mask: torch.Tensor | None = None,
         tgt_key_padding_mask: torch.Tensor | None = None,
         tgt_mask: torch.Tensor | None = None,
-    ) -> torch.Tensor:
+        return_attention: bool = False,
+    ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """Encode source and decode target in a single forward pass.
 
         Automatically generates padding and causal masks if not provided.
@@ -225,9 +309,42 @@ class SimpleTransformer(nn.Module):
                 If None, generated automatically from padding index. Defaults to None.
             tgt_mask (torch.Tensor, optional): Causal mask for target self-attention.
                 If None, generated automatically. Defaults to None.
+            return_attention (bool, optional): Also return the decoder's
+                cross-attention weights, showing which source positions each
+                target position attended to. Off by default because capturing
+                them costs a faster attention kernel. Matches the same argument
+                on :class:`~torchlingo.models.SimpleSeq2SeqLSTM`, so the call is
+                identical on either architecture. Defaults to False.
 
         Returns:
             torch.Tensor: Logits of shape (batch_size, tgt_len, tgt_vocab_size).
+            If ``return_attention`` is True, returns ``(logits, weights)``
+            instead, where weights has shape (batch_size, tgt_len, src_len) and
+            comes from the **last** decoder layer, heads averaged. Use
+            :func:`capture_cross_attention` directly for every layer.
+
+        Example:
+            The same call shape as the LSTM, so tooling works on both.
+            **Call ``eval()`` first**: in training mode, attention dropout
+            randomly zeroes weights and rescales the rest, so the rows will not
+            sum to 1 and the map you plot is not the one inference uses.
+
+            >>> import torch
+            >>> model = SimpleTransformer(src_vocab_size=20, tgt_vocab_size=20,
+            ...                           d_model=16, n_heads=2,
+            ...                           num_encoder_layers=1,
+            ...                           num_decoder_layers=1)
+            >>> _ = model.eval()
+            >>> src, tgt = torch.tensor([[2, 5, 9, 3]]), torch.tensor([[2, 7, 8]])
+            >>> with torch.no_grad():
+            ...     logits, weights = model(src, tgt, return_attention=True)
+            >>> weights.shape
+            torch.Size([1, 3, 4])
+
+            Each row is a distribution over source positions, so it sums to 1:
+
+            >>> bool(torch.allclose(weights.sum(-1), torch.ones(1, 3), atol=1e-5))
+            True
         """
         if src_key_padding_mask is None:
             src_key_padding_mask = create_key_padding_mask(src, pad_idx=self.pad_idx)
@@ -236,13 +353,28 @@ class SimpleTransformer(nn.Module):
         if tgt_mask is None:
             tgt_mask = create_causal_mask(tgt.size(1), tgt.device)
         memory = self.encode(src, src_key_padding_mask)
-        return self.decode(
-            tgt,
-            memory,
-            src_key_padding_mask=src_key_padding_mask,
-            tgt_key_padding_mask=tgt_key_padding_mask,
-            tgt_mask=tgt_mask,
-        )
+
+        if not return_attention:
+            return self.decode(
+                tgt,
+                memory,
+                src_key_padding_mask=src_key_padding_mask,
+                tgt_key_padding_mask=tgt_key_padding_mask,
+                tgt_mask=tgt_mask,
+            )
+
+        with capture_cross_attention(self.transformer.decoder) as weights:
+            logits = self.decode(
+                tgt,
+                memory,
+                src_key_padding_mask=src_key_padding_mask,
+                tgt_key_padding_mask=tgt_key_padding_mask,
+                tgt_mask=tgt_mask,
+            )
+        # The last layer by convention: it sits closest to the output and is
+        # what alignment visualizations normally show. Earlier layers are
+        # available through `capture_cross_attention` if you want to compare.
+        return logits, weights[-1]
 
     def _embed(self, tokens: torch.Tensor, is_src: bool) -> torch.Tensor:
         """Embed and scale tokens, then add sinusoidal positional encodings.
