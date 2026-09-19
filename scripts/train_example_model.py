@@ -44,6 +44,23 @@ from torchlingo.training import train_model
 CORPUS = Path("data/example.tsv")
 OUT_DIR = Path("data/pretrained")
 
+# How many trailing epochs to look at when deciding whether validation had
+# flattened by the time the run ended, and how much per-epoch improvement still
+# counts as "going somewhere".
+#
+# Calibrated against the three curves this corpus has actually produced:
+#
+#   20 epochs, 53.5k pairs   -0.0038/epoch   still improving -- and it was:
+#                                            16 more epochs bought 2 BLEU
+#   36 epochs, 53.5k pairs   -0.0019/epoch   flattened
+#   36 epochs, 64.3k pairs   -0.0014/epoch   flattened
+#
+# 0.003 separates them with room on both sides. This is a heuristic for
+# catching the egregious case -- a run that stopped well short -- not a
+# convergence test.
+STOPPING_WINDOW = 5
+CONVERGED_DRIFT = 0.003
+
 
 def split_by_talk(
     frame: pd.DataFrame,
@@ -97,7 +114,14 @@ def main() -> None:
     parser.add_argument("--d-model", type=int, default=128)
     parser.add_argument("--layers", type=int, default=3)
     parser.add_argument("--d-ff", type=int, default=512)
-    parser.add_argument("--epochs", type=int, default=20)
+    # A ceiling, not a target. `train_model` stops early once validation stops
+    # improving (config.patience), so this bounds the run rather than defining
+    # it. The old default of 20 was neither: validation was still falling when
+    # it ran out, and the resulting undertrained checkpoint made a later
+    # experiment look like it was short of *data* when it was short of
+    # *training*. A default that stops before convergence teaches the wrong
+    # thing about training, so this one is set past where the curve flattens.
+    parser.add_argument("--epochs", type=int, default=40)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--max-words", type=int, default=25)
     parser.add_argument("--seed", type=int, default=0)
@@ -228,16 +252,49 @@ def main() -> None:
             "val_losses": result.val_losses,
             "trained_minutes": round(minutes, 1),
             "train_pairs": len(train_df),
+            # Recorded so a later comparison can check these two models were
+            # trained the same way. `epochs_run` is the honest count -- early
+            # stopping may end the run before `epochs_requested` -- and reading
+            # an epoch count off the wrong field is exactly how a previous
+            # comparison ended up varying two things at once.
+            "epochs_requested": args.epochs,
+            "epochs_run": len(result.train_losses),
+            "seed": args.seed,
         },
         args.out_dir / "model.pt",
     )
 
     size_mb = (args.out_dir / "model.pt").stat().st_size / 1e6
-    print(
-        f"\ntrained {args.epochs} epochs in {minutes:.1f} min; "
-        f"final val loss {result.val_losses[-1]:.4f}",
-        flush=True,
-    )
+    epochs_run = len(result.train_losses)
+    print(f"\ntrained {epochs_run} epochs in {minutes:.1f} min", flush=True)
+
+    # Say *why* it stopped. "Ran out of epochs while still improving" and
+    # "stopped improving" are different outcomes with different fixes, and a
+    # line reporting only the epoch count hides which one happened.
+    if epochs_run < args.epochs:
+        print(
+            f"stopped early: validation stopped improving before the "
+            f"{args.epochs}-epoch ceiling",
+            flush=True,
+        )
+    else:
+        tail = result.val_losses[-STOPPING_WINDOW:]
+        drift = (tail[-1] - tail[0]) / max(1, len(tail) - 1)
+        if drift < -CONVERGED_DRIFT:
+            print(
+                f"WARNING: hit the {args.epochs}-epoch ceiling while validation "
+                f"was still improving ({drift:+.4f}/epoch over the last "
+                f"{len(tail)}). This model is undertrained -- raise --epochs.",
+                flush=True,
+            )
+        else:
+            print(
+                f"reached the {args.epochs}-epoch ceiling; validation had "
+                f"flattened ({drift:+.4f}/epoch over the last {len(tail)})",
+                flush=True,
+            )
+
+    print(f"final val loss {result.val_losses[-1]:.4f}", flush=True)
     print(f"wrote {args.out_dir}/model.pt ({size_mb:.1f} MB) and spm.model", flush=True)
 
 
