@@ -40,6 +40,11 @@ from pathlib import Path
 
 import pandas as pd
 
+# The anchor probe that exposed this corpus as misaligned now lives in the
+# library, so students can run it on their own data and the tests assert on the
+# same implementation this script reports.
+from torchlingo.preprocessing.alignment import anchor_agreement
+
 SRC_URL = re.compile(r"^http://www\.ted\.com/talks/([a-z0-9_]+)\.html$")
 TGT_URL = re.compile(r"^http://www\.ted\.com/talks/lang/[a-z]+/([a-z0-9_]+)\.html$")
 
@@ -179,36 +184,6 @@ def realign(input_path: Path) -> tuple[pd.DataFrame, dict]:
     return frame_out, stats
 
 
-def anchor_agreement(frame: pd.DataFrame, sample: int = 5000) -> float:
-    """Estimate alignment quality by checking shared proper nouns and numbers.
-
-    Names and numbers survive translation, so a genuinely parallel row usually
-    shares at least one with its partner. This is the same probe that exposed
-    the original corpus as misaligned.
-
-    Args:
-        frame (pd.DataFrame): Corpus with `src` and `tgt` columns.
-        sample (int, optional): Maximum rows to score.
-
-    Returns:
-        float: Fraction of scorable rows sharing an anchor token.
-    """
-    names = re.compile(r"\b[A-Z][a-z]{3,}\b")
-    digits = re.compile(r"\d+")
-
-    def anchors(text: str) -> set[str]:
-        return set(names.findall(text)) | set(digits.findall(text))
-
-    hits = total = 0
-    for src, tgt in zip(frame["src"].head(sample), frame["tgt"].head(sample)):
-        source_anchors = anchors(src)
-        if not source_anchors:
-            continue
-        total += 1
-        hits += bool(source_anchors & anchors(tgt))
-    return hits / max(total, 1)
-
-
 def main() -> None:
     """Parse arguments, realign the corpus, and report what changed."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -219,8 +194,8 @@ def main() -> None:
 
     before = pd.read_csv(args.input, sep="\t", dtype=str, keep_default_na=False)
     frame, stats = realign(args.input)
-    stats["anchor_agreement_before"] = round(anchor_agreement(before), 4)
-    stats["anchor_agreement_after"] = round(anchor_agreement(frame), 4)
+    stats["anchor_agreement_before"] = round(anchor_agreement(before)[0], 4)
+    stats["anchor_agreement_after"] = round(anchor_agreement(frame)[0], 4)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     frame.to_csv(args.output, sep="\t", index=False)

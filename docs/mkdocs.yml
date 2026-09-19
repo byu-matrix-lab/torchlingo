@@ -150,6 +150,7 @@ nav:
     - Preprocessing:
       - reference/preprocessing/index.md
       - Base Utilities: reference/preprocessing/base.md
+      - Alignment Checks: reference/preprocessing/alignment.md
       - SentencePiece: reference/preprocessing/sentencepiece.md
       - Multilingual: reference/preprocessing/multilingual.md
     - Visualization: reference/visualization.md

@@ -1,0 +1,16 @@
+{
+  "corpus": "data/example.tsv",
+  "rows": 73082,
+  "as_shipped": {
+    "length_correlation": 0.9694,
+    "anchor_agreement": 0.4102,
+    "scorable_rows": 36821,
+    "rows": 73082
+  },
+  "scrambled": {
+    "length_correlation": 0.087,
+    "anchor_agreement": 0.0582,
+    "scorable_rows": 36821,
+    "rows": 73082
+  }
+}

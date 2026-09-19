@@ -9,11 +9,17 @@ from their own mistake.
 These tests are the check that was missing. They are cheap and they fail loudly.
 """
 
-import re
 import unittest
 from pathlib import Path
 
 import pandas as pd
+
+from torchlingo.preprocessing.alignment import (
+    anchor_agreement,
+    diagnose_alignment,
+    length_correlation,
+    shuffle_target_side,
+)
 
 CORPUS = Path(__file__).resolve().parent.parent / "data" / "example.tsv"
 
@@ -50,14 +56,6 @@ def is_available(path: Path) -> bool:
 MIN_LENGTH_CORRELATION = 0.80
 MIN_ANCHOR_AGREEMENT = 0.25
 MIN_ROWS = 50000
-
-_NAMES = re.compile(r"\b[A-Z][a-z]{3,}\b")
-_DIGITS = re.compile(r"\d+")
-
-
-def _anchors(text: str) -> set[str]:
-    """Extract tokens that should survive translation."""
-    return set(_NAMES.findall(text)) | set(_DIGITS.findall(text))
 
 
 @unittest.skipUnless(
@@ -128,11 +126,7 @@ class TestExampleCorpusAlignment(unittest.TestCase):
         A genuinely aligned corpus scores near 0.97 here. The misaligned version
         of this file scored 0.001 — the signature of unrelated sentence pairs.
         """
-        src_len = self.frame["src"].str.split().str.len()
-        tgt_len = self.frame["tgt"].str.split().str.len()
-        usable = (src_len > 0) & (tgt_len > 0)
-        correlation = src_len[usable].corr(tgt_len[usable])
-        self.assertGreater(correlation, MIN_LENGTH_CORRELATION)
+        self.assertGreater(length_correlation(self.frame), MIN_LENGTH_CORRELATION)
 
     def test_rows_share_names_and_numbers(self):
         """Proper nouns and numbers should survive translation.
@@ -140,15 +134,24 @@ class TestExampleCorpusAlignment(unittest.TestCase):
         Scored only on rows whose source side actually contains such a token.
         The misaligned version scored 0.014 here.
         """
-        hits = total = 0
-        for src, tgt in zip(self.frame["src"], self.frame["tgt"]):
-            source_anchors = _anchors(src)
-            if not source_anchors:
-                continue
-            total += 1
-            hits += bool(source_anchors & _anchors(tgt))
-        self.assertGreater(total, 0, "no rows carried a checkable anchor token")
-        self.assertGreater(hits / total, MIN_ANCHOR_AGREEMENT)
+        agreement, scorable = anchor_agreement(self.frame, sample=len(self.frame))
+        self.assertGreater(scorable, 0, "no rows carried a checkable anchor token")
+        self.assertGreater(agreement, MIN_ANCHOR_AGREEMENT)
+
+    def test_scrambling_this_corpus_would_be_caught(self):
+        """The checks above must actually discriminate, not just pass.
+
+        A threshold that the shipped corpus clears proves nothing on its own if
+        a broken corpus would clear it too. Rotating the target side by one row
+        leaves every structural property intact and breaks every pairing, and
+        the checks have to notice.
+        """
+        report = diagnose_alignment(
+            shuffle_target_side(self.frame), sample=len(self.frame)
+        )
+        self.assertFalse(
+            report.looks_aligned(MIN_LENGTH_CORRELATION, MIN_ANCHOR_AGREEMENT)
+        )
 
     def test_sides_are_not_identical(self):
         """Catch a corpus accidentally rebuilt with one language twice."""
