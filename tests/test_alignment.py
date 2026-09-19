@@ -11,9 +11,11 @@ import unittest
 import pandas as pd
 
 from torchlingo.preprocessing.alignment import (
+    align_one_to_one,
     anchor_agreement,
     anchors,
     diagnose_alignment,
+    gale_church_align,
     length_correlation,
     shuffle_target_side,
 )
@@ -199,6 +201,129 @@ class ShuffleTargetSideTests(unittest.TestCase):
         before = list(frame["tgt"])
         shuffle_target_side(frame)
         self.assertEqual(list(frame["tgt"]), before)
+
+
+def _sentences(lengths: list[int], word: str = "word") -> list[str]:
+    """Build sentences of controlled character length."""
+    return [" ".join([word] * n) for n in lengths]
+
+
+class GaleChurchAlignTests(unittest.TestCase):
+    """The aligner's job is to survive slight segmentation drift."""
+
+    def test_identical_segmentation_aligns_one_to_one(self):
+        src = _sentences([3, 9, 4, 12, 6])
+        tgt = _sentences([3, 9, 4, 12, 6])
+        beads = gale_church_align(src, tgt)
+        self.assertEqual(beads, [([i], [i]) for i in range(5)])
+
+    def test_recovers_after_a_dropped_sentence(self):
+        """The case that actually occurs: one side lost a line.
+
+        Everything after the gap is off by one. A positional zip would pair
+        every later sentence with its neighbour and stay wrong to the end of
+        the talk. The aligner must absorb the gap and resynchronize, which is
+        the whole reason 13k rows are recoverable at all.
+        """
+        src = _sentences([12, 3, 14, 30, 6, 40])
+        tgt = _sentences([12, 14, 30, 6, 40])  # the short sentence is missing
+        pairs = align_one_to_one(src, tgt)
+        # Everything after the gap pairs with its own partner, not its neighbour.
+        self.assertIn((src[3], tgt[2]), pairs)
+        self.assertIn((src[4], tgt[3]), pairs)
+        self.assertIn((src[5], tgt[4]), pairs)
+
+    def test_a_long_dropped_sentence_is_handled_worse(self):
+        """A known limitation, asserted so it stays known.
+
+        Gale-Church scores a deletion by both a fixed penalty *and* the
+        improbability of the missing length, so dropping a long sentence looks
+        so unlikely that a poor one-to-one plus a merge can score better. The
+        aligner still resynchronizes afterwards, but it emits one bad pair
+        around the gap.
+
+        This is tolerable because it is rare and because the corpus-level
+        checks are the real gate: the recovered rows have to clear
+        `looks_aligned` in aggregate, which they do. Worth knowing before
+        trusting the aligner on a corpus with many long omissions.
+        """
+        src = _sentences([3, 20, 4, 30, 6, 40])
+        tgt = _sentences([3, 4, 30, 6, 40])  # the LONG sentence is missing
+        pairs = align_one_to_one(src, tgt)
+        # It recovers: the tail still pairs correctly.
+        self.assertIn((src[4], tgt[3]), pairs)
+        self.assertIn((src[5], tgt[4]), pairs)
+        # But it mispairs at the gap rather than emitting a deletion.
+        self.assertIn((src[1], tgt[1]), pairs)
+
+    def test_a_split_sentence_becomes_a_one_to_two_bead(self):
+        src = _sentences([4, 30, 5])
+        tgt = _sentences([4, 15, 15, 5])  # the long one was split in two
+        beads = gale_church_align(src, tgt)
+        shapes = [(len(s), len(t)) for s, t in beads]
+        self.assertIn((1, 2), shapes)
+
+    def test_one_to_two_beads_are_not_returned_as_pairs(self):
+        """Confident pairings only. A split sentence is dropped, not guessed."""
+        src = _sentences([4, 30, 5])
+        tgt = _sentences([4, 15, 15, 5])
+        pairs = align_one_to_one(src, tgt)
+        self.assertNotIn(src[1], [p[0] for p in pairs])
+
+    def test_every_index_is_used_exactly_once(self):
+        """A bead path must consume both sides completely and without overlap."""
+        src = _sentences([3, 9, 4, 12, 6, 7])
+        tgt = _sentences([3, 9, 16, 6, 7])
+        beads = gale_church_align(src, tgt)
+        used_src = [i for s, _ in beads for i in s]
+        used_tgt = [j for _, t in beads for j in t]
+        self.assertEqual(used_src, list(range(len(src))))
+        self.assertEqual(used_tgt, list(range(len(tgt))))
+
+    def test_alignment_is_monotonic(self):
+        """Sentences cannot be reordered, only merged, split or dropped."""
+        src = _sentences([5, 10, 3, 8, 12])
+        tgt = _sentences([5, 10, 11, 12])
+        beads = gale_church_align(src, tgt)
+        starts = [s[0] for s, _ in beads if s]
+        self.assertEqual(starts, sorted(starts))
+
+    def test_handles_an_empty_side(self):
+        self.assertEqual(align_one_to_one([], []), [])
+        self.assertEqual(align_one_to_one(["only source"], []), [])
+
+    def test_scales_to_a_realistic_talk(self):
+        """Talks run to hundreds of sentences; the DP must stay tractable."""
+        lengths = [(i % 17) + 3 for i in range(300)]
+        src = _sentences(lengths)
+        tgt = _sentences(lengths[:150] + lengths[151:])  # drop one in the middle
+        pairs = align_one_to_one(src, tgt)
+        self.assertGreater(len(pairs), 250)
+
+    def test_beats_positional_pairing_on_drifted_input(self):
+        """The comparison that justifies the algorithm.
+
+        Zipping drifted sentences positionally yields *more* rows than the
+        aligner does, and they are wrong. This is the same trade the corpus
+        itself presents: fewer correct pairs beat more uncertain ones.
+        """
+        # Distinctive lengths so a mispairing is unmistakable, and a short
+        # omission, which is what segmentation drift actually looks like.
+        lengths = [20, 3, 25, 30, 35, 40, 45]
+        src = _sentences(lengths)
+        tgt = _sentences(lengths[:1] + lengths[2:])  # the short one is dropped
+
+        naive = list(zip(src, tgt))
+        aligned = align_one_to_one(src, tgt)
+
+        def mean_ratio(pairs):
+            return sum(
+                min(len(a), len(b)) / max(len(a), len(b)) for a, b in pairs
+            ) / len(pairs)
+
+        self.assertGreater(len(naive), len(aligned))
+        self.assertGreater(mean_ratio(aligned), mean_ratio(naive))
+        self.assertGreater(mean_ratio(aligned), 0.95)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 # Alignment Checks
 
-Two cheap checks for whether a parallel corpus is actually parallel.
+Two cheap checks for whether a parallel corpus is actually parallel, and a length-based
+aligner for repairing one that is only slightly wrong.
 
 ## Overview
 
@@ -47,6 +48,16 @@ for the reasoning and the measured numbers.
       show_source: true
 
 ::: torchlingo.preprocessing.alignment.shuffle_target_side
+    options:
+      show_source: true
+
+### Repairing drift
+
+::: torchlingo.preprocessing.alignment.align_one_to_one
+    options:
+      show_source: true
+
+::: torchlingo.preprocessing.alignment.gale_church_align
     options:
       show_source: true
 
