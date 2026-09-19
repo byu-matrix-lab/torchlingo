@@ -337,20 +337,27 @@ def create_dataloaders(
             dataset is empty. Use a smaller batch_size or more data.
 
     Examples:
-        >>> train_loader, val_loader, src_vocab, tgt_vocab = create_dataloaders(
+        Needs data files on disk, so this is illustrative rather than
+        executable. `tests/test_batching.py` exercises it for real.
+
+        >>> train_loader, val_loader, src_vocab, tgt_vocab = create_dataloaders(  # doctest: +SKIP
         ...     train_file="data/train.tsv",
         ...     val_file="data/val.tsv",
         ...     batch_size=32,
         ...     use_bucketing=True
         ... )
-        >>> for src_batch, tgt_batch in train_loader:
+        >>> for src_batch, tgt_batch in train_loader:      # doctest: +SKIP
         ...     print(src_batch.shape, tgt_batch.shape)
         ...     break
         torch.Size([32, 45]) torch.Size([32, 48])
 
-        >>> train_ds = NMTDataset("data/train.tsv")
-        >>> val_ds = NMTDataset("data/val.tsv", src_vocab=train_ds.src_vocab, tgt_vocab=train_ds.tgt_vocab)
-        >>> train_loader, val_loader, src_vocab, tgt_vocab = create_dataloaders(
+        >>> train_ds = NMTDataset("data/train.tsv")        # doctest: +SKIP
+        >>> val_ds = NMTDataset(                           # doctest: +SKIP
+        ...     "data/val.tsv",
+        ...     src_vocab=train_ds.src_vocab,
+        ...     tgt_vocab=train_ds.tgt_vocab,
+        ... )
+        >>> train_loader, val_loader, src_vocab, tgt_vocab = create_dataloaders(  # doctest: +SKIP
         ...     train_file=train_ds,
         ...     val_file=val_ds,
         ...     batch_size=32,

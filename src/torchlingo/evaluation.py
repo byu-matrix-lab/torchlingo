@@ -10,6 +10,20 @@ Typical usage:
     >>> references = ["Hello world", "How are you doing"]
     >>> bleu = compute_bleu(predictions, references)
     >>> print(f"BLEU: {bleu.score:.2f}")
+    BLEU: 0.00
+
+Read that zero before trusting any BLEU number you compute. One prediction is
+*exactly* right and the other is close, yet the score is zero.
+
+Standard BLEU is a geometric mean of 1- to 4-gram precisions, and a geometric
+mean is zero if any term is zero. These sentences are two and three words long,
+so they contain no 4-grams to match, the 4-gram precision is zero, and the whole
+score collapses regardless of how good the translations are.
+
+BLEU is a **corpus-level** metric. On a few short sentences it is not merely
+noisy, it is meaningless. Use it on a real test set of hundreds of sentences, or
+use `compute_chrf`, which scores character n-grams and degrades gracefully on
+short text.
 """
 
 from pathlib import Path
@@ -86,13 +100,14 @@ def compute_bleu(
         >>> refs = ["A cat sat on a mat", "Hello world"]
         >>> result = compute_bleu(preds, refs)
         >>> print(f"BLEU: {result.score:.2f}")
-        BLEU: 54.23
+        BLEU: 35.36
 
         >>> # Chinese with character-level tokenization
         >>> preds_zh = ["你好世界"]
         >>> refs_zh = ["你好世界"]
         >>> result = compute_bleu(preds_zh, refs_zh, tokenization="char")
         >>> print(f"BLEU: {result.score:.2f}")
+        BLEU: 100.00
     """
     # Ensure references are in the format sacrebleu expects
     if references and isinstance(references[0], str):
@@ -160,6 +175,7 @@ def compute_chrf(
         >>> refs = ["Le chat s'est assis", "Bonjour monde"]
         >>> result = compute_chrf(preds, refs)
         >>> print(f"chrF: {result.score:.2f}")
+        chrF: 63.39
     """
     if references and isinstance(references[0], str):
         references = [[ref] for ref in references]
@@ -195,6 +211,7 @@ def compute_ter(
         >>> refs = ["A cat sits", "Hi there"]
         >>> result = compute_ter(preds, refs)
         >>> print(f"TER: {result.score:.2f}")
+        TER: 80.00
     """
     if references and isinstance(references[0], str):
         references = [[ref] for ref in references]
@@ -265,13 +282,15 @@ def evaluate_model(
             - "ter": TER score (0-100, lower is better) if compute_ter_score=True
 
     Example:
-        >>> # Using sentences directly (recommended)
-        >>> scores = evaluate_model(
+        Needs a trained model and vocabularies, so this one is illustrative
+        rather than executable.
+
+        >>> scores = evaluate_model(              # doctest: +SKIP
         ...     model, src_sentences=src_texts, tgt_sentences=tgt_texts,
         ...     src_vocab=src_vocab, tgt_vocab=tgt_vocab,
         ...     tokenization="auto"
         ... )
-        >>> print(f"BLEU: {scores['bleu']:.2f}, chrF: {scores['chrf']:.2f}")
+        >>> print(f"BLEU: {scores['bleu']:.2f}")  # doctest: +SKIP
     """
     from .inference import translate_batch
 
@@ -396,11 +415,15 @@ def save_translations(
         include_metrics: If True and references provided, append BLEU score.
 
     Example:
-        >>> save_translations(
-        ...     predictions=["Hello world", "Goodbye"],
-        ...     references=["Hello there", "Bye"],
-        ...     output_path="outputs/translations.txt"
-        ... )
+        >>> import tempfile
+        >>> from pathlib import Path
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     save_translations(
+        ...         predictions=["Hello world", "Goodbye"],
+        ...         references=["Hello there", "Bye"],
+        ...         output_path=Path(tmp) / "translations.txt",
+        ...     )
+        Translations saved to ...translations.txt
     """
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)

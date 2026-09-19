@@ -117,8 +117,10 @@ def create_multilingual_dataset(
         ...     'fr': Path('data/en_fr.tsv'),
         ...     'de': Path('data/en_de.tsv'),
         ... }
-        >>> multilingual_df = create_multilingual_dataset(data_sources)
-        >>> multilingual_df.head()
+        >>> multilingual_df = create_multilingual_dataset(  # doctest: +SKIP
+        ...     data_sources
+        ... )
+        >>> multilingual_df.head()                         # doctest: +SKIP
            src                           tgt
         0  <2es> hello world             hola mundo
         1  <2fr> good morning             bonjour
@@ -216,7 +218,9 @@ def save_multilingual_splits(
         ...         'test': Path('data/en_fr_test.tsv'),
         ...     },
         ... }
-        >>> save_multilingual_splits(data_sources, Path('data/multilingual/'))
+        >>> save_multilingual_splits(                      # doctest: +SKIP
+        ...     data_sources, Path('data/multilingual/')
+        ... )
         Created multilingual dataset with 5000 examples from 2 language pairs.
         Created multilingual dataset with 500 examples from 2 language pairs.
         Created multilingual dataset with 500 examples from 2 language pairs.
@@ -273,7 +277,12 @@ def get_language_tags_from_vocab(vocab) -> list[str]:
         List[str]: List of language tags found in vocabulary.
 
     Examples:
-        >>> vocab = SimpleVocab()
+        ``min_freq=1`` matters here: with the configured default, every token
+        in a two-sentence corpus appears once and is dropped, leaving a
+        vocabulary of nothing but special tokens and no tags to find.
+
+        >>> from torchlingo.data_processing import SimpleVocab
+        >>> vocab = SimpleVocab(min_freq=1)
         >>> vocab.build_vocab(["<2es> hello", "<2fr> bonjour"])
         >>> tags = get_language_tags_from_vocab(vocab)
         >>> sorted(tags)
@@ -321,7 +330,8 @@ def ensure_language_tags_in_vocab(
         Modifies SimpleVocab in-place by adding missing language tags.
 
     Examples:
-        >>> vocab = SimpleVocab()
+        >>> from torchlingo.data_processing import SimpleVocab
+        >>> vocab = SimpleVocab(min_freq=1)
         >>> vocab.build_vocab(["hello world"])
         >>> ensure_language_tags_in_vocab(vocab, ['es', 'fr', 'de'])
         Added 3 language tags to vocabulary: <2es>, <2fr>, <2de>

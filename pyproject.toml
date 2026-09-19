@@ -87,6 +87,11 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+# Set explicitly rather than inheriting pytest's default, so a docstring
+# example that passes here passes under plain `python -m doctest` too. ELLIPSIS
+# lets an example elide a temporary path or a long tensor repr without
+# inventing one.
+doctest_optionflags = ["ELLIPSIS", "NORMALIZE_WHITESPACE"]
 
 [tool.mypy]
 python_version = "3.10"

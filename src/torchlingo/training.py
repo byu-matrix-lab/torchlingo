@@ -81,11 +81,21 @@ def get_transformer_scheduler(
         LambdaLR scheduler that adjusts learning rate according to the Transformer schedule.
 
     Example:
-        >>> opt = torch.optim.Adam(model.parameters(), lr=1.0)
+        The point of this schedule is visible in the numbers: the rate climbs
+        during warmup and decays afterwards, so the peak sits at the warmup
+        boundary.
+
+        >>> import torch
+        >>> opt = torch.optim.Adam(torch.nn.Linear(4, 4).parameters(), lr=1.0)
         >>> scheduler = get_transformer_scheduler(opt, d_model=512, warmup_steps=4000)
-        >>> for epoch in range(num_epochs):
-        >>>     ...
-        >>>     scheduler.step()
+        >>> seen = {}
+        >>> for step in range(1, 8001):
+        ...     opt.step()
+        ...     scheduler.step()
+        ...     if step in (1000, 4000, 8000):
+        ...         seen[step] = opt.param_groups[0]['lr']
+        >>> print(' '.join(f'{s}:{seen[s]:.6f}' for s in sorted(seen)))
+        1000:0.000175 4000:0.000699 8000:0.000494
     """
 
     def lr_lambda(step: int) -> float:
@@ -122,12 +132,22 @@ def get_cosine_annealing_scheduler(
         LambdaLR scheduler that adjusts learning rate with cosine annealing.
 
     Example:
-        >>> opt = torch.optim.Adam(model.parameters(), lr=1e-3)
-        >>> scheduler = get_cosine_annealing_scheduler(opt, warmup_steps=8000, total_steps=200000)
-        >>> for epoch in range(num_epochs):
-        >>>     for batch in train_loader:
-        >>>         ...
-        >>>         scheduler.step()
+        Warmup climbs linearly to the optimizer's learning rate, then cosine
+        decay brings it down toward the floor.
+
+        >>> import torch
+        >>> opt = torch.optim.Adam(torch.nn.Linear(4, 4).parameters(), lr=1e-3)
+        >>> scheduler = get_cosine_annealing_scheduler(
+        ...     opt, warmup_steps=100, total_steps=1000
+        ... )
+        >>> seen = {}
+        >>> for step in range(1, 1001):
+        ...     opt.step()
+        ...     scheduler.step()
+        ...     if step in (50, 100, 1000):
+        ...         seen[step] = opt.param_groups[0]['lr']
+        >>> print(' '.join(f'{s}:{seen[s]:.6f}' for s in sorted(seen)))
+        50:0.000500 100:0.001000 1000:0.000100
     """
     import math
 

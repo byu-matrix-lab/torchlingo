@@ -45,11 +45,18 @@ def parallel_txt_to_dataframe(
         FileNotFoundError: If either file does not exist.
 
     Examples:
-        >>> df = parallel_txt_to_dataframe('en.txt', 'es.txt')
-        >>> print(df.columns)
-        Index(['src', 'tgt'], dtype='object')
+        >>> import tempfile
+        >>> from pathlib import Path
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     en = Path(tmp) / 'en.txt'
+        ...     es = Path(tmp) / 'es.txt'
+        ...     _ = en.write_text('hello world\\ngood morning\\n')
+        ...     _ = es.write_text('hola mundo\\nbuenos dias\\n')
+        ...     df = parallel_txt_to_dataframe(en, es)
+        >>> list(df.columns)
+        ['src', 'tgt']
         >>> len(df)
-        1000
+        2
     """
     cfg = config if config is not None else get_default_config()
     src_col = src_col if src_col is not None else cfg.src_col
@@ -92,9 +99,11 @@ def load_data(filepath: Path | str, format: str | None = None) -> pd.DataFrame:
         FileNotFoundError: If filepath does not exist.
 
     Examples:
-        >>> df = load_data('data.tsv')
-        >>> df = load_data('data.csv', format='csv')
-        >>> df = load_data('data.parquet')
+        Format is taken from the extension unless you say otherwise.
+
+        >>> df = load_data('data.tsv')                    # doctest: +SKIP
+        >>> df = load_data('data.csv', format='csv')      # doctest: +SKIP
+        >>> df = load_data('data.parquet')                # doctest: +SKIP
     """
     filepath = Path(filepath)
     if format is None:
@@ -132,9 +141,13 @@ def save_data(df: pd.DataFrame, filepath: Path, format: str | None = None):
         ValueError: If format is unsupported.
 
     Examples:
-        >>> save_data(df, Path('output.tsv'))
-        Saved 1000 records to output.tsv
-        >>> save_data(df, Path('output.json'), format='json')
+        >>> import pandas as pd
+        >>> import tempfile
+        >>> from pathlib import Path
+        >>> frame = pd.DataFrame({'src': ['hello'], 'tgt': ['hola']})
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     save_data(frame, Path(tmp) / 'output.tsv')
+        Saved 1 records to ...output.tsv
     """
     if format is None:
         format = filepath.suffix.lstrip(".")
@@ -180,9 +193,14 @@ def split_data(
         tuple: (train_df, val_df, test_df) as pandas DataFrames.
 
     Examples:
-        >>> train, val, test = split_data(df, train_ratio=0.8, val_ratio=0.1)
+        >>> import pandas as pd
+        >>> frame = pd.DataFrame(
+        ...     {'src': [f's{i}' for i in range(10)],
+        ...      'tgt': [f't{i}' for i in range(10)]}
+        ... )
+        >>> train, val, test = split_data(frame, train_ratio=0.8, val_ratio=0.1)
         >>> len(train), len(val), len(test)
-        (800, 100, 100)
+        (8, 1, 1)
     """
     cfg = config if config is not None else get_default_config()
     train_ratio = train_ratio if train_ratio is not None else cfg.train_ratio
