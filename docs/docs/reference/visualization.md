@@ -92,10 +92,74 @@ directly.
     framework will not give me X" often means "X is never computed on the path
     you are taking."
 
-### What it looks like on a real model
+### Attention for the translation the model actually produced
 
-From the pretrained checkpoint in Tutorial 5, translating a sentence it has
-never seen:
+`model(src, tgt, return_attention=True)` tells you where attention went while
+processing a translation **you supplied**. Hand it the reference translation and
+you learn where the model would have looked had it produced the right answer —
+which is a different question from what it did.
+
+The decoders answer the second one:
+
+```python
+from torchlingo.inference import beam_search_decode, greedy_decode
+
+tokens, weights = greedy_decode(model, src, return_attention=True)
+tokens, weights = beam_search_decode(model, src, beam_size=5, return_attention=True)
+```
+
+Greedy decodes a batch, so it returns a **list** of `(tgt_len, src_len)` tensors,
+one per sentence — a list rather than a stacked tensor because decoded sequences
+differ in length, and padding them would invent attention rows that were never
+computed. Beam search takes one sentence and returns one tensor, for the winning
+hypothesis.
+
+??? note "Why re-running is exact, and why beam search does not keep weights"
+    Both decoders discard attention as they go. Rather than thread weights
+    through the search, `attention_for_sequence` re-runs the finished sequence
+    in one teacher-forced pass.
+
+    That is **exact, not an approximation.** The decoder is causally masked, so
+    the state at target position *t* depends only on tokens up to *t*. Feeding
+    the whole sequence at once reproduces each row exactly as the incremental
+    decode computed it — asserted to floating-point noise in
+    `tests/test_attention_from_decoding.py::ExactnessTests`.
+
+    For beam search there is a second reason. Weights belong to a hypothesis,
+    and hypotheses get pruned, so most of what a beam search computes belongs to
+    candidates that lost. Keeping all of it to discard all but one costs memory
+    proportional to `beam_size` for no benefit. This mirrors what the search
+    already does with scores: it re-scores prefixes rather than caching every
+    partial result.
+
+#### A model that got it right
+
+```
+EN      I want to help you.
+BEAM-5  Quiero ayudar.
+
+        <sos>    ▁I ▁want   ▁to ▁help  ▁you     . <eos>
+▁Quiero   ···   ░░░   ▒▒▒   ░░░   ···   ···   ···   ···
+▁ayud     ···   ···   ···   ···   ▒▒▒   ░░░   ···   ···
+ar        ···   ···   ···   ░░░   ···   ░░░   ░░░   ···
+.         ···   ···   ···   ···   ░░░   ░░░   ░░░   ···
+<eos>     ▒▒▒   ···   ···   ···   ···   ···   ···   ▒▒▒
+```
+
+Read the two dark cells. `▁Quiero` attends most to `▁want`, and `▁ayud` attends
+most to `▁help`. The model has learned that Spanish fuses "I want" into a single
+inflected verb and that the alignment is not monotonic — `Quiero` covers source
+positions 1 and 2 at once.
+
+Note also what it dropped. The translation omits "you" entirely, and the `▁you`
+column is correspondingly faint everywhere. The map is not just showing you a
+correct alignment; it is showing you which source word the model never really
+used.
+
+#### A model that got it wrong
+
+Same checkpoint, a sentence it handles badly. This is the more common case, and
+the more instructive one:
 
 ```
 EN  The cat sleeps on the mat.
