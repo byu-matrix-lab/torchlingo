@@ -44,6 +44,7 @@ Completed work is removed rather than marked done — git history is the record.
 | #58 | `train_example_model.py` defaults to 20 epochs, which undertrains | Open |
 | #59 | Nothing checks that a comparison controlled its variables | Open |
 | #60 | Nobody is told when main goes red | Open |
+| #61 | A PR closed itself during a merge and nobody noticed | Open |
 
 ## Code — decoding performance
 
@@ -332,6 +333,35 @@ Worth pairing with #51 and #53, which are the same family: a check that reports
 but does not block, a check that runs a fifth of what it claims, and a check
 nobody reads. Each is individually defensible and together they mean a green
 tick carries less than it appears to.
+
+**#61 A PR closed itself during a merge and nobody noticed**
+
+#26 — the decoding sweep, carrying the #40 and #41 work — was **closed unmerged**
+at 2026-09-19T00:19:55Z, one second after #24 was merged. It went unnoticed for a
+day and was found only because it disappeared from a routine `gh pr list`.
+
+Nothing was lost: `docs/decoding-option-effects` survived, the PR reopened with
+its approval intact, and a rebase put it back on top of #34. But it was one
+branch deletion away from being genuinely hard to recover.
+
+**The cause is not established.** The timeline records `closed by ringger` at the
+moment `gh pr merge 24 --squash --delete-branch` ran, and #26's base branch
+(`data/retrain-on-enlarged-corpus`) was never deleted, so the usual
+"base branch deleted closes the PR" explanation does not fit. This is the third
+distinct way stacked PRs have misbehaved here, after #11/#12 auto-closing and the
+rebase-dismissal problem.
+
+Worth doing regardless of root cause:
+
+- A check that the set of open PRs after a merge is the set expected before it,
+  minus the one merged. Cheap, and would have caught this within seconds.
+- Stop relying on noticing. Every stacked merge in this session needed a manual
+  retarget, a manual rebase, and a manual look at what survived.
+
+The deeper answer is the one #37 keeps pointing at: **stop stacking.** Every
+mechanism that has bitten — auto-close, stale-review dismissal, this — is
+specific to PRs whose base is another PR. Merging promptly and keeping stacks at
+depth one avoids all three.
 
 ## Tests
 
