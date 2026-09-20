@@ -3,6 +3,12 @@
 Opened 2026-08-22, last updated 2026-09-20. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
+**Numbers here are task numbers, and they collide with pull request numbers.**
+Tasks run to #74 and PRs to #48, so every number below 49 names one of each. Say
+"Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
+ambiguous, and on GitHub it auto-links to the pull request whether or not that
+was meant.
+
 Note: the Status table below has drifted — several rows marked Open have since merged,
 and reconciling it against the merged history is its own pass, not done here.
 

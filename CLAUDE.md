@@ -168,7 +168,25 @@ ALWAYS complete these steps after making code changes:
 
 ## Pull Requests
 
-**Do not stack pull requests.** Every PR targets `main`. If a change depends on
+### Say "PR #X" and "Task #Y", never a bare `#N`
+
+The two numbering schemes overlap almost completely — tasks run to #62, pull
+requests to #42, so every number below 43 names one of each. Write **"PR #37"**
+for a pull request and **"Task #37"** for a task-list item, in prose, commit
+messages and GitHub comments alike.
+
+This is not pedantry. Task #37 ("stacked PRs fight the stale-review rule") was
+retired in the same breath as PR #37 (the `val_losses` fix) was listed as open
+and awaiting review, and both were called "#37". On GitHub there is a second
+reason: a bare `#N` in a comment auto-links to the pull request of that number,
+so an unqualified task reference silently becomes a wrong link.
+
+Task *subjects* keep the bare `#N` prefix. This is about how they are referred
+to, not how they are titled.
+
+### Do not stack pull requests
+
+Every PR targets `main`. If a change depends on
 work that is not merged yet, wait for it to merge rather than opening a PR whose
 base is another PR.
 
