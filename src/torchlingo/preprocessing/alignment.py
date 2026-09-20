@@ -195,12 +195,18 @@ def diagnose_alignment(
         AlignmentReport: Both measurements, plus how much was scorable.
 
     Example:
+        Two rows at minimum: a correlation needs something to correlate, and a
+        single pair has no length variation to measure.
+
         >>> import pandas as pd
         >>> frame = pd.DataFrame(
-        ...     {"src": ["Maria arrived in 1999."], "tgt": ["Maria llegó en 1999."]}
+        ...     {
+        ...         "src": ["Maria arrived in 1999.", "She spoke briefly."],
+        ...         "tgt": ["Maria llegó en 1999.", "Ella habló brevemente."],
+        ...     }
         ... )
-        >>> diagnose_alignment(frame).looks_aligned()
-        True
+        >>> diagnose_alignment(frame).anchor_agreement
+        1.0
     """
     agreement, scorable = anchor_agreement(frame, sample, src_col, tgt_col)
     return AlignmentReport(
