@@ -43,6 +43,7 @@ Completed work is removed rather than marked done — git history is the record.
 | #57 | Note on #27 that the recovered data buys no measurable BLEU | Open |
 | #58 | `train_example_model.py` defaults to 20 epochs, which undertrains | Open |
 | #59 | Nothing checks that a comparison controlled its variables | Open |
+| #60 | Nobody is told when main goes red | Open |
 
 ## Code — decoding performance
 
@@ -300,6 +301,37 @@ could refuse, or at least warn loudly, when `len(train_losses)`, `train_pairs`,
 `model_config` or the seed differ — printing what differs alongside the BLEU delta so a
 reader sees the confound next to the number. Same shape as every other finding on this
 list: two things that must agree, with nothing checking they do.
+
+**#60 Nobody is told when main goes red**
+
+main broke on 2026-09-19 and stayed broken until someone happened to look.
+
+The break itself is instructive: **no PR could have caught it.** #25 introduced
+`preprocessing/alignment.py` carrying a docstring example that asserts
+`looks_aligned()` on a single-row frame, which cannot pass. #32 added the
+`--doctest-modules` gate that runs it. #32 could not have fixed the example,
+because it branched from a main where the file did not exist yet. Both were
+green on their own branches; the *combination* fails.
+
+That is a merge-order interaction, and the only place it can surface is a
+post-merge run on main. Which means the post-merge run is load-bearing and
+currently nobody watches it:
+
+- A PR's checks run against the *merge result*, so #39 was green while main was
+  red. Green on your PR says nothing about the branch you are merging into.
+- Nothing notifies on a failed push-to-main run. It sits in the Actions tab.
+- The next person to open a PR inherits a red main and may reasonably assume
+  their branch caused it.
+
+Cheapest fix that would have caught this: notify on failure of the `push` to
+main run — a GitHub Actions step on `if: failure()` posting to the Discord
+channel the lab already uses, or simply enabling GitHub's own "Actions failure"
+email for the repo. Neither needs new infrastructure.
+
+Worth pairing with #51 and #53, which are the same family: a check that reports
+but does not block, a check that runs a fifth of what it claims, and a check
+nobody reads. Each is individually defensible and together they mean a green
+tick carries less than it appears to.
 
 ## Tests
 
