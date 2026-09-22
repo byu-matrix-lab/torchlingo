@@ -1,7 +1,10 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-09-16. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-09-20. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
+
+Note: the Status table below has drifted — several rows marked Open have since merged,
+and reconciling it against the merged history is its own pass, not done here.
 
 ## Status
 
@@ -45,6 +48,19 @@ Completed work is removed rather than marked done — git history is the record.
 | #59 | Nothing checks that a comparison controlled its variables | Open |
 | #60 | Nobody is told when main goes red | Open |
 | #61 | A PR closed itself during a merge and nobody noticed | Open |
+| #62 | Check the open-PR set after every merge | Open |
+| #63 | Three pages have no mkdocs nav entry | Open — blocked on PR #17 |
+| #64 | Promote the tutorial 6 checks into `torchlingo.diagnostics` | Done in PR #45 |
+| #65 | Tutorial 6 and `diagnostics` are two copies of the same checks | Open — blocked on PR #44 + #45 |
+| #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | Open |
+| #67 | Re-scope #2, #3 and #6 against what a student learns | Open — decision needed |
+| #68 | Cite `torcheck` as prior art in the diagnostics docs | Open |
+| #69 | Position the project on the curriculum, not the architecture | Open — strategic |
+| #70 | Print the sacreBLEU signature with every score | Open |
+| #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
+| #72 | Reconcile the Status table with the merged history | Open — after #73 |
+| #73 | The review backlog is ten PRs deep | Open |
+| #74 | A broken anchor and 93 unexplained warnings in the docs build | Open |
 
 ## Code — decoding performance
 
@@ -765,6 +781,197 @@ Options, roughly in order of cost:
 
 Related: #51, which is the same shape from the other direction. That gate runs and does
 not block; this one blocks and does not run.
+
+Partial relief from PR #44: tutorial 6 needs no LFS artifact, so it does run in CI. The
+gate now executes 2 of 6 rather than 1 of 5. The false impression is unchanged — the
+green check still does not say what it skipped.
+
+**#63 Three pages have no mkdocs nav entry, all waiting on PR #17**
+
+`docs/mkdocs.yml` belongs to PR #17, and we are not stacking, so three pages shipped
+without a nav entry. A page absent from nav is INFO rather than a warning under
+`--strict` — verified on each branch, the build stays clean — so none of this blocks.
+But each page is reachable only by direct link until PR #17 lands.
+
+| Page | From | Place it |
+|---|---|---|
+| `tutorials/06-diagnosing-failures.ipynb` | PR #44 | Tutorials, after `05-real-translations.ipynb` |
+| `reference/diagnostics.md` | PR #45 | API Reference, after `config.md` |
+| `related-work.md` | PR #46 | Top level, near Home |
+
+One more thing to undo at the same time: `related-work.md` refers to
+`torchlingo.diagnostics` as plain code text rather than linking to
+`reference/diagnostics.md`, because linking a page that does not exist on `main` fails
+`--strict`. Once PR #45 has merged, make it a link.
+
+**#64 Promote the tutorial 6 checks into `torchlingo.diagnostics`**
+
+Tutorial 6 defines its five checks inline so the notebook is self-contained and each one
+is short enough for a student to copy. That is right for the notebook and wrong as the
+permanent home: a student cannot `import` from a notebook.
+
+- `check_learning` — did the loss move, against `ln(V)` as the "learned nothing" floor
+- `gradient_report` / `check_gradients` — sorts every parameter into frozen / dead / live
+  after one backward pass. The one with no existing equivalent in the library, and the
+  only check that *names* the broken parameter rather than reporting that something is
+  wrong. Needs no training, runs in under a second.
+- `check_generalization` — the sign of the val−train gap
+- `check_contamination` — train/test source overlap
+- `check_eval_mode` — `model.training` before inference
+
+Needs tests and an API reference page. Deliberately deferred so PR #44 stayed reviewable.
+
+**Done in PR #45.** Shipped as `src/torchlingo/diagnostics.py` with `CheckResult`,
+`GradientReport`, `uniform_loss`, and the five checks (`check_loss_moved` rather than
+`check_learning`); 43 tests, 8 doctests, `mkdocs --strict` clean. What remains is #65.
+
+**#65 Tutorial 6 and `torchlingo.diagnostics` are two copies of the same checks**
+
+PR #44 defines the five checks inline in the notebook; PR #45 ships them as a module.
+Until one sources from the other they can drift, and the notebook is the copy a student
+reads.
+
+- Only after **both** have merged — doing it in either PR would stack it on the other.
+- Keep the student seeing the logic; the pedagogy depends on it. Import the functions and
+  show the source (`inspect.getsource`), or keep a short annotated call, rather than
+  silently calling a black box.
+
+**#66 Adopt `nltk.translate.gale_church`; split #29 into two different jobs**
+
+#29 conflates two goals that want different tools, and proposes hand-writing an algorithm
+that is already a dependency away.
+
+`nltk.translate.gale_church.align_blocks()` ships with exactly the priors #29 specifies:
+(1,1)=0.89, (1,2)=(2,1)=0.089, (2,2)=0.011, (0,1)=(1,0)=0.0099, and
+`VARIANCE_CHARACTERS=6.8`.
+
+- **To recover the 98 talks (~13k pairs)** — use Vecalign or Bertalign. Embedding-based
+  aligners measurably outperform length-based ones; an English–Slovak evaluation
+  (*Scientific Reports*, 2023) puts Vecalign and Bertalign significantly ahead, with
+  hunalign and Bleualign behind. Gale-Church is the wrong tool for the production job.
+- **To teach alignment** — implement it, because the implementation *is* the lesson, but
+  pin the output against NLTK's as a test oracle rather than shipping ours as the only
+  word on it.
+
+Same split applies to #52 (Moore 2002): still a good lesson, superseded in practice.
+
+**#67 Re-scope #2, #3 and #6 against what a student actually learns**
+
+Batched beam search, KV caching and DDP are high-complexity, low-teaching-value, and
+duplicate what CTranslate2, Marian and Joey NMT already do better.
+
+The repo's own 2026-08-22 design decision concedes the premise: the fast path "is
+necessarily harder to read than the 85-line version" and is kept separate *because* it
+cannot be followed line by line. Something that cannot be read is not teaching, so the
+case for building it in a teaching library has to be made rather than assumed.
+
+- Decide per task: build, descope and point at an existing toolkit, or defer.
+- #6 (DDP) is the weakest for a course and the highest ongoing maintenance.
+- **Recommendation: descope all three.** The effort is better spent on the curriculum,
+  which is where TorchLingo is actually differentiated — see #69.
+
+**#68 Cite `torcheck` as prior art in the diagnostics docs**
+
+`pengyan510/torcheck` already does PyTorch sanity checking, including frozen-parameter
+verification. PR #45 does not mention it, which implies more novelty than is warranted.
+
+The framings genuinely differ and both are defensible: torcheck registers with the
+optimizer and asserts *during* training that parameters do or do not change;
+`torchlingo.diagnostics` inspects *after the fact* and sorts parameters into
+frozen/dead/live, naming the culprit.
+
+- Add a short prior-art note to `docs/docs/reference/diagnostics.md`: what it does, how it
+  differs, when to reach for it instead.
+- Check its current maintenance status first. It was found, not evaluated.
+
+**#69 Position the project on the curriculum, not the architecture**
+
+Established 2026-09-20 by running the competition rather than reading about it.
+
+[Joey NMT](https://github.com/joeynmt/joeynmt) (Kreutzer, Bastings & Riezler, EMNLP 2019)
+is actively maintained, explicitly targets novices, and covers RNN and Transformer, beam
+search with length penalty, attention visualization, BPE/word/char and multilingual
+training. Verified hands-on: the shipped `transformer_reverse` toy config trains in
+3m52s on CPU and reaches **93.62 BLEU** on test.
+
+So the model/decoder/attention code is the *least* defensible part of TorchLingo. What no
+comparable project appears to teach:
+
+- diagnosis as a subject — everyone else teaches the path where things work
+- empirical discipline through MT: controlled comparison, contamination, `ln(V)`,
+  significance testing
+- a corpus with a documented repair history
+- documentation that executes
+
+`docs/docs/related-work.md` (PR #46) states this publicly. The task is to let it steer
+effort: feed #48's curriculum audit, and resolve #67 in its light.
+
+- Open question: does Joey NMT belong *in* the syllabus as a comparison point — "here is
+  the same thing as a configured toolkit" — rather than only in related work?
+
+**#70 Print the sacreBLEU signature with every score**
+
+Adopted from the Joey NMT baseline run, which logs
+`nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0` next to every BLEU.
+
+We already use sacreBLEU, so the signature is available and we are throwing it away. A
+BLEU number without it is not reproducible by someone who was not there — which is
+precisely the discipline tutorial 6 and #59 are trying to teach. Currently we teach it
+and do not practise it.
+
+- `compute_bleu` returns a `sacrebleu.metrics.BLEU`; surface `.get_signature()`.
+- Print it wherever a score is reported: `scripts/compare_checkpoints.py`, tutorial 5,
+  `concepts/decoding.md`, and the generated `decoding_sweep.json`.
+
+**#71 Decide whether to report the Joey NMT breakage upstream**
+
+Their shipped quickstart does not run on current PyTorch: `joeynmt/builders.py` passes
+`verbose=False` to `torch.optim.lr_scheduler.ReduceLROnPlateau`, which PyTorch removed,
+so `scheduling: "plateau"` raises `TypeError` before the first step. The toy config also
+sets `use_cuda: True` and `fp16: True`, which fail on any CPU-only machine.
+
+Found while running their tutorial as a baseline (2026-09-20). Not reported — filing an
+upstream issue is outward-facing and is Eric's call.
+
+- One-line fix upstream; a courteous thing to send given we cite them favourably.
+- If yes: report from a clean clone, not the patched scratch copy.
+
+**#72 Reconcile the Status table with the merged history**
+
+The table at the top of this file has drifted: several rows marked Open have merged, and
+the file's own rule is that completed work is removed rather than marked done. Flagged in
+place on 2026-09-20 but not fixed, because reconciling it from memory rather than from
+the merge history is how it got wrong in the first place.
+
+- Walk `git log main` and the closed-PR list, then delete what has landed.
+- Worth doing once the current review backlog clears (#73), not before, or it drifts again.
+
+**#73 The review backlog is ten PRs deep**
+
+As of 2026-09-20: PRs #17, #26, #34, #37, #38, #42, #43, #44, #45, #46. Only #26 is
+approved.
+
+This is the condition that produced the stacking failures recorded in #37 — stacks
+existed because PRs sat waiting, not because the work needed sequencing. The convention
+now forbids stacking, which means the backlog converts into *blocked* work instead:
+#63 waits on #17, #65 waits on #44 and #45 together.
+
+- Merging promptly is the actual fix. #26 is approved and can go now.
+- Related: #62 (check the open-PR set after every merge), #61 (a PR closed itself and
+  nobody noticed).
+
+**#74 A broken anchor and 93 unexplained warnings in the docs build**
+
+Two pre-existing docs-hygiene items, both visible in every `mkdocs build --strict` run
+and neither currently failing it:
+
+- `reference/visualization.md` links to
+  `#torchlingo.models.transformer_simple.capture_cross_attention`, and no such anchor
+  exists on that page. Reported as INFO, so `--strict` does not catch it — the same class
+  of rot as #26, which *was* caught only because those links were WARNINGs.
+- 93 `Div ... unclosed ... closing implicitly` warnings, from the Material card grids.
+  Believed benign; never actually diagnosed. Confirm, then either fix the markup or
+  record why it is acceptable so the next person does not re-investigate.
 
 **#51 The docs gate reports but does not block**
 
