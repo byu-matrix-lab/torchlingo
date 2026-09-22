@@ -11,10 +11,10 @@ and reconciling it against the merged history is its own pass, not done here.
 | | Task | State |
 |---|---|---|
 | #16 | Release pipeline broken — nothing ships | Open |
-| #2 | Batch beam search across sentences (~8x, scales with test-set size) | Open |
-| #3 | Incremental decoding / KV cache | Open |
+| #2 | Batch beam search across sentences | **Descoped 2026-09-22** |
+| #3 | Incremental decoding / KV cache | **Descoped 2026-09-22** |
 | #4 | Resolve length-normalization semantics | Open |
-| #6 | Multi-GPU training via DDP | Open |
+| #6 | Multi-GPU training via DDP | **Descoped 2026-09-22** |
 | #7 | PyTorch deprecation warnings | Open |
 | #8 | Verify Eole claims before syllabus use | Open |
 | #9 | `pre-commit install` (still not installed) | Open |
@@ -53,7 +53,6 @@ and reconciling it against the merged history is its own pass, not done here.
 | #64 | Promote the tutorial 6 checks into `torchlingo.diagnostics` | Done in PR #45 |
 | #65 | Tutorial 6 and `diagnostics` are two copies of the same checks | Open — blocked on PR #44 + #45 |
 | #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | Open |
-| #67 | Re-scope #2, #3 and #6 against what a student learns | Open — decision needed |
 | #68 | Cite `torcheck` as prior art in the diagnostics docs | Open |
 | #69 | Position the project on the curriculum, not the architecture | Open — strategic |
 | #70 | Print the sacreBLEU signature with every score | Open |
@@ -63,6 +62,42 @@ and reconciling it against the merged history is its own pass, not done here.
 | #74 | A broken anchor and 93 unexplained warnings in the docs build | Open |
 
 ## Code — decoding performance
+
+### Decision (2026-09-22): #2, #3 and #6 are descoped
+
+**Eric's call, taking the recommendation from the competitive assessment.** Batched beam
+search across sentences, KV caching, and multi-GPU training via DDP are not being built.
+
+*Why.* Each is high-complexity, low-teaching-value, and duplicates what CTranslate2,
+Marian and Joey NMT already do better than this repository ever would. The 2026-08-22
+design decision below concedes the premise without drawing the conclusion: the fast path
+"is necessarily harder to read than the 85-line version" and is kept separate *because*
+it cannot be followed line by line. Something a student cannot read is not teaching them
+anything, so the case for carrying it in a teaching library had to be made rather than
+assumed — and on inspection it could not be.
+
+The competitive assessment is what forced the question. Joey NMT covers this ground,
+is actively maintained, and reaches 93.62 BLEU on its toy task in under four minutes on
+CPU, so the decoder-performance work is the *least* differentiated thing we could spend
+effort on. What is differentiated — diagnosis, empirical discipline, a corpus with a
+documented repair history, documentation that executes — is where the time goes instead.
+See #69 and `docs/docs/related-work.md`.
+
+*What this does not touch.* #4 (length-normalization semantics) stays open and is
+unaffected: it is a correctness-and-teaching question with real evidence behind it, not a
+performance one. `inference_fast.py` stays as it is — already merged, already tested by
+`tests/test_decoding_equivalence.py`, and still the faster path for anyone who wants it.
+Nothing is being removed; we are declining to extend it.
+
+*If this is ever reversed*, the technical notes below are kept deliberately intact — the
+`(batch x k, t)` flattening, the ragged-completion bookkeeping, and the warning that a KV
+cache leaves the call count unchanged and must be read on the positions-forwarded column
+instead. That last one would cost a day to rediscover.
+
+*Also worth telling students.* "We could make this faster and chose not to, because the
+readable version is the point, and here is the toolkit to use when speed actually
+matters" is a better lesson than a fast path nobody reads. Candidate for
+`concepts/decoding.md`.
 
 ### Design decision (2026-08-22): reference and fast implementations live side by side
 
@@ -81,6 +116,12 @@ scales students often are not working at anyway.
 since it may compromise readability." That constraint is gone. The fast path can be as
 dense as it needs to be, because the readable path is preserved. #3 moves from
 questionable to straightforwardly worth doing.
+
+> **Superseded 2026-09-22.** This paragraph answered "may we build it?" and read the
+> answer as "so we should." The descope decision above answers the question that was
+> never asked: *should* we, given that it duplicates CTranslate2 and Marian and teaches
+> nothing a student can read. The side-by-side design remains correct for the code that
+> already exists — it is only the conclusion about #3 that is withdrawn.
 
 *What this demands:* two implementations silently diverging is the obvious failure mode.
 `tests/test_decoding_equivalence.py` already covers this — it was written as a
@@ -153,10 +194,16 @@ task could deliver it:
 `beam_size=5` x 8 sentences = 40 ~= 38.7. #1 recovers roughly `beam_size`; the rest needs
 #2, which is worth more the larger the test set.
 
+**As of 2026-09-22 that remaining ~8x is being left on the table deliberately** — #2 is
+descoped. #1's share is already merged. Kept here because the split is the thing worth
+knowing: the figure was once quoted as if any single task could deliver all of it.
+
 Full explanation for students lives in `docs/docs/concepts/decoding.md` — keep it there
 rather than duplicating it into code and notes.
 
-**#2 Batch beam search across sentences**
+**#2 Batch beam search across sentences** — **DESCOPED 2026-09-22**, see the decision
+above. Notes kept because they are the expensive part to rediscover.
+
 Remove the batch-size-1 restriction in `inference_fast.py`; flatten to `(batch x k, t)`.
 Validate it with `python scripts/bench_decode.py`: the sentence lever should show up as a
 further drop in `decode()` calls with positions forwarded unchanged, and
@@ -174,7 +221,8 @@ the number of sentences decoded, so it matters more on a real test set than #1 d
   side-by-side design the *reference* implementation keeps that restriction. The batched
   variant gets its own tests rather than inverting this one.
 
-**#3 Incremental decoding / KV cache**
+**#3 Incremental decoding / KV cache** — **DESCOPED 2026-09-22**, see the decision above.
+
 Removes the O(L^2) prefix recomputation. Independent of the two axes above: it reduces the
 work *inside* each call rather than the number of calls.
 - ~~DECISION NEEDED: may compromise the readability that makes this repo worth using for
@@ -211,8 +259,14 @@ selection would separate the two, and that is now a cheap experiment because
 
 ## Code — other gaps
 
-**#6 Multi-GPU training via DDP**
+**#6 Multi-GPU training via DDP** — **DESCOPED 2026-09-22**, see the decision under
+*Code — decoding performance*. The weakest of the three for a course and the highest
+ongoing maintenance: the lab's students train on laptops and Colab, where there is one
+GPU or none.
+
 Not implemented. `config.py:663` states multi-GPU "requires custom DataParallel setup."
+That sentence is now the honest final answer rather than a placeholder, and should be
+left in place.
 
 **#7 One PyTorch deprecation warning left**
 On torch 2.13.0, "Support for mismatched key_padding_mask and attn_mask is deprecated",
@@ -855,21 +909,6 @@ that is already a dependency away.
 
 Same split applies to #52 (Moore 2002): still a good lesson, superseded in practice.
 
-**#67 Re-scope #2, #3 and #6 against what a student actually learns**
-
-Batched beam search, KV caching and DDP are high-complexity, low-teaching-value, and
-duplicate what CTranslate2, Marian and Joey NMT already do better.
-
-The repo's own 2026-08-22 design decision concedes the premise: the fast path "is
-necessarily harder to read than the 85-line version" and is kept separate *because* it
-cannot be followed line by line. Something that cannot be read is not teaching, so the
-case for building it in a teaching library has to be made rather than assumed.
-
-- Decide per task: build, descope and point at an existing toolkit, or defer.
-- #6 (DDP) is the weakest for a course and the highest ongoing maintenance.
-- **Recommendation: descope all three.** The effort is better spent on the curriculum,
-  which is where TorchLingo is actually differentiated — see #69.
-
 **#68 Cite `torcheck` as prior art in the diagnostics docs**
 
 `pengyan510/torcheck` already does PyTorch sanity checking, including frozen-parameter
@@ -904,7 +943,8 @@ comparable project appears to teach:
 - documentation that executes
 
 `docs/docs/related-work.md` (PR #46) states this publicly. The task is to let it steer
-effort: feed #48's curriculum audit, and resolve #67 in its light.
+effort: feed #48's curriculum audit. It has already had one concrete consequence —
+#2, #3 and #6 were descoped on 2026-09-22 on the strength of it.
 
 - Open question: does Joey NMT belong *in* the syllabus as a comparison point — "here is
   the same thing as a configured toolkit" — rather than only in related work?
