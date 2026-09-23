@@ -44,7 +44,6 @@ is not finished until that PR merges, and only then does the row disappear.
 | #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
 | #72 | Prune the prose entries for finished tasks | Open |
 | #74 | Fix the broken anchor and diagnose the 93 docs warnings | Anchor in PR #51; the 93 warnings still open |
-| #87 | Four merged branches still on the remote | Open |
 | #78 | Tutorial 5's committed outputs predate the retrained checkpoint | In review — PR #57 |
 | #79 | An order-dependent test; does not reproduce on main today | Open |
 | #80 | Teach evaluation beyond BLEU | In review — PR #58 |
@@ -998,20 +997,6 @@ were pending. Anything whose row is gone from the table should be gone from the 
   place they apply rather than losing them with the task.
 - Not a `sed`. The table is the index people read and it is correct now; the bodies need
   a careful pass.
-
-**#87 Four merged branches still sit on the remote**
-
-Local cleanup is done. `origin` still carries `data/recover-remaining-talks`,
-`docs/decoding-option-effects`, `docs/fix-broken-links` and
-`fix/honest-training-and-comparison`, all from PRs that merged. Harmless, but they make
-`git branch -r` misleading about what is in flight.
-
-- Deleting a remote branch is outward-facing, so it needs a deliberate yes rather than
-  being folded into a local tidy-up.
-- `colab-checkpointing`, `coulson` and `myles_testing` are **not** ours to delete. They
-  belong to collaborators and should be left alone whatever is decided about the four.
-- The durable fix is `--delete-branch` at merge time, which now works again: every
-  branch that blocked it was held by a worktree, and no worktrees remain.
 
 
 **#74 A broken anchor and 93 unexplained warnings in the docs build** — anchor in PR #51; the 93 warnings still open
