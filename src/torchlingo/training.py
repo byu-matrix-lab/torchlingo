@@ -8,7 +8,7 @@ in `torchlingo.inference` to keep responsibilities separated.
 from __future__ import annotations
 
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import torch
@@ -39,12 +39,21 @@ class TrainResult:
     Attributes:
         train_losses: Mean training loss per epoch.
         val_losses: Mean validation loss per epoch (empty when no val_loader).
+            One entry per epoch, so ``len(val_losses) == len(train_losses)``
+            and either can be plotted against the other.
+        periodic_val_losses: Mean validation loss at each mid-epoch check, when
+            ``config.val_interval`` is set. Empty otherwise. These are kept
+            separate from ``val_losses`` because they measure something
+            different -- the model partway through an epoch -- and mixing the
+            two produces a list whose length is neither the epoch count nor
+            anything else meaningful.
         best_checkpoint: Path to the best checkpoint file if saved, else None.
     """
 
     train_losses: list[float]
     val_losses: list[float]
     best_checkpoint: Path | None
+    periodic_val_losses: list[float] = field(default_factory=list)
 
 
 def _resolve_device(device: torch.device | None) -> torch.device:
@@ -310,6 +319,7 @@ def train_model(
     best_path: Path | None = None
     train_losses: list[float] = []
     val_losses: list[float] = []
+    periodic_val_losses: list[float] = []
     global_step = 0
     stop_training = False
     no_improve_steps = 0
@@ -421,7 +431,14 @@ def train_model(
                             )
                             total_val += v_loss.item()
                     avg_val = total_val / max(1, len(val_loader))
-                    val_losses.append(avg_val)
+                    # Deliberately NOT val_losses: this is a mid-epoch reading,
+                    # and appending it there would make that list interleave two
+                    # different measurements. It used to, which made
+                    # len(val_losses) look like an epoch count while being
+                    # roughly twice one, and a training curve plotted from it
+                    # zig-zag between "partway through epoch n" and "end of
+                    # epoch n" without saying so.
+                    periodic_val_losses.append(avg_val)
                     # Step plateau scheduler on validation loss
                     if is_plateau_scheduler:
                         sched.step(avg_val)
@@ -613,7 +630,10 @@ def train_model(
         )
 
     return TrainResult(
-        train_losses=train_losses, val_losses=val_losses, best_checkpoint=best_path
+        train_losses=train_losses,
+        val_losses=val_losses,
+        best_checkpoint=best_path,
+        periodic_val_losses=periodic_val_losses,
     )
 
 
