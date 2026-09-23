@@ -10,23 +10,32 @@ one portable file. This module saves *training state* so a run can pick up where
 it stopped: optimizer, scheduler, epoch, step, and the loss history. The two
 answer different questions and deliberately stay separate.
 
-Typical usage in Colab:
-    >>> from torchlingo.training_checkpoint import (
+Typical usage in Colab. Skipped under ``--doctest-modules`` because it is an
+illustration rather than a runnable example: ``model`` and ``loader`` are the
+reader's own, and ``mount_drive()`` returns a different answer inside Colab than
+outside it, so there is no single correct output to assert.
+
+    >>> from torchlingo.training_checkpoint import (  # doctest: +SKIP
     ...     TrainingCheckpointer, default_checkpoint_dir, mount_drive
     ... )
-    >>> mount_drive()                                  # no-op outside Colab
-    >>> checkpointer = TrainingCheckpointer(
+    >>> mount_drive()                                  # doctest: +SKIP
+    >>> checkpointer = TrainingCheckpointer(           # doctest: +SKIP
     ...     "my-experiment", checkpoint_dir=default_checkpoint_dir("my-experiment")
     ... )
-    >>> result = train_model(model, loader, checkpointer=checkpointer)
+    >>> result = train_model(model, loader, checkpointer=checkpointer)  # doctest: +SKIP
 
 Re-running that same cell after a disconnect resumes from the last save.
 
 Note:
     The Colab and Google Drive paths here cannot be exercised by CI — GitHub
-    runners have no Drive to mount. Everything else is tested; the Drive
-    integration has been written carefully and reviewed, but it has not been run
-    in a live Colab session. Treat that part as unverified until someone does.
+    runners have no Drive to mount, so everything in this module is tested
+    *except* the part that actually talks to Drive.
+
+    That gap was closed by hand instead. Verified in a live Colab session on
+    2026-09-23: Drive mounts, checkpoints land under ``MyDrive``, and an
+    interrupted runtime resumes from the last save rather than restarting from
+    epoch 0 — which is the behaviour the module exists for, and the one no unit
+    test here can demonstrate.
 """
 
 from __future__ import annotations
