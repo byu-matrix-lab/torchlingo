@@ -4,7 +4,7 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #87 and PRs to #62, so every number below 63 names one of each. Say
+Tasks run to #92 and PRs to #64, so every number below 65 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
@@ -50,9 +50,14 @@ is not finished until that PR merges, and only then does the row disappear.
 | #81 | Fail the build on hand-typed generated numbers | Open |
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | Open |
 | #83 | Show attention on the Transformer, not only the LSTM | In review — PR #59 |
-| #84 | The two evaluation pages will land off-nav | Open — blocked on PR #58 |
+| #84 | The two evaluation pages will land off-nav | Fixed on the tutorial 7 branch; lands with #88 |
 | #85 | Only BLEU carries a signature; chrF and TER do not | Open — after PRs #55 and #58 |
 | #86 | `evaluate_model` has no test, and it is what callers use | Open — after PR #58 |
+| #88 | Open the tutorial 7 PR once PR #58 merges | Written and verified; held local |
+| #89 | Fail the docs build when a page is off-nav | Open |
+| #90 | `CLAUDE.md`'s numbering example is stale | Open |
+| #91 | `metric_comparison.json` records no BLEU signature | Open — after PRs #55 and #58 |
+| #92 | Tutorials 3 and 5 bypass the library's own evaluation API | Open |
 
 ## Code — decoding performance
 
@@ -294,6 +299,32 @@ the TER example did not discriminate) and adds `concepts/evaluation.md` plus
 the table cannot drift. Still open after it lands: no neural metric anywhere in the
 library. COMET needs a model download, so it belongs behind an extra rather than in the
 default install.
+
+**#91 `metric_comparison.json` records no BLEU signature**
+
+`docs/docs/_generated/metric_comparison.json` on the PR #58 branch ends with
+`"bleu_signature": "not recorded"`, because `scripts/compare_metrics.py` was written
+before PR #55 gave `compute_bleu` a `.signature`. The generated page therefore publishes
+scores with no record of how they were produced, which is the exact thing #70 exists to
+prevent, in the one place that is *generated* and so should have been easiest to get
+right.
+
+- Once #55 and #58 are both in, teach `compare_metrics.py` to read `.signature` and
+  regenerate both the JSON and the markdown.
+- Related to #85: chrF and TER have no signature to record yet, so this lands properly
+  only after that one.
+
+**#90 `CLAUDE.md`'s numbering example is stale**
+
+The "Say PR #X and Task #Y" rule says *"tasks run to #62, pull requests to #42, so every
+number below 43 names one of each."* Tasks now run to #92 and PRs to #64. The rule is
+right and its reasoning is intact; only the arithmetic has rotted, in the file that
+teaches the convention.
+
+- One line, in `CLAUDE.md` rather than `notes/`, so it cannot ride along on a notes-only
+  PR. Fold it into the next change that touches `CLAUDE.md` for another reason.
+- Consider dropping the specific numbers instead. They were never the point, and they
+  will be stale again within a week.
 
 **#85 Only BLEU carries a signature; chrF and TER do not**
 Task #70's subject says "with every score", but PR #55 attaches `.signature` to
@@ -809,12 +840,73 @@ approximation, because the decoder is causally masked.
 - Costs CI nothing, but it does make tutorial 4 depend on `data/pretrained/model.pt`, so
   tutorial 4 joins the LFS skip list. See #53.
 
-**#84 The two evaluation pages will land off-nav**
+**#84 The two evaluation pages will land off-nav** — fixed on the tutorial 7 branch
 PR #58 adds `concepts/evaluation.md` and `reference/evaluation.md` but does not touch
 `docs/mkdocs.yml`, so both arrive unreachable from the site. This is not caught by
 `mkdocs build --strict`: a page missing from the nav is an INFO, not a warning, which is
-exactly how the three pages in #63 went unreachable. Add the entries once #58 merges,
-and treat the recurrence as evidence for making the check explicit.
+exactly how the three pages in #63 went unreachable.
+- Both nav entries are on the local `docs/evaluation-tutorial` branch, which had to edit
+  `mkdocs.yml` anyway to place tutorial 7. So this lands with #88 rather than separately.
+- The recurrence is the argument for #89.
+
+**#88 Open the tutorial 7 PR once PR #58 merges**
+
+The evaluation tutorial is written, executed and verified on the **local** branch
+`docs/evaluation-tutorial` (commit `1516aa0`). Not pushed: it depends on unmerged work,
+and the standing rule is to hold such work locally rather than stack.
+
+Depends on PR #58 (the chrF/TER transpose fix, and `concepts/evaluation.md`) and PR #55
+(the `.signature` the notebook prints). The branch is `main` with both merged in.
+
+At PR time:
+
+1. Rebase onto a `main` that carries #58 and #55.
+2. Re-check `docs/mkdocs.yml`. The branch adds three nav entries: tutorial 7,
+   `concepts/evaluation.md` and `reference/evaluation.md`. PR #51 also edits the
+   tutorials nav block to add tutorial 6, so expect a small textual conflict there.
+   **Tutorial 7 belongs after tutorial 6.**
+3. Re-execute the notebook and re-run every check.
+4. Say in the body that it closes #84.
+
+Already verified on the branch: 7/7 notebooks execute cleanly, zero errors, zero
+warnings and zero local paths in the committed outputs, every number quoted in prose
+appears in an output, `mkdocs --strict` EXIT=0, ruff clean, 693 tests pass. In CI the
+gate would run **3 of 7** rather than 2 of 6, because the notebook needs no LFS artifact.
+
+**#89 Fail the docs build when a page is off-nav**
+
+`mkdocs` reports pages missing from the nav at **INFO**, so `--strict` exits 0 while they
+sit unreachable. Measured on the tutorial 7 branch: `--strict` EXIT=0 with **11** pages
+off-nav.
+
+The trap has now caught five pages across two PRs (#63's three, #84's two), and the
+second was noticed only because someone happened to be auditing the first. That is not a
+process that catches the third.
+
+- Check that every page under `docs/docs/` is either in the nav or on a declared
+  exception list, and fail when one is neither.
+- **The exception list is the whole design problem.** `_generated/*.md` are *supposed*
+  to be off-nav: they are snippet files pulled into other pages with `--8<--` includes,
+  not standalone pages. So the orphan list is not a to-do list, and a naive check would
+  cry wolf on five files immediately. Declare those deliberately.
+- `MULTILINGUAL_ANALYSIS.md`, `MULTILINGUAL_QUICKSTART.md` and `TESTING_GUIDE.md` are
+  genuinely orphaned and predate all of this; decide whether they are nav pages or
+  should move out of the docs tree.
+
+**#92 Tutorials 3 and 5 bypass the library's own evaluation API**
+
+Both call `sacrebleu` directly rather than `torchlingo.evaluation`. Tutorial 6 and the
+new tutorial 7 use the library. So a student meets two different ways to score, and the
+library's own evaluation API is the one the earlier tutorials never touch.
+
+This is also part of why the chrF/TER transpose bug survived: nothing in `docs/` or
+`tests/` exercised `compute_chrf` or `compute_ter`, so there was no path along which the
+wrong number could be noticed.
+
+- Route tutorials 3 and 5 through `compute_bleu`, which is the function they are already
+  imitating.
+- Worth doing after #58 lands, so the tutorials pick up the signature and the fixed
+  reshaping at the same time.
 
 **#49 The pretrained checkpoint predates the enlarged corpus**
 
@@ -864,6 +956,11 @@ LFS artifact — and the check mark on the PR looks the same either way.
   (`data/pretrained/model.pt`) so it can show Transformer cross-attention; tutorial 4 was
   already skipped for the corpus, so the CI count is unchanged, but the gap between "what
   CI proves" and "what a reader runs" widens with every tutorial that touches real data.
+- It can go the other way. Tutorial 7 (#88) uses fixed strings rather than a model, so it
+  needs no LFS artifact and **runs in CI**, taking the gate to 3 of 7. Worth noting as a
+  design lever: a tutorial whose subject does not require a trained model should not
+  acquire one, because that is the difference between a lesson CI protects and one it
+  cannot see.
 
 That was the accepted trade when LFS went in, and it is still the right one. The problem
 is that nothing says so at the point where someone reads the green check.
@@ -1011,6 +1108,11 @@ and neither currently failing it:
 - 93 `Div ... unclosed ... closing implicitly` warnings, from the Material card grids.
   Believed benign; never actually diagnosed. Confirm, then either fix the markup or
   record why it is acceptable so the next person does not re-investigate.
+  **New detail, 2026-09-23:** these print as `[WARNING]` yet `--strict` still exits 0,
+  so they are not reaching the logger `--strict` gates on; they come from a markdown
+  extension writing to its own. Worth establishing which, because it means `--strict`
+  is a weaker gate than its name implies and other extension warnings are escaping it
+  too. Same shape as #89, one layer down.
 
 **#51 The docs gate reports but does not block**
 
