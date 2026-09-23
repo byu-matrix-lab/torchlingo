@@ -236,6 +236,51 @@ there teaches nothing.
 
 --8<-- "docs/_generated/decoding_sweep.md"
 
+### Why every table here ends with a signature
+
+That last block — `nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0` — is the
+**sacreBLEU signature**, and it is not decoration.
+
+BLEU counts matching n-grams, so it depends entirely on where you decide the token
+boundaries are. Score the same translations with a different tokenizer and the number
+moves, sometimes by several points, with nothing about the number itself to warn you.
+That is why two papers both reporting "BLEU 26" may not be making the same claim, and it
+is the reason sacreBLEU exists at all: it fixes the settings and makes you state them.
+
+So a bare BLEU number is not a measurement. It is a measurement with the units left off.
+
+You can watch the effect directly:
+
+```python
+from torchlingo.evaluation import compute_bleu
+
+prediction = ["The Cat Sat On The Mat Today And Slept"]
+reference = ["the cat sat on the mat today and slept"]
+
+cased = compute_bleu(prediction, reference, lowercase=False)
+lowered = compute_bleu(prediction, reference, lowercase=True)
+
+print(cased.score, cased.signature)      # 0.0    ... case:mixed ...
+print(lowered.score, lowered.signature)  # 100.0  ... case:lc    ...
+```
+
+Identical text, identical metric, and the score goes from 0 to 100. The *only* thing
+that distinguishes the two numbers is a field in the signature.
+
+`compute_bleu` attaches `.signature` to every result for this reason, so reporting it
+costs nothing. It also records one thing sacreBLEU cannot see: for CJK text TorchLingo
+tokenizes to characters *before* sacreBLEU runs and then passes `tokenize="none"`, so
+sacreBLEU's own signature would say `tok:none` and omit the step that actually happened.
+The signature carries `tokenization:char` instead. A signature that hides a tokenization
+decision is worse than no signature, because it invites a comparison that is not valid.
+
+!!! tip "The habit, not the string"
+    This generalizes past BLEU. Any number you will later compare against another number
+    needs to travel with the settings that produced it. Tutorial 6 makes the same point
+    from the other direction — a measurement you cannot reproduce is not a measurement —
+    and the corpus-comparison mistake recorded there is exactly what happens when two
+    things change and only one is written down.
+
 ### Most of the gain is the first beam, and past the peak it reverses
 
 Read the paired table, not the columns.

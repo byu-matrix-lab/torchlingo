@@ -75,12 +75,19 @@ def compute_bleu(
     lowercase: bool = False,
     tokenize: str = "13a",
     tokenization: str = "auto",
-) -> sacrebleu.metrics.BLEU:
+) -> sacrebleu.metrics.bleu.BLEUScore:
     """Compute corpus-level BLEU score for translations.
 
     Uses sacrebleu's implementation of BLEU (Papineni et al., 2002), which is
     the standard metric for machine translation evaluation. BLEU measures n-gram
     overlap between predictions and references, with scores from 0-100 (higher is better).
+
+    **Always report ``.signature`` next to ``.score``.** BLEU is notoriously
+    sensitive to tokenization, so the same translations can score several points
+    apart under different settings. A bare "BLEU 26" is not comparable to
+    anyone else's BLEU 26, and is not reproducible by someone who was not there
+    -- which is why sacreBLEU defines a signature at all. This function attaches
+    it to the result so there is nothing extra to remember.
 
     Args:
         predictions: List of predicted translations (one string per sample).
@@ -93,7 +100,8 @@ def compute_bleu(
             for CJK languages), "word" (space-separated). Default: "auto".
 
     Returns:
-        BLEU object with .score attribute (0-100) and detailed n-gram statistics.
+        BLEUScore with ``.score`` (0-100), detailed n-gram statistics, and a
+        ``.signature`` string recording how the score was produced.
 
     Example:
         >>> preds = ["The cat sat on the mat", "Hello world"]
@@ -102,12 +110,27 @@ def compute_bleu(
         >>> print(f"BLEU: {result.score:.2f}")
         BLEU: 35.36
 
-        >>> # Chinese with character-level tokenization
+        Report the signature with it. ``tok:13a`` is the part that most often
+        explains why two BLEU numbers disagree:
+
+        The trailing version is elided here so a sacreBLEU upgrade does not
+        break this example -- but do not elide it when reporting a score, since
+        the metric's own version is part of what makes it reproducible:
+
+        >>> print(result.signature)
+        nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:...
+
+        Character-level tokenization for CJK is applied by TorchLingo before
+        sacreBLEU sees the text, so the signature records it explicitly rather
+        than reporting the ``tok:none`` that sacreBLEU alone would show:
+
         >>> preds_zh = ["你好世界"]
         >>> refs_zh = ["你好世界"]
         >>> result = compute_bleu(preds_zh, refs_zh, tokenization="char")
         >>> print(f"BLEU: {result.score:.2f}")
         BLEU: 100.00
+        >>> "tokenization:char" in result.signature
+        True
     """
     # Ensure references are in the format sacrebleu expects
     if references and isinstance(references[0], str):
@@ -148,6 +171,22 @@ def compute_bleu(
     bleu_metric = sacrebleu.metrics.BLEU(lowercase=lowercase, tokenize=tokenize)
     bleu_result = bleu_metric.corpus_score(predictions, transposed_refs)
 
+    # Attach the signature to the score. sacreBLEU keeps them on separate
+    # objects -- the metric knows its settings, the score does not -- so a
+    # caller who only holds the result has no way to say how it was produced.
+    # That is the whole failure the signature exists to prevent, so we close it
+    # here rather than asking every caller to remember.
+    signature = bleu_metric.get_signature()
+
+    # When char tokenization is used we tokenize the text ourselves and hand
+    # sacreBLEU `tokenize="none"`, so its signature would honestly report
+    # `tok:none` and thereby hide the step that actually happened. A signature
+    # that omits a tokenization decision is worse than no signature, because it
+    # invites a comparison that is not valid. Record it.
+    if use_char_tokenization:
+        signature.update("tokenization", "char")
+
+    bleu_result.signature = str(signature)
     return bleu_result
 
 
