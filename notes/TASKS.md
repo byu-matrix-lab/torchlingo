@@ -4,7 +4,7 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #77 and PRs to #48, so every number below 49 names one of each. Say
+Tasks run to #84 and PRs to #60, so every number below 61 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
@@ -14,11 +14,14 @@ Everything here is work that can be finished and then deleted. Standing rules li
 
 ## Status
 
+"In review" means the work is written and sitting in an open pull request; the task
+is not finished until that PR merges, and only then does the row disappear.
+
 | | Task | State |
 |---|---|---|
-| #16 | Release pipeline broken — nothing ships | Open |
-| #4 | Resolve length-normalization semantics | Open |
-| #7 | PyTorch deprecation warnings | Open |
+| #16 | Release pipeline broken — nothing ships | In review — PR #53 |
+| #4 | Resolve length-normalization semantics | In review — PR #54 |
+| #7 | PyTorch deprecation warnings | In review — PR #57 |
 | #8 | Verify Eole claims before syllabus use | Open |
 | #9 | `pre-commit install` (still not installed) | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
@@ -33,15 +36,22 @@ Everything here is work that can be finished and then deleted. Standing rules li
 | #52 | Try Moore (2002) if more of the corpus is wanted | Open |
 | #53 | Notebook gate runs 2 of 6 tutorials in CI, and looks green | Open |
 | #60 | Nobody is told when main goes red | Open |
-| #63 | Add mkdocs nav entries for three pages | Open |
-| #65 | Make tutorial 6 import the checks instead of redefining them | Open |
+| #63 | Add mkdocs nav entries for three pages | In review — PR #51 |
+| #65 | Make tutorial 6 import the checks instead of redefining them | In review — PR #52 |
 | #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | Open |
 | #68 | Cite `torcheck` as prior art in the diagnostics docs | Open |
-| #70 | Print the sacreBLEU signature with every score | Open |
+| #70 | Print the sacreBLEU signature with every score | In review — PR #55 |
 | #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
 | #72 | Prune the prose entries for finished tasks | Open |
-| #74 | Fix the broken anchor and diagnose the 93 docs warnings | Open |
+| #74 | Fix the broken anchor and diagnose the 93 docs warnings | Anchor in PR #51; the 93 warnings still open |
 | #77 | Prune the stale worktrees and merged local branches | Open |
+| #78 | Tutorial 5's committed outputs predate the retrained checkpoint | In review — PR #57 |
+| #79 | An order-dependent test; does not reproduce on main today | Open |
+| #80 | Teach evaluation beyond BLEU | In review — PR #58 |
+| #81 | Fail the build on hand-typed generated numbers | Open |
+| #82 | Add an on-target language check to `torchlingo.diagnostics` | Open |
+| #83 | Show attention on the Transformer, not only the LSTM | In review — PR #59 |
+| #84 | The two evaluation pages will land off-nav | Open — blocked on PR #58 |
 
 ## Code — decoding performance
 
@@ -216,7 +226,7 @@ work *inside* each call rather than the number of calls.
   forwarded* instead. Read that column, not the call column, or the harness will make a
   real improvement look like no change at all.
 
-**#4 Resolve length-normalization semantics**
+**#4 Resolve length-normalization semantics** — in review as PR #54
 `inference.py:203` applies length normalization during *pruning*, not only at final
 selection — comparing normalized scores across different lengths mid-search. Defensible
 but non-standard. Preserve exactly during #1/#2 so perf work stays reviewable; raise as
@@ -250,7 +260,7 @@ Not implemented. `config.py:663` states multi-GPU "requires custom DataParallel 
 That sentence is now the honest final answer rather than a placeholder, and should be
 left in place.
 
-**#7 One PyTorch deprecation warning left**
+**#7 One PyTorch deprecation warning left** — in review as PR #57
 On torch 2.13.0, "Support for mismatched key_padding_mask and attn_mask is deprecated",
 raised from the decode path. It will eventually break. The decode path passes a boolean
 `tgt_key_padding_mask` alongside a float `tgt_mask`; making both the same dtype should
@@ -275,7 +285,32 @@ single 24GB GPU. Both are from Eole's README, not from running it.
 **#9 Run `pre-commit install`**
 `.pre-commit-config.yaml` exists in the repo but hooks are not installed in this clone.
 
+**#80 Teach evaluation beyond BLEU** — in review as PR #58
+Students currently meet exactly one number. PR #58 fixes two real bugs found while
+writing the lesson (chrF's documented value was `63.39` against a measured `57.12`, and
+the TER example did not discriminate) and adds `concepts/evaluation.md` plus
+`reference/evaluation.md`, generated from `scripts/compare_metrics.py` so the prose and
+the table cannot drift. Still open after it lands: no neural metric anywhere in the
+library. COMET needs a model download, so it belongs behind an extra rather than in the
+default install.
+
+**#82 Add an on-target language check to `torchlingo.diagnostics`**
+Borrowed from mtsurvey, which reports an on-target rate using GlotLID: the share of
+hypotheses actually written in the target language. It catches a failure BLEU hides
+badly, because a model that copies the source scores non-zero against a related-language
+reference and looks merely weak rather than broken. Fits the existing `CheckResult`
+shape. The dependency is the open question: GlotLID is a FastText model download, so the
+check should degrade to a clear "not installed" rather than fail.
+
 ## Possible tooling to productize
+
+**#81 Fail the build on hand-typed generated numbers**
+mtsurvey gates its write-ups on a claim checker: every quoted number must resolve to an
+entry in the generating JSON, and a hand-typed constant fails CI. This repo has the
+inputs for it already — `docs/docs/_generated/*.json` from `scripts/sweep_decoding.py`
+and `scripts/compare_metrics.py` — but nothing enforces the link, which is how the
+chrF `63.39` in #80 survived. Scope it to the generated pages first rather than all of
+`docs/`.
 
 
 ---
@@ -396,11 +431,26 @@ therefore cannot detect scrambled beam state or bad memory expansion.
 - Mitigated by the new `tests/test_decoding_equivalence.py`, but the old tests should
   eventually migrate to the history-sensitive fixture rather than sitting alongside it.
 
+**#79 `test_different_optimizers_produce_different_results` is order-dependent**
+Filed after it failed under `python -m unittest discover tests`, the runner `CLAUDE.md`
+documents, while CI's `pytest tests/` was green. **Re-checked on main 2026-09-23: it now
+passes under `unittest discover`, 4 runs out of 4** (693 tests, 21 skipped), so the
+failure is intermittent rather than a standing red suite. That is worse to leave alone,
+not better — a test that depends on whatever seeded the RNG before it will come back.
+- The assertion is the weak part: it checks that Adam or SGD *improved* over 2 epochs on
+  a tiny fixture. When the two optimizers produced byte-identical curves
+  (`Epoch 1/2 | Train: 2.1852` / `Epoch 2/2 | Train: 2.1852`) the real claim — that the
+  two optimizers take *different* trajectories — was the thing that had failed.
+- Seed inside the test, and assert the difference rather than the improvement.
+- Worth sweeping for other order-dependent tests while in there: run the suite under
+  both runners and diff. The two documented ways to run the suite disagreeing, with
+  nothing checking that they agree, is the same shape as the tag-vs-`pyproject` defect.
+
 ---
 
 ## Release
 
-**#16 The release pipeline is broken — nothing since Feb 2026 has shipped**
+**#16 The release pipeline is broken — nothing since Feb 2026 has shipped** — in review as PR #53
 
 *Downgraded from BLOCKING on 2026-09-10:* nobody is installing from PyPI yet, so this is
 a latent breakage rather than an active one. Still must be fixed before the first
@@ -698,6 +748,32 @@ Cheap: a note box in `concepts/decoding.md` and a line in the tutorial. No code.
 
 ## Docs and tutorials
 
+**#78 Tutorial 5's committed outputs predate the retrained checkpoint** — in review as PR #57
+The notebook shipped translations produced by the old checkpoint, so a student reading
+the page and a student running the cell saw different results. Re-executed against the
+current checkpoint in PR #57. Re-executing is what surfaced #7: the fresh run baked three
+PyTorch warnings and a `/Users/ringger/...` path into the committed outputs, which main
+did not have, so both are fixed in the same PR.
+
+**#83 Show attention on the Transformer, not only the LSTM** — in review as PR #59
+Tutorial 4 taught alignment on the LSTM's additive attention, which is the architecture
+students do *not* use for the rest of the course. PR #59 adds Part 8: load the pretrained
+Transformer, decode one held-out sentence, and read its cross-attention through
+`attention_for_sequence`. Two things that made this non-obvious and are worth keeping in
+the prose: PyTorch hardcodes `need_weights=False` inside
+`TransformerDecoderLayer._mha_block`, so a plain forward hook returns `None` and you need
+`capture_cross_attention`; and the teacher-forced second pass is *exact* rather than an
+approximation, because the decoder is causally masked.
+- Costs CI nothing, but it does make tutorial 4 depend on `data/pretrained/model.pt`, so
+  tutorial 4 joins the LFS skip list. See #53.
+
+**#84 The two evaluation pages will land off-nav**
+PR #58 adds `concepts/evaluation.md` and `reference/evaluation.md` but does not touch
+`docs/mkdocs.yml`, so both arrive unreachable from the site. This is not caught by
+`mkdocs build --strict`: a page missing from the nav is an INFO, not a warning, which is
+exactly how the three pages in #63 went unreachable. Add the entries once #58 merges,
+and treat the recurrence as evidence for making the check explicit.
+
 **#49 The pretrained checkpoint predates the enlarged corpus**
 
 `data/pretrained/model.pt` was trained on 73,082 pairs. After #29 the corpus holds
@@ -740,8 +816,12 @@ to show on that model.
 
 CI checks out without Git LFS on purpose, so `data/example.tsv` is a pointer there and
 `scripts/execute_notebooks.py` skips tutorials 2 through 5. **The job passes having run
-exactly one notebook out of five**, and the check mark on the PR looks the same either
-way.
+exactly two notebooks out of six** — tutorial 1 and tutorial 6, the only two that need no
+LFS artifact — and the check mark on the PR looks the same either way.
+- The skip list only grows. PR #59 gives tutorial 4 a second requirement
+  (`data/pretrained/model.pt`) so it can show Transformer cross-attention; tutorial 4 was
+  already skipped for the corpus, so the CI count is unchanged, but the gap between "what
+  CI proves" and "what a reader runs" widens with every tutorial that touches real data.
 
 That was the accepted trade when LFS went in, and it is still the right one. The problem
 is that nothing says so at the point where someone reads the green check.
@@ -754,7 +834,7 @@ its own.
 
 Options, roughly in order of cost:
 
-- **Say it in the check.** The job already prints "1/1 notebooks executed cleanly" and
+- **Say it in the check.** The job already prints "2/2 notebooks executed cleanly" and
   lists what it skipped. Make the job summary carry that so it is visible on the PR
   without opening the log. Cheapest, and removes the false impression.
 - **Fetch LFS for the notebook job only.** One `lfs: true` on one job, roughly 28 MB per
@@ -767,16 +847,19 @@ Options, roughly in order of cost:
 Related: #51, which is the same shape from the other direction. That gate runs and does
 not block; this one blocks and does not run.
 
-Partial relief from PR #44: tutorial 6 needs no LFS artifact, so it does run in CI. The
-gate now executes 2 of 6 rather than 1 of 5. The false impression is unchanged — the
-green check still does not say what it skipped.
+PR #44 was partial relief: tutorial 6 needs no LFS artifact, so it does run in CI, taking
+the gate from 1 of 5 to the 2 of 6 above. The false impression is unchanged — the green
+check still does not say what it skipped.
 
-**#63 Three pages have no mkdocs nav entry** — *unblocked 2026-09-23, PR #17 merged*
+**#63 Three pages have no mkdocs nav entry** — in review as PR #51
 
-`docs/mkdocs.yml` belongs to PR #17, and we are not stacking, so three pages shipped
-without a nav entry. A page absent from nav is INFO rather than a warning under
-`--strict` — verified on each branch, the build stays clean — so none of this blocks.
-But each page is reachable only by direct link until PR #17 lands.
+`docs/mkdocs.yml` belonged to a PR we were not stacking on, so three pages shipped
+without a nav entry: tutorial 6, `reference/diagnostics.md`, and `related-work.md`. A
+page absent from nav is INFO rather than a warning under `--strict` — verified on each
+branch, the build stays clean — so none of this blocks. But each page is reachable only
+by direct link until PR #51 lands. PR #51 also restores the `capture_cross_attention`
+link that could not resolve without the nav entry; see #74.
+- The same trap has already caught the next pair of pages. See #84.
 
 | Page | From | Place it |
 |---|---|---|
@@ -789,7 +872,7 @@ One more thing to undo at the same time: `related-work.md` refers to
 `reference/diagnostics.md`, because linking a page that does not exist on `main` fails
 `--strict`. Once PR #45 has merged, make it a link.
 
-**#65 Tutorial 6 and `torchlingo.diagnostics` are two copies of the same checks**
+**#65 Tutorial 6 and `torchlingo.diagnostics` are two copies of the same checks** — in review as PR #52
 
 PR #44 defines the five checks inline in the notebook; PR #45 ships them as a module.
 Until one sources from the other they can drift, and the notebook is the copy a student
@@ -833,7 +916,7 @@ frozen/dead/live, naming the culprit.
   differs, when to reach for it instead.
 - Check its current maintenance status first. It was found, not evaluated.
 
-**#70 Print the sacreBLEU signature with every score**
+**#70 Print the sacreBLEU signature with every score** — in review as PR #55
 
 Adopted from the Joey NMT baseline run, which logs
 `nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0` next to every BLEU.
@@ -885,7 +968,7 @@ cannot clean it up -- two merges this session reported exactly that failure.
 - Delete the merged local branches, `backup/*` included, now their PRs are long merged.
 
 
-**#74 A broken anchor and 93 unexplained warnings in the docs build**
+**#74 A broken anchor and 93 unexplained warnings in the docs build** — anchor in PR #51; the 93 warnings still open
 
 Two pre-existing docs-hygiene items, both visible in every `mkdocs build --strict` run
 and neither currently failing it:
