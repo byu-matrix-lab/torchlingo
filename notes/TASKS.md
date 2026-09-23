@@ -4,7 +4,7 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #84 and PRs to #60, so every number below 61 names one of each. Say
+Tasks run to #86 and PRs to #61, so every number below 62 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
@@ -52,6 +52,8 @@ is not finished until that PR merges, and only then does the row disappear.
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | Open |
 | #83 | Show attention on the Transformer, not only the LSTM | In review — PR #59 |
 | #84 | The two evaluation pages will land off-nav | Open — blocked on PR #58 |
+| #85 | Only BLEU carries a signature; chrF and TER do not | Open — after PRs #55 and #58 |
+| #86 | `evaluate_model` has no test, and it is what callers use | Open — after PR #58 |
 
 ## Code — decoding performance
 
@@ -293,6 +295,47 @@ the TER example did not discriminate) and adds `concepts/evaluation.md` plus
 the table cannot drift. Still open after it lands: no neural metric anywhere in the
 library. COMET needs a model download, so it belongs behind an extra rather than in the
 default install.
+
+**#85 Only BLEU carries a signature; chrF and TER do not**
+Task #70's subject says "with every score", but PR #55 attaches `.signature` to
+`compute_bleu`'s result alone. Measured on the combined main + PR #55 + PR #58 tree:
+
+```
+BLEU  nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0
+chrF  MISSING
+TER   MISSING
+```
+
+chrF is the case that proves this is not cosmetic. `compute_chrf` defaults to
+`word_order=2` (chrF++) while sacreBLEU's `corpus_chrf` defaults to `0`. That one
+undeclared parameter caused two separate confusions here: a correct implementation
+judged broken by 0.45 points against the wrong baseline, and
+`notes/EVAL_CHRF_TER_TRANSPOSE_BUG.md` stating the right value (78.4) beside a snippet
+returning 76.97. A chrF signature declares `nw:2` and prevents both, so chrF needs one
+more than BLEU does.
+- Call `get_signature()` on CHRF and TER as `compute_bleu` already does, and widen
+  `tests/test_bleu_signature.py` to all three. Cheap once #55 and #58 are both in.
+
+**#86 `evaluate_model` has no test, and it is the function callers use**
+Coverage on the combined tree, after PR #58 adds the first evaluation tests this repo
+has ever had:
+
+| Function | Tested by |
+|---|---|
+| `compute_bleu` | `test_metric_reference_shape`, `test_bleu_signature` |
+| `compute_chrf`, `compute_ter`, `_as_reference_streams` | `test_metric_reference_shape` |
+| `evaluate_model` | **nothing** |
+| `save_translations` | **nothing** |
+
+PR #58 tests the three wrappers well, but `evaluate_model` is what
+`examples/evaluate.py`, `examples/train.py` and any student actually call, and it is
+where the transpose bug did its damage: `compute_chrf_score: bool = True` is the
+default, so every call reported a wrong chrF. Fixing the wrappers without testing the
+aggregator leaves the same hole one level up, where the thing under test is not the
+thing being used.
+- Run `evaluate_model` end to end on a tiny fixture and assert its returned bleu/chrf/ter
+  match the three wrappers called directly, under default flags and with
+  `compute_ter_score=True`. Cover `save_translations` too.
 
 **#82 Add an on-target language check to `torchlingo.diagnostics`**
 Borrowed from mtsurvey, which reports an on-target rate using GlotLID: the share of
