@@ -213,6 +213,68 @@ What to do instead:
 - If a change is large, split it by *concern* into independent PRs against
   `main`, not into a chain.
 
+If you inherit a stack that already exists, **unwind it in this order**:
+
+1. Merge the base PR **without** `--delete-branch`.
+2. Retarget the dependents to `main`.
+3. *Then* delete the branch.
+
+Deleting first auto-closes the dependents, which is how #11 and #12 were lost.
+
+### Check the open-PR set after every merge
+
+After a merge, the set of open PRs should be exactly what it was, minus the one
+merged. Compare it.
+
+This costs one command and catches a failure that took a day to notice: #26 was
+closed unmerged one second after an unrelated merge, its base branch was never
+deleted, and the cause was never established. A check is worth more than a
+diagnosis when the mechanism is unknown.
+
+### Retargeting a PR dismisses its approvals
+
+Changing a PR's base with `gh pr edit <N> --base main` flips it from `APPROVED`
+to `REVIEW_REQUIRED` immediately. No commit, no push, no content change — just
+the base pointer moving. Nothing in the UI warns you first.
+
+This is separate from the push-dismissal above, and it was learned the expensive
+way: unwinding one stack cost three approvals an hour after a reviewer had
+worked through nine PRs in a sitting.
+
+So **retarget before asking for review, never after**. If a retarget is
+unavoidable on an approved PR, say so when you ask for the re-review, and
+confirm the content is unchanged so the reviewer can trust their earlier
+judgement rather than repeat it.
+
+### A green PR is green against the base it last saw
+
+Status checks record "passed against `main` as it was when they ran". They are
+not re-run because `main` moved, and GitHub will still show `MERGEABLE / CLEAN`
+alongside a wall of green ticks.
+
+That gap is not theoretical. PR #17 carried ten green checks and merged cleanly
+on paper, but `main` had since grown a `--doctest-modules` gate that its new
+module failed — the checks predated the gate's existence. Merging on that green
+would have turned `main` red, which is the same merge-order interaction that
+broke `main` once before: a file and the gate that runs it arriving from
+different branches, each green alone.
+
+**Before merging any PR more than a few days old**, merge `main` into it and let
+CI re-run, or build the merge result locally and test it. Do not treat an old
+green tick as evidence about today's `main`.
+
+### Check which branch you are on before a destructive git command
+
+`git checkout <branch> || git checkout -b <branch>` can fail *both* ways — a
+branch held by another worktree cannot be checked out, and `-b` then fails
+because it already exists. A following `git reset --hard origin/<something>`
+will run anyway, against whatever branch you were standing on.
+
+That sequence silently moved local `main` onto another branch's commits here.
+Nothing reached the remote, but it went unnoticed for several commands. Put
+`git branch --show-current` between the checkout and anything destructive, and
+read it.
+
 ## Project Goals
 
 This library prioritizes:

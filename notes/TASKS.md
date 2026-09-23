@@ -9,20 +9,15 @@ Tasks run to #77 and PRs to #48, so every number below 49 names one of each. Say
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
 
-**Reconciled against the merge history on 2026-09-23**, when the review backlog reached
-zero for the first time since August. Twenty rows were retired. Their prose entries lower
-down have *not* all been pruned yet — that is the remainder of #72, and it is a separate
-careful pass rather than a bulk delete.
+Everything here is work that can be finished and then deleted. Standing rules live in
+`CLAUDE.md`; decisions and findings live where they apply.
 
 ## Status
 
 | | Task | State |
 |---|---|---|
 | #16 | Release pipeline broken — nothing ships | Open |
-| #2 | Batch beam search across sentences | **Descoped 2026-09-22** |
-| #3 | Incremental decoding / KV cache | **Descoped 2026-09-22** |
 | #4 | Resolve length-normalization semantics | Open |
-| #6 | Multi-GPU training via DDP | **Descoped 2026-09-22** |
 | #7 | PyTorch deprecation warnings | Open |
 | #8 | Verify Eole claims before syllabus use | Open |
 | #9 | `pre-commit install` (still not installed) | Open |
@@ -38,30 +33,15 @@ careful pass rather than a bulk delete.
 | #52 | Try Moore (2002) if more of the corpus is wanted | Open |
 | #53 | Notebook gate runs 2 of 6 tutorials in CI, and looks green | Open |
 | #60 | Nobody is told when main goes red | Open |
-| #62 | Check the open-PR set after every merge | Open |
-| #63 | Three pages have no mkdocs nav entry | **Unblocked** — PR #17 has landed |
-| #65 | Tutorial 6 and `diagnostics` are two copies of the same checks | **Unblocked** — both have landed |
+| #63 | Add mkdocs nav entries for three pages | Open |
+| #65 | Make tutorial 6 import the checks instead of redefining them | Open |
 | #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | Open |
 | #68 | Cite `torcheck` as prior art in the diagnostics docs | Open |
-| #69 | Position the project on the curriculum, not the architecture | Open — strategic |
 | #70 | Print the sacreBLEU signature with every score | Open |
 | #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
-| #72 | Prune the prose entries for retired tasks | Open — table done, bodies remain |
-| #74 | A broken anchor and 93 unexplained warnings in the docs build | Open |
-| #75 | Changing a PR's base dismisses approvals, and nothing warns you | Open |
-| #76 | A PR's green checks can predate the `main` it lands on | Open |
-| #77 | Stale worktrees and local branches make branch work hazardous | Open |
-
-### Retired 2026-09-23
-
-Verified against the merge history rather than from memory, which is how the table drifted
-in the first place. Removed: **#26** (doc links), **#29** (98 talks recovered; corpus is
-86,430 rows), **#34** (attention from decoding, PR #43), **#37** and **#61** (retired by
-PR #42's no-stacking convention), **#38** (Colab verified in a live session), **#40** and
-**#41** (PR #26), **#46** (corpus repair taught), **#47** (doctest gate green: 58 passed),
-**#49**, **#55** (PR #34), **#50** (tutorial 3 explains the identical rows), **#54**
-(PR #37), **#56**, **#57**, **#58**, **#59** (PR #38), **#64** (PR #45), **#73** (backlog
-reached zero).
+| #72 | Prune the prose entries for finished tasks | Open |
+| #74 | Fix the broken anchor and diagnose the 93 docs warnings | Open |
+| #77 | Prune the stale worktrees and merged local branches | Open |
 
 ## Code — decoding performance
 
@@ -83,7 +63,7 @@ is actively maintained, and reaches 93.62 BLEU on its toy task in under four min
 CPU, so the decoder-performance work is the *least* differentiated thing we could spend
 effort on. What is differentiated — diagnosis, empirical discipline, a corpus with a
 documented repair history, documentation that executes — is where the time goes instead.
-See #69 and `docs/docs/related-work.md`.
+The full assessment, including the hands-on numbers, is in `docs/docs/related-work.md`.
 
 *What this does not touch.* #4 (length-normalization semantics) stays open and is
 unaffected: it is a correctness-and-teaching question with real evidence behind it, not a
@@ -406,18 +386,6 @@ but does not block, a check that runs a fifth of what it claims, and a check
 nobody reads. Each is individually defensible and together they mean a green
 tick carries less than it appears to.
 
-**#62 Check the open-PR set after every merge**
-
-Survives from #61, which is otherwise retired by the no-stacking decision.
-
-#26 was closed unmerged one second after #24 was merged, and went unnoticed for a
-day because nothing compares the PR list before and after. The cause was never
-established — its base branch was never deleted, so the usual explanation does
-not fit — which is exactly why a check is worth more than a diagnosis here.
-
-One line after a merge: the set of open PRs should be what it was, minus the one
-merged. Cheap, and catches the general case rather than the mechanism.
-
 ## Tests
 
 **#15 Existing `DummyTransformer` is history- and memory-blind**
@@ -542,42 +510,6 @@ Every run now warns: `actions/checkout@v4`, `actions/setup-python@v5` and
 `actions/download-artifact@v4` target Node 20, which GitHub deprecated, and are being
 forced onto Node 24. It is a warning today and a hard failure whenever GitHub drops the
 shim. Bump the action versions. Unrelated to anything in flight, and cheap.
-
-**Settled 2026-09-20: do not stack pull requests. Every PR targets `main`.**
-
-Recorded in `CLAUDE.md` under "Pull Requests". This retires #37 and #61, which
-were both symptoms of the same practice.
-
-The decision rests on three distinct failures, all in PRs whose base was another
-PR:
-
-| | |
-|---|---|
-| Auto-close | #11 and #12 closed when their base branch was deleted on merge |
-| Lost approvals | a rebase changing no content dismissed the approvals on #27, #34 |
-| Silent close | #26 closed unmerged during an unrelated merge; cause never found |
-
-GitHub offers no fix. `dismiss_stale_reviews_on_push` is a boolean with no rebase
-exemption, and merging `main` in or using "Update branch" is equally a push. The
-rule was briefly switched off on 2026-09-20 to confirm the trade and switched
-back: turning it off preserves approvals across *any* push, including ones that
-change code, which is broader than wanted.
-
-Two traps still worth knowing while the current stack drains:
-
-- **Do not merge with `--delete-branch` while another PR is based on that
-  branch.** GitHub auto-closes the dependents. Retarget them to `main` first.
-  Recovery means pushing the deleted branch back temporarily, because GitHub
-  refuses to reopen a PR whose base is missing and refuses to retarget a closed
-  one.
-- A PR retargeted to `main` after its base merged has **no status checks**,
-  because no `pull_request` event with `base: main` ever fired. Close and reopen
-  to fire one, rather than pushing an empty commit.
-
-**Currently draining:** #26 and #38 are both based on #34 and genuinely depend on
-it — #26's measurements were taken on #34's checkpoint, and #38 modifies a script
-#34 introduces. They cannot be unstacked before #34 merges. Once it does, both
-retarget to `main` and the practice starts clean.
 
 **#44 Gate the sdist on "no Git LFS pointer shipped"**
 
@@ -857,28 +789,7 @@ One more thing to undo at the same time: `related-work.md` refers to
 `reference/diagnostics.md`, because linking a page that does not exist on `main` fails
 `--strict`. Once PR #45 has merged, make it a link.
 
-**#64 Promote the tutorial 6 checks into `torchlingo.diagnostics`**
-
-Tutorial 6 defines its five checks inline so the notebook is self-contained and each one
-is short enough for a student to copy. That is right for the notebook and wrong as the
-permanent home: a student cannot `import` from a notebook.
-
-- `check_learning` — did the loss move, against `ln(V)` as the "learned nothing" floor
-- `gradient_report` / `check_gradients` — sorts every parameter into frozen / dead / live
-  after one backward pass. The one with no existing equivalent in the library, and the
-  only check that *names* the broken parameter rather than reporting that something is
-  wrong. Needs no training, runs in under a second.
-- `check_generalization` — the sign of the val−train gap
-- `check_contamination` — train/test source overlap
-- `check_eval_mode` — `model.training` before inference
-
-Needs tests and an API reference page. Deliberately deferred so PR #44 stayed reviewable.
-
-**Done in PR #45.** Shipped as `src/torchlingo/diagnostics.py` with `CheckResult`,
-`GradientReport`, `uniform_loss`, and the five checks (`check_loss_moved` rather than
-`check_learning`); 43 tests, 8 doctests, `mkdocs --strict` clean. What remains is #65.
-
-**#65 Tutorial 6 and `torchlingo.diagnostics` are two copies of the same checks** — *unblocked 2026-09-23*
+**#65 Tutorial 6 and `torchlingo.diagnostics` are two copies of the same checks**
 
 PR #44 defines the five checks inline in the notebook; PR #45 ships them as a module.
 Until one sources from the other they can drift, and the notebook is the copy a student
@@ -922,32 +833,6 @@ frozen/dead/live, naming the culprit.
   differs, when to reach for it instead.
 - Check its current maintenance status first. It was found, not evaluated.
 
-**#69 Position the project on the curriculum, not the architecture**
-
-Established 2026-09-20 by running the competition rather than reading about it.
-
-[Joey NMT](https://github.com/joeynmt/joeynmt) (Kreutzer, Bastings & Riezler, EMNLP 2019)
-is actively maintained, explicitly targets novices, and covers RNN and Transformer, beam
-search with length penalty, attention visualization, BPE/word/char and multilingual
-training. Verified hands-on: the shipped `transformer_reverse` toy config trains in
-3m52s on CPU and reaches **93.62 BLEU** on test.
-
-So the model/decoder/attention code is the *least* defensible part of TorchLingo. What no
-comparable project appears to teach:
-
-- diagnosis as a subject — everyone else teaches the path where things work
-- empirical discipline through MT: controlled comparison, contamination, `ln(V)`,
-  significance testing
-- a corpus with a documented repair history
-- documentation that executes
-
-`docs/docs/related-work.md` (PR #46) states this publicly. The task is to let it steer
-effort: feed #48's curriculum audit. It has already had one concrete consequence —
-#2, #3 and #6 were descoped on 2026-09-22 on the strength of it.
-
-- Open question: does Joey NMT belong *in* the syllabus as a comparison point — "here is
-  the same thing as a configured toolkit" — rather than only in related work?
-
 **#70 Print the sacreBLEU signature with every score**
 
 Adopted from the Joey NMT baseline run, which logs
@@ -977,73 +862,28 @@ upstream issue is outward-facing and is Eric's call.
 
 **#72 Prune the prose entries for retired tasks**
 
-The Status table was reconciled against the merge history on 2026-09-23 and twenty rows
-were retired. Their prose entries further down this file mostly remain, so the file now
-describes work that has shipped as though it were pending.
+The Status table was reconciled against the merge history on 2026-09-23. The prose
+entries further down mostly remain, so the file still describes shipped work as though it
+were pending. Anything whose row is gone from the table should be gone from the body too.
 
-- Delete the entries for the twenty tasks listed under *Retired 2026-09-23*.
-- Read each before deleting. Several carry findings worth keeping even though the task is
-  done — #59's "two things that must agree with nothing checking they do" recurs
-  constantly, and #60's merge-order analysis just repeated itself as #76. Move those
-  rather than losing them.
-- Deliberately not done in bulk: the table is the index people read, and it is now
-  correct; the bodies are a careful pass, not a `sed`.
+- Read each before deleting. Some carry findings worth keeping even though the task is
+  finished — the recurring "two things that must agree, with nothing checking they do"
+  observation is one, and it has now described four separate defects. Move those into the
+  place they apply rather than losing them with the task.
+- Not a `sed`. The table is the index people read and it is correct now; the bodies need
+  a careful pass.
 
-**#75 Changing a PR's base dismisses approvals, and nothing warns you**
+**#77 Prune the stale worktrees and merged local branches**
 
-Found on 2026-09-23 while draining the backlog. `gh pr edit <N> --base main` on PR #26
-and PR #38 flipped both from `APPROVED` to `REVIEW_REQUIRED` instantly. No commit, no
-push, no content change — just a base pointer moving.
-
-This is new information. #37 recorded that *pushes* dismiss reviews, including merges and
-"Update branch"; it did not know a pure retarget does it too. It cost three of Coulson's
-approvals in one session, right after he reviewed nine PRs in a sitting.
-
-- Record it in `CLAUDE.md` beside the no-stacking rule, since retargeting is exactly what
-  you must do when unwinding a stack.
-- The unwind order that *does* work, and is worth writing down: merge the base PR **without**
-  `--delete-branch`, retarget the dependents, then delete the branch. Deleting first
-  auto-closes them, which is what killed #11 and #12.
-- Practical mitigation: retarget *before* asking for review, not after.
-
-**#76 A PR's green checks can predate the `main` it lands on**
-
-PR #17 sat approved with ten green checks from 2026-09-16. By the time it merged, `main`
-was eight squashes ahead and had grown a `--doctest-modules` gate that did not exist when
-those checks ran. The new module failed that gate. GitHub still showed `MERGEABLE / CLEAN`
-and a wall of green ticks.
-
-Caught only because the merge result was built and tested locally first. Merging on the
-strength of that green would have turned `main` red immediately — the same merge-order
-interaction as #60, where a file and the gate that runs it arrive from different branches.
-
-- A green tick means "passed against the base as it was at check time", not "will pass on
-  `main`". Nothing in the UI distinguishes those.
-- Cheapest real fix: require branches to be up to date with `main` before merging (a repo
-  setting), which forces a re-run. The cost is a re-run on every PR when `main` moves,
-  and it dismisses approvals via the push — so it interacts badly with #75.
-- Cheaper habit in the meantime: for any PR older than a few days, merge `main` in and let
-  CI re-run before merging. That is what was done for PR #17.
-
-**#77 Stale worktrees and local branches make branch work hazardous**
-
-`git worktree list` shows four leftover worktrees under the session scratchpad, holding
+`git worktree list` shows four leftovers under the session scratchpad, holding
 `exp/control-54k-36epochs`, `fix/honest-training-and-comparison`,
 `data/retrain-on-enlarged-corpus` (prunable) and `docs/decoding-option-effects`. A branch
 held by a worktree cannot be checked out elsewhere, and `gh pr merge --delete-branch`
-cannot clean it up.
+cannot clean it up -- two merges this session reported exactly that failure.
 
-That is mostly cosmetic, but it caused a real incident on 2026-09-23: a `git checkout` of
-a worktree-held branch failed, its `-b` fallback failed too, and the following
-`git reset --hard origin/<branch>` therefore applied to **`main`**, silently moving local
-`main` onto six unsquashed commits. Nothing reached the remote and it was fixed with
-`git reset --hard origin/main`, but it went unnoticed for several commands.
+- `git worktree prune`, then remove the remaining ones deliberately.
+- Delete the merged local branches, `backup/*` included, now their PRs are long merged.
 
-- `git worktree prune`, then remove the rest deliberately, and delete the merged local
-  branches (`backup/*` included, once their PRs are long merged).
-- The transferable lesson is about the command, not the worktrees: `cmd-a || cmd-b`
-  followed by a destructive third command will run that third command wherever it happens
-  to be standing. Check `git branch --show-current` between the two.
 
 **#74 A broken anchor and 93 unexplained warnings in the docs build**
 
@@ -1167,6 +1007,12 @@ Worth auditing against, since each was justified pedagogically when it was built
 Still open, and genuinely instructor-owned: the outcomes in that file are reverse-
 engineered from the material, so they describe what exists rather than what the course
 needs. Four questions are listed at the bottom of it for you. #42 is the same shape.
+
+One more question for the audit, from the competitive assessment written up in
+`docs/docs/related-work.md`: **does Joey NMT belong *in* the syllabus** as a comparison
+point — "here is the same system as a configured toolkit rather than a library you
+call" — instead of only in related work? Their toy config trains in 3m52s on CPU to
+93.62 BLEU, so it is cheap enough for a student to run beside ours.
 
 
 **#46 Teach the corpus repair instead of doing it silently**
