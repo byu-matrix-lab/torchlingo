@@ -204,13 +204,77 @@ jobs:
       - name: Build docs
         run: mkdocs build --strict --config-file docs/mkdocs.yml -d site
 
+  version-check:
+    name: Tag matches pyproject version
+    # Two sources of truth for the version, with nothing checking they agree.
+    # That has already cost two silent release failures: `pyproject.toml` has
+    # said 0.0.8 since February, so tagging v0.1.0 and v0.1.1 both built an
+    # artifact labelled 0.0.8, and PyPI rejected each upload with
+    # "400 Bad Request" because 0.0.8 was already published. Nothing surfaced
+    # the failure, so it happened twice.
+    #
+    # This job always runs, rather than carrying `if: startsWith(...tags/v)`.
+    # A skipped job causes everything that `needs` it to skip too, which would
+    # silently disable the build on ordinary pushes. So it runs everywhere and
+    # exits early when the ref is not a tag.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compare the git tag against pyproject.toml
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then
+            echo "Not a tag build (ref ${GITHUB_REF}). Nothing to check."
+            exit 0
+          fi
+
+          tag="${GITHUB_REF_NAME}"
+          project_version="$(grep -m1 -E '^version[[:space:]]*=' pyproject.toml \
+                             | sed -E 's/.*"([^"]+)".*/\1/')"
+
+          # Catches a malformed tag at push time. `v.0.0.8` was pushed once by
+          # mistake; it matches the `v*` trigger, so it ran a full release build
+          # and failed at the end instead of here.
+          if ! printf '%s' "$tag" | grep -qE '^v[0-9]'; then
+            echo "::error::Malformed tag '${tag}'. Expected v<version>, for example v0.2.0."
+            exit 1
+          fi
+
+          tag_version="${tag#v}"
+          echo "tag:              ${tag}  (version ${tag_version})"
+          echo "pyproject.toml:   ${project_version}"
+
+          if [ "$tag_version" != "$project_version" ]; then
+            echo "::error::Tag ${tag} does not match pyproject.toml version ${project_version}."
+            echo ""
+            echo "The build would produce torchlingo-${project_version}, not ${tag_version}."
+            echo "If ${project_version} is already on PyPI the upload fails with 400 Bad"
+            echo "Request at the very end of the pipeline, which is how v0.1.0 and v0.1.1"
+            echo "were both lost."
+            echo ""
+            echo "Fix: set version = \"${tag_version}\" in pyproject.toml, merge that, then"
+            echo "re-tag. Do not move the tag onto an unbuilt commit."
+            exit 1
+          fi
+
+          echo "Tag and pyproject.toml agree on ${project_version}."
+
   build:
     name: Build wheels and sdist
     # Notebooks gate the build, and therefore the release and publish jobs that
     # depend on it. In a teaching library the tutorials are the product: shipping
     # a version whose tutorials do not run is worse than not shipping. This is
     # what makes the check binding rather than advisory.
-    needs: [tests, lint, notebooks]
+    #
+    # version-check gates it too, so a tag that disagrees with pyproject.toml
+    # fails in seconds rather than after the whole pipeline has run.
+    needs: [tests, lint, notebooks, version-check]
     runs-on: ubuntu-latest
     permissions:
       contents: read

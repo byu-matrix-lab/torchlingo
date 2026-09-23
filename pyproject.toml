@@ -4,7 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "torchlingo"
-version = "0.0.8"
+# Single source of truth for the version: `torchlingo.__version__` reads it back
+# from installed metadata, and CI fails a tag build whose name disagrees with it.
+# Bump this in its own commit, merge, and only then tag the merge commit.
+version = "0.2.0"
 description = "Educational PyTorch NMT library for coursework and instruction."
 readme = "README.md"
 license = "AGPL-3.0-or-later"
