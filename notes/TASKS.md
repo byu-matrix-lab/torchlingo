@@ -1,16 +1,18 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-09-20. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #74 and PRs to #48, so every number below 49 names one of each. Say
+Tasks run to #77 and PRs to #48, so every number below 49 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
 
-Note: the Status table below has drifted — several rows marked Open have since merged,
-and reconciling it against the merged history is its own pass, not done here.
+**Reconciled against the merge history on 2026-09-23**, when the review backlog reached
+zero for the first time since August. Twenty rows were retired. Their prose entries lower
+down have *not* all been pruned yet — that is the remainder of #72, and it is a separate
+careful pass rather than a bulk delete.
 
 ## Status
 
@@ -26,44 +28,40 @@ and reconciling it against the merged history is its own pass, not done here.
 | #9 | `pre-commit install` (still not installed) | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
 | #22 | `examples/` and `scripts/` are outside the lint gate | Open |
-| #26 | Broken doc links block `mkdocs --strict` | Open |
 | #28 | Attention params skip `_init_weights` | Open |
-| #29 | Recover the last 98 talks with a sentence aligner | Open |
-| #34 | Surface attention weights from greedy and beam decoding | Open |
 | #35 | Malformed tag `v.0.0.8` on the remote | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | Open |
-| #38 | Colab checkpointing has never been run in Colab | Open — Coulson testing |
-| #40 | Visualize the effect of decoding options | Open |
-| #41 | Connect beam search back to prior coursework | Open |
 | #42 | Lecture 7 assignment | Open — scope needed |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
-| #46 | Teach the corpus repair instead of doing it silently | Open |
-| #47 | Docstring examples are not executed, and 30 fail | Open |
 | #48 | Audit pedagogical value; write down sequencing and outcomes | In progress — `notes/CURRICULUM.md` |
-| #49 | Pretrained checkpoint predates the enlarged corpus | Open |
-| #50 | Tutorial 3 still teaches the wrong lesson about beam size | Open |
 | #51 | The docs gate reports but does not block | Open — repo settings |
 | #52 | Try Moore (2002) if more of the corpus is wanted | Open |
-| #53 | Notebook gate runs 1 of 5 tutorials in CI, and looks green | Open |
-| #54 | `val_losses` interleaved two measurements — fixed, needs PR | In review |
-| #55 | Correct tutorial 5: the model was undertrained, not data-starved | Open |
-| #56 | Correct #34's description and commit message | Open |
-| #57 | Note on #27 that the recovered data buys no measurable BLEU | Open |
-| #58 | `train_example_model.py` defaults to 20 epochs, which undertrains | Open |
-| #59 | Nothing checks that a comparison controlled its variables | Open |
+| #53 | Notebook gate runs 2 of 6 tutorials in CI, and looks green | Open |
 | #60 | Nobody is told when main goes red | Open |
 | #62 | Check the open-PR set after every merge | Open |
-| #63 | Three pages have no mkdocs nav entry | Open — blocked on PR #17 |
-| #64 | Promote the tutorial 6 checks into `torchlingo.diagnostics` | Done in PR #45 |
-| #65 | Tutorial 6 and `diagnostics` are two copies of the same checks | Open — blocked on PR #44 + #45 |
+| #63 | Three pages have no mkdocs nav entry | **Unblocked** — PR #17 has landed |
+| #65 | Tutorial 6 and `diagnostics` are two copies of the same checks | **Unblocked** — both have landed |
 | #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | Open |
 | #68 | Cite `torcheck` as prior art in the diagnostics docs | Open |
 | #69 | Position the project on the curriculum, not the architecture | Open — strategic |
 | #70 | Print the sacreBLEU signature with every score | Open |
 | #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
-| #72 | Reconcile the Status table with the merged history | Open — after #73 |
-| #73 | The review backlog is ten PRs deep | Open |
+| #72 | Prune the prose entries for retired tasks | Open — table done, bodies remain |
 | #74 | A broken anchor and 93 unexplained warnings in the docs build | Open |
+| #75 | Changing a PR's base dismisses approvals, and nothing warns you | Open |
+| #76 | A PR's green checks can predate the `main` it lands on | Open |
+| #77 | Stale worktrees and local branches make branch work hazardous | Open |
+
+### Retired 2026-09-23
+
+Verified against the merge history rather than from memory, which is how the table drifted
+in the first place. Removed: **#26** (doc links), **#29** (98 talks recovered; corpus is
+86,430 rows), **#34** (attention from decoding, PR #43), **#37** and **#61** (retired by
+PR #42's no-stacking convention), **#38** (Colab verified in a live session), **#40** and
+**#41** (PR #26), **#46** (corpus repair taught), **#47** (doctest gate green: 58 passed),
+**#49**, **#55** (PR #34), **#50** (tutorial 3 explains the identical rows), **#54**
+(PR #37), **#56**, **#57**, **#58**, **#59** (PR #38), **#64** (PR #45), **#73** (backlog
+reached zero).
 
 ## Code — decoding performance
 
@@ -841,7 +839,7 @@ Partial relief from PR #44: tutorial 6 needs no LFS artifact, so it does run in 
 gate now executes 2 of 6 rather than 1 of 5. The false impression is unchanged — the
 green check still does not say what it skipped.
 
-**#63 Three pages have no mkdocs nav entry, all waiting on PR #17**
+**#63 Three pages have no mkdocs nav entry** — *unblocked 2026-09-23, PR #17 merged*
 
 `docs/mkdocs.yml` belongs to PR #17, and we are not stacking, so three pages shipped
 without a nav entry. A page absent from nav is INFO rather than a warning under
@@ -880,7 +878,7 @@ Needs tests and an API reference page. Deliberately deferred so PR #44 stayed re
 `GradientReport`, `uniform_loss`, and the five checks (`check_loss_moved` rather than
 `check_learning`); 43 tests, 8 doctests, `mkdocs --strict` clean. What remains is #65.
 
-**#65 Tutorial 6 and `torchlingo.diagnostics` are two copies of the same checks**
+**#65 Tutorial 6 and `torchlingo.diagnostics` are two copies of the same checks** — *unblocked 2026-09-23*
 
 PR #44 defines the five checks inline in the notebook; PR #45 ships them as a module.
 Until one sources from the other they can drift, and the notebook is the copy a student
@@ -977,29 +975,75 @@ upstream issue is outward-facing and is Eric's call.
 - One-line fix upstream; a courteous thing to send given we cite them favourably.
 - If yes: report from a clean clone, not the patched scratch copy.
 
-**#72 Reconcile the Status table with the merged history**
+**#72 Prune the prose entries for retired tasks**
 
-The table at the top of this file has drifted: several rows marked Open have merged, and
-the file's own rule is that completed work is removed rather than marked done. Flagged in
-place on 2026-09-20 but not fixed, because reconciling it from memory rather than from
-the merge history is how it got wrong in the first place.
+The Status table was reconciled against the merge history on 2026-09-23 and twenty rows
+were retired. Their prose entries further down this file mostly remain, so the file now
+describes work that has shipped as though it were pending.
 
-- Walk `git log main` and the closed-PR list, then delete what has landed.
-- Worth doing once the current review backlog clears (#73), not before, or it drifts again.
+- Delete the entries for the twenty tasks listed under *Retired 2026-09-23*.
+- Read each before deleting. Several carry findings worth keeping even though the task is
+  done — #59's "two things that must agree with nothing checking they do" recurs
+  constantly, and #60's merge-order analysis just repeated itself as #76. Move those
+  rather than losing them.
+- Deliberately not done in bulk: the table is the index people read, and it is now
+  correct; the bodies are a careful pass, not a `sed`.
 
-**#73 The review backlog is ten PRs deep**
+**#75 Changing a PR's base dismisses approvals, and nothing warns you**
 
-As of 2026-09-20: PRs #17, #26, #34, #37, #38, #42, #43, #44, #45, #46. Only #26 is
-approved.
+Found on 2026-09-23 while draining the backlog. `gh pr edit <N> --base main` on PR #26
+and PR #38 flipped both from `APPROVED` to `REVIEW_REQUIRED` instantly. No commit, no
+push, no content change — just a base pointer moving.
 
-This is the condition that produced the stacking failures recorded in #37 — stacks
-existed because PRs sat waiting, not because the work needed sequencing. The convention
-now forbids stacking, which means the backlog converts into *blocked* work instead:
-#63 waits on #17, #65 waits on #44 and #45 together.
+This is new information. #37 recorded that *pushes* dismiss reviews, including merges and
+"Update branch"; it did not know a pure retarget does it too. It cost three of Coulson's
+approvals in one session, right after he reviewed nine PRs in a sitting.
 
-- Merging promptly is the actual fix. #26 is approved and can go now.
-- Related: #62 (check the open-PR set after every merge), #61 (a PR closed itself and
-  nobody noticed).
+- Record it in `CLAUDE.md` beside the no-stacking rule, since retargeting is exactly what
+  you must do when unwinding a stack.
+- The unwind order that *does* work, and is worth writing down: merge the base PR **without**
+  `--delete-branch`, retarget the dependents, then delete the branch. Deleting first
+  auto-closes them, which is what killed #11 and #12.
+- Practical mitigation: retarget *before* asking for review, not after.
+
+**#76 A PR's green checks can predate the `main` it lands on**
+
+PR #17 sat approved with ten green checks from 2026-09-16. By the time it merged, `main`
+was eight squashes ahead and had grown a `--doctest-modules` gate that did not exist when
+those checks ran. The new module failed that gate. GitHub still showed `MERGEABLE / CLEAN`
+and a wall of green ticks.
+
+Caught only because the merge result was built and tested locally first. Merging on the
+strength of that green would have turned `main` red immediately — the same merge-order
+interaction as #60, where a file and the gate that runs it arrive from different branches.
+
+- A green tick means "passed against the base as it was at check time", not "will pass on
+  `main`". Nothing in the UI distinguishes those.
+- Cheapest real fix: require branches to be up to date with `main` before merging (a repo
+  setting), which forces a re-run. The cost is a re-run on every PR when `main` moves,
+  and it dismisses approvals via the push — so it interacts badly with #75.
+- Cheaper habit in the meantime: for any PR older than a few days, merge `main` in and let
+  CI re-run before merging. That is what was done for PR #17.
+
+**#77 Stale worktrees and local branches make branch work hazardous**
+
+`git worktree list` shows four leftover worktrees under the session scratchpad, holding
+`exp/control-54k-36epochs`, `fix/honest-training-and-comparison`,
+`data/retrain-on-enlarged-corpus` (prunable) and `docs/decoding-option-effects`. A branch
+held by a worktree cannot be checked out elsewhere, and `gh pr merge --delete-branch`
+cannot clean it up.
+
+That is mostly cosmetic, but it caused a real incident on 2026-09-23: a `git checkout` of
+a worktree-held branch failed, its `-b` fallback failed too, and the following
+`git reset --hard origin/<branch>` therefore applied to **`main`**, silently moving local
+`main` onto six unsquashed commits. Nothing reached the remote and it was fixed with
+`git reset --hard origin/main`, but it went unnoticed for several commands.
+
+- `git worktree prune`, then remove the rest deliberately, and delete the merged local
+  branches (`backup/*` included, once their PRs are long merged).
+- The transferable lesson is about the command, not the worktrees: `cmd-a || cmd-b`
+  followed by a destructive third command will run that third command wherever it happens
+  to be standing. Check `git branch --show-current` between the two.
 
 **#74 A broken anchor and 93 unexplained warnings in the docs build**
 
