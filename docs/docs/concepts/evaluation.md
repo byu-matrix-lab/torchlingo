@@ -74,6 +74,77 @@ which is the same discipline as
 [controlling one variable](when-it-fails.md) and
 [checking the test set is clean](../tutorials/06-diagnosing-failures.ipynb).
 
+## What counts as a good score
+
+"BLEU 30 is decent" has to come from somewhere. The most widely used anchor is
+[Google Cloud Translation's interpretation table](https://docs.cloud.google.com/translate/docs/bleu-scores):
+
+| BLEU | Interpretation |
+| --- | --- |
+| < 10 | Almost useless |
+| 10–19 | Hard to get the gist |
+| 20–29 | The gist is clear, but with significant grammatical errors |
+| 30–40 | Understandable to good |
+| 40–50 | High quality |
+| 50–60 | Very high quality, adequate and fluent |
+| > 60 | Often better than human |
+
+**The Tutorial 5 model scores 7 to 9.** That is the bottom row. The tutorial
+says the translations are not good; this is the calibrated version of the same
+statement, and it is why a BLEU in the single digits is the expected result of
+this much data and this much training rather than a sign something broke.
+
+!!! warning "A scale is not a law"
+    These cut points are a vendor's rule of thumb for their own systems, not a
+    property of BLEU. They shift with language pair, domain and how many
+    references you score against. Quote the source when you quote the scale.
+
+    Other metrics need their own scales, and this is the hard part. The Matrix
+    Lab's `mtsurvey` dashboard carries bands for every metric it reports and is
+    explicit about how each was obtained: BLEU's are anchored to the table
+    above, BLASER's to the human XSTS scale it predicts, and the rest are
+    *derived* from BLEU's boundaries by equipercentile mapping over its own
+    scored corpus. A derived band is only as transferable as the corpus it came
+    from — which is the same caution as everything else on this page.
+
+## Three families, and the one that needs no reference
+
+Everything above compares a translation to a reference. That is not the only
+option, and the distinction matters as soon as you leave a benchmark:
+
+| Family | How it scores | Examples |
+| --- | --- | --- |
+| **Surface** | String overlap with a reference | BLEU, chrF, TER |
+| **Reference-based neural** | A model trained on human judgements, given the reference | COMET, xCOMET, BLEURT, MetricX |
+| **Quality estimation (QE)** | A model given **only the source and the output** | CometKiwi, MetricX-QE, BLASER-QE |
+
+QE is the one worth knowing about, because references are the scarce resource.
+You have them for a test set and never for the translations you actually care
+about — the ones your system produces in the wild. A QE metric will score those.
+
+TorchLingo ships only the surface family; the rest need large pretrained models
+and are out of scope for a teaching library. The lab's `mtsurvey` dashboard runs
+all three across many models, languages and datasets, and is the place to see
+them disagree at scale.
+
+## The question nobody asks: is it even the right language?
+
+`mtsurvey` reports one thing that is not a quality metric at all — an
+**on-target rate**, the fraction of outputs actually written in the target
+language, detected with a language-ID model.
+
+It exists because multilingual systems fail this way and nothing else catches
+it. A model that answers in English when asked for Spanish, or drifts into a
+related language, produces fluent, confident output. BLEU will be low, but BLEU
+is low for many reasons, and "low BLEU" does not tell you which. An on-target
+rate does, in one number.
+
+TorchLingo's model is English→Spanish only and trained on nothing else, so it
+cannot make this mistake in an interesting way. Keep the question anyway: it
+belongs beside the checks in
+[Tutorial 6](../tutorials/06-diagnosing-failures.ipynb), and it is the first
+thing to test on any multilingual system.
+
 ## Where this stops being a settled question
 
 The three metrics above are *surface* metrics: they compare strings. The field
@@ -85,18 +156,22 @@ They also have failure modes that a string-matching metric cannot have, because
 they inherit whatever their encoder learned.
 
 !!! note "An open question, from this lab"
-    The Matrix Lab's own survey work studies exactly this. Treating a set of
-    automatic metrics as partially independent observers of the same
-    translations, it finds that learned metrics **drift from the rest of the
-    field at their encoder's pretraining coverage boundary** — and that the
-    dividing line is pretraining coverage rather than whether the metric sees a
-    reference. Every learned metric built on XLM-R steps at XLM-R's boundary;
-    metrics built on other encoders step at no boundary tested.
+    The Matrix Lab's `mtsurvey` project benchmarks these across many models,
+    languages and datasets, and the survey work built on it studies exactly
+    this. Treating a set of automatic metrics as partially independent
+    observers of the same translations, it finds that learned metrics **drift
+    from the rest of the field at their encoder's pretraining coverage
+    boundary** — and that the dividing line is pretraining coverage rather than
+    whether the metric sees a reference.
 
     The practical consequence: a learned metric can be systematically
     optimistic or pessimistic for a language depending on what its encoder was
     pretrained on, in a way no single score reveals. If you are evaluating a
     low-resource pair, the metric is part of the experiment.
+
+    This is the natural next step after this page. Everything here is one
+    small model on one language pair; `mtsurvey` is where the same questions
+    are asked at the scale that makes the answers interesting.
 
 That is the grown-up version of this page. The reason to learn BLEU's collapse
 on short text is not BLEU; it is that every metric has a shape, and the shape
