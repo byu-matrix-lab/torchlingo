@@ -13,6 +13,7 @@ The easiest way to run these tutorials is in **Google Colab**—no installation 
 | **3. Inference and Beam Search** | Generate translations | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/03-inference-and-beamsearch.ipynb) |
 | **4. Attention and Alignment** | Measure what attention learns | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/04-attention-and-alignment.ipynb) |
 | **5. Translating Unseen Sentences** | A real model on text it never saw | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/05-real-translations.ipynb) |
+| **6. Diagnosing Failures** | Break a model on purpose; watch each check fire | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/06-diagnosing-failures.ipynb) |
 
 !!! tip "Enable GPU in Colab"
     For faster training, enable GPU: **Runtime → Change runtime type → GPU**
@@ -56,6 +57,22 @@ Follow these tutorials in order for the best learning experience:
     Train the same model with and without attention, then check whether it learned the *correct* alignment.
 
     [:octicons-arrow-right-24: Start Tutorial](04-attention-and-alignment.ipynb)
+
+-   :material-numeric-5-circle:{ .lg .middle } **Translating Unseen Sentences**
+
+    ---
+
+    Take a model trained on real data and read what it produces on sentences it never saw.
+
+    [:octicons-arrow-right-24: Start Tutorial](05-real-translations.ipynb)
+
+-   :material-numeric-6-circle:{ .lg .middle } **Diagnosing Failures**
+
+    ---
+
+    Break a model five different ways and watch a specific check catch each one.
+
+    [:octicons-arrow-right-24: Start Tutorial](06-diagnosing-failures.ipynb)
 
 </div>
 
@@ -149,6 +166,47 @@ You'll learn:
 - Why Transformer self-attention is the same operation
 
 **Key classes covered**: `SimpleSeq2SeqLSTM(attention=True)`, `plot_attention`, `format_attention`
+
+### Tutorial 5: Translating Sentences It Has Never Seen
+
+**Time**: ~15 minutes
+
+Loads a model trained on 54,072 real English–Spanish pairs and points it at
+talks it never saw. **The translations are not good** — seeing exactly *how*
+they fall short is the point.
+
+You'll learn:
+
+- Why holding out whole *talks* matters, and why holding out random sentences
+  flatters the score
+- Reading a real model's output honestly instead of a memorized toy corpus
+- What undertraining looks like from the outside
+
+**Key concepts**: held-out evaluation, BLEU on real text, undertrained vs.
+data-starved
+
+### Tutorial 6: Diagnosing Failures
+
+**Time**: ~20 minutes
+
+Every other tutorial shows you something that works. This one breaks things on
+purpose, so that a misbehaving model leaves you with a procedure instead of a
+hunch.
+
+You'll learn:
+
+- The order to check things in, cheapest first — and why a *yes* at any level
+  makes everything below it meaningless
+- Catching a misaligned corpus before it costs you a training run
+- Telling "needs more epochs" apart from "these parameters were never going to
+  move", using one backward pass
+- Spotting memorization from the *sign* of the train/validation gap
+- Why a contaminated test set reports a number that is true of neither half
+
+**Key concepts**: `ln(V)` as the "learned nothing" reference, gradient flow,
+generalization gap, test contamination, `model.eval()`
+
+**Key functions covered**: `diagnose_alignment`, `shuffle_target_side`, `compute_bleu`
 
 ## Tips for Success
 
