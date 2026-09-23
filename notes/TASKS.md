@@ -4,7 +4,7 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #86 and PRs to #61, so every number below 62 names one of each. Say
+Tasks run to #87 and PRs to #62, so every number below 63 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
@@ -44,7 +44,7 @@ is not finished until that PR merges, and only then does the row disappear.
 | #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
 | #72 | Prune the prose entries for finished tasks | Open |
 | #74 | Fix the broken anchor and diagnose the 93 docs warnings | Anchor in PR #51; the 93 warnings still open |
-| #77 | Prune the stale worktrees and merged local branches | Open |
+| #87 | Four merged branches still on the remote | Open |
 | #78 | Tutorial 5's committed outputs predate the retrained checkpoint | In review — PR #57 |
 | #79 | An order-dependent test; does not reproduce on main today | Open |
 | #80 | Teach evaluation beyond BLEU | In review — PR #58 |
@@ -999,16 +999,19 @@ were pending. Anything whose row is gone from the table should be gone from the 
 - Not a `sed`. The table is the index people read and it is correct now; the bodies need
   a careful pass.
 
-**#77 Prune the stale worktrees and merged local branches**
+**#87 Four merged branches still sit on the remote**
 
-`git worktree list` shows four leftovers under the session scratchpad, holding
-`exp/control-54k-36epochs`, `fix/honest-training-and-comparison`,
-`data/retrain-on-enlarged-corpus` (prunable) and `docs/decoding-option-effects`. A branch
-held by a worktree cannot be checked out elsewhere, and `gh pr merge --delete-branch`
-cannot clean it up -- two merges this session reported exactly that failure.
+Local cleanup is done. `origin` still carries `data/recover-remaining-talks`,
+`docs/decoding-option-effects`, `docs/fix-broken-links` and
+`fix/honest-training-and-comparison`, all from PRs that merged. Harmless, but they make
+`git branch -r` misleading about what is in flight.
 
-- `git worktree prune`, then remove the remaining ones deliberately.
-- Delete the merged local branches, `backup/*` included, now their PRs are long merged.
+- Deleting a remote branch is outward-facing, so it needs a deliberate yes rather than
+  being folded into a local tidy-up.
+- `colab-checkpointing`, `coulson` and `myles_testing` are **not** ours to delete. They
+  belong to collaborators and should be left alone whatever is decided about the four.
+- The durable fix is `--delete-branch` at merge time, which now works again: every
+  branch that blocked it was held by a worktree, and no worktrees remain.
 
 
 **#74 A broken anchor and 93 unexplained warnings in the docs build** — anchor in PR #51; the 93 warnings still open
