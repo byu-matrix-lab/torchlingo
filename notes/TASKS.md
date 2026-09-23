@@ -3,6 +3,12 @@
 Opened 2026-08-22, last updated 2026-09-20. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
+**Numbers here are task numbers, and they collide with pull request numbers.**
+Tasks run to #74 and PRs to #48, so every number below 49 names one of each. Say
+"Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
+ambiguous, and on GitHub it auto-links to the pull request whether or not that
+was meant.
+
 Note: the Status table below has drifted — several rows marked Open have since merged,
 and reconciling it against the merged history is its own pass, not done here.
 
@@ -26,7 +32,6 @@ and reconciling it against the merged history is its own pass, not done here.
 | #34 | Surface attention weights from greedy and beam decoding | Open |
 | #35 | Malformed tag `v.0.0.8` on the remote | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | Open |
-| #37 | Stacked PRs fight the stale-review rule | Open |
 | #38 | Colab checkpointing has never been run in Colab | Open — Coulson testing |
 | #40 | Visualize the effect of decoding options | Open |
 | #41 | Connect beam search back to prior coursework | Open |
@@ -47,7 +52,6 @@ and reconciling it against the merged history is its own pass, not done here.
 | #58 | `train_example_model.py` defaults to 20 epochs, which undertrains | Open |
 | #59 | Nothing checks that a comparison controlled its variables | Open |
 | #60 | Nobody is told when main goes red | Open |
-| #61 | A PR closed itself during a merge and nobody noticed | Open |
 | #62 | Check the open-PR set after every merge | Open |
 | #63 | Three pages have no mkdocs nav entry | Open — blocked on PR #17 |
 | #64 | Promote the tutorial 6 checks into `torchlingo.diagnostics` | Done in PR #45 |
@@ -404,34 +408,17 @@ but does not block, a check that runs a fifth of what it claims, and a check
 nobody reads. Each is individually defensible and together they mean a green
 tick carries less than it appears to.
 
-**#61 A PR closed itself during a merge and nobody noticed**
+**#62 Check the open-PR set after every merge**
 
-#26 — the decoding sweep, carrying the #40 and #41 work — was **closed unmerged**
-at 2026-09-19T00:19:55Z, one second after #24 was merged. It went unnoticed for a
-day and was found only because it disappeared from a routine `gh pr list`.
+Survives from #61, which is otherwise retired by the no-stacking decision.
 
-Nothing was lost: `docs/decoding-option-effects` survived, the PR reopened with
-its approval intact, and a rebase put it back on top of #34. But it was one
-branch deletion away from being genuinely hard to recover.
+#26 was closed unmerged one second after #24 was merged, and went unnoticed for a
+day because nothing compares the PR list before and after. The cause was never
+established — its base branch was never deleted, so the usual explanation does
+not fit — which is exactly why a check is worth more than a diagnosis here.
 
-**The cause is not established.** The timeline records `closed by ringger` at the
-moment `gh pr merge 24 --squash --delete-branch` ran, and #26's base branch
-(`data/retrain-on-enlarged-corpus`) was never deleted, so the usual
-"base branch deleted closes the PR" explanation does not fit. This is the third
-distinct way stacked PRs have misbehaved here, after #11/#12 auto-closing and the
-rebase-dismissal problem.
-
-Worth doing regardless of root cause:
-
-- A check that the set of open PRs after a merge is the set expected before it,
-  minus the one merged. Cheap, and would have caught this within seconds.
-- Stop relying on noticing. Every stacked merge in this session needed a manual
-  retarget, a manual rebase, and a manual look at what survived.
-
-The deeper answer is the one #37 keeps pointing at: **stop stacking.** Every
-mechanism that has bitten — auto-close, stale-review dismissal, this — is
-specific to PRs whose base is another PR. Merging promptly and keeping stacks at
-depth one avoids all three.
+One line after a merge: the set of open PRs should be what it was, minus the one
+merged. Cheap, and catches the general case rather than the mechanism.
 
 ## Tests
 
@@ -558,27 +545,41 @@ Every run now warns: `actions/checkout@v4`, `actions/setup-python@v5` and
 forced onto Node 24. It is a warning today and a hard failure whenever GitHub drops the
 shim. Bump the action versions. Unrelated to anything in flight, and cheap.
 
-**#37 Stacked PRs fight the repo's stale-review rule**
-Not a code defect; a process one, recorded because it cost real time merging #9 through
-#14 and will recur the next time work is stacked.
+**Settled 2026-09-20: do not stack pull requests. Every PR targets `main`.**
 
-The `main` ruleset sets `dismiss_stale_reviews_on_push: true` and requires one approving
-review. A stacked PR must merge its parent's changes in before it can land, and that merge
-commit is a push, so it dismisses the approval it just earned. Every PR in the stack then
-needed an admin override even though all six had been reviewed and approved on substance.
+Recorded in `CLAUDE.md` under "Pull Requests". This retires #37 and #61, which
+were both symptoms of the same practice.
 
-Two traps found the hard way, both worth avoiding next time:
-- **Do not merge with `--delete-branch` while another PR is based on that branch.**
-  GitHub auto-closes the dependents. Retarget them to `main` *first*, then delete.
-  Recovering from it means pushing the deleted branch back temporarily, because GitHub
-  refuses to reopen a PR whose base is missing and refuses to retarget a closed one.
-- A PR retargeted to `main` after its base merged has **no status checks**, because no
-  `pull_request` event with `base: main` ever fired for it. Closing and reopening the PR
-  fires one without adding an empty commit.
+The decision rests on three distinct failures, all in PRs whose base was another
+PR:
 
-Options, if this shape comes up again: keep branches independent off `main` where the work
-allows; or ask for one re-approval pass after all branches are rebased; or accept admin
-overrides as the normal cost of stacking.
+| | |
+|---|---|
+| Auto-close | #11 and #12 closed when their base branch was deleted on merge |
+| Lost approvals | a rebase changing no content dismissed the approvals on #27, #34 |
+| Silent close | #26 closed unmerged during an unrelated merge; cause never found |
+
+GitHub offers no fix. `dismiss_stale_reviews_on_push` is a boolean with no rebase
+exemption, and merging `main` in or using "Update branch" is equally a push. The
+rule was briefly switched off on 2026-09-20 to confirm the trade and switched
+back: turning it off preserves approvals across *any* push, including ones that
+change code, which is broader than wanted.
+
+Two traps still worth knowing while the current stack drains:
+
+- **Do not merge with `--delete-branch` while another PR is based on that
+  branch.** GitHub auto-closes the dependents. Retarget them to `main` first.
+  Recovery means pushing the deleted branch back temporarily, because GitHub
+  refuses to reopen a PR whose base is missing and refuses to retarget a closed
+  one.
+- A PR retargeted to `main` after its base merged has **no status checks**,
+  because no `pull_request` event with `base: main` ever fired. Close and reopen
+  to fire one, rather than pushing an empty commit.
+
+**Currently draining:** #26 and #38 are both based on #34 and genuinely depend on
+it — #26's measurements were taken on #34's checkpoint, and #38 modifies a script
+#34 introduces. They cannot be unstacked before #34 merges. Once it does, both
+retarget to `main` and the practice starts clean.
 
 **#44 Gate the sdist on "no Git LFS pointer shipped"**
 
