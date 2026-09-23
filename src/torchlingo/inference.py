@@ -166,13 +166,133 @@ def _rank_key(tokens: list[int], score: float, alpha: float) -> tuple[float, lis
     return (-normalized, tokens)
 
 
+def attention_for_sequence(
+    model: nn.Module,
+    src: torch.Tensor,
+    tokens: Sequence[int],
+    device: torch.device | None = None,
+    config: Config | None = None,
+) -> torch.Tensor:
+    """Cross-attention for a sequence the model generated.
+
+    Both decoders compute attention at every step and throw it away, so this
+    recovers it with one teacher-forced pass over the finished sequence rather
+    than threading weights through the search.
+
+    **That second pass is exact, not an approximation.** The decoder is causally
+    masked, so the state at target position *t* depends only on tokens up to
+    *t*; re-running over the whole sequence reproduces each row exactly as the
+    incremental decode computed it. Verified to floating-point noise in
+    ``tests/test_attention_from_decoding.py``.
+
+    It matters that this is the *generated* sequence. Teacher-forcing the
+    **reference** translation, which is what you get by calling the model
+    directly, shows you where attention would have gone had the model produced
+    the right answer. That is a different and less interesting picture,
+    especially on a model whose output is wrong.
+
+    Args:
+        model (nn.Module): A Transformer or attention-equipped LSTM.
+        src (torch.Tensor): Source token ids, ``(src_len,)`` or ``(1, src_len)``.
+        tokens (Sequence[int]): The generated sequence, including ``<sos>`` and
+            any trailing ``<eos>``, as returned by the decoders here.
+        device (torch.device, optional): Defaults to the model's device.
+        config (Config, optional): Supplies ``pad_idx``.
+
+    Returns:
+        torch.Tensor: Weights of shape ``(len(tokens) - 1, src_len)``. Row *i*
+        is the distribution over source positions while producing
+        ``tokens[i + 1]``.
+
+    Raises:
+        ValueError: If the model cannot return attention, or ``tokens`` is too
+            short to have generated anything.
+
+    Example:
+        >>> import torch
+        >>> from torchlingo.models import SimpleTransformer
+        >>> model = SimpleTransformer(src_vocab_size=30, tgt_vocab_size=30,
+        ...                           d_model=16, n_heads=2,
+        ...                           num_encoder_layers=1, num_decoder_layers=1)
+        >>> _ = model.eval()
+        >>> src = torch.tensor([[2, 5, 9, 3]])
+        >>> tokens = greedy_decode(model, src, max_len=5)[0]
+        >>> weights = attention_for_sequence(model, src, tokens)
+        >>> weights.shape[1]
+        4
+    """
+    cfg = config if config is not None else get_default_config()
+    if len(tokens) < 2:
+        raise ValueError(
+            f"tokens has length {len(tokens)}; it must contain <sos> and at "
+            "least one generated token for there to be any attention to show."
+        )
+    if tokens[0] != cfg.sos_idx:
+        # Not fatal, but the rows would be labelled wrongly: this function
+        # assumes tokens[1:] are the generated ones, so a sequence missing its
+        # <sos> shifts every row by one against the tokens a caller plots.
+        warnings.warn(
+            f"tokens starts with {tokens[0]}, not sos_idx={cfg.sos_idx}. "
+            "Row i is the attention while producing tokens[i + 1], so a "
+            "sequence without a leading <sos> will be labelled off by one.",
+            UserWarning,
+            stacklevel=2,
+        )
+
+    device = device if device is not None else next(model.parameters()).device
+    if src.dim() == 1:
+        src = src.unsqueeze(0)
+    if src.size(0) != 1:
+        raise ValueError(
+            f"src has batch size {src.size(0)}; pass one sentence at a time, "
+            "since generated sequences differ in length and cannot be stacked."
+        )
+    src = src.to(device)
+
+    # Drop the final token: the decoder is fed tokens[:-1] and predicts
+    # tokens[1:], so the last one is an output with no corresponding input row.
+    tgt_in = torch.tensor([list(tokens[:-1])], device=device, dtype=torch.long)
+
+    was_training = model.training
+    model.eval()
+    try:
+        with torch.no_grad():
+            result = model(src, tgt_in, return_attention=True)
+    except TypeError as exc:
+        raise ValueError(
+            f"{type(model).__name__} does not accept return_attention. A "
+            "SimpleSeq2SeqLSTM needs attention=True, and an LSTM built without "
+            "it has no cross-attention to report."
+        ) from exc
+    finally:
+        if was_training:
+            model.train()
+
+    if not isinstance(result, tuple):
+        # ValueError, not TypeError: the argument types were fine, the model is
+        # simply unsuitable for what was asked. Same reasoning as the other
+        # raises here, and the tests pin it.
+        raise ValueError(  # noqa: TRY004
+            f"{type(model).__name__} accepted return_attention but returned no "
+            "weights. An LSTM built with attention=False computes none."
+        )
+    _, weights = result
+    if weights is None:
+        raise ValueError(
+            f"{type(model).__name__} returned None for attention. An LSTM "
+            "built with attention=False has no cross-attention to report."
+        )
+    return weights[0]
+
+
 def greedy_decode(
     model: nn.Module,
     src: torch.Tensor,
     max_len: int = 100,
     device: torch.device | None = None,
     config: Config | None = None,
-) -> list[list[int]]:
+    return_attention: bool = False,
+) -> list[list[int]] | tuple[list[list[int]], list[torch.Tensor]]:
     """Greedy autoregressive decoding for Transformer or LSTM models.
 
     Decodes in mini-batches sized by ``config.batch_size`` to limit device
@@ -186,9 +306,31 @@ def greedy_decode(
         max_len: Maximum decoded length (including SOS/EOS).
         device: Torch device. Defaults to model's device or CUDA/CPU.
         config: TorchLingo Config providing special token indices.
+        return_attention: Also return the cross-attention for each decoded
+            sequence, showing where the decoder looked while producing the
+            translation it actually produced. Off by default: it costs one
+            extra forward pass per sentence.
 
     Returns:
-        List of decoded token ID sequences (one list per batch element).
+        List of decoded token ID sequences (one list per batch element). If
+        ``return_attention`` is True, returns ``(sequences, weights)`` where
+        weights is a **list** of ``(tgt_len, src_len)`` tensors, one per
+        sentence. A list rather than a stacked tensor because decoded
+        sequences differ in length and padding them would invent attention
+        rows that were never computed.
+
+    Example:
+        >>> import torch
+        >>> from torchlingo.models import SimpleTransformer
+        >>> model = SimpleTransformer(src_vocab_size=30, tgt_vocab_size=30,
+        ...                           d_model=16, n_heads=2,
+        ...                           num_encoder_layers=1, num_decoder_layers=1)
+        >>> _ = model.eval()
+        >>> src = torch.tensor([[2, 5, 9, 3]])
+        >>> tokens, weights = greedy_decode(model, src, max_len=5,
+        ...                                 return_attention=True)
+        >>> len(weights) == len(tokens)
+        True
     """
 
     cfg = config if config is not None else get_default_config()
@@ -287,7 +429,17 @@ def greedy_decode(
         else:
             decoded.extend(_decode_lstm(src_chunk))
 
-    return decoded
+    if not return_attention:
+        return decoded
+
+    # One sentence at a time: each has its own length, and the padding that
+    # makes a batch rectangular would show up as attention over positions the
+    # decode never saw.
+    weights = [
+        attention_for_sequence(model, src[i], tokens, device=device, config=cfg)
+        for i, tokens in enumerate(decoded)
+    ]
+    return decoded, weights
 
 
 def beam_search_decode(
@@ -299,7 +451,8 @@ def beam_search_decode(
     device: torch.device | None = None,
     config: Config | None = None,
     trace: list[BeamStep] | None = None,
-) -> list[int]:
+    return_attention: bool = False,
+) -> list[int] | tuple[list[int], torch.Tensor]:
     """Beam search decoding for Transformer or LSTM models.
 
     The search itself is architecture-agnostic — beams, pruning, length
@@ -323,9 +476,25 @@ def beam_search_decode(
             it, recording every candidate considered and whether it survived
             pruning. Costs nothing when omitted and never changes the result;
             see :func:`torchlingo.visualization.format_beam_search`.
+        return_attention: Also return the cross-attention for the **winning**
+            hypothesis. Costs one extra forward pass.
 
     Returns:
-        Best decoded token ID sequence (including SOS/EOS).
+        Best decoded token ID sequence (including SOS/EOS). If
+        ``return_attention`` is True, returns ``(tokens, weights)`` with
+        weights of shape ``(len(tokens) - 1, src_len)``.
+
+    Note:
+        Attention is recovered by re-running the winner through
+        :func:`attention_for_sequence` after the search finishes, rather than
+        by carrying weight history on every beam. That is deliberate.
+        Hypotheses get pruned, so most of the weights computed during a beam
+        search belong to candidates that lost; keeping all of them to discard
+        all but one costs memory proportional to ``beam_size`` for no benefit.
+        Re-running is exact, because the decoder is causally masked.
+
+        This mirrors what the search already does with scores: it re-scores
+        prefixes rather than caching every partial result.
 
     Note:
         Output is deterministic for a fixed model and input on any device.
@@ -448,7 +617,11 @@ def beam_search_decode(
 
     completed.extend(beams)
     best_tokens, _ = min(completed, key=lambda item: _rank_key(item[0], item[1], alpha))
-    return best_tokens
+    if not return_attention:
+        return best_tokens
+    return best_tokens, attention_for_sequence(
+        model, src, best_tokens, device=device, config=cfg
+    )
 
 
 def translate_batch(
