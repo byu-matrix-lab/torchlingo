@@ -408,11 +408,18 @@ class BeamSearchGoldenContract:
 
 
 class LengthNormalizationSemanticsContract:
-    """Pin the current length-normalization behavior (task #4).
+    """Pin the current length-normalization behavior.
 
-    ``beam_search_decode`` applies length normalization while *pruning*, not
-    only when selecting the final hypothesis. That is defensible but
-    non-standard; these tests make any change to it deliberate and visible.
+    ``beam_search_decode`` applies the normalized rank key while *pruning* as
+    well as when selecting the final hypothesis, but only the second has any
+    effect: every candidate within a step has the same length, so the divisor
+    is a shared constant and cannot reorder them. The behavior is therefore
+    equivalent to the conventional "normalize at final selection only".
+
+    That equivalence rests on an invariant these tests cannot see, because
+    ``trace`` is a reference-implementation feature and this contract also runs
+    against the batched decoder. ``tests/test_length_normalization.py`` pins the
+    invariant itself.
     """
 
     def test_alpha_influences_output_length(self):
