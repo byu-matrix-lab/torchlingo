@@ -134,9 +134,11 @@ nav:
     - Inference and Beam Search: tutorials/03-inference-and-beamsearch.ipynb
     - Attention and Alignment: tutorials/04-attention-and-alignment.ipynb
     - Translating Unseen Sentences: tutorials/05-real-translations.ipynb
+    - Diagnosing Failures: tutorials/06-diagnosing-failures.ipynb
   - API Reference:
     - reference/index.md
     - Config: reference/config.md
+    - Diagnostics: reference/diagnostics.md
     - Training Checkpoints: reference/training_checkpoint.md
     - Data Processing:
       - reference/data_processing/index.md
@@ -156,6 +158,7 @@ nav:
       - SentencePiece: reference/preprocessing/sentencepiece.md
       - Multilingual: reference/preprocessing/multilingual.md
     - Visualization: reference/visualization.md
+  - Related Work: related-work.md
   - Contributing: contributing.md
 
 extra:
