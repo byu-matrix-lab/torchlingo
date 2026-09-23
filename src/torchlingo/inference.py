@@ -38,6 +38,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 from .config import Config, get_default_config
 from .data_processing.vocab import BaseVocab
+from .models.transformer_simple import create_causal_mask
 
 # Beam decoding more sentences than this through the reference implementation is
 # slow enough to be worth flagging. Tuned to stay quiet for the tutorials and
@@ -360,9 +361,14 @@ def greedy_decode(
             )
             finished = torch.zeros(src_chunk.size(0), dtype=torch.bool, device=device)
             for _ in range(max_len):
-                tgt_mask = nn.Transformer.generate_square_subsequent_mask(
-                    ys.size(1)
-                ).to(device)
+                # The model's own helper, not
+                # nn.Transformer.generate_square_subsequent_mask, which returns
+                # a float mask. The padding masks below are boolean, and PyTorch
+                # deprecated mixing the two: passing a float attn_mask beside a
+                # boolean key_padding_mask warns on every call and is scheduled
+                # for removal. Both are boolean now, which is also what the
+                # training path has always used.
+                tgt_mask = create_causal_mask(ys.size(1), device)
                 out = model.decode(
                     ys,
                     memory,
@@ -542,9 +548,9 @@ def beam_search_decode(
 
         def next_log_probs(tokens: list[int]) -> torch.Tensor:
             tgt = torch.tensor([tokens], dtype=torch.long, device=device)
-            tgt_mask = nn.Transformer.generate_square_subsequent_mask(len(tokens)).to(
-                device
-            )
+            # Boolean, to match the key padding masks below. See the note in
+            # greedy_decode.
+            tgt_mask = create_causal_mask(len(tokens), device)
             with torch.no_grad():
                 out = model.decode(
                     tgt,

@@ -48,6 +48,7 @@ from torch.nn.utils.rnn import pad_sequence
 from .config import Config, get_default_config
 from .data_processing.vocab import BaseVocab
 from .inference import _canonical_topk, _rank_key
+from .models.transformer_simple import create_causal_mask
 
 
 def beam_search_decode(
@@ -152,7 +153,11 @@ def beam_search_decode(
         # expand() is a view: no copy, no extra memory.
         memory_batch = memory.expand(n_live, -1, -1)
         src_mask_batch = pad_mask.expand(n_live, -1)
-        tgt_mask = nn.Transformer.generate_square_subsequent_mask(tgt_len).to(device)
+        # Boolean, to match the key padding masks below; see the note in
+        # inference.greedy_decode. The two implementations must agree here as
+        # well as on output, since a dtype difference would be a silent
+        # divergence in what the two searches actually mask.
+        tgt_mask = create_causal_mask(tgt_len, device)
 
         with torch.no_grad():
             out = model.decode(
