@@ -135,6 +135,179 @@ What happens during cleaning:
     print(f"Sample 0: {dataset.src_sentences[0]} → {dataset.tgt_sentences[0]}")
     ```
 
+### Cleaning is not the same as checking
+
+Every step above is *structural*. It fixes types, whitespace and blank rows. Not one
+of them asks the question that matters most about a parallel corpus:
+
+**Is row `n` of the source side actually a translation of row `n` of the target side?**
+
+This is not a hypothetical concern. The corpus shipped with this library was once
+misaligned in exactly that way. Its two columns were independent documents zipped
+together, so no row was a translation of its partner. It passed every check above: two
+columns, correct types, no blank rows, plausible sentences on both sides.
+
+A student who trained on it would have watched the loss refuse to fall, with no way to
+tell bad data from a mistake of their own. That is the worst thing a corpus can do in a
+teaching library, and it is worth knowing how to detect.
+
+#### Two cheap checks
+
+Both rest on properties that hold for translations and fail for unrelated text. Neither
+needs a model, a second language, or more than a few seconds.
+
+**Sentence lengths correlate.** A translation is about as long as its source. Not
+exactly, and the ratio varies by language pair, but strongly enough to be obvious in
+aggregate.
+
+**Names and numbers survive translation.** "Stephen Palumbi" and "2010" appear on both
+sides of a real pair. They are not translated, so you can compare them without knowing
+either language.
+
+```python
+import pandas as pd
+from torchlingo.preprocessing import diagnose_alignment
+
+frame = pd.read_csv("data/example.tsv", sep="\t")
+report = diagnose_alignment(frame)
+
+print(report.length_correlation)   # 0.97 for parallel text
+print(report.anchor_agreement)     # 0.41 on this corpus
+print(report.looks_aligned())      # True
+```
+
+#### What the numbers look like
+
+Run on the shipped corpus, and again on the same file with the target side rotated by
+one row so that no pair is a translation of itself:
+
+--8<-- "docs/_generated/alignment_diagnosis.md"
+
+The right-hand column is what a broken corpus looks like. Nothing about its *shape*
+differs from the left.
+
+!!! warning "Run both, and know what they miss"
+    Neither check is proof, and each has a blind spot the other covers.
+
+    The anchor check compares *which* names and numbers the two sides share, so a token
+    appearing in nearly every row carries no signal. A single speaker's name, repeated
+    throughout their own talks, is shared by every pairing whether that pairing is right
+    or wrong. Scramble such a corpus and agreement stays at 100% while the length
+    correlation collapses.
+
+    A corpus whose sentences are mostly the same length has the opposite problem.
+
+    They are smoke detectors: cheap, and loud about the failure that actually happened.
+    A corpus can pass both and still be subtly misaligned, and a legitimately noisy
+    corpus can score lower without being broken. Look at the numbers, then look at some
+    rows.
+
+#### Checking your own data
+
+`diagnose_alignment` takes any DataFrame with a source and a target column, so point it
+at your own corpus before you spend an afternoon training on it:
+
+```python
+report = diagnose_alignment(my_frame, src_col="english", tgt_col="spanish")
+if not report.looks_aligned():
+    print(f"suspicious: {report}")
+```
+
+To see the checks fail on data you know is good, break it yourself:
+
+```python
+from torchlingo.preprocessing import shuffle_target_side
+
+broken = shuffle_target_side(frame)
+print(diagnose_alignment(broken).looks_aligned())   # False
+```
+
+That is worth doing once. A check you have never seen fail is a check you do not yet
+know how to read.
+
+### Repairing a corpus that is only slightly wrong
+
+Detecting misalignment is one thing. Deciding what to do about it is another, and the
+answer depends on *how* wrong the data is.
+
+This corpus came as 662 talks present in both languages. For 564 of them, the two
+transcripts had been split into the same number of sentences, so pairing them by
+position is safe. For the remaining 98, the segmentation differed slightly — usually by
+a single line, at most by nineteen. A translator merged two sentences, or dropped a
+stage direction the other transcript kept.
+
+Those 98 are not garbage. They are about 13,000 sentence pairs, roughly 18% more data,
+and throwing them away is expensive. But pairing them by position is exactly the
+mistake that produced the broken corpus in the first place: after one missing line,
+every later sentence pairs with its neighbour instead of its translation.
+
+#### Align by length, not by position
+
+The fix is the same observation the length check rests on: **a translation is about as
+long as its source.** If sentence 4 on one side is twice as long as sentence 4 on the
+other, but matches sentence 5 well, the two sides have probably slipped by one.
+
+Turn that into a cost and finding the best alignment becomes a shortest-path problem.
+This is [Gale and Church (1993)](https://aclanthology.org/J93-1004/), and if you have
+met edit distance you already know its shape: a table, a small set of allowed moves, and
+a cost per move.
+
+| Move | Meaning |
+|---|---|
+| 1-1 | One sentence translates one sentence. The common case, so it is free. |
+| 1-2, 2-1 | A sentence was split, or two were merged. |
+| 1-0, 0-1 | A sentence has no counterpart. |
+| 2-2 | Two sentences rearranged into two others. |
+
+Each move costs a fixed penalty plus a measure of how improbable its length ratio is,
+and dynamic programming finds the cheapest path through both documents at once.
+
+```python
+from torchlingo.preprocessing import align_one_to_one
+
+pairs = align_one_to_one(source_sentences, target_sentences)
+```
+
+`align_one_to_one` keeps only the 1-1 beads. A split or a dropped sentence is
+*discarded*, not guessed at, which is the conservative reading of the same principle
+that runs through this page.
+
+#### Does it work?
+
+The honest test is not whether the realigned data looks fine. It is whether it beats
+the naive thing, measured the same way:
+
+--8<-- "docs/_generated/realign_report.md"
+
+Read that table twice. Pairing by position produces **more** data and it is wrong: 0.56
+correlation is far below the 0.97 of genuinely parallel text, and it fails the check
+from the previous section. The aligner gives up 153 pairs and lands at 0.97, which is
+indistinguishable from the corpus that never needed repair.
+
+That is the loop worth remembering. The checks from the previous section are not just
+documentation — they are the acceptance test for the repair, and
+`scripts/realign_corpus.py` **refuses to write the corpus** if the realigned rows do
+not clear them.
+
+!!! note "Where this runs out"
+    Gale and Church use length alone, which is why it needs no dictionary and works on
+    any language pair. It is also why it can only fix *drift*. If two documents are not
+    translations of each other at all, no alignment of them is correct, and the
+    algorithm will still return its cheapest path. Run the checks on the result; that
+    is what they are for.
+
+    A corpus with many long omissions is the harder case: the cost model treats a long
+    deletion as so improbable that a poor one-to-one can score better. It resynchronizes
+    afterwards, but emits one bad pair at the gap.
+
+    The known fix is to stop relying on length alone.
+    [Moore (2002)](https://aclanthology.org/2002.amta-papers.14/) aligns in two passes:
+    a length-based pass like this one, whose confident pairs then train an IBM Model 1
+    word-translation model, and a second pass scoring both length *and* word
+    correspondence. Lexical evidence settles exactly the case length cannot, because a
+    dropped sentence shares no words with anything. TorchLingo does not implement this;
+    length alone was enough here, and you can see that in the table above.
+
 ## Step 4: Building Vocabularies
 
 If you don't provide pre-built vocabularies, `NMTDataset` creates them:

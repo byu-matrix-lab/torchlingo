@@ -106,7 +106,10 @@ def preprocess_multilingual(
         using seed for reproducibility. Saves files per specified paths.
 
     Examples:
-        >>> preprocess_multilingual()
+        Reads the split files named by the config, so this is illustrative
+        rather than executable.
+
+        >>> preprocess_multilingual()                  # doctest: +SKIP
         Multilingual preprocessing complete.
     """
     cfg = config if config is not None else get_default_config()

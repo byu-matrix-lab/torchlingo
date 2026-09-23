@@ -36,6 +36,38 @@ more.
 Beam search costs roughly `beam_size` times more computation. That cost is the reason
 the rest of this page exists.
 
+### You have already met this algorithm
+
+Beam search is usually introduced in NMT as though it were a translation technique. It
+is not. It is **best-first search with a fixed-width frontier**, and you have almost
+certainly seen it before under that description, in a course on search or AI.
+
+The mapping is exact:
+
+| General search | Beam search when decoding |
+|---|---|
+| State | The prefix generated so far |
+| Successors | Every possible next token |
+| Path cost | Cumulative log probability of the prefix |
+| Heuristic | The model itself — it scores how promising a prefix is |
+| Frontier | The `beam_size` live hypotheses |
+| Goal test | The `<eos>` token |
+
+The one thing that makes it *beam* search rather than plain best-first search is the
+fixed-width frontier. A complete best-first search over this space is hopeless: the
+branching factor is the vocabulary size, often tens of thousands, and the depth is the
+length of the output. Keeping only the best `beam_size` states at each level is what
+makes it tractable, and throwing the rest away is what makes it **incomplete** — it can
+miss the optimal sequence, and it regularly does.
+
+So the honest framing is not "beam search finds the best translation." It is: *greedy
+search is beam search with a frontier of one, and widening the frontier trades
+computation for a better chance of finding a high-scoring sequence, with no guarantee.*
+[What the knobs actually do](#what-the-knobs-actually-do) shows what that trade buys in
+practice. It is less than you might expect, and past a point widening the frontier makes
+the translations *worse* — a searchable objective and a good translation are not the
+same thing.
+
 ### Both strategies work on both architectures
 
 `greedy_decode` and `beam_search_decode` each accept a `SimpleTransformer` or a
@@ -54,6 +86,22 @@ shared.
 # Identical call, either architecture
 tokens = beam_search_decode(model, src, beam_size=5)
 ```
+
+### Watching the search prune
+
+The argument for beam search is about the paths greedy never explores — and those are
+invisible in the output, which only ever shows the winner. Pass a list as `trace` to see
+them:
+
+```python
+trace = []
+tokens = beam_search_decode(model, src, beam_size=3, trace=trace)
+print(format_beam_search(trace, itos=tgt_vocab.idx2token, winner=tokens))
+```
+
+The case worth finding is a step where the eventual winner was **not** ranked first. That
+is the moment greedy would have gone elsewhere and been unable to come back. See
+[Visualization](../reference/visualization.md#beam-search) for how to read it.
 
 ## Reference and fast implementations
 
@@ -128,13 +176,14 @@ step, each processing a single sequence.
 
 ## What that costs
 
-Measured on 8 sentences, `max_len=25`, `beam_size=5`:
+--8<-- "docs/_generated/decode_bench.md"
 
-| | `decode()` calls | sequences per call | positions forwarded |
-|---|---|---|---|
-| greedy | 25 | 8.0 | 2,600 |
-| beam (reference) | 968 | **1.0** | 12,968 |
-| ratio | **38.7×** | 4.8× | 5.0× |
+Every number on this page comes from `scripts/bench_decode.py`, and the table above is
+generated from its output rather than typed in. Run it yourself:
+
+```bash
+python scripts/bench_decode.py
+```
 
 Read the last column first. Beam search does about **5× the arithmetic** of greedy —
 which is roughly what `beam_size=5` should cost, and is not a problem.
@@ -165,13 +214,140 @@ With `beam_size=5` and 8 sentences: 5 × 8 = 40 ≈ 38.7. Greedy in the table ab
 pulls the sentence lever (all 8 sentences go through together), which is why it looks so
 much better.
 
-`inference_fast.beam_search_decode` pulls the **beam** lever. Measured: 4.8×, a little under
-`beam_size` because fewer beams remain live late in the search. It still decodes one
-sentence at a time, so the sentence lever is untouched and available.
+`inference_fast.beam_search_decode` pulls the **beam** lever. The measured reduction is in
+the second table above, a little under `beam_size` because fewer beams remain live late in
+the search. It still decodes one sentence at a time, so the sentence lever is untouched and
+available.
 
 So from the batched decoder, expect roughly `beam_size` — and note that the remaining
 lever is worth more the larger your test set is, since it scales with the number of
 sentences.
+
+## What the knobs actually do
+
+Everything above is about cost. This section is about what you get back, which is a
+different question and has a less comfortable answer.
+
+Measured on the pretrained model from
+[Tutorial 5](../tutorials/05-real-translations.ipynb), because the answer depends on
+having a model that is wrong often enough to be interesting. Tutorial 3's toy model is
+so decisive that every beam size returns the same translation, which is why the sweep
+there teaches nothing.
+
+--8<-- "docs/_generated/decoding_sweep.md"
+
+### Most of the gain is the first beam, and past the peak it reverses
+
+Read the paired table, not the columns.
+
+**Greedy to any beam width is the big move**, worth between +1.18 and +1.65 BLEU, in the
+same direction on every subset.
+
+**After that it rises, plateaus, then declines.** Beam 2 to beam 3 is a real gain
+(+0.39 ± 0.14). Beam 3 to beam 5 is nothing (+0.04 ± 0.14). Beam 5 to beam 10 is a real
+**loss** (−0.47 ± 0.08), and the round trip from beam 2 to beam 10 nets out at zero.
+Beam 10 costs about **7x** beam 2 in seconds to arrive back where it started.
+
+So quality peaks around beam 3 to 5, which is roughly where the literature's usual
+default sits. The surprise is not the peak, it is that going past it actively hurts. The
+next section explains why.
+
+!!! warning "This conclusion depends on the model, and we watched it change"
+    An earlier version of this page, measured on a weaker checkpoint, reported that
+    **no** beam width was distinguishable from any other, and drew the lesson that only
+    the greedy-versus-beam decision matters.
+
+    That was an honest reading of the data at the time and it was wrong. Retraining on
+    ~19% more data lifted the model from BLEU 4.96 to 7.32, and at that quality the
+    beam-to-beam differences separate from the noise: what had been a flat line became a
+    peak with a measurable decline after it.
+
+    Nothing about the earlier table looked unreliable. It had five seeds, paired
+    comparisons and error bars, and it still supported a conclusion the next model
+    overturned. "No difference detectable" had meant *this model was too weak to show
+    one* — the same trap as Tutorial 3's five identical beam sizes, one level up.
+
+    The transferable habit is to state what a result was measured on, and to re-run it
+    when that changes. Every number here comes from one checkpoint, one language pair,
+    and one test set.
+
+!!! note "Why the error bars are the point"
+    Look at the BLEU column of the first table on its own and beam 5 appears best, at
+    9.20 against 9.16 for beam 3. That gap is 0.04 with a standard error of 0.14: it is
+    not a result, and on a different draw of sentences the winner moves.
+
+    The paired comparison is what rescues the analysis. Because every configuration
+    decodes the *same* sentences, the per-run difference cancels the "which sentences
+    did we happen to sample" variance that dominates the raw error bars. Unpaired, even
+    beam 5 versus beam 10 looks like a wash; paired, it is a clear loss.
+
+    Any claim of the form "beam size *n* is best for my model" needs this treatment. It
+    is very easy to publish the noise instead.
+
+### Wider beams produce shorter translations
+
+The `mean length` column falls in a straight line: **12.26** tokens at greedy down to
+**9.69** at beam 10, while the reference translations average **11.62**.
+
+This is not a quirk of this model. Beam search maximizes total log probability, and
+every additional token multiplies in another probability below 1, so a longer sequence
+is a lower-scoring sequence. Widen the search and it finds shorter, higher-scoring
+candidates that greedy walked straight past. Beam 10 finds sequences greedy never
+considered, and those sequences are systematically too short.
+
+**This is why going past the peak hurts.** Follow the two columns together. Up to beam
+3, the search is still finding better translations and the shortening is mild. By beam
+10, mean length has fallen to 9.69 against a reference average of 11.62, and the
+sequences it is now finding are higher-probability but too short to contain the
+reference's n-grams. Quality and probability have come apart: the search is succeeding
+at its stated objective and failing at the task.
+
+That gap between "what the search maximizes" and "what you wanted" is the single most
+useful idea on this page, and it is what `alpha` exists to paper over.
+
+### `alpha` is doing less than you would think
+
+Given the length bias just described, you would expect the correction for it to matter.
+It does not, over most of its range.
+
+At the default `alpha=0.6`, length normalization is **indistinguishable from turning it
+off entirely** (`alpha=0.0` changes BLEU by −0.12 ± 0.07). So are `alpha=0.3`
+(−0.05 ± 0.06) and `alpha=1.0` (+0.15 ± 0.11). Only `alpha=1.5` separates from the
+rest, and it is clearly *worse*: −0.85 ± 0.12, with output ballooning to 13.33 tokens
+against a reference average of 11.62.
+
+Read that carefully, because it is a stronger claim than it looks. Across 0.0 to 1.0 —
+from no normalization at all to full per-token averaging — **this knob does nothing you
+can measure**, while the bias it exists to correct is plainly visible in the length
+column above. The shipped default is doing no work.
+
+Two things that does not mean.
+
+**It is not evidence that length normalization is useless in general.** It is evidence
+about this model at this quality on this test set. A stronger model, a longer-sentence
+corpus, or a language pair with a different length ratio could all change it.
+
+**It is not settled why.** TorchLingo applies normalization during *pruning* as well as
+at final selection, which is defensible but non-standard, and that could blunt it.
+Distinguishing "the default is too weak" from "normalizing during pruning cancels it out"
+needs one more experiment: sweep `alpha` with the correction applied only at final
+selection and compare. That is the open question, now with numbers attached to it.
+
+**And the method is the transferable part.** Sweep the knob, pair the comparisons, put
+error bars on them, and read output length next to BLEU. That is what turned this from
+an assumption into a finding.
+
+### Exercise
+
+Reproduce the table, then break it:
+
+```bash
+python scripts/sweep_decoding.py --sentences 50 --seeds 1
+```
+
+One seed and 50 sentences gives you no error bars and a different "best" beam size than
+the table above. That is the experiment most people actually run. Add seeds until the
+answer stops moving, and notice how many it takes.
 
 ## What the fast version changes
 
@@ -194,9 +370,15 @@ out = model.decode(tgt, memory_batch, ...)           # ONE call for all beams
 log_probs = F.log_softmax(out[:, -1, :], dim=-1)     # (n_live, vocab)
 ```
 
-Calls per decode drop from `O(max_len × beam_size)` to `O(max_len)`. Measured on a small
-CPU model: **140.9 ms/sentence → 39.1 ms/sentence**, a 3.6× speedup, with byte-identical
-output.
+Calls per decode drop from `O(max_len × beam_size)` to `O(max_len)`, with byte-identical
+output. The measured call reduction and speedup are in the second table above; both come
+from `scripts/bench_decode.py`.
+
+Note that the two do not match. Calls fall by more than wall clock does, because removing
+a call does not remove the per-step Python bookkeeping, the per-row tie-breaking, or the
+`log_softmax` — and each surviving call now does `beam_size` times more work, which is not
+free. Reproducing that gap yourself is the point of the harness: it is the difference
+between "fewer calls" and "faster", and they are not the same claim.
 
 ## How we know the output is identical
 

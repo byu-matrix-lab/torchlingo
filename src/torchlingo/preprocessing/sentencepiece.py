@@ -73,7 +73,12 @@ def train_sentencepiece(
         - Prints confirmation message with output path.
 
     Examples:
-        >>> train_sentencepiece([Path('train.tsv')], 'models/sp', vocab_size=16000)
+        Needs a corpus on disk, so this is illustrative rather than executable.
+        `tests/test_sentencepiece.py` trains real models.
+
+        >>> train_sentencepiece(                       # doctest: +SKIP
+        ...     [Path('train.tsv')], 'models/sp', vocab_size=16000
+        ... )
         SentencePiece model saved to models/sp.model
     """
     import tempfile
@@ -274,7 +279,10 @@ def preprocess_sentencepiece(
         - Creates {data_dir}/tokenized/ directory.
 
     Examples:
-        >>> preprocess_sentencepiece()
+        Reads the split files named by the config, so this is illustrative
+        rather than executable.
+
+        >>> preprocess_sentencepiece()                 # doctest: +SKIP
         Tokenized ./data/train.tsv -> ./data/tokenized/train.tsv
         Tokenized ./data/val.tsv -> ./data/tokenized/val.tsv
         Tokenized ./data/test.tsv -> ./data/tokenized/test.tsv

@@ -126,12 +126,14 @@ nav:
     - Model Architectures: concepts/models.md
     - Training Loop: concepts/training.md
     - Decoding: concepts/decoding.md
+    - When It Fails: concepts/when-it-fails.md
   - Tutorials:
     - tutorials/index.md
     - Data and Vocabulary: tutorials/01-data-and-vocab.ipynb
     - Training a Tiny Model: tutorials/02-train-tiny-model.ipynb
     - Inference and Beam Search: tutorials/03-inference-and-beamsearch.ipynb
     - Attention and Alignment: tutorials/04-attention-and-alignment.ipynb
+    - Translating Unseen Sentences: tutorials/05-real-translations.ipynb
   - API Reference:
     - reference/index.md
     - Config: reference/config.md
@@ -150,6 +152,7 @@ nav:
     - Preprocessing:
       - reference/preprocessing/index.md
       - Base Utilities: reference/preprocessing/base.md
+      - Alignment Checks: reference/preprocessing/alignment.md
       - SentencePiece: reference/preprocessing/sentencepiece.md
       - Multilingual: reference/preprocessing/multilingual.md
     - Visualization: reference/visualization.md

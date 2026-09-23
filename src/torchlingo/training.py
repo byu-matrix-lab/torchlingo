@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pickle
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -46,12 +46,21 @@ class TrainResult:
     Attributes:
         train_losses: Mean training loss per epoch.
         val_losses: Mean validation loss per epoch (empty when no val_loader).
+            One entry per epoch, so ``len(val_losses) == len(train_losses)``
+            and either can be plotted against the other.
+        periodic_val_losses: Mean validation loss at each mid-epoch check, when
+            ``config.val_interval`` is set. Empty otherwise. These are kept
+            separate from ``val_losses`` because they measure something
+            different -- the model partway through an epoch -- and mixing the
+            two produces a list whose length is neither the epoch count nor
+            anything else meaningful.
         best_checkpoint: Path to the best checkpoint file if saved, else None.
     """
 
     train_losses: list[float]
     val_losses: list[float]
     best_checkpoint: Path | None
+    periodic_val_losses: list[float] = field(default_factory=list)
 
 
 def _resolve_device(device: torch.device | None) -> torch.device:
@@ -88,11 +97,21 @@ def get_transformer_scheduler(
         LambdaLR scheduler that adjusts learning rate according to the Transformer schedule.
 
     Example:
-        >>> opt = torch.optim.Adam(model.parameters(), lr=1.0)
+        The point of this schedule is visible in the numbers: the rate climbs
+        during warmup and decays afterwards, so the peak sits at the warmup
+        boundary.
+
+        >>> import torch
+        >>> opt = torch.optim.Adam(torch.nn.Linear(4, 4).parameters(), lr=1.0)
         >>> scheduler = get_transformer_scheduler(opt, d_model=512, warmup_steps=4000)
-        >>> for epoch in range(num_epochs):
-        >>>     ...
-        >>>     scheduler.step()
+        >>> seen = {}
+        >>> for step in range(1, 8001):
+        ...     opt.step()
+        ...     scheduler.step()
+        ...     if step in (1000, 4000, 8000):
+        ...         seen[step] = opt.param_groups[0]['lr']
+        >>> print(' '.join(f'{s}:{seen[s]:.6f}' for s in sorted(seen)))
+        1000:0.000175 4000:0.000699 8000:0.000494
     """
 
     def lr_lambda(step: int) -> float:
@@ -129,12 +148,22 @@ def get_cosine_annealing_scheduler(
         LambdaLR scheduler that adjusts learning rate with cosine annealing.
 
     Example:
-        >>> opt = torch.optim.Adam(model.parameters(), lr=1e-3)
-        >>> scheduler = get_cosine_annealing_scheduler(opt, warmup_steps=8000, total_steps=200000)
-        >>> for epoch in range(num_epochs):
-        >>>     for batch in train_loader:
-        >>>         ...
-        >>>         scheduler.step()
+        Warmup climbs linearly to the optimizer's learning rate, then cosine
+        decay brings it down toward the floor.
+
+        >>> import torch
+        >>> opt = torch.optim.Adam(torch.nn.Linear(4, 4).parameters(), lr=1e-3)
+        >>> scheduler = get_cosine_annealing_scheduler(
+        ...     opt, warmup_steps=100, total_steps=1000
+        ... )
+        >>> seen = {}
+        >>> for step in range(1, 1001):
+        ...     opt.step()
+        ...     scheduler.step()
+        ...     if step in (50, 100, 1000):
+        ...         seen[step] = opt.param_groups[0]['lr']
+        >>> print(' '.join(f'{s}:{seen[s]:.6f}' for s in sorted(seen)))
+        50:0.000500 100:0.001000 1000:0.000100
     """
     import math
 
@@ -304,6 +333,7 @@ def train_model(
     best_path: Path | None = None
     train_losses: list[float] = []
     val_losses: list[float] = []
+    periodic_val_losses: list[float] = []
     global_step = 0
     stop_training = False
     no_improve_steps = 0
@@ -449,7 +479,14 @@ def train_model(
                             )
                             total_val += v_loss.item()
                     avg_val = total_val / max(1, len(val_loader))
-                    val_losses.append(avg_val)
+                    # Deliberately NOT val_losses: this is a mid-epoch reading,
+                    # and appending it there would make that list interleave two
+                    # different measurements. It used to, which made
+                    # len(val_losses) look like an epoch count while being
+                    # roughly twice one, and a training curve plotted from it
+                    # zig-zag between "partway through epoch n" and "end of
+                    # epoch n" without saying so.
+                    periodic_val_losses.append(avg_val)
                     # Step plateau scheduler on validation loss
                     if is_plateau_scheduler:
                         sched.step(avg_val)
@@ -652,7 +689,10 @@ def train_model(
         )
 
     return TrainResult(
-        train_losses=train_losses, val_losses=val_losses, best_checkpoint=best_path
+        train_losses=train_losses,
+        val_losses=val_losses,
+        best_checkpoint=best_path,
+        periodic_val_losses=periodic_val_losses,
     )
 
 

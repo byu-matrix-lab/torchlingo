@@ -3,5 +3,23 @@ include README.md
 include pyproject.toml
 recursive-include src/torchlingo *.py
 include src/torchlingo/py.typed
+
+# The small multilingual examples still ship: they are a few KB and the
+# multilingual docs quote them.
 recursive-include data *.tsv
 recursive-include data *.txt
+
+# The Git LFS artifacts do not. They are excluded AFTER the includes above, so
+# these lines win.
+#
+# The reason is not size, it is correctness. `data/example.tsv` and
+# `data/pretrained/model.pt` are LFS-tracked, and the release workflow checks
+# out without LFS on purpose. Packaging them there would put two 130-byte
+# pointer files on PyPI under the names of a 17 MB corpus and a 10 MB
+# checkpoint, and nothing in the build would complain. Anyone who pip-installed
+# the result would get a file that exists, opens, and is garbage.
+#
+# Neither is needed by a pip install in any case: the tutorials that read them
+# run from a clone, where LFS provides the real bytes.
+exclude data/example.tsv
+prune data/pretrained

@@ -113,6 +113,50 @@ Benefits:
 - ✅ Smaller vocabularies
 - ✅ Shared representations ("walk", "walking", "walked" share "walk")
 
+### Measured, not asserted
+
+Those three claims are easy to state and easy to take on faith. Run them against the
+73,082-pair corpus that ships with TorchLingo:
+
+```bash
+python examples/words_vs_subwords.py
+```
+
+```
+                         vocabulary   OOV rate  mean length
+------------------------------------------------------------
+words (freq >= 2)            29,300      4.98%         17.5
+subwords (BPE)                8,000      0.00%         25.3
+```
+
+Read the three columns as one trade:
+
+- **Vocabulary is 3.7× smaller.** Every entry costs an embedding row, and on a small
+  model those rows are most of the parameter budget.
+- **OOV goes from 5% to zero.** One word in twenty, in text the model has not seen,
+  becomes `<unk>` under a word vocabulary. A token the model cannot represent is a token
+  it cannot translate — and it is disproportionately the *contentful* words that are
+  rare, so the 5% costs more than 5%.
+- **Sequences get 1.4× longer.** This is the price, and it is a real one: attention cost
+  grows with the square of sequence length.
+
+The split itself makes the mechanism obvious:
+
+```
+Let's start with day and night.
+▁Let ' s ▁start ▁with ▁day ▁and ▁night .
+```
+
+Common words survive whole; only rare ones are broken up. That is the whole idea.
+
+!!! warning "Split by document, not by sentence"
+    That measurement holds out whole *talks*, not random sentences. Consecutive
+    sentences in a transcript share a speaker, a topic and a vocabulary, so a random
+    sentence split leaks: the held-out set looks far easier than genuinely unseen text,
+    and the word-level OOV rate would come out flatteringly low for the wrong reason.
+
+    `data/example.tsv` carries a `talk` column so you can split correctly.
+
 ### SentencePiece
 
 TorchLingo supports [SentencePiece](https://github.com/google/sentencepiece), a popular subword tokenizer:

@@ -166,6 +166,53 @@ ALWAYS complete these steps after making code changes:
    - Update or add documentation as needed
    - Docs should be tailored to beginners with clear explanations and code examples
 
+## Pull Requests
+
+### Say "PR #X" and "Task #Y", never a bare `#N`
+
+The two numbering schemes overlap almost completely — tasks run to #62, pull
+requests to #42, so every number below 43 names one of each. Write **"PR #37"**
+for a pull request and **"Task #37"** for a task-list item, in prose, commit
+messages and GitHub comments alike.
+
+This is not pedantry. Task #37 ("stacked PRs fight the stale-review rule") was
+retired in the same breath as PR #37 (the `val_losses` fix) was listed as open
+and awaiting review, and both were called "#37". On GitHub there is a second
+reason: a bare `#N` in a comment auto-links to the pull request of that number,
+so an unqualified task reference silently becomes a wrong link.
+
+Task *subjects* keep the bare `#N` prefix. This is about how they are referred
+to, not how they are titled.
+
+### Do not stack pull requests
+
+Every PR targets `main`. If a change depends on
+work that is not merged yet, wait for it to merge rather than opening a PR whose
+base is another PR.
+
+This is a decision made on evidence, not taste. Stacked PRs have failed in three
+distinct ways in this repository:
+
+| | |
+|---|---|
+| Auto-close | #11 and #12 closed when the base branch was deleted on merge |
+| Lost approvals | a rebase that changed no content dismissed the approval on #27 and #34 |
+| Silent close | #26 closed unmerged during an unrelated merge, cause never established |
+
+Each cost real time to recover from, and every one of them is specific to a PR
+whose base is another PR. GitHub has no rebase exemption for
+`dismiss_stale_reviews_on_push`, so there is no configuration that makes the
+pattern safe here.
+
+What to do instead:
+
+- Merge promptly. Most stacks in this repo existed because something sat waiting
+  for review, not because the work genuinely had to be sequenced.
+- If work truly depends on unmerged work, keep it on a local branch and open the
+  PR once the dependency lands.
+- If a change is large, split it by *concern* into independent PRs against
+  `main`, not into a chain.
+
 ## Project Goals
 
 This library prioritizes:

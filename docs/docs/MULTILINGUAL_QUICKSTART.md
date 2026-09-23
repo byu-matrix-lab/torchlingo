@@ -168,7 +168,7 @@ tags = get_language_tags_from_vocab(vocab)
 
 ## Complete Training Example
 
-See [`examples/multilingual_training_example.py`](examples/multilingual_training_example.py) for a full working example that:
+See [`examples/multilingual_training_example.py`](https://github.com/byu-matrix-lab/torchlingo/blob/main/examples/multilingual_training_example.py) for a full working example that:
 
 1. Creates sample parallel corpora (EN-ES, EN-FR, EN-DE)
 2. Combines them into a multilingual dataset

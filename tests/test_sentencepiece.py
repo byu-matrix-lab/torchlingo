@@ -39,6 +39,19 @@ def _example_path() -> Path:
     return Path(__file__).resolve().parent.parent / "data" / "example.tsv"
 
 
+def _is_available(path: Path) -> bool:
+    """Report whether a file holds real content rather than a Git LFS pointer.
+
+    `data/example.tsv` is tracked in Git LFS and CI checks out without it, so
+    there the file exists but holds ~130 bytes of pointer text. See the fuller
+    explanation in `tests/test_data_integrity.py`.
+    """
+    if not path.exists():
+        return False
+    with path.open("rb") as handle:
+        return not handle.read(23).startswith(b"version https://git-lfs")
+
+
 def _train_dual_models(tmp: Path):
     cfg_src = Config(
         data_dir=tmp,
@@ -298,10 +311,20 @@ class PreprocessSentencepieceTests(unittest.TestCase):
             self.assertLessEqual(proc.get_piece_size(), cfg.vocab_size + 4)
 
 
+@unittest.skipUnless(
+    _is_available(_example_path()),
+    "example corpus not fetched in this checkout (Git LFS)",
+)
 class SentencePieceVocabDecodeTests(unittest.TestCase):
+    """Round-trip decoding, exercised against the real corpus.
+
+    These train a SentencePiece model on `data/example.tsv`, which is a Git LFS
+    artifact. CI checks out without LFS, so the file is a pointer there and the
+    class skips.
+    """
+
     def test_decode_preserves_space_count_on_example_subset(self):
         data_path = _example_path()
-        self.assertTrue(data_path.exists())
 
         with tempfile.TemporaryDirectory() as td:
             tmp = Path(td)

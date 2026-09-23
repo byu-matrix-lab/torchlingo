@@ -60,9 +60,13 @@ class BaseVocab(ABC):
 
     Examples:
         >>> from torchlingo.data_processing import BaseVocab, SimpleVocab
-        >>> v: BaseVocab = SimpleVocab()
+        >>> v: BaseVocab = SimpleVocab(min_freq=1)
         >>> v.build_vocab(["a b", "a c"])  # only available for SimpleVocab
         >>> v.encode("a b")
+        [2, 4, 5, 3]
+
+        The first and last ids are ``<sos>`` and ``<eos>``, added because
+        ``add_special_tokens`` defaults to True.
     """
 
     def __init__(
@@ -707,11 +711,14 @@ class MeCabVocab(BaseVocab):
         min_freq (int): Minimum frequency threshold.
 
     Examples:
+        Requires the optional `japanese` extra (`pip install torchlingo[japanese]`),
+        so this is skipped when fugashi is absent.
+
         >>> from torchlingo.data_processing import MeCabVocab
-        >>> vocab = MeCabVocab(min_freq=1)
-        >>> vocab.build_vocab(["私は学生です", "彼は先生です"])
-        >>> indices = vocab.encode("私は学生です")
-        >>> decoded = vocab.decode(indices)
+        >>> vocab = MeCabVocab(min_freq=1)                    # doctest: +SKIP
+        >>> vocab.build_vocab(["私は学生です", "彼は先生です"])  # doctest: +SKIP
+        >>> indices = vocab.encode("私は学生です")              # doctest: +SKIP
+        >>> decoded = vocab.decode(indices)                   # doctest: +SKIP
 
     Note:
         Requires installation: ``pip install fugashi[unidic-lite]``
@@ -849,9 +856,11 @@ class MeCabVocab(BaseVocab):
             List[int]: Encoded sequence of vocabulary indices.
 
         Examples:
-            >>> vocab = MeCabVocab(min_freq=1)
-            >>> vocab.build_vocab(["私は学生です", "彼は先生です"])
-            >>> indices = vocab.encode("私は学生です", add_special_tokens=False)
+            >>> vocab = MeCabVocab(min_freq=1)                    # doctest: +SKIP
+            >>> vocab.build_vocab(["私は学生です", "彼は先生です"])  # doctest: +SKIP
+            >>> indices = vocab.encode(                           # doctest: +SKIP
+            ...     "私は学生です", add_special_tokens=False
+            ... )
         """
         tokens = self._tokenize(sentence)
         indices = self.tokens_to_indices(tokens)
@@ -881,11 +890,11 @@ class MeCabVocab(BaseVocab):
             DecodedOutput: Decoded text for each sequence.
 
         Examples:
-            >>> vocab = MeCabVocab(min_freq=1)
-            >>> vocab.build_vocab(["私は学生です"])
-            >>> indices = vocab.encode("私は学生です")
-            >>> decoded = vocab.decode(indices)
-            >>> decoded
+            >>> vocab = MeCabVocab(min_freq=1)       # doctest: +SKIP
+            >>> vocab.build_vocab(["私は学生です"])    # doctest: +SKIP
+            >>> indices = vocab.encode("私は学生です")  # doctest: +SKIP
+            >>> decoded = vocab.decode(indices)      # doctest: +SKIP
+            >>> decoded                              # doctest: +SKIP
             '私は学生です'
         """
         normalized = self._coerce_indices(indices)
@@ -955,11 +964,14 @@ class JiebaVocab(BaseVocab):
         min_freq (int): Minimum frequency threshold.
 
     Examples:
+        Requires the optional `chinese` extra (`pip install torchlingo[chinese]`),
+        so this is skipped when jieba is absent.
+
         >>> from torchlingo.data_processing import JiebaVocab
-        >>> vocab = JiebaVocab(min_freq=1)
-        >>> vocab.build_vocab(["我是学生", "他是老师"])
-        >>> indices = vocab.encode("我是学生")
-        >>> decoded = vocab.decode(indices)
+        >>> vocab = JiebaVocab(min_freq=1)            # doctest: +SKIP
+        >>> vocab.build_vocab(["我是学生", "他是老师"])  # doctest: +SKIP
+        >>> indices = vocab.encode("我是学生")          # doctest: +SKIP
+        >>> decoded = vocab.decode(indices)           # doctest: +SKIP
 
     Note:
         Requires installation: ``pip install jieba``
@@ -1107,9 +1119,11 @@ class JiebaVocab(BaseVocab):
             List[int]: Encoded sequence of vocabulary indices.
 
         Examples:
-            >>> vocab = JiebaVocab(min_freq=1)
-            >>> vocab.build_vocab(["我是学生", "他是老师"])
-            >>> indices = vocab.encode("我是学生", add_special_tokens=False)
+            >>> vocab = JiebaVocab(min_freq=1)            # doctest: +SKIP
+            >>> vocab.build_vocab(["我是学生", "他是老师"])  # doctest: +SKIP
+            >>> indices = vocab.encode(                   # doctest: +SKIP
+            ...     "我是学生", add_special_tokens=False
+            ... )
         """
         tokens = self._tokenize(sentence)
         indices = self.tokens_to_indices(tokens)
@@ -1139,11 +1153,11 @@ class JiebaVocab(BaseVocab):
             DecodedOutput: Decoded text for each sequence.
 
         Examples:
-            >>> vocab = JiebaVocab(min_freq=1)
-            >>> vocab.build_vocab(["我是学生"])
-            >>> indices = vocab.encode("我是学生")
-            >>> decoded = vocab.decode(indices)
-            >>> decoded
+            >>> vocab = JiebaVocab(min_freq=1)    # doctest: +SKIP
+            >>> vocab.build_vocab(["我是学生"])     # doctest: +SKIP
+            >>> indices = vocab.encode("我是学生")  # doctest: +SKIP
+            >>> decoded = vocab.decode(indices)   # doctest: +SKIP
+            >>> decoded                           # doctest: +SKIP
             '我是学生'
         """
         normalized = self._coerce_indices(indices)
