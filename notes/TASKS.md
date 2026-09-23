@@ -4,7 +4,7 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #84 and PRs to #59, so every number below 60 names one of each. Say
+Tasks run to #84 and PRs to #60, so every number below 61 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
