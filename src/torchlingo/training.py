@@ -7,9 +7,11 @@ in `torchlingo.inference` to keep responsibilities separated.
 
 from __future__ import annotations
 
+import pickle
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import torch
 from torch import nn, optim
@@ -30,6 +32,11 @@ except ImportError:  # pragma: no cover - optional dependency
 
 
 from .config import Config, get_default_config
+
+if TYPE_CHECKING:
+    # Import only for typing: training_checkpoint imports nothing from here, and
+    # keeping it that way means the dependency stays one-way.
+    from .training_checkpoint import TrainingCheckpointer
 
 
 @dataclass
@@ -193,6 +200,7 @@ def train_model(
     use_amp: bool = False,
     log_every: int = 0,
     accumulation_steps: int = 1,
+    checkpointer: TrainingCheckpointer | None = None,
 ) -> TrainResult:
     """Train a seq2seq model with optional validation and checkpointing.
 
@@ -220,6 +228,12 @@ def train_model(
             on a small GPU. Defaults to 1 (an optimizer step every batch).
             Counters keyed on "steps" (num_steps, step_limit, val_interval,
             save_interval) count optimizer steps, not micro-batches.
+        checkpointer: Optional
+            :class:`~torchlingo.training_checkpoint.TrainingCheckpointer`. When
+            given, training resumes from its last checkpoint if one exists, and
+            saves periodically so a Colab disconnect costs minutes rather than
+            the whole run. Distinct from ``save_dir``, which writes a finished
+            model for inference; this saves resumable training state.
 
     Returns:
         TrainResult containing per-epoch losses and optional checkpoint path.
@@ -323,6 +337,33 @@ def train_model(
     global_step = 0
     stop_training = False
     no_improve_steps = 0
+    start_epoch = 0
+
+    # Resume before the loop starts, so a re-run of the same cell after a
+    # disconnect continues rather than starting over. Failing to resume is not
+    # fatal: a corrupt or incompatible checkpoint should cost this run's history,
+    # not the ability to train at all.
+    if checkpointer is not None and checkpointer.has_checkpoint():
+        try:
+            state = checkpointer.load(model, opt, sched)
+        except (
+            # A truncated file raises UnpicklingError or EOFError; a checkpoint
+            # from a different architecture raises RuntimeError or KeyError.
+            # All of them mean the same thing here: this checkpoint is unusable.
+            RuntimeError,
+            KeyError,
+            EOFError,
+            OSError,
+            AttributeError,
+            pickle.UnpicklingError,
+        ) as exc:
+            print(f"Could not resume from checkpoint ({exc}); starting fresh.")
+        else:
+            start_epoch = state.epoch + 1
+            global_step = state.global_step
+            best_val = state.best_val_loss
+            train_losses = list(state.train_losses)
+            val_losses = list(state.val_losses)
     # Accumulates loss over the current logging window. Unlike the per-epoch
     # totals below, this is reset at each log point (not at each epoch), so the
     # logged "train/loss" curve is continuous across epoch boundaries instead of
@@ -337,7 +378,7 @@ def train_model(
         tb_dir.mkdir(parents=True, exist_ok=True)
         writer = SummaryWriter(log_dir=str(tb_dir))
 
-    for epoch in range(num_epochs):
+    for epoch in range(start_epoch, num_epochs):
         model.train()
         total_train = 0.0
         steps_in_epoch = 0
@@ -399,6 +440,13 @@ def train_model(
                     sched.step()
 
                 global_step += 1
+
+                # The checkpointer decides whether enough time or steps have
+                # passed; this stays a single call so the loop stays readable.
+                if checkpointer is not None:
+                    checkpointer.update(epoch=epoch, global_step=global_step)
+                    checkpointer.maybe_save(model, opt, sched)
+
                 # stop when either explicit step_limit or config.num_steps reached
                 if (
                     getattr(cfg, "step_limit", None) is not None
@@ -570,6 +618,17 @@ def train_model(
         # Step plateau scheduler on epoch-end validation loss
         if is_plateau_scheduler:
             sched.step(avg_val)
+
+        # Always checkpoint at an epoch boundary, regardless of the interval.
+        # An epoch is the natural resume point, and it is cheap relative to one.
+        if checkpointer is not None:
+            checkpointer.update(
+                epoch=epoch,
+                global_step=global_step,
+                train_loss=avg_train,
+                val_loss=avg_val,
+            )
+            checkpointer.save(model, opt, sched, is_best=avg_val < best_val)
 
         if avg_val < best_val:
             best_val = avg_val
