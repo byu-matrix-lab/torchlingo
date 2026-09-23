@@ -88,7 +88,7 @@ def _as_reference_streams(
     streams holding one sentence each, scores against that, and returns a
     number rather than an error. ``compute_chrf`` and ``compute_ter`` did
     exactly that: on a three-sentence corpus chrF read 54.85 where the truth
-    was 68.36, and TER read 50.00 where the truth was 25.00. Nothing noticed,
+    was 67.91, and TER read 50.00 where the truth was 25.00. Nothing noticed,
     because nothing used them.
 
     Hence one helper rather than the same transposition written three times.
