@@ -45,13 +45,45 @@ CORPUS = Path("data/example.tsv")
 OUT_DIR = Path("data/pretrained")
 
 
-def split_by_talk(frame: pd.DataFrame, seed: int, val_talks: int, test_talks: int):
-    """Split along talk boundaries so held-out text is genuinely unseen."""
+def split_by_talk(
+    frame: pd.DataFrame,
+    seed: int,
+    val_talks: int,
+    test_talks: int,
+    pinned_test: set[str] | None = None,
+):
+    """Split along talk boundaries so held-out text is genuinely unseen.
+
+    Args:
+        frame (pd.DataFrame): Corpus carrying a ``talk`` column.
+        seed (int): Shuffle seed for choosing held-out talks.
+        val_talks (int): How many talks to hold out for validation.
+        test_talks (int): How many talks to hold out for test.
+        pinned_test (set[str] | None): Use exactly these talks as the test set
+            instead of drawing them. See ``--hold-out-talks-from``.
+
+    Returns:
+        tuple: Train, validation and test frames.
+    """
     talks = sorted(frame["talk"].unique())
-    random.Random(seed).shuffle(talks)
-    test = set(talks[:test_talks])
-    val = set(talks[test_talks : test_talks + val_talks])
-    train = set(talks[test_talks + val_talks :])
+    if pinned_test is not None:
+        missing = pinned_test - set(talks)
+        if missing:
+            raise SystemExit(
+                f"{len(missing)} pinned test talks are not in this corpus, so the "
+                f"comparison would not be like-for-like: {sorted(missing)[:3]}"
+            )
+        test = set(pinned_test)
+        remaining = [talk for talk in talks if talk not in test]
+        random.Random(seed).shuffle(remaining)
+        val = set(remaining[:val_talks])
+        train = set(remaining[val_talks:])
+    else:
+        random.Random(seed).shuffle(talks)
+        test = set(talks[:test_talks])
+        val = set(talks[test_talks : test_talks + val_talks])
+        train = set(talks[test_talks + val_talks :])
+
     pick = lambda group: frame[frame["talk"].isin(group)]
     return pick(train), pick(val), pick(test)
 
@@ -69,6 +101,17 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--max-words", type=int, default=25)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--hold-out-talks-from",
+        type=Path,
+        default=None,
+        help="A TSV with a `talk` column whose talks become the test set, "
+        "instead of drawing one by seed. Use this to score a new model on the "
+        "same held-out text as an older one: the split is drawn from the talk "
+        "list, so adding talks to the corpus silently changes which are held "
+        "out, and two models measured on different test sets cannot be "
+        "compared.",
+    )
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
@@ -82,7 +125,20 @@ def main() -> None:
     )
     frame = frame[keep]
 
-    train_df, val_df, test_df = split_by_talk(frame, args.seed, 20, 20)
+    pinned = None
+    if args.hold_out_talks_from:
+        previous = pd.read_csv(
+            args.hold_out_talks_from, sep="\t", dtype=str, keep_default_na=False
+        )
+        pinned = set(previous["talk"].unique())
+        print(
+            f"holding out the {len(pinned)} talks from "
+            f"{args.hold_out_talks_from}, so this model is scored on exactly "
+            "the text the previous one was",
+            flush=True,
+        )
+
+    train_df, val_df, test_df = split_by_talk(frame, args.seed, 20, 20, pinned)
     print(
         f"train {train_df['talk'].nunique()} talks / {len(train_df):,} pairs | "
         f"val {len(val_df):,} | test {len(test_df):,}",
