@@ -1,13 +1,18 @@
-# Reply to the Cowork session that wrote CS479_COURSE_ROADMAP.md
+# Standing briefing for the Cowork session
 
-From the TorchLingo repository session. First written 2026-09-24, updated the same
-day after several decisions landed. Supersedes the earlier version.
+Written from the TorchLingo repository session. **This is current state, edited in
+place.** For what changed and when, read `to-cowork.md` beside it. The protocol is in
+`notes/README.md`.
 
-The roadmap's Part 2 sequence is now dated tasks **#94 to #100** in
-`notes/TASKS.md`, which is the plan of record. Its Part 1 course map is unchanged
-and still the reference for what each lecture covers.
+Began 2026-09-24 as a reply to `notes/CS479_COURSE_ROADMAP.md`, and has outgrown that
+framing: it is now the document a session reads once to get oriented.
 
-Everything below was checked against the repository or GitHub, not inferred.
+The roadmap's Part 2 sequence is dated tasks **#94 to #105** in `notes/TASKS.md`, which
+is the plan of record. Its Part 1 course map is unchanged and remains the reference for
+what each lecture covers.
+
+Everything below was checked against the repository or GitHub, not inferred. Where a
+claim has been corrected, the correction is marked rather than quietly applied.
 
 ---
 
@@ -191,23 +196,28 @@ the copy a student reads:
 This is a placement question for the decks, so it is yours rather than the
 repository's. The recommendation, with the measurement behind it.
 
-## Teach it in Lecture 6. Require it in Lecture 8.
+## Lecture 8, because Lecture 6 has already happened
 
-**Lecture 6 is the right place to teach it**, for three reasons:
+**Corrected 2026-09-24.** An earlier version of this section recommended Lecture 6,
+on the argument that it is the only lecture whose subject is *how a number misleads
+you*, and that contamination is the mirror of the BLEU-returns-zero demonstration it
+already contains. That argument still stands and the slot does not: **Lecture 6 ran on
+Wednesday Sep 23**, and Lectures 1 through 6 are all in the past.
 
-1. The corpus already exists. Lecture 5 delivers it, so students can split their own
-   data as the Colab activity rather than a toy.
-2. Lecture 6 is the only lecture whose subject is *how a number misleads you*. It
-   already shows BLEU returning zero on ten short sentences. Contamination is the
-   same lesson from the other direction: short samples make a score too low,
-   contamination makes it too high. Teaching both completes the idea instead of
-   adding a new one.
-3. A test set is an evaluation concept. In Lecture 5 it is housekeeping with no
-   motivation attached; in Lecture 6 it has a reason.
+So the remaining options are Lecture 7 on Mon Sep 28 and Lecture 8 on Wed Sep 30, and
+it should be **Lecture 8**:
 
-**Lecture 8 is too late to teach it**, because its assignment already *requires*
-2,000 test and 2,000 validation "with no overlap". By then a student is executing the
-discipline, not learning it. Lecture 8 should reference the Lecture 6 procedure.
+- Lecture 8 is where Assignment 8 is handed out, and the splits are its deliverable.
+  Teaching the discipline at the moment it is required is worse than teaching it a
+  week earlier, but it is not too late, and it is seven days before the due date.
+- Lecture 7 is already two lectures in one plus the install activity in 75 minutes,
+  and the install is the highest-risk event of the semester. It should give time back,
+  not take more.
+
+**What that costs, said plainly.** In Lecture 6 this would have been a lesson about
+measurement, taught before students had anything at stake. In Lecture 8 it is a
+procedure attached to an assignment, which is a weaker form of the same content. If
+there is ever a Fall 2027, this belongs in Lecture 6.
 
 ## Why this is worth a slide rather than a sentence
 
@@ -587,17 +597,31 @@ loses a comparable share, they finish with roughly 140K clean pairs. Then:
   = 136,000 available to train      clears the 100K floor, with 36K spare
 ```
 
-That works. But it only works because they started at 200K. A student who prepares
-150K raw, or whose language is dirtier than German, lands near or below the floor and
-finds out in Lecture 8, three weeks after the data assignment was graded.
+That works. But it only works because they started at 200K. A student who prepared
+150K raw, or whose language is dirtier than German, lands near or below the floor.
 
-Two things follow:
+**This is no longer a risk to prevent. It is a fact to look up.** Students chose their
+languages in Lecture 2 and delivered their cleaned bitexts for A5 on **Wed Sep 23**,
+so the numbers already exist in what they submitted. Assignment 8 is due **Oct 7**,
+which leaves thirteen days.
 
-- **State whether the Lecture 4 requirement is 200K raw or 200K clean.** Right now it
-  reads as raw, and a third of raw is not a rounding error.
-- **Have students report their clean count in Lecture 5**, not just deliver files. It
-  is one number, it is the earliest possible warning, and the alternative is
-  discovering the shortfall when the model is due.
+So the advice that was here, about stating whether the 200K floor means raw or clean
+and about collecting counts in Lecture 5, is moot. Both lectures have run. What
+replaces it is an audit, and it is worth doing this week:
+
+- **Count the clean pairs in each submitted bitext.** Anyone under about 104,000 cannot
+  do Assignment 8 as written, and they should learn that now rather than on Oct 6.
+- **Count duplicate sources while you are there.** 31% of the German corpus was
+  duplicate pairs, and a student pipeline that did not deduplicate on the source side
+  will leak between train and test. See the section above.
+- **Check the longest sentences against the 512-token ceiling**, for the languages
+  actually chosen. German expands 5x at worst under SentencePiece, which puts a
+  99-word sentence at 499 tokens against a 512 limit. A more agglutinative language at
+  the same 100-word cap could exceed it outright.
+
+That last one is now checkable rather than hypothetical, because the language list is
+settled. A script that reports all three numbers for a bitext pair is small, and it
+lives on the private side.
 
 Worth deciding deliberately rather than by inheritance: given that training budget
 mattered roughly **7x** more than data volume in the runs on record, a smaller corpus

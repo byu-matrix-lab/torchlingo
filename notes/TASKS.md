@@ -4,13 +4,15 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #104 and PRs to #74, so every number below 75 names one of each. Say
+Tasks run to #105 and PRs to #75, so every number below 76 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
 
 Everything here is work that can be finished and then deleted. Standing rules live in
-`CLAUDE.md`; decisions and findings live where they apply.
+`CLAUDE.md`; decisions and findings live where they apply. `notes/README.md` maps the
+rest of this directory, including the `handoff/` protocol used to exchange messages
+with the Cowork session rebuilding the CS 479 decks.
 
 ## Status
 
@@ -35,7 +37,6 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
 | #101 | Give the tutorials stable unique names | Open — after the tutorial PRs land |
 | #103 | Extend the notebook gate to `docs/docs/course/` | Open — when the first one arrives |
-| #104 | Set up a file-based handoff with the Cowork session | Open — needs one answer from Eric |
 | #16 | Release pipeline broken — nothing ships | In review — PR #53 |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
 | #7 | PyTorch deprecation warnings | In review — PR #57 |
@@ -296,36 +297,6 @@ The Cowork session has been asked to write lecture notebooks into
   green check proves and what it appears to prove.
 
 Blocked until the first course notebook exists; there is nothing to gate before that.
-
-### #104 Set up a file-based handoff with the Cowork session
-
-Eric asked whether the two sessions can talk through tooling instead of copy-paste.
-
-**Checked:** `ListAgents` shows 14 peer sessions on this account and **none is identifiably
-the CS 479 decks session**. Closest by name are `cs312-ea`, which is a different course,
-`nmt-papers-pareto-analysis` and `language-reach-c5`. So there is no channel to address
-today.
-
-- **If one of those 14 is it, `SendMessage` works immediately** and needs no setup. That is
-  one answer from Eric.
-- **Otherwise the filesystem already is the channel.** The Cowork session writes notebooks
-  into this working tree, so it reads and writes the same files, and the note it needs is
-  already at a stable path.
-
-Proposed convention, cheap and auditable:
-
-```
-notes/handoff/to-cowork.md      written here, read there
-notes/handoff/from-cowork.md    written there, read here
-notes/handoff/ARCHIVE/          dated copies once acted on
-```
-
-Dated entries with a one-line subject saying what is wanted. Git history then records who
-said what and when, which copy-paste does not.
-
-**The weakness, stated plainly:** neither side is notified, so this is polling rather than
-pub/sub and each session sees the other's message only when it next looks. Fine for a
-handoff measured in hours; not a conversation.
 
 ## Code — decoding performance
 
