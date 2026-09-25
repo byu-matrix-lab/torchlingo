@@ -4,7 +4,7 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #100 and PRs to #65, so every number below 66 names one of each. Say
+Tasks run to #104 and PRs to #74, so every number below 75 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
@@ -25,13 +25,17 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 
 | | Task | State |
 |---|---|---|
-| #94 | One Colab link for the Lecture 7 in-class activity | **Due Mon Sep 28** |
+| #94 | One Colab link for the Lecture 7 in-class activity | **Due Mon Sep 28** — in review, PR #73 |
 | #96 | Restate the step count in epochs | **Due Wed Sep 30** — unit decided |
 | #100 | Put the alignment check in front of students | **Due Wed Sep 30** |
-| #95 | One end-to-end 100K-pair run: wall clock and BLEU | **Due Wed Oct 7** — start now |
+| #95 | One end-to-end 100K-pair run: wall clock and BLEU | **Due Wed Oct 7** — corpus ready, start now |
 | #97 | SentencePiece on versus off, controlled | **Due Mon Oct 12** |
+| #102 | Inference cannot resume a long decode | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
+| #101 | Give the tutorials stable unique names | Open — after the tutorial PRs land |
+| #103 | Extend the notebook gate to `docs/docs/course/` | Open — when the first one arrives |
+| #104 | Set up a file-based handoff with the Cowork session | Open — needs one answer from Eric |
 | #16 | Release pipeline broken — nothing ships | In review — PR #53 |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
 | #7 | PyTorch deprecation warnings | In review — PR #57 |
@@ -249,6 +253,79 @@ about producing an aligned corpus, and Lecture 8 is where a bad one finally surf
 weeks later. The roadmap calls getting this in front of students before Assignment 8 high
 value for low effort, and it agrees with the Fall 2025 debrief, which lists dirty data as
 one of the three reasons student models produced bad output.
+
+### #102 Inference cannot resume, so a long decode cannot survive an interruption
+
+Found 2026-09-24 while mapping the curriculum placements onto repository work. Not on any
+list before that, and it is the **largest undone piece of work for the second half**.
+
+Training has checkpoint-and-resume, verified in Colab. **Inference has nothing.**
+
+Assignment 13 back-translates at least as many sentences as the training set, so 100,000 or
+more. Throughput is *not* the problem, which was the expected answer and the wrong one: the
+decode benchmark measures **27.5 ms per sentence** with batched beams, so 100K extrapolates
+to well under an hour and less on a GPU. Read that as an order of magnitude, since it was
+measured on 8 sentences at `max_len=25` and a real model at `max_len=60` will be several
+times slower.
+
+The problem is that a multi-hour decode dying at hour two starts over from zero. That is
+exactly the failure that made resume a priority for training, one level up.
+
+- **Write output incrementally and skip inputs already done.** Better for students, because
+  it asks no discipline of them.
+- **Or decode in explicit shards**, so a failure costs one shard. Cheaper to build, easier
+  to explain, relies on the student following the workflow.
+
+Needed before Assignment 13's material is due in class on Mon Oct 19. Nothing before then
+blocks on it, so it is not this week's work, but it is not small either.
+
+### #103 Extend the notebook gate to `docs/docs/course/`
+
+`scripts/execute_notebooks.py` globs **only** `docs/docs/tutorials/*.ipynb`, and
+mkdocs-jupyter runs with `execute: false` and `allow_errors: true`. So a notebook anywhere
+else can rot completely and neither the docs build nor a reader surfaces it.
+
+The Cowork session has been asked to write lecture notebooks into
+`docs/docs/course/lecture-NN-<slug>.ipynb`. The moment the first one lands it is ungated.
+
+- Extend the glob, and add `REQUIREMENTS` entries so anything needing LFS data or a GPU
+  **skips** rather than fails.
+- Decide whether a GPU-dependent course notebook can be gated at all, or should be declared
+  exempt explicitly rather than silently.
+- Makes #53 worse until #53 is fixed: a second directory widens the gap between what the
+  green check proves and what it appears to prove.
+
+Blocked until the first course notebook exists; there is nothing to gate before that.
+
+### #104 Set up a file-based handoff with the Cowork session
+
+Eric asked whether the two sessions can talk through tooling instead of copy-paste.
+
+**Checked:** `ListAgents` shows 14 peer sessions on this account and **none is identifiably
+the CS 479 decks session**. Closest by name are `cs312-ea`, which is a different course,
+`nmt-papers-pareto-analysis` and `language-reach-c5`. So there is no channel to address
+today.
+
+- **If one of those 14 is it, `SendMessage` works immediately** and needs no setup. That is
+  one answer from Eric.
+- **Otherwise the filesystem already is the channel.** The Cowork session writes notebooks
+  into this working tree, so it reads and writes the same files, and the note it needs is
+  already at a stable path.
+
+Proposed convention, cheap and auditable:
+
+```
+notes/handoff/to-cowork.md      written here, read there
+notes/handoff/from-cowork.md    written there, read here
+notes/handoff/ARCHIVE/          dated copies once acted on
+```
+
+Dated entries with a one-line subject saying what is wanted. Git history then records who
+said what and when, which copy-paste does not.
+
+**The weakness, stated plainly:** neither side is notified, so this is polling rather than
+pub/sub and each session sees the other's message only when it next looks. Fine for a
+handoff measured in hours; not a conversation.
 
 ## Code — decoding performance
 
