@@ -210,19 +210,80 @@ nine are correct.
 
 ---
 
-# Part C: state of the corpus work
+# Part C: the German corpus, extracted and measured
 
-A 100K-pair benchmark corpus is being built from the supplied German TMX, for the
-wall-clock and BLEU numbers Assignment 8's wording depends on. Two findings worth
-passing on, since they affect what students will hit:
+The full German TMX set is now extracted to line-aligned bitext: **1,370,658 clean
+pairs**, `all.en` and `all.de`, with the line counts verified equal on both sides.
+That is the same two-sentence-aligned-files format Lectures 4 and 5 ask students to
+deliver, so their deliverable and ours are the same shape.
 
-- **The small TMX files are all scripture**, an archaic register with unusually
-  literal, consistent translations. Drawing a corpus from the smallest files first
-  produces a model that scores better than a student's while saying nothing about a
-  student's. The extractor now takes a per-file quota so registers mix.
-- **Untranslated segments are common.** In a sample, 88 pairs in 900 had source
-  identical to target. Any student pipeline that does not drop those is training on
-  copy-the-input examples, which is worth a slide.
+Four findings, all of which are course material rather than repository trivia.
 
-The file named `Sensitive.tmx` turned out to be a false alarm: Eric confirmed it
-was already stripped and only the name persists. It is usable material.
+### 100K is not an ambitious floor, it is about 7% of what is available
+
+Assignment 8 asks for at least 100,000 pairs. The German set yields **1.37 million**
+after cleaning. A student with a comparable TM set is not scraping to reach the
+floor; they are choosing a small sample of what they have.
+
+Worth deciding deliberately rather than by inheritance: is 100K the right number
+now, given that training budget mattered roughly 7x more than data volume in the
+measurements above? More data at the same epoch count bought almost nothing.
+
+### Cleaning drops 30%, and here is the itemised bill
+
+Out of 1,955,324 candidate translation units, 584,666 were rejected, or 29.9%:
+
+| Rejected | Count |
+|---|---|
+| duplicate pair | 425,353 |
+| source identical to target | 142,529 |
+| source length out of range | 7,545 |
+| empty side | 4,089 |
+| length ratio implausible | 3,971 |
+| target length out of range | 1,179 |
+
+The course argues that cleaning matters and currently argues it without numbers.
+This is the number. Roughly three in ten units in a real, professionally maintained
+translation memory are unusable for training as they arrive.
+
+### The duplicates are a contamination trap, not just bloat
+
+425,353 duplicate pairs is 31% of the surviving corpus. A student who splits before
+deduplicating will put **identical pairs in both training and test**, and their BLEU
+will be inflated by an amount nobody can see from the output.
+
+This is worth a slide of its own, because the assignment's own wording invites it:
+it asks for 2,000 test and 2,000 validation sentences "with no overlap", which
+sounds satisfied by a random split. It is not, when a third of the corpus is
+duplicated.
+
+TorchLingo ships `check_contamination` in `torchlingo.diagnostics` for exactly this,
+and it names the offending sentences rather than just reporting a count. That is the
+cheapest possible tie-in between Lecture 5's cleaning and Lecture 8's training.
+
+### Register is concentrated, so how a student samples matters
+
+| Source | Pairs | Share |
+|---|---|---|
+| Legacy - 1 | 491,183 | 36% |
+| Recent | 399,947 | 29% |
+| Legacy - 2 | 254,029 | 19% |
+| FamilyHistory - Recent | 144,595 | 11% |
+| Sensitive | 24,435 | 2% |
+| S&I Manual NEW | 22,690 | 2% |
+| Scripture (BofM, DCPGPETC, FPLC) | 28,058 | 2% |
+| S&I Manual OLD | 5,721 | <1% |
+
+Two consequences. Scripture is only 2% of the whole, so the corpus is dominated by
+general prose, which is good. But the *small* files are all scripture, so anyone who
+samples "the first N" or "the smallest files" gets an archaic register with unusually
+literal translations, and a model that scores better than it should while saying
+nothing about the general case. The extractor keeps per-source outputs under
+`by-source/` so the mix is a deliberate choice rather than an accident.
+
+The file named `Sensitive.tmx` was a false alarm, as Eric confirmed: already
+stripped, only the name persists. Including it was worth correcting, since it
+contributed 24,435 pairs of general-register material.
+
+None of the corpus itself can go in the public repository. These numbers can, and
+they are the part the course needs.
