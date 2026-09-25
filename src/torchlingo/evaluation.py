@@ -294,7 +294,7 @@ def evaluate_model(
     device: torch.device | None = None,
     decode_strategy: str = "greedy",
     beam_size: int = 5,
-    max_decode_length: int = 200,
+    max_decode_length: int | None = None,
     lowercase: bool = False,
     compute_chrf_score: bool = True,
     compute_ter_score: bool = False,
@@ -355,7 +355,16 @@ def evaluate_model(
         ... )
         >>> print(f"BLEU: {scores['bleu']:.2f}")  # doctest: +SKIP
     """
+    from .config import get_default_config
     from .inference import translate_batch
+
+    # Resolve from config rather than carrying a literal. This function used to
+    # default to 200 while every decoder defaulted to 100, so the same model
+    # scored differently through here than through a decoder called directly, on
+    # any target between the two lengths.
+    cfg = config if config is not None else get_default_config()
+    if max_decode_length is None:
+        max_decode_length = cfg.max_decode_length
 
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -54,7 +54,7 @@ def beam_search_decode(
     model: nn.Module,
     src: torch.Tensor,
     beam_size: int = 5,
-    max_len: int = 100,
+    max_len: int | None = None,
     alpha: float = 0.6,
     device: torch.device | None = None,
     config: Config | None = None,
@@ -109,6 +109,10 @@ def beam_search_decode(
         :func:`torchlingo.inference.beam_search_decode`: the readable reference.
     """
     cfg = config if config is not None else get_default_config()
+    # Same source of truth as inference.py. The fast path and the reference path
+    # must agree on generation length or they stop being comparable, which is the
+    # whole basis of tests/test_decoding_equivalence.py.
+    max_len = max_len if max_len is not None else cfg.max_decode_length
     device = device if device is not None else next(model.parameters()).device
 
     model.eval()
@@ -195,7 +199,7 @@ def translate_batch(
     tgt_vocab: BaseVocab,
     decode_strategy: str = "greedy",
     beam_size: int = 5,
-    max_len: int = 100,
+    max_len: int | None = None,
     device: torch.device | None = None,
     config: Config | None = None,
 ) -> list[str]:
@@ -232,6 +236,10 @@ def translate_batch(
     from .inference import greedy_decode
 
     cfg = config if config is not None else get_default_config()
+    # Same source of truth as inference.py. The fast path and the reference path
+    # must agree on generation length or they stop being comparable, which is the
+    # whole basis of tests/test_decoding_equivalence.py.
+    max_len = max_len if max_len is not None else cfg.max_decode_length
     device = device if device is not None else next(model.parameters()).device
 
     encoded = [
