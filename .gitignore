@@ -55,6 +55,32 @@ data/val.tsv
 data/test.tsv
 data/quick_train.tsv
 
+# Source translation memories, and anything derived straight from them.
+#
+# This repository is PUBLIC. The Church TMX data is licensed course material,
+# not ours to publish, and one of the files supplied is named "Sensitive". It
+# also runs to gigabytes per file, well past GitHub's hard 100MB block, so a
+# single `git add -A` would create a commit that cannot be pushed and cannot be
+# undone without rewriting history.
+#
+# Keep the raw data outside git entirely, along with anything derived straight
+# from it. Extraction, cleaning and the raw corpora live in the private sibling
+# repository `torchlingo-private`, which also explains why.
+*.tmx
+*.tmx.gz
+German/
+German.zip
+
+# Derived corpora at the top of `data/`, allowlisted rather than named one by
+# one. The previous rules listed `train.tsv`, `val.tsv`, `test.tsv` and
+# `quick_train.tsv` individually, so a corpus under any other name was staged by
+# `git add -A` without complaint. Ignore the pattern and name the exceptions.
+#
+# `data/pretrained/` and `data/multilingual_example/` are untouched by this,
+# since the pattern is not recursive.
+data/*.tsv
+!data/example.tsv
+
 # Checkpoints and outputs
 checkpoints/
 *.pt
