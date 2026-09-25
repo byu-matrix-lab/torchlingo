@@ -260,6 +260,109 @@ Suggestion 1 above is one line and earns its place. Beyond that, Lecture 7 shoul
 give time back rather than take it. Anything else that wants to be there is better in
 Lecture 8, which is nine days before its own assignment is due.
 
+## What each placement asks the repository to build
+
+Stated as development work, since that is what it is for. "Ships" means it exists and
+is published; several things exist on `main` but are absent from the released wheel
+until the version bump lands.
+
+| Assignment | What TorchLingo must offer | State |
+|---|---|---|
+| A7 toy model | install, train, translate in 20 minutes | exists; install cell is broken |
+| A8 real model | 100K training, checkpoint and resume, SacreBLEU | exists, **unmeasured at scale**; resume verified but unreleased |
+| A9 tokenizer on/off | SentencePiece, plus a controlled comparison | SentencePiece exists; nothing enforces the control |
+| A13 back-translation | reverse-direction config, bulk decoding of 100K+ | decoding exists; **no way to resume a long decode** |
+| A14 multilingual | target-language tagging, per-direction scoring | `preprocessing.multilingual` exists, unexercised at this shape |
+
+Three real gaps, in the order they bite.
+
+**A9's comparison is unenforced.** The assignment *is* the comparison, so the only
+thing that may differ between the two runs is the tokenizer. Nothing in the library
+records what varied, and this project has already published a comparison that gave one
+model 19% more data *and* 80% more training while claiming data was the only
+difference. A student will make that mistake more easily than we did.
+
+**A13 needs decoding to survive an interruption, and it cannot.** The throughput is
+fine: the benchmark measures 27.5 ms per sentence with batched beams, so 100,000
+sentences extrapolates to well under an hour, and less on a GPU. Read that as an
+order of magnitude, since it was measured on eight sentences at `max_len=25`; a real
+model at `max_len=60` will be several times slower.
+
+The problem is different. Training has checkpoint-and-resume, verified in Colab.
+**Inference has nothing.** A multi-hour back-translation run that dies at hour two
+starts over from zero, which is precisely the failure that made resume a priority for
+training. Either decoding should write output incrementally and skip what is already
+done, or the workflow should decode in explicit shards. This is the single largest
+undone piece of work for the second half of the course, and it is not on the list yet.
+
+**A14 is the least exercised path in the library.** `preprocessing.multilingual`
+exists but nothing has run it at "two directions, intermingled, separate test sets per
+direction". Lowest risk by date, highest uncertainty by evidence.
+
+---
+
+# Part A3: where to stop using TorchLingo
+
+Asked directly, so answered directly. **TorchLingo should own Lectures 7 through 9,
+and the course should cut over to Hugging Face at Lecture 12.**
+
+## Why 7 through 9 are the right scope
+
+Those are the assignments where reading the implementation is the point. A student
+builds a model from code they can follow, sees what a tokenizer does to it, and gets
+a number out. A production framework would hide every mechanism the lecture is about,
+and that is the whole reason this library exists.
+
+## Why Lecture 12 is the natural cutover
+
+Because the course already arrives there. Lecture 12 is in-context prompting of a
+Hugging Face model, Lectures 10 and 11 already require a Hugging Face account for
+COMET, and Lecture 16 leaves Python for Azure. So the cutover costs **no new
+tooling**: it is the same account and the same library students already need for three
+other assignments.
+
+The pedagogical argument runs the same way. By Lecture 12 the student has built a
+system from readable code, which was the goal. Lectures 13 and 14 ask different
+questions: does back-translation help, does a multilingual model transfer. Those are
+questions about *techniques*, and answering them needs a model strong enough for an
+effect to be visible above the noise. Fine-tuning NLLB or a Marian checkpoint gives
+that in a few lines and gives real baselines to compare against.
+
+Put bluntly: measuring a back-translation gain on a system that scores BLEU 7 mostly
+measures noise. The technique is the learning objective, not the framework, and a weak
+baseline obscures it.
+
+**What TorchLingo keeps after the cutover.** The diagnostics, which are about models
+in general and not about this library; the concepts pages as assigned reading; and
+the evaluation lesson. None of that is displaced by changing framework.
+
+**What not to cut over to.** OpenNMT-py is in maintenance mode, which started this.
+Fairseq is effectively unmaintained. Eole is the OpenNMT successor and is the obvious
+candidate, but its claims are unverified here and it pins `torch < 2.13` while this
+project runs 2.13, so it needs its own environment; that is on the repository's list
+as a thing to check before anyone relies on it. Hugging Face avoids the question
+entirely by being tooling the course already committed to.
+
+## The decision that should be made in advance, not after
+
+Whether TorchLingo can carry **A8** turns on numbers that do not exist yet, and the
+honest way to handle that is to fix the thresholds before seeing them:
+
+| 100K run result | Reading |
+|---|---|
+| BLEU 15 or better, inside about 3 hours | TorchLingo owns A8 comfortably; no change |
+| BLEU 8 to 15 | workable, but the assignment must state expected quality explicitly, because "reasonably intelligible" will not be true for every student |
+| below BLEU 8, or over about 6 hours | reshape A8: fewer pairs with more epochs, since training budget dominated data volume by roughly 7x, or move A8's *baseline* to Hugging Face and keep TorchLingo for the mechanism |
+
+The existing evidence sits at the bottom of that table: 64,311 pairs and 36 epochs
+reached **BLEU 7.32**. That is the number to beat, and it is why the run matters more
+than anything else on the list.
+
+Note also what the Fall 2025 deck implies. Lecture 10 opens with "For those who
+obtained reasonably intelligible output from your OpenNMT systems", which suggests
+some students missed that bar on the old stack too. Parity, not perfection, is the
+bar the pivot has to clear.
+
 ---
 
 # Part B: corrections to the roadmap
@@ -380,15 +483,75 @@ deliver, so their deliverable and ours are the same shape.
 
 Four findings, all of which are course material rather than repository trivia.
 
-### 100K is not an ambitious floor, it is about 7% of what is available
+### German is an outlier, and the 100K floor means something different for students
 
-Assignment 8 asks for at least 100,000 pairs. The German set yields **1.37 million**
-after cleaning. A student with a comparable TM set is not scraping to reach the
-floor; they are choosing a small sample of what they have.
+**Do not generalize from 1.37 million.** German is a high-resource language with an
+unusually deep TM here, and the benchmark corpus is drawn from it with enormous
+headroom. Students have **up to 200K bitext** for their chosen language, and Lecture 4
+asks them to prepare at least 200K pairs.
 
-Worth deciding deliberately rather than by inheritance: is 100K the right number
-now, given that training budget mattered roughly 7x more than data volume in the
-measurements above? More data at the same epoch count bought almost nothing.
+So the same 100,000-pair floor is two completely different requirements:
+
+| | available | 100K is |
+|---|---|---|
+| this benchmark (German) | 1,370,658 clean | 7% of it, a sample |
+| a student | up to 200K, before cleaning | **half or more of everything they have** |
+
+That matters for how the benchmark should be read. A figure produced from a 100K
+sample of 1.37M would be a fair estimate of *training time* and an **optimistic**
+estimate of quality, because the sample could be drawn from clean, deduplicated,
+register-balanced material with slack to spare. A student drawing 100K out of 200K has
+no slack and cannot be selective.
+
+**So the benchmark is being run at 200K, not at 1.37M.** Eric's call: cap the German
+corpus to what a student actually has, then split 100K train, 2K validation, 2K test
+out of that. The resulting BLEU is then a number students can be held to, rather than
+one produced with advantages they do not have.
+
+Two residual differences remain, and both still favour the benchmark, so read its
+quality figure as a ceiling rather than an expectation:
+
+- The 200K is sampled from **already deduplicated** material. A student's 200K has
+  never been deduplicated, and deduplication removed 31% of this corpus.
+- German is a high-resource language with professionally maintained memories. A
+  lower-resource choice will be noisier at the same size.
+
+One thing that did *not* survive the cap, and is worth knowing: per-source test sets
+for the rare registers collapse. Scripture FPLC supports 40 test sentences out of the
+full corpus but only **8** out of a 200K sample. So per-register measurement is a
+luxury of a large corpus, and a student cannot do it for a register they have little
+of. That is a real limitation of the assignment, not of the tooling.
+
+### The floor collides with the cleaning loss, and nobody has checked the arithmetic
+
+This is the part worth a slide, and it follows from the two numbers above.
+
+Cleaning removed **29.9%** of the German translation units. If a student's raw 200K
+loses a comparable share, they finish with roughly 140K clean pairs. Then:
+
+```
+140,000 clean
+  - 2,000 test
+  - 2,000 validation
+  = 136,000 available to train      clears the 100K floor, with 36K spare
+```
+
+That works. But it only works because they started at 200K. A student who prepares
+150K raw, or whose language is dirtier than German, lands near or below the floor and
+finds out in Lecture 8, three weeks after the data assignment was graded.
+
+Two things follow:
+
+- **State whether the Lecture 4 requirement is 200K raw or 200K clean.** Right now it
+  reads as raw, and a third of raw is not a rounding error.
+- **Have students report their clean count in Lecture 5**, not just deliver files. It
+  is one number, it is the earliest possible warning, and the alternative is
+  discovering the shortfall when the model is due.
+
+Worth deciding deliberately rather than by inheritance: given that training budget
+mattered roughly **7x** more than data volume in the runs on record, a smaller corpus
+trained longer may serve students better than a 100K floor they can barely reach.
+More data at the same epoch count bought almost nothing.
 
 ### Cleaning drops 30%, and here is the itemised bill
 
