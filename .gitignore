@@ -81,6 +81,17 @@ German.zip
 data/*.tsv
 !data/example.tsv
 
+# Litter from executing a notebook in place.
+#
+# The tutorials write `data/` and `checkpoints/` relative to their own location,
+# which is why `scripts/execute_notebooks.py` runs them in a scratch directory.
+# Run nbconvert by hand instead and they land here. `checkpoints/` above already
+# matches at any depth, but `data/train.tsv` contains a slash and so anchors to
+# the repository root, which is how a stray `docs/docs/tutorials/data/train.tsv`
+# got past it.
+docs/docs/tutorials/data/
+docs/docs/tutorials/checkpoints/
+
 # Checkpoints and outputs
 checkpoints/
 *.pt
