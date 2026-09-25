@@ -4,7 +4,7 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #92 and PRs to #64, so every number below 65 names one of each. Say
+Tasks run to #100 and PRs to #65, so every number below 66 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
@@ -17,8 +17,21 @@ Everything here is work that can be finished and then deleted. Standing rules li
 "In review" means the work is written and sitting in an open pull request; the task
 is not finished until that PR merges, and only then does the row disappear.
 
+**Tasks #93 to #100 have external deadlines.** They come from
+`notes/CS479_COURSE_ROADMAP.md`: CS 479 is pivoting to TorchLingo *this* semester, and
+eighteen students hit the library in class on **Mon Sep 28**. Those tasks are dated, they
+are sequenced against a calendar nobody here controls, and they outrank everything else in
+this file until Oct 28. See "The CS 479 pivot" below for the schedule and the reasoning.
+
 | | Task | State |
 |---|---|---|
+| #94 | One Colab link for the Lecture 7 in-class activity | **Due Mon Sep 28** |
+| #96 | Restate the step count in epochs | **Due Wed Sep 30** — unit decided |
+| #100 | Put the alignment check in front of students | **Due Wed Sep 30** |
+| #95 | One end-to-end 100K-pair run: wall clock and BLEU | **Due Wed Oct 7** — start now |
+| #97 | SentencePiece on versus off, controlled | **Due Mon Oct 12** |
+| #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
+| #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
 | #16 | Release pipeline broken — nothing ships | In review — PR #53 |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
 | #7 | PyTorch deprecation warnings | In review — PR #57 |
@@ -58,6 +71,184 @@ is not finished until that PR merges, and only then does the row disappear.
 | #90 | `CLAUDE.md`'s numbering example is stale | Open |
 | #91 | `metric_comparison.json` records no BLEU signature | Open — after PRs #55 and #58 |
 | #92 | Tutorials 3 and 5 bypass the library's own evaluation API | Open |
+
+## The CS 479 pivot
+
+From `notes/CS479_COURSE_ROADMAP.md`, handed over 2026-09-24. OpenNMT-py is in maintenance
+mode and CS 479 is moving to TorchLingo **this** semester. Five assignments train a model
+(Lectures 7, 8, 9, 13, 14), all five are written against OpenNMT today, and they are
+consecutive and cumulative, so it is one crossing rather than five.
+
+This converts the repository from a teaching library with a hypothetical audience into the
+thing eighteen students have to get working, on their own data, on a deadline.
+
+### The calendar
+
+Day-of-week verified against 2026 for every date below.
+
+| Task | Needed in class | Assignment due | Slack |
+|---|---|---|---|
+| #94 Lecture 7 Colab link | **Mon Sep 28** | — | 4 days |
+| #96 step count to epochs | Wed Sep 30 | Wed Oct 7 | 6 days |
+| #100 alignment check | Wed Sep 30 | Wed Oct 7 | 6 days |
+| #95 100K run, wall clock and BLEU | Wed Sep 30 | **Wed Oct 7** | 13 days |
+| #97 SentencePiece on/off | Mon Oct 5 | Mon Oct 12 | 18 days |
+| #98 back-translation | Mon Oct 19 | Mon Oct 26 | 32 days |
+| #99 multilingual tagging | Wed Oct 21 | Wed Oct 28 | 34 days |
+
+**Two dates decide the pivot.** Mon Sep 28 is the first contact and the one that happens in
+a room with eighteen laptops. Wed Oct 7 is Assignment 8, the heaviest in the course, and the
+one that answers whether students can actually train on their own data.
+
+### Order, and the one place to push back
+
+The roadmap's suggested order is straight down the calendar. Two changes:
+
+**Resume is already verified, so nothing gates #95.** The roadmap puts "verify Colab resume"
+first, on the grounds that it had been written twice and run zero times. That is no longer
+true. Coulson tested it in Colab and reported on PR #17, 2026-09-23: *"Was able to mount and
+continue runs using Google Drive!"* That covers #38's item 1 (mounts, lands under `MyDrive`)
+and item 3 (continues rather than restarting), which were the two that mattered. His review
+shows as `DISMISSED` only because a later push dismissed it; the finding stands.
+
+What is left is thin and not worth its own experiment: no transcript, so there is no record
+that it trained *only* the remaining epochs rather than restarting and looking like it
+continued. #95 runs on Colab anyway and will exercise resume as a side effect, so that
+confirmation is folded into #95 rather than run separately.
+
+**#95 is the long pole in wall-clock, not in effort.** A 100K-pair run is hours that cannot
+be compressed, so it starts now and the short work happens while it trains.
+
+So: start #95, then #94 before Monday, then #96 and #100 off the numbers #95 produces.
+
+### What the course does not need
+
+Worth stating, because it bounds the work. The course uses SacreBLEU and COMET directly, so
+TorchLingo's evaluation module must be **correct** but need not become a metrics suite. LLM
+prompting (Lecture 12), quality estimation (Lectures 10, 11) and speech (Lectures 15, 16)
+all run on other tooling. Course decks and assignment text are Eric's, not this
+repository's.
+
+### Two discrepancies in the roadmap itself
+
+- Its "Open questions" section says *"Assignment 8 is due Sep 30."* The schedule table and
+  the hard dates both say **Wed Oct 7**; Sep 30 is when the material is first needed in
+  class. The later date is the one used above.
+- The header says "corrected 2026-09-25" and the repository assessment "Sep 25", but it was
+  handed over on Sep 24. **Resolved: a UTC timestamp**, so the document is not from the
+  future and nothing else in it needs re-dating.
+
+### Students are on paid Colab
+
+Eric's call, 2026-09-24: **students should be running on a paid Colab subscription**, and
+anyone who has not started one needs to now. Two consequences for the work below.
+
+- Benchmark #95 on a paid-tier GPU, not a free T4. The roadmap's "free Colab T4" framing is
+  superseded, and a wall-clock number measured on the wrong tier would be worse than none,
+  because it would be quoted at students.
+- The subscription is a **prerequisite with a deadline**, like the MTEval accounts. It is
+  course communication rather than library work, so it sits with Eric, but it belongs in
+  whatever the Lecture 7 activity tells students to have ready.
+
+Resume still matters on paid Colab. Sessions are longer, not unlimited, and a student who
+loses a 100K run at hour three loses it just as completely.
+
+### #94 One Colab link for the Lecture 7 in-class activity
+
+Twenty minutes, eighteen laptops, no local install, on a paid Colab GPU. Tutorial 2, "Train
+a Tiny Model", already maps onto the OpenNMT Quickstart activity it replaces, and six
+tutorials already carry Open-in-Colab badges, so this is framing rather than capability.
+
+- It must **fail loudly rather than quietly**. The Fall 2025 Lecture 8 debrief shows the
+  install activity went badly for several students on a stack that had been in use for
+  years; a new framework raises that risk.
+- The failure mode to design against is a student who gets no output and cannot tell
+  whether the library is broken or they are.
+
+### #95 One end-to-end 100K-pair run
+
+The largest controlled run on record is **64,311 pairs, 36 epochs, BLEU 7.32**. The
+assignment asks for at least 100,000 pairs and expects "reasonably intelligible output".
+
+Two numbers are wanted, and the assignment text cannot be honest without them: **wall-clock
+time on a paid Colab GPU**, and **achievable BLEU**. A third falls out for free: whether it
+fits a student's compute budget at all.
+
+- Start it now. It is hours of wall clock that cannot be compressed.
+- Run at the epoch count #96 settles on, not at some other number, or it measures the wrong
+  thing.
+- Confirm resume along the way, which closes the one residual from #38 item 3.
+- Route the numbers through a JSON single source of truth, as with every other quantitative
+  claim here.
+
+### #96 Restate the step count in epochs
+
+**Decided 2026-09-24: epochs are the unit.** So this is no longer a choice between units,
+only the question of which epoch count.
+
+**The 20,000 came from a config nobody here has.** Eric has never used OpenNMT; the figure
+is inherited from Steve Richardson's Fall 2025 offering. Converting it needs that config's
+`batch_type` and `batch_size`, and without them the translation swings wildly: at sentence
+batches of 64, 20,000 steps is 12.8 epochs on 100K pairs, while at token batches of 4096 it
+is closer to 33. Those two readings differ by almost 3x, and one of them undertrains badly.
+
+So stop reverse-engineering it. **Set the epoch count from this repository's own
+measurements instead**, which is the only evidence available that is actually about
+TorchLingo:
+
+| data | epochs | BLEU |
+|---|---|---|
+| 53,520 | 20 | 4.96 |
+| 53,520 | 36 | **7.01** |
+| 64,311 | 36 | **7.32** |
+
+Holding data fixed, 20 to 36 epochs bought **+2.05 BLEU**. Adding 20% more data at fixed
+epochs bought **+0.29, CI [−0.16, +0.71]**, crossing zero. Training budget mattered roughly
+**7x** more than data volume.
+
+**Recommendation: 30 to 36 epochs.** It is the only budget measured to produce this
+library's best output, and it happens to coincide with the token-batching reading of 20,000
+steps, which is weak corroboration rather than the basis.
+
+- Note the risk this exposes in the assignment as written: it puts a hard floor on the thing
+  that did not matter (100K pairs) and a soft, unit-ambiguous floor on the thing that did.
+- `step_limit` exists and is honoured in `training.py:450`, so a step figure *can* still be
+  expressed if a student is handed one. It is a cap rather than a target, so it is a fallback
+  and not the recommendation.
+- Whether 36 epochs on 100K fits a session at all is #95's question. 36 epochs is 56,268
+  steps at `batch_size=64`.
+
+### #97 SentencePiece on versus off, controlled
+
+Assignment 9 retrains Assignment 8's system with SentencePiece so the two can be compared.
+The comparison is the assignment, so the only thing that may differ between the two runs is
+the tokenizer. Same concern as #59: nothing currently checks that a comparison controlled
+its variables.
+
+### #98 Back-translation as a documented workflow
+
+Train X-to-English on reversed data, back-translate held-out target sentences, add the
+synthetic pairs, retrain English-to-X, compare. Reversing the direction should be a
+configuration change rather than a second project.
+
+### #99 Multilingual tagging tutorial
+
+Bidirectional English and X from the Assignment 8/9 system, directions intermingled,
+separate test sets per direction, target-language tagging. Replaces the
+"MNMT Guide Using OpenNMT.docx" handout.
+
+### #100 Put the alignment check in front of students
+
+**Not in the roadmap's numbered sequence; added here, so it is the easiest one to cut.**
+
+Tutorial 6 already checks corpus alignment with `diagnose_alignment` and makes the point
+that a misaligned corpus still loads, still batches and still shows a falling loss.
+
+That is the most expensive mistake available in this course. Lectures 4 and 5 are entirely
+about producing an aligned corpus, and Lecture 8 is where a bad one finally surfaces, three
+weeks later. The roadmap calls getting this in front of students before Assignment 8 high
+value for low effort, and it agrees with the Fall 2025 debrief, which lists dirty data as
+one of the three reasons student models produced bad output.
 
 ## Code — decoding performance
 
@@ -621,7 +812,8 @@ Asked Coulson on PR #17 to try it. What needs checking:
    train only the remaining epochs.
 
 Item 3 is the one that matters. If it restarts from epoch 0 the feature does not work,
-whatever the unit tests say.
+whatever the unit tests say. **Item 3 is now #93**, promoted out of here because CS 479
+gave it a deadline; items 1 and 2 stay in this task.
 - Open: whether to gate the #17 merge on this, or merge with the limitation documented,
   which it currently is in both the module docstring and the reference page.
 - **Coulson accepted on 2026-09-16:** "I will return to this to review and test in Colab
