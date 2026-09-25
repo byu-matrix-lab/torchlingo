@@ -46,8 +46,10 @@ So when the notebooks land, extend the gate to cover the new directory, and add 
 `REQUIREMENTS` entry for any notebook needing Git LFS data or a GPU, so it
 **skips** rather than fails. CI checks out without LFS deliberately.
 
-Related, and worth knowing: the gate currently executes 3 of 7 tutorials, and the
-green check looks identical either way. That is Task #53.
+Related, and worth knowing: on `main` today the gate executes **2 of the 6**
+tutorials, because the other four need Git LFS data that CI does not fetch. It rises
+to 3 of 7 once the evaluation tutorial lands, since that one needs no model or
+corpus. Either way the green check looks identical, which is Task #53.
 
 ### 3. Nothing from the course data, and no assignment solutions
 
@@ -81,16 +83,44 @@ author, and worth copying the badge deliberately in the meantime.
 warnings. Re-executing a notebook has twice baked `/Users/...` paths and PyTorch
 deprecation warnings into committed output here.
 
-**Avoid:** tutorial 2's install cell. It reads
+**Copy:** the setup pattern from tutorial 2, which was rewritten for this and is
+now the house convention. Two cells, and both halves matter.
+
+Until today that cell read:
 
 ```python
 # Install TorchLingo (uncomment in Google Colab)
 # %pip install torchlingo
 ```
 
-Commented out. A student runs the cell, nothing installs, the next cell raises
-`ModuleNotFoundError`, and they cannot tell whether the library is broken or they
-are. It is being fixed as Task #94, and it should not be copied into anything new.
+Commented out. A student runs it, it *succeeds* by doing nothing, the next cell
+raises `ModuleNotFoundError`, and they cannot tell whether the library is broken or
+they missed a step. In a twenty-minute activity on eighteen laptops that is the most
+expensive possible failure.
+
+What replaced it, and why each choice is the way it is:
+
+1. **Detect Colab and install unconditionally.** Nothing to uncomment, because a
+   step a student must remember is a step some students will not.
+2. **Use `subprocess`, not the `%pip` magic**, so behaviour does not depend on the
+   magic surviving a conditional.
+3. **Raise on a failed install, do not print.** A failure that only prints leaves
+   the student debugging an `ImportError` ten cells later instead of a pip error
+   where it happened.
+4. **Follow it with a verification cell that imports every module the series uses**
+   and raises with the upgrade command if any is missing.
+
+That fourth point has a non-obvious reason worth knowing, because it was found by
+testing rather than assumed. `torchlingo/__init__.py` imports its submodules
+**eagerly**, so an incomplete install fails wholesale at `import torchlingo`. There
+is no such thing as a partly working install, and a setup cell that probes only the
+modules it happens to need reports nothing a blanket check would not. A first draft
+of that cell had a "warn about later modules" branch which was therefore unreachable
+dead code.
+
+The second half of the argument is pedagogical: a student whose install cannot run
+Tutorial 6 should discover that on Monday, in a room with an instructor in it, and
+not alone in week four. The fix is one command either way.
 
 ### 5. Just drop the files in; git is handled on this side
 
@@ -102,6 +132,27 @@ docs/docs/course/lecture-NN-<short-slug>.ipynb
 
 Two digits, keyed to lecture number, so `lecture-08-train-a-real-model.ipynb` sorts
 next to its lecture and never collides with the library's own `01` to `07` series.
+
+**Decided, and it removes a constraint rather than adding one.** The library's
+tutorials do **not** need to line up numerically with lecture numbers. Once the
+notebooks currently in flight land, they will be given stable unique names, and the
+slides refer to them **by name** rather than by an implied number match.
+
+So: cite notebooks in slides by title and filename, never as "tutorial 7 is the
+Lecture 7 one", because that correspondence is not going to hold and does not need
+to. Tutorial 2 is the Lecture 7 activity today, which is the clearest illustration of
+why the numbers were never going to align.
+
+Two practical consequences for you:
+
+- `lecture-NN-` in `docs/docs/course/` stays correct for your own notebooks. That
+  series *is* keyed to lectures, and nothing you write needs revisiting.
+- Library tutorial filenames may change once the open pull requests land. Four of
+  the nine open pull requests touch tutorial notebooks, and so does one unmerged
+  branch, and a rename is a delete plus an add in git, which conflicts with all of
+  them. So hold off hard-coding library tutorial filenames into slides until that
+  settles, or expect one pass of find-and-replace. A mapping table of lecture to
+  notebook, kept in one place, makes that one edit instead of a sweep.
 
 **Do not run git.** No commits, no branches, no pull requests. Committing, the nav
 entry, wiring the CI gate and the pull request are all handled from the repository
