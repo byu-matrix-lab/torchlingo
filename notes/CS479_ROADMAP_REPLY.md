@@ -71,7 +71,11 @@ BLEU score are publishable even when the corpus that produced them is not.
 
 **Copy:** the Open-in-Colab badge, pointing at
 `https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/<path>`.
-Five of the seven tutorials have one; tutorial 6 does not.
+Five of the six tutorials on `main` have one; **tutorial 6 does not**, and the
+unmerged tutorial 7 did not either until this was written, which is how the
+omission propagates: nothing checks for it, so each new notebook inherits whatever
+the author happened to remember. Worth adding a check rather than trusting the next
+author, and worth copying the badge deliberately in the meantime.
 
 **Copy:** committed outputs with no local filesystem paths and no library
 warnings. Re-executing a notebook has twice baked `/Users/...` paths and PyTorch
@@ -88,7 +92,26 @@ Commented out. A student runs the cell, nothing installs, the next cell raises
 `ModuleNotFoundError`, and they cannot tell whether the library is broken or they
 are. It is being fixed as Task #94, and it should not be copied into anything new.
 
-### 5. Check what already exists before writing a new one
+### 5. How to land them: pull request, and it will be reviewed
+
+`byu-matrix-lab/torchlingo` is public and takes **pull requests against `main`**, with
+review. Three house rules that will otherwise cost time:
+
+- **Never stack.** Every PR targets `main`. Stacked PRs have failed three distinct
+  ways in this repository: auto-closed when a base branch was deleted, approvals
+  dismissed by a rebase that changed no content, and one closed unmerged for reasons
+  never established. If work depends on unmerged work, hold it on a local branch.
+- **Pushing dismisses approvals**, and so does retargeting a PR, with no warning.
+  So get the branch pointed at `main` before asking for review, not after.
+- **Say "PR #N" or "Task #N", never a bare `#N`.** The two numbering schemes overlap
+  almost completely here, and a bare number in a GitHub comment auto-links to the
+  pull request of that number whether or not that was meant.
+
+The private sibling repository is different: `torchlingo-private` takes **direct
+commits**, no PR, no review. So anything that would give away a student assignment
+goes there and lands immediately, while anything public goes through review.
+
+### 6. Check what already exists before writing a new one
 
 Two overlaps to avoid, because two copies of one lesson drift and the notebook is
 the copy a student reads:
