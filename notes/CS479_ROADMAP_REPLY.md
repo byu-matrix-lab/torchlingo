@@ -200,6 +200,66 @@ deduplication with a mode comparison, splitting that groups by source, and a
 verification pass that intersects every pair of splits. Those are extraction tools,
 not student-facing, but the numbers they produce are the slide.
 
+## Other placements, offered in the same spirit
+
+Tutorial 6 organises debugging as five questions, and they already fall in the
+course's own order. That is a useful coincidence: the tutorial can be split across
+lectures instead of taught once.
+
+| Tutorial 6 question | Library call | Where it lands |
+|---|---|---|
+| Is the data what you think it is? | `diagnose_alignment` | Lecture 5, with cleaning |
+| Is it learning *anything*? | `check_loss_moved`, `uniform_loss` | Lecture 7, first training |
+| Is it learning the *wrong* thing? | `check_generalization`, `check_contamination` | Lecture 6, with splits |
+| Is the measurement lying? | the evaluation thread | Lecture 6 |
+| Is it the environment? | `check_eval_mode` | Lecture 8, first real inference |
+
+Six specific suggestions, cheapest first.
+
+**1. Give the first loss number a reference point, in Lecture 7.** That lecture
+already covers cost functions, and the install activity produces a loss a student
+cannot interpret. `uniform_loss(vocab_size)` is `ln(V)`, the loss of a model that has
+learned nothing, so the first number they ever see has something to be compared
+against. One line, and it prevents the commonest week-one confusion.
+
+**2. Warn about the loss floor in Lecture 8's debrief.** `label_smoothing=0.1` is the
+default, and it puts a nonzero floor under the loss, so a converged model plateaus
+well above zero. Students read that plateau as failure. The Lecture 8 deck already
+debriefs what went wrong for people; this belongs in it.
+
+**3. Run the new evaluation tutorial as Lecture 6's Colab activity.** It needs no
+model, no corpus and no GPU, so it works in a room where nothing is installed yet.
+Students watch BLEU prefer the system that reversed the meaning of every sentence,
+which is the sharpest possible version of Lecture 6's existing "raw BLEU is not
+comparable" thread.
+
+**4. Teach the signature in Lecture 6, where SacreBLEU is introduced.** The lecture
+already argues that raw BLEU is not comparable. The signature is the concrete
+mechanism for fixing that, and the library now prints one next to every BLEU.
+
+**5. Move the beam-size discussion after Assignment 8, not before.** Tutorial 3
+sweeps beam size and every row comes out identical, because a toy model is decisive
+and has nothing to be uncertain about. The sweep only means something on a real
+model, which students first have *after* Assignment 8. `concepts/decoding.md` carries
+the measured version. Lecture 9 onwards is the natural home.
+
+**6. Save the on-target language check for Lectures 13 and 14.** A multilingual or
+low-resource system can emit fluent text in the wrong language entirely, and BLEU
+hides it, because a copied source still scores against a related-language reference.
+That check is not built yet; it is on the repository's list as a borrow from mtsurvey.
+
+## And one place not to add anything: Lecture 7
+
+Lecture 7 is already two lectures in one, paper-review assignment plus neural network
+foundations, and it carries the install activity, in 75 minutes. The install is the
+single highest-risk event in the semester: it is the first infrastructure hurdle, it
+went badly for several students last year on a stack that had been in use for years,
+and a new framework raises that risk rather than lowering it.
+
+Suggestion 1 above is one line and earns its place. Beyond that, Lecture 7 should
+give time back rather than take it. Anything else that wants to be there is better in
+Lecture 8, which is nine days before its own assignment is due.
+
 ---
 
 # Part B: corrections to the roadmap
