@@ -4,7 +4,7 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #105 and PRs to #75, so every number below 76 names one of each. Say
+Tasks run to #108 and PRs to #77, so every number below 78 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
@@ -37,6 +37,10 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
 | #101 | Give the tutorials stable unique names | Open — after the tutorial PRs land |
 | #103 | Extend the notebook gate to `docs/docs/course/` | Open — when the first one arrives |
+| #105 | Unify every decode length on one number: 100 | Done in code; PR pending |
+| #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
+| #107 | The optimizations exist and nothing uses them | Open — 74% of an epoch is wasted padding |
+| #108 | Nothing releases the device allocator's cache | Open — the crash's proximate cause |
 | #16 | Release pipeline broken — nothing ships | In review — PR #53 |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
 | #7 | PyTorch deprecation warnings | In review — PR #57 |
@@ -297,6 +301,89 @@ The Cowork session has been asked to write lecture notebooks into
   green check proves and what it appears to prove.
 
 Blocked until the first course notebook exists; there is nothing to gate before that.
+
+### The machine crash of 2026-09-25, and what it taught
+
+A 36-epoch benchmark run left unattended consumed all application memory and took the
+machine down. It died in epoch 1 around step 800 of 1563, so within minutes rather than
+over hours. Written down because three separate findings came out of it and two of them
+are about this repository rather than about the accident.
+
+**What actually caused it.** Not the library. The benchmark script used a plain
+`DataLoader(shuffle=True)`, so batches were random rather than length-sorted, and padded
+toward the long tail. Attention memory is quadratic in the longest member of a batch:
+
+| longest in batch | per batch, forward only |
+|---|---|
+| 100 tokens | 0.18 GB |
+| 512 tokens | 4.83 GB |
+| 568 tokens | 5.95 GB |
+
+Roughly double that with activations stored for backward. On Metal that is unified
+memory, so it is application RAM, and nothing ever releases it. See #107 and #108.
+
+**The library's defaults are defensible and were not changed to cover this.**
+`NMTDataset` truncates at `max_seq_length`, which is 512, and 512 is genuinely the
+positional encoding's capacity. Lowering a library default to compensate for a script
+that failed to pass `max_length` would have hidden the lesson.
+
+**Nothing was lost.** Both repositories came back clean: no stale locks, no partial
+commits, no corrupt index. The session task list and this file both survived.
+
+### #105 Unify every decode length on one number
+
+Done in code, PR pending. There were two numbers for one thing:
+`Config.max_decode_length` said 200 while `greedy_decode`, `beam_search_decode`,
+`translate_batch` and both `inference_fast` entry points each carried a literal 100, and
+`evaluate_model` carried its own 200. So one model scored differently through
+`evaluate_model` than through a decoder called directly, on any target between the two.
+On the German corpus that is **160,166 targets, 11.7%**.
+
+All seven now take `max_len=None` and resolve from `cfg.max_decode_length`, which is the
+documented Config pattern and removes the duplicates rather than syncing them. Lowered
+200 to 100 rather than raised, so the number matches what the decoders already did and
+only `evaluate_model`'s behaviour changes.
+
+`MAX_SEQ_LENGTH` stays 512, now documented as a different kind of thing: capacity, not
+budget. Conflating the two is what made this hard to see.
+
+### #107 The optimizations already exist and nothing uses them
+
+Measured on the 100K training split, real tokenizer, batch 64:
+
+```
+real tokens                2.90 M per epoch
+random batching, padded   10.97 M    3.79x waste
+length-bucketed, padded    2.90 M    1.00x waste
+saving                     8.06 M tokens per epoch, 74%
+```
+
+`BucketBatchSampler` and `create_dataloaders(use_bucketing=...)` already exist, as does
+`train_model(use_amp=...)` with bfloat16 where supported, and `num_workers` and
+`pin_memory`. **All of them default off, and the benchmark used none.** That is a failure
+against the standing rule to check the inventory before hand-rolling, and it is most of
+why memory ran away.
+
+- Rewrite the benchmark to use bucketing, and AMP on a GPU.
+- Decide whether `use_bucketing` should default True. It changes batch composition and
+  therefore results, which argues against flipping it silently; but 74% matters
+  enormously to a student on a Colab budget, so the course guidance should say to enable
+  it even if the default stays.
+- Not a gap: decoding is already optimized, 27.5 ms against 109.5 ms for the reference
+  path, because `inference_fast` batches the beams within a sentence.
+
+### #108 Nothing releases the device allocator's cache
+
+The one genuine absence rather than an unused flag: there is no `empty_cache()` call
+anywhere in `src/torchlingo/`. On CUDA that is usually harmless. On Metal it is not,
+because the memory is the machine's, and a spike is held against everything else running.
+
+- Smallest useful version: release at each epoch boundary, on whichever backend is
+  active, with a comment saying why. Epoch granularity is far too coarse to cost
+  throughput.
+- Bigger and not obviously right: cap a batch by total tokens rather than sentence count,
+  which bounds the worst case instead of releasing after it. Real MT toolkits do this, but
+  it changes what `batch_size` means and a teaching library should not do that lightly.
 
 ## Code — decoding performance
 
