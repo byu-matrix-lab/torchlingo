@@ -92,24 +92,35 @@ Commented out. A student runs the cell, nothing installs, the next cell raises
 `ModuleNotFoundError`, and they cannot tell whether the library is broken or they
 are. It is being fixed as Task #94, and it should not be copied into anything new.
 
-### 5. How to land them: pull request, and it will be reviewed
+### 5. Just drop the files in; git is handled on this side
 
-`byu-matrix-lab/torchlingo` is public and takes **pull requests against `main`**, with
-review. Three house rules that will otherwise cost time:
+Write notebooks into the working tree at:
 
-- **Never stack.** Every PR targets `main`. Stacked PRs have failed three distinct
-  ways in this repository: auto-closed when a base branch was deleted, approvals
-  dismissed by a rebase that changed no content, and one closed unmerged for reasons
-  never established. If work depends on unmerged work, hold it on a local branch.
-- **Pushing dismisses approvals**, and so does retargeting a PR, with no warning.
-  So get the branch pointed at `main` before asking for review, not after.
-- **Say "PR #N" or "Task #N", never a bare `#N`.** The two numbering schemes overlap
-  almost completely here, and a bare number in a GitHub comment auto-links to the
-  pull request of that number whether or not that was meant.
+```
+docs/docs/course/lecture-NN-<short-slug>.ipynb
+```
 
-The private sibling repository is different: `torchlingo-private` takes **direct
-commits**, no PR, no review. So anything that would give away a student assignment
-goes there and lands immediately, while anything public goes through review.
+Two digits, keyed to lecture number, so `lecture-08-train-a-real-model.ipynb` sorts
+next to its lecture and never collides with the library's own `01` to `07` series.
+
+**Do not run git.** No commits, no branches, no pull requests. Committing, the nav
+entry, wiring the CI gate and the pull request are all handled from the repository
+session. Files in the tree are enough.
+
+Two things that would help, though:
+
+- **Say what you added and which lecture it serves.** It goes into the commit message
+  and the pull request description, and "what was wrong before" is the part reviewers
+  here actually read.
+- **Flag anything that should not be public.** If a notebook contains course data,
+  student data, or a worked answer to a graded assignment, say so and it gets routed
+  to `torchlingo-private` instead, which takes direct commits. The public tree is the
+  wrong place for it, and catching it before the commit is much cheaper than after:
+  removing a file from a public repository's history means rewriting that history.
+
+It will be checked on this side either way. But a file arriving with "this one has
+the cleaning solution in it" saves a round trip and removes the chance of it slipping
+through.
 
 ### 6. Check what already exists before writing a new one
 
@@ -121,6 +132,73 @@ the copy a student reads:
 - **A new tutorial 7 on evaluation covers Lecture 6 ground.** Written and verified,
   waiting on PR #58 to merge. It teaches BLEU versus chrF versus TER as a decision
   between two systems, no model or corpus required.
+
+---
+
+# Part A2: where train/dev/test discipline belongs in the schedule
+
+This is a placement question for the decks, so it is yours rather than the
+repository's. The recommendation, with the measurement behind it.
+
+## Teach it in Lecture 6. Require it in Lecture 8.
+
+**Lecture 6 is the right place to teach it**, for three reasons:
+
+1. The corpus already exists. Lecture 5 delivers it, so students can split their own
+   data as the Colab activity rather than a toy.
+2. Lecture 6 is the only lecture whose subject is *how a number misleads you*. It
+   already shows BLEU returning zero on ten short sentences. Contamination is the
+   same lesson from the other direction: short samples make a score too low,
+   contamination makes it too high. Teaching both completes the idea instead of
+   adding a new one.
+3. A test set is an evaluation concept. In Lecture 5 it is housekeeping with no
+   motivation attached; in Lecture 6 it has a reason.
+
+**Lecture 8 is too late to teach it**, because its assignment already *requires*
+2,000 test and 2,000 validation "with no overlap". By then a student is executing the
+discipline, not learning it. Lecture 8 should reference the Lecture 6 procedure.
+
+## Why this is worth a slide rather than a sentence
+
+Assignment 8's phrase "with no overlap" sounds satisfied by `random.shuffle`. It is
+not, and here is the size of it in the German data:
+
+- **425,353 duplicate pairs** were removed during extraction, 31% of what survived.
+- **63,122 rows remain that share a source sentence with another row but carry a
+  different target.** Pair-level deduplication keeps every one of those, because they
+  *are* distinct pairs. Measured: all 63,122 of them differ on the target side.
+
+Shuffle rows and those sources land in train and in test. The same English sentence
+appears on both sides with different references. BLEU rises, and nothing in the
+output reveals it.
+
+The fix is three steps and each is checkable: deduplicate on the **source** side,
+split by **source group** rather than by row, then **verify** that no source appears
+in two splits. The third step is the one students skip and the only one that catches
+a mistake in the first two.
+
+## The cost of getting it wrong compounds through four assignments
+
+This is the argument for front-loading rather than fixing later. Assignment 9
+retrains Assignment 8's system, 13 reuses it, and 14 is built from "the system you
+created for Assignment 8/9". A contaminated split in Assignment 8 propagates into
+three more assignments, and every "improvement" a student measures afterwards is
+measured against an inflated baseline.
+
+So a student who splits carelessly in week one does not get one wrong number. They
+get four, and the later ones look like progress.
+
+## What the library already gives you
+
+`torchlingo.diagnostics.check_contamination` exists for exactly this and **names the
+offending sentences** rather than reporting a count, which is what makes it teachable
+rather than merely a gate. It is already in tutorial 6, as "Question 3: is it
+learning the wrong thing?"
+
+Tooling on the private side now does the whole pipeline and reports it: source-level
+deduplication with a mode comparison, splitting that groups by source, and a
+verification pass that intersects every pair of splits. Those are extraction tools,
+not student-facing, but the numbers they produce are the slide.
 
 ---
 
