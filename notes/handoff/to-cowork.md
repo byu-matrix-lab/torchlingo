@@ -8,6 +8,46 @@ file every time.
 
 ---
 
+## 2026-09-24, later
+
+**Lecture 9 has a concrete demonstration waiting for it, and Assignment 9 has a bug.**
+
+Eric settled the length limit: **drop any pair whose either side exceeds 100 tokens**,
+where "token" means whatever the model consumes. One number replaces four, and the
+512-token positional ceiling stops being something anyone has to think about. Measured
+cost on the German corpus: 17,015 pairs, **1.24%**.
+
+**Why this belongs in Lecture 9.** The rule's meaning changes when the tokenizer
+changes, and that *is* Lecture 9's subject. Before BPE, a student's tokens are words.
+After it they are subwords, the same sentence gets roughly 1.8x longer, and the same
+rule now excludes a different set of sentences. Students can count the difference on
+their own data, which is a better demonstration of what subword segmentation does than
+any diagram.
+
+Suggested framing: state the cap in Lecture 8 as "100 tokens, and for now your tokens
+are words", then open Lecture 9 by pointing out that their tokens just changed, and
+have them count how many pairs moved.
+
+**The bug, which matters more.** Assignment 9 asks students to hold everything fixed
+except the tokenizer. If the cap is expressed in tokens, **changing the tokenizer
+changes the training set**, so the comparison has two variables and the write-up will
+credit all of it to the tokenizer.
+
+The fix is one sentence in the assignment: *choose the sentence set once, using the
+subword tokenizer, and use that same set for both runs.* Then only the tokenizer
+differs.
+
+This is not hypothetical. This repository published exactly that mistake once, a
+comparison that gave one model 19% more data **and** 80% more training while claiming
+data was the only difference. A student will make it more easily than we did.
+
+**One ordering wrinkle worth a decision.** Assignment 8 says "BPE for inflected
+languages", but BPE is not taught until Lecture 9 on Oct 5, two days before A8 is due
+on Oct 7. Either drop the mention from A8, or say explicitly that it is optional and
+covered next week.
+
+---
+
 ## 2026-09-24
 
 **First handoff. The briefing is complete and needs seven things from you.**
