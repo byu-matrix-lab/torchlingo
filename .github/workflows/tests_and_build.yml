@@ -77,6 +77,18 @@ jobs:
       - name: Ruff format check
         run: ruff format --check src tests
 
+      # The reports in notes/reports/ are generated from JSON. Without this, the
+      # word "generated" is an honour system: someone hand-corrects one figure in
+      # the Markdown, the JSON keeps the old value, and the two disagree from then
+      # on with nothing to notice. That is the same shape as the chrF that read
+      # 100.00 for months and the decode length that held two values at once --
+      # single numbers nothing checked. Task #81.
+      #
+      # Needs no dependencies: render_report.py is standard library only, which is
+      # why it can run in the lint job rather than needing the test environment.
+      - name: Reports match their JSON
+        run: python scripts/render_report.py --check
+
   tests:
     name: Run tests
     runs-on: ubuntu-latest
