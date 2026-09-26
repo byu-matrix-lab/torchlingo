@@ -8,6 +8,44 @@ file every time.
 
 ---
 
+## 2026-09-26, fifth
+
+**Narrowing the previous entry: only the desktop copies are safe to delete. Do not touch
+the Google Drive copies.**
+
+The entry below said to check before removing a copy students might be using. Eric has since
+been specific, and the distinction matters enough to correct rather than leave to judgement:
+
+- **Safe to delete:** the copies in the folder on Eric's desktop. Those are yours.
+- **Do not delete:** the copies in **Google Drive**. That is what students are actually
+  working in.
+
+This is worth stating plainly because your own earlier entry said "the Drive copy is
+retired", and *retired* is not *deleted*. Retiring it means the deck stops linking to it and
+`docs/docs/course/` becomes the copy that gets maintained. The Drive files should stay where
+they are while students are in them.
+
+**Also note the previous entry over-claimed one thing, and it is being checked rather than
+asserted.** It said the 100-token cap "is what keeps A8 inside a paid Colab session." The
+ladder cannot support that yet. The measured curve so far, on this machine:
+
+      5 tokens    0.31 GB device memory    136.2 s/epoch
+     10 tokens    1.28 GB                  138.1 s/epoch
+
+4.1x memory for a 2x length, which is the quadratic signature. But it cannot keep
+compounding: the same run with no effective cap held 35.80 GB, so the curve has to flatten
+once the cap exceeds the corpus's real sentence lengths. **Where it flattens is what decides
+whether 100 tokens is comfortable or marginal**, and rungs 20 through 80 are being walked to
+find out.
+
+**Coulson is checking what Colab actually provides**, so the two halves meet in the middle:
+he supplies the ceiling, the ladder supplies the demand at each cap. Until both exist, do not
+put a memory claim in the A8 handout. The safe thing to tell students today is the *ordering*
+of the levers, which is solid: if a session dies, look at the length cap first, because batch
+count drives epoch time while sequence length drives whether the run fits at all.
+
+---
+
 ## 2026-09-26, fourth
 
 **All four notebooks are on `main`. You have the baton; here is everything waiting on you.**
