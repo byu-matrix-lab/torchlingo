@@ -68,6 +68,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #115 | The four course notebooks, and the deck's link switch | **Done** — PR #85 merged; badges resolve |
 | #116 | `create_dataloaders` discards the `Config` it is handed | **Done** — PR #84 merged; ladder unblocked |
 | #117 | A PR based on `main` self-closed during an unrelated merge | Open — recovered; contradicts `CLAUDE.md` |
+| #118 | What does a paid Colab session actually provide? | **Coulson** — blocks any A8 memory claim |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
 | #7 | PyTorch deprecation warnings | In review — PR #57 |
@@ -512,6 +513,42 @@ The original cautions still hold for every one of them, because the release prov
 worth respecting: a green tick is green only against the base the checks last saw, and
 each of these predates today's `main`. Refresh and let CI re-run rather than trusting an
 old green. That is how all four of the merged ones were handled.
+
+### #118 What does a paid Colab session actually provide?
+
+**Eric's call 2026-09-26: Coulson measures it.** This is the other half of the A8 memory
+question. The ladder gives demand at each length cap; he gives the ceiling. Neither half is
+useful alone.
+
+**What to ask for**, because "how much RAM does Colab have" is not the useful question:
+
+- Which accelerator a paid session actually assigns. T4, L4 and A100 differ enormously —
+  roughly 16, 24 and 40 GB — and the answer changes the recommendation.
+- Device memory available to the *process*, not the instance total.
+- Whether it varies between students or within a session. An assignment cannot depend on a
+  lucky draw.
+
+**What to compare it against.** Measured on the 64 GiB M-series machine, batch 64,
+`d_model` 256, 3 layers, bucketing on:
+
+| cap | device held | seconds/epoch |
+|---|---|---|
+| 5 tokens | 0.31 GiB | 136.2 |
+| 10 tokens | 1.28 GiB | 138.1 |
+| uncapped (512) | 35.80 GiB | 192.0 |
+
+4.1x per doubling early, flattening somewhere below the uncapped figure. Rungs 20, 40 and 80
+pin where, and that is what decides whether Eric's 100-token cap is comfortable or marginal.
+
+**Caveat to carry into the comparison:** MPS unified memory is not CUDA device memory, so
+these transfer as a *scaling shape* rather than absolute numbers. Confirming the shape on the
+accelerator students actually get is part of why this is worth doing rather than assuming.
+
+**This blocks any memory claim in the A8 handout.** A line was already sent to Cowork saying
+the 100-token cap "keeps A8 inside a paid Colab session", and retracted in
+`notes/handoff/to-cowork.md` as unsupported. What *is* safe to tell students is the ordering
+of the levers: if a session dies, look at the length cap first, because batch count drives
+epoch time while sequence length drives whether the run fits at all.
 
 ### #117 A PR based on `main` closed itself during an unrelated merge
 
