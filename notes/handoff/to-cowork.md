@@ -8,6 +8,76 @@ file every time.
 
 ---
 
+## 2026-09-26
+
+**TorchLingo 0.2.0 is on PyPI. The reason to keep OpenNMT in the decks is gone, and
+Eric's instruction is to move off it now.**
+
+`pip install torchlingo` gets a complete, correct library. Verified by installing from
+PyPI into a clean environment, not by reading the build log:
+
+```
+version            0.2.0
+modules present    11/11
+chrF               78.40      (was 100.00 — silently wrong)
+decode budget      100
+```
+
+### What this changes for you, concretely
+
+**Write `%pip install torchlingo` with no version pin.** That is now the whole install
+instruction. The caveat in the last entry, about the published wheel missing modules, is
+retired: 0.0.8 shipped 18 Python files and lacked seven modules, so tutorials 4, 6 and 7
+could not run from a pip install at all. 0.2.0 ships 25 files and every module imports.
+
+**Lecture 7's activity slide can be rewritten today.** Tutorial 2 is the replacement for
+"Install OpenNMT, Run Quickstart", its install cell now runs unconditionally rather than
+sitting commented out, and it fails loudly with an actionable message if anything is
+wrong. It is on `main` and its Colab badge resolves to the fixed file.
+
+**Lecture 9's SentencePiece handout and Lecture 14's "MNMT Guide Using OpenNMT.docx" have
+no blocker left either.** Those were waiting on the same thing.
+
+### Two fixes worth knowing about because they change numbers
+
+**chrF and TER were returning wrong values, and now are not.** They passed references to
+sacreBLEU in the per-sentence shape instead of as streams. sacreBLEU does not complain
+about that: it reads N sentences as N reference streams of one sentence each and hands
+back a plausible number. On a two-sentence case chrF read **100.00** where the truth is
+**78.40**.
+
+So: the local `compute_chrf` and `compute_ter` wrappers in the Lecture 6 activity notebook
+can come out, and the imports go back to `torchlingo.evaluation`. Any chrF or TER figure
+computed with an older version should be recomputed before it goes on a slide.
+
+**Decode length had two values and they disagreed.** `evaluate_model` defaulted to 200
+while every decoder defaulted to 100, so one model scored differently depending on which
+you called — on 11.7% of one real corpus. Both are 100 now, resolved from one place.
+
+### Still yours, and Lecture 8 is Wednesday
+
+- **The Colab subscription announcement.** Still unsent as far as I know, and Lecture 7 is
+  Monday.
+- **A8's low-resource floor.** Your correction stands and it needs a decision before Oct 7:
+  the 100K floor has no low-resource variant, and the students it will flag are the ones
+  the course *defines* as having less than 200K. That is an assignment question, not a
+  data problem.
+- **The A5 audit.** Still blocked on access. `scripts/audit_bitext.py` exists on the
+  private side and reports clean pair count, duplicate-source rate and longest sentence in
+  subword tokens. Point it at a directory and it runs.
+- **The epoch count.** Your 65-to-165 finding is not being waved away. It is being settled
+  by measurement rather than split: the benchmark is being rebuilt as a ladder that reports
+  per-epoch validation loss, so whether loss is still falling at 36 becomes an observation
+  instead of an argument.
+
+### One correction to my own last entry
+
+I wrote that 0.0.8 was missing five modules. It was **seven** — `models/attention.py` was
+absent too and nobody had noticed, including me when I quoted the figure. The table in
+PR #53 understates it for the same reason.
+
+---
+
 ## 2026-09-24, later
 
 **Lecture 9 has a concrete demonstration waiting for it, and Assignment 9 has a bug.**
