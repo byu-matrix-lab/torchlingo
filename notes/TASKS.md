@@ -50,7 +50,6 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #95 | The data learning curve, whose 100K point is A8's number | **RUNNING** — Cowork needs the 100K figures by Oct 5 |
 | #49 | The shipped checkpoint predates the enlarged corpus | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | Open — point the course at it; decide on diagnostics |
-| #125 | Compress the essay-length task bodies in `TASKS.md` | Open — ~300 lines, needs judgement not reflow |
 | #121 | A Lecture 9 subword notebook, and it is ours | **Answer to Cowork by Oct 3** |
 | #122 | Make Assignment 9's control hard to get wrong in code | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | Open — highest uncertainty, due Oct 28 |
@@ -123,111 +122,59 @@ What stays below are the dated tasks themselves.
 
 ### #95 The data learning curve, whose 100K point is Assignment 8's number
 
-**Merged with #119 on 2026-09-26, Eric's call.** They were one experiment tracked twice: the
-100K run *is* the curve's anchor point. #119's design requirements are folded in below, and
-the deadline-bearing half stays at this number because Cowork's handoff references it.
+**RUNNING since 2026-09-26**: 36 epochs, 100-token cap, bucketing on, watchdog at 24 GiB,
+MPS. Absorbed #119 — the 100K run *is* the curve's anchor point, so they were one experiment
+tracked twice.
 
-**Two deliverables from one sweep.** The 100K point answers Assignment 8 — expected BLEU and
-wall clock, needed by **Oct 5** — and the remaining points answer whether more data is worth
-having at all.
+**Two deliverables from one sweep.** The 100K point gives Assignment 8 its expected BLEU and
+wall clock, **needed by Oct 5** or the handout ships saying quality is unknown. The remaining
+points answer whether more data is worth having. Best controlled run on record to beat:
+64,311 pairs, 36 epochs, BLEU 7.32.
 
-The largest controlled run on record is **64,311 pairs, 36 epochs, BLEU 7.32**. The
-assignment asks for at least 100,000 pairs and expects "reasonably intelligible output".
+**Done when** the report in `notes/reports/` carries BLEU, seconds per epoch and total wall
+clock at each corpus size, on a named device, generated from JSON.
 
-Two numbers are wanted, and the assignment text cannot be honest without them: **wall-clock
-time on a paid Colab GPU**, and **achievable BLEU**. A third falls out for free: whether it
-fits a student's compute budget at all.
+#### Acceptance criterion, inherited from the closed #110
 
-- Start it now. It is hours of wall clock that cannot be compressed.
-- Run at the epoch count #96 settles on, not at some other number, or it measures the wrong
-  thing.
-- Route the numbers through a JSON single source of truth, as with every other quantitative
-  claim here.
+**Report whether validation loss is still falling at epoch 36, and say so in the handout
+either way.** The per-epoch curve is in the JSON for this. Converted to tokens, the OpenNMT
+students trained **3.4x longer** than 36 epochs gives — 328M target tokens against 97M — so
+the question is whether the model is still improving when the assignment tells eighteen
+students to stop.
 
-**Launched 2026-09-26**: 36 epochs, 100-token cap, bucketing on, watchdog at 24 GiB, MPS.
-`benchmark_a8.py` had to be fixed first — it was the script that took the machine down and
-still had all three causes present, no length cap, no bucketing, no guard.
+#### The confound, which must be designed out rather than noticed afterwards
 
-#### Acceptance criterion inherited from #110, which is now closed
+More data means more batches per epoch, so equal-epochs training hands the larger points more
+gradient steps *as well as* more data, and the curve then credits compute to data. **This
+repository has already published exactly that mistake** — see
+[`reports/training-budget.md`](reports/training-budget.md), which also sets the scale: 20%
+more data bought +0.29 ± 0.22 BLEU, an interval crossing zero.
 
-**Report whether validation loss is still falling at epoch 36, and say so explicitly in the
-handout either way.** The full per-epoch curve is in the JSON for this reason.
+**Lead with equal optimizer steps**, because a student's constraint is a Colab session rather
+than an epoch count and every point then costs the same wall clock. Report epochs-completed
+alongside, so the equal-epochs reading falls out of the same runs.
 
-This is the one live part of #110. The OpenNMT step count itself was never commensurable
-with ours — 16,384 tokens per update against about 1,726, a 9.5x gap — but converted to
-tokens their students trained **3.4x longer** than 36 epochs gives: 328M target tokens
-against 97M, which is 122 epochs of this corpus.
+#### Controls
 
-So the question is not "who was right" but simply whether this model is still improving when
-the assignment tells eighteen students to stop. If it is, the recommendation needs raising
-regardless of where the original figure came from — and the curve below wants the same answer
-at every corpus size, which is the other reason these two tasks belong together.
+- **Nested subsets** — 25K inside 50K, and so on. Independent draws can invert adjacent
+  points on sampling noise alone.
+- **One fixed dev and test set**, source groups excluded from every training set.
+  `split_bitext.py` already groups by source.
+- **One fixed tokenizer**, and say which split it was fit on. Refitting per point changes
+  vocabulary and data together, which is Assignment 9's control bug in another costume.
+- **The 100-token cap**, so memory stays at the measured 9.60 GiB whatever the corpus size:
+  data changes batch *count*, not batch shape.
 
+#### Judiciousness
 
-#### The curve, merged from #119
+Ceiling is **1,319,631** distinct sources, about 13x the current point. Epoch time scales
+roughly linearly — 192 s at 100K, so ~25 min at 800K — making a seven-point sweep at 36
+epochs about **44 hours**. So walk upward cheapest-first and stop when it flattens, and
+**measure seed noise once at the cheapest point**, or a 0.4 BLEU gap will get read as real
+when it is not.
 
-**The ceiling is 1,319,631 pairs** — measured, being the distinct German sources in
-`data/bitext/all.de` after dropping blanks and source-equals-target. So the curve has room
-for roughly **13x** the current point, not the 2x that "more" might have meant.
-
-#### The confound that has to be designed out first
-
-More data means more batches per epoch, so training every point for the same number of
-*epochs* gives the larger points more gradient steps as well as more data. The curve then
-shows data and compute mixed together, and attributes all of it to data.
-
-**This repository has already published exactly that mistake**: a comparison that gave one
-model 19% more data *and* 80% more training while claiming data was the only difference. It
-is an easy one to make twice.
-
-Three honest designs, and they answer different questions:
-
-| design | question it answers | cost |
-|---|---|---|
-| equal epochs | what a student gets by pointing the assignment at more data | grows linearly with data |
-| equal optimizer steps | what more *unique* data buys at a fixed compute budget | flat across points |
-| train each to convergence | how much quality the data can ultimately support | largest, and unbounded |
-
-**Equal steps is the one to lead with**, because a student's real constraint is a Colab
-session rather than an epoch count, and because every point then costs the same wall clock.
-Report epochs-completed alongside, so the equal-epochs reading is recoverable from the same
-runs rather than needing a second sweep.
-
-#### Controls that must hold across points
-
-- **Nested subsets.** 25K must be a subset of 50K, and so on. Independent draws add
-  sampling noise to the curve and can invert two adjacent points on their own.
-- **One fixed dev and test set**, identical for every point, with their source groups
-  excluded from every training set. `split_bitext.py` already groups by source, so this
-  builds on a verified split rather than a fresh one.
-- **One fixed tokenizer** across all points. Refitting SentencePiece per point changes the
-  vocabulary at the same time as the data, which is the Assignment 9 control bug in a
-  different costume. State which split it was fit on, since fitting on the largest train set
-  and fitting on 100K are different choices and neither is neutral.
-- **The 100-token cap**, so memory stays at the measured 9.60 GiB regardless of corpus size.
-  Data size changes batch *count*, not batch shape, so the ladder's memory result carries
-  over unchanged.
-
-#### Judiciousness, concretely
-
-Epoch time scales about linearly with pairs: 192 s at 100K measured, so roughly 25 minutes an
-epoch at 800K. At 36 epochs a full seven-point sweep is on the order of **44 hours**, which
-is why the design above matters more than the compute.
-
-- Walk it upward like the ladder, cheapest first, and stop when the curve flattens. If 200K
-  barely beats 100K there is no case for 800K.
-- **Measure seed noise once, at the cheapest point**, with two or three seeds. Without it
-  there is no way to know whether a 0.4 BLEU gap between adjacent points is real, and the
-  temptation will be to read it as real.
-- Every number to JSON, and the report generated, per `notes/reports/`.
-
-#### What it settles beyond Eric's question
-
-**It prices the low-resource case.** A8's floor is already settled — at least 100K pairs, and
-if your cleaned data has less, use all of it and say so — so this is no longer a blocking
-question. But if the curve is steep below 100K, a student with 40K is losing a *quantified*
-amount rather than an unknown one, and that is worth telling them rather than leaving as a
-shrug.
+Side benefit: it prices the low-resource case. A8's floor is settled, but a student with 40K
+would be losing a quantified amount rather than an unknown one.
 
 ### #97 SentencePiece on versus off, controlled
 
@@ -250,28 +197,23 @@ separate test sets per direction, target-language tagging. Replaces the
 
 ### #102 Inference cannot resume, so a long decode cannot survive an interruption
 
-Found 2026-09-24 while mapping the curriculum placements onto repository work. Not on any
-list before that, and it is the **largest undone piece of work for the second half**.
-
-Training has checkpoint-and-resume, verified in Colab. **Inference has nothing.**
+**The largest undone piece for the second half.** Training has checkpoint-and-resume, verified
+in Colab. Inference has nothing.
 
 Assignment 13 back-translates at least as many sentences as the training set, so 100,000 or
-more. Throughput is *not* the problem, which was the expected answer and the wrong one: the
-decode benchmark measures **27.5 ms per sentence** with batched beams, so 100K extrapolates
-to well under an hour and less on a GPU. Read that as an order of magnitude, since it was
-measured on 8 sentences at `max_len=25` and a real model at `max_len=60` will be several
-times slower.
+more. **Throughput is not the problem** — that was the expected answer and the wrong one: the
+decode benchmark measures 27.5 ms per sentence batched, so 100K extrapolates to well under an
+hour. Read it as an order of magnitude, since it was measured on 8 sentences at `max_len=25`.
 
-The problem is that a multi-hour decode dying at hour two starts over from zero. That is
-exactly the failure that made resume a priority for training, one level up.
+The problem is that a multi-hour decode dying at hour two starts from zero, which is the
+failure that made resume a priority for training one level up.
 
-- **Write output incrementally and skip inputs already done.** Better for students, because
-  it asks no discipline of them.
-- **Or decode in explicit shards**, so a failure costs one shard. Cheaper to build, easier
-  to explain, relies on the student following the workflow.
+Either **write output incrementally and skip inputs already done** — better for students, since
+it asks no discipline of them — or **decode in explicit shards**, cheaper to build but relying
+on the student following the workflow.
 
-Needed before Assignment 13's material is due in class on Mon Oct 19. Nothing before then
-blocks on it, so it is not this week's work, but it is not small either.
+**Done when** an interrupted bulk decode can be restarted without redoing finished work.
+Needed for Assignment 13's material, due in class **Mon Oct 19**.
 
 ### #103 Extend the notebook gate to `docs/docs/course/`
 
@@ -302,28 +244,29 @@ The two tasks it generated follow.
 
 ### #107 The optimizations already exist and nothing uses them
 
-Measured on the 100K training split, real tokenizer, batch 64:
+Measured on the 100K split, real tokenizer, batch 64:
 
 ```
 real tokens                2.90 M per epoch
 random batching, padded   10.97 M    3.79x waste
-length-bucketed, padded    2.90 M    1.00x waste
-saving                     8.06 M tokens per epoch, 74%
+length-bucketed, padded    2.90 M    1.00x waste   -> 74% saving
 ```
 
-`BucketBatchSampler` and `create_dataloaders(use_bucketing=...)` already exist, as does
-`train_model(use_amp=...)` with bfloat16 where supported, and `num_workers` and
-`pin_memory`. **All of them default off, and the benchmark used none.** That is a failure
-against the standing rule to check the inventory before hand-rolling, and it is most of
-why memory ran away.
+`BucketBatchSampler`, `create_dataloaders(use_bucketing=...)`, `train_model(use_amp=...)`,
+`num_workers` and `pin_memory` all already exist and **all default off**. The crashed benchmark
+used none of them — a failure against the standing rule to check the inventory before
+hand-rolling.
 
-- Rewrite the benchmark to use bucketing, and AMP on a GPU.
-- Decide whether `use_bucketing` should default True. It changes batch composition and
-  therefore results, which argues against flipping it silently; but 74% matters
-  enormously to a student on a Colab budget, so the course guidance should say to enable
-  it even if the default stays.
-- Not a gap: decoding is already optimized, 27.5 ms against 109.5 ms for the reference
-  path, because `inference_fast` batches the beams within a sentence.
+**Half done 2026-09-26:** the experiments bucket now (`ladder.py`, `benchmark_a8.py`). The
+library default is unchanged.
+
+**Done when** a decision is recorded on whether `use_bucketing` should default True. It changes
+batch composition and therefore results, which argues against flipping it silently — but 74%
+matters enormously on a Colab budget, so the course guidance should say to enable it even if the
+default stays.
+
+Not a gap: decoding is already optimized, 27.5 ms against 109.5 ms, because `inference_fast`
+batches beams within a sentence.
 
 ### #108 Nothing releases the device allocator's cache
 
@@ -340,55 +283,22 @@ because the memory is the machine's, and a spike is held against everything else
 
 ### #113 Land the six PRs still open
 
-**No longer blocking anything.** Four of the nine landed on 2026-09-26 and **0.2.0 is
-published**, verified by installing from PyPI: 11 of 11 modules import, chrF reads 78.40
-rather than 100.00, and the decode budget is one number. So Monday is covered and what
-remains is improvement rather than repair.
+**Not blocking anything.** 0.2.0 is published and verified from PyPI, so what remains is
+improvement rather than repair.
 
-Landed: **#53** the version guard and the bump, **#58** the chrF and TER fix, **#73**
-tutorial 2's install, **#81** the decode-length unification.
+Open: **PR #51** nav entries, **PR #52** tutorial 6 imports, **PR #54** length normalization,
+**PR #55** the sacreBLEU signature, **PR #57** the causal-mask convention, **PR #59**
+Transformer attention.
 
-Also landed 2026-09-26, both admin-merged with Eric's per-PR approval: **PR #85** the four
-course notebooks, and **PR #84** the dropped `Config`. PR #85 was what gated the Lecture 6
-deck's link switch, so that is unblocked — the badges resolve off `main` now.
+**All six are refreshed and green against today's `main`** as of 2026-09-26. They had each
+been 27 commits behind, and none had ever run the `Tag matches pyproject version` gate that
+PR #53 added — the PR #17 pattern, live. Refreshing was free because none carried an approval.
 
-Still open, six: **PR #51** nav entries, **PR #52** tutorial 6 imports, **PR #54** the
-length-normalization resolution, **PR #55** the sacreBLEU signature, **PR #57** the
-causal-mask convention, **PR #59** Transformer attention.
+**Done when** all six are merged. They need a reviewer, which is Coulson.
 
-**All six were refreshed on 2026-09-26 and are green against today's `main`.** They had
-each been 27 commits behind. The refresh was free at that moment because none carried an
-approval, so pushing dismissed nothing — the right time to do it, since a refresh *after*
-approval costs the approval.
-
-The staleness was not hypothetical. Before the refresh all six were green on ten checks and
-**none of them had ever run `Tag matches pyproject version`**, the gate PR #53 added. They
-were green against a `main` that did not have it, which is precisely the PR #17 pattern.
-All six now carry the gate and pass it.
-
-The two with real semantic overlap came out clean, which is worth recording because the
-expectation was the opposite: **PR #54** touches `inference.py`, which PR #81 rewrote for
-decode length, and **PR #55** touches evaluation, which PR #58 rewrote for reference shape.
-Tests pass on both.
-
-**One genuine conflict, and it was self-inflicted.** PR #51 collided with `main` on
-`docs/mkdocs.yml`, because PR #85 added the Course Notebooks nav section in the same place
-PR #51 adds tutorial 6. A `merge-tree` dry run *before* PR #85 merged had reported all
-eight clean, so the conflict was created in between. Resolved by keeping both — tutorial 6
-inside Tutorials, the Course section after it — and `mkdocs build --strict` exits 0.
-
-Two of those now have knock-on effects worth knowing. PR #51 is what fixes **Task #84**,
-which stopped being a prediction and became a live defect the moment PR #58 landed.
-PR #55 is what **Task #85** and **Task #91** wait on.
-
-*Written as "Task #84", "Task #85" deliberately: PRs #84 and #85 now exist and are
-unrelated to those tasks. This paragraph used bare numbers until 2026-09-26 and was
-exactly the collision the numbering rule in `CLAUDE.md` describes.*
-
-The original cautions still hold for every one of them, because the release proved both
-worth respecting: a green tick is green only against the base the checks last saw, and
-each of these predates today's `main`. Refresh and let CI re-run rather than trusting an
-old green. That is how all four of the merged ones were handled.
+Knock-ons: **PR #51** fixes **Task #84**, now a live defect rather than a prediction. **PR
+#55** is what **Task #85** and **Task #91** wait on. (Task, not PR: PRs #84 and #85 exist and
+are unrelated — the collision `CLAUDE.md`'s numbering rule describes.)
 
 ### #124 Simplify Lecture 6's chrF and TER wrappers
 
@@ -434,31 +344,6 @@ student meets.
 - Regenerate `docs/docs/_generated/decoding_sweep.json` afterwards. `--rerender` is not
   enough; the sweep itself must re-run, which takes about an hour.
 - Not urgent, and **not** on the CS 479 critical path: no assignment depends on it.
-
-### #125 Compress the essay-length task bodies in this file
-
-**Eric's ask, 2026-09-26.** Bodies here average around 19 lines; what/why/done-when would fit
-in six. Roughly 300 lines.
-
-**Not a reflow job, which is why it is a task rather than a chore.** The "why" is load-bearing
-in a repository where decisions get revisited — it is what stops a settled question being
-reopened — and several bodies carry measured numbers that exist nowhere else.
-
-The rule that came out of the #72 pass, which is the one to apply here:
-
-1. what to do,
-2. the single fact that makes it worth doing,
-3. how you know when it is done.
-
-Everything else — how it was found, who raised it, what was tried first — is archaeology, and
-git history holds it.
-
-**Where a body carries a finding that outlives the task, move it to `notes/reports/` rather
-than deleting it.** That is what happened with the training-budget finding, which turned out
-to be the prior for #95's learning curve and was invisible inside a task entry.
-
-Do it a section at a time and review each diff. This is the file both sessions read every
-time; a bad compression is worse than a long file.
 
 ### #120 The grader now has a source repository
 
@@ -535,59 +420,45 @@ works at all, and it should be answered before a notebook is written on top of i
 
 ### #118 What does a paid Colab session actually provide?
 
-**Eric's call 2026-09-26: Coulson measures it.** This is the other half of the A8 memory
-question. The ladder gives demand at each length cap; he gives the ceiling. Neither half is
-useful alone.
+**Coulson measures it, Eric's call.** The other half of the A8 memory question: the ladder in
+[`reports/length-ladder.md`](reports/length-ladder.md) gives demand at each length cap, this
+gives the ceiling. Neither half is useful alone.
 
 **What to ask for**, because "how much RAM does Colab have" is not the useful question:
 
-- Which accelerator a paid session actually assigns. T4, L4 and A100 differ enormously —
-  roughly 16, 24 and 40 GB — and the answer changes the recommendation.
+- Which accelerator a paid session actually assigns — T4, L4 and A100 are roughly 16, 24 and
+  40 GB, and the answer changes the recommendation.
 - Device memory available to the *process*, not the instance total.
-- Whether it varies between students or within a session. An assignment cannot depend on a
+- Whether it varies between students or within a session. An assignment cannot ride on a
   lucky draw.
 
-**What to compare it against.** Measured on the 64 GiB M-series machine, batch 64,
-`d_model` 256, 3 layers, bucketing on:
+**What to compare against:** the measured curve, where the agreed 100-token cap holds 9.60 GiB
+against 35.80 uncapped. **Carry the caveat** that those are MPS unified-memory figures, so
+they transfer as a scaling *shape* rather than absolute numbers — which is exactly why this
+measurement is not redundant with ours.
 
-| cap | device held | seconds/epoch |
-|---|---|---|
-| 5 tokens | 0.31 GiB | 136.2 |
-| 10 tokens | 1.28 GiB | 138.1 |
-| uncapped (512) | 35.80 GiB | 192.0 |
-
-4.1x per doubling early, flattening somewhere below the uncapped figure. Rungs 20, 40 and 80
-pin where, and that is what decides whether Eric's 100-token cap is comfortable or marginal.
-
-**Caveat to carry into the comparison:** MPS unified memory is not CUDA device memory, so
-these transfer as a *scaling shape* rather than absolute numbers. Confirming the shape on the
-accelerator students actually get is part of why this is worth doing rather than assuming.
-
-**This blocks any memory claim in the A8 handout.** A line was already sent to Cowork saying
-the 100-token cap "keeps A8 inside a paid Colab session", and retracted in
-`notes/handoff/to-cowork.md` as unsupported. What *is* safe to tell students is the ordering
-of the levers: if a session dies, look at the length cap first, because batch count drives
-epoch time while sequence length drives whether the run fits at all.
+**Done when** the accelerator and its per-process memory are known, so the handout can say
+whether 9.60 GiB fits. Until then **no memory figure goes in front of students** — only the
+ordering, which is solid: batch count drives epoch time, the length cap drives whether the run
+fits at all.
 
 ### #114 The wheel ships no data, so tutorials 4 and 5 cannot find what they load
 
-Found 2026-09-25 while checking whether #44 was release-critical. It is not, and the
-reason is the finding: the installed package contains **zero** data files. Verified
-against the real 0.0.8 wheel.
+The installed package contains **zero** data files — verified against the real wheel. So
+`data/example.tsv` and `data/pretrained/` exist in the repository and not in a pip install, and
+a student who opens tutorial 4 or 5 from its Colab badge, installs with pip and runs it fails at
+the load with nothing explaining why.
 
-So `data/example.tsv` and `data/pretrained/` exist in the repository and not in a pip
-install. A student who opens tutorial 4 or 5 from its Colab badge, installs with pip, and
-runs it will fail at the load, with nothing explaining why.
+Tutorial 2 is unaffected: it builds its corpus inline. Its prose does say the file "ships with
+the repo", true of the repo and false of the wheel, so that wants rewording either way.
 
-- **Monday is unaffected.** Tutorial 2 builds its own corpus inline; its only mention of
-  `data/example.tsv` is prose. Checked.
-- Tutorial 2's prose says the file "ships with the repo", which is true of the repo and
-  false of the wheel a student installs. Worth rewording either way.
-- Options: fetch the file over HTTP in the notebooks that need it, ship it as package
-  data, or say plainly that those tutorials need a clone. The first keeps the Colab badge
-  honest, which is the point of having one.
-- Related to #53's finding that the published wheel was missing five modules. Same
-  shape: what the repository has is not what the wheel carries, and nothing checks.
+Options: fetch over HTTP in the notebooks that need it, ship it as package data, or say plainly
+that those tutorials need a clone. **The first keeps the Colab badge honest**, which is the point
+of having one.
+
+**Done when** a pip-installed tutorial 4 or 5 either runs or fails with a message that says what
+to do. Same shape as the wheel-missing-modules defect: what the repository has is not what the
+wheel carries, and nothing checks.
 
 ## Code — decoding performance
 
@@ -730,27 +601,21 @@ Full explanation for students lives in `docs/docs/concepts/decoding.md` — keep
 rather than duplicating it into code and notes.
 
 **#4 Resolve length-normalization semantics** — in review as PR #54
-`inference.py:203` applies length normalization during *pruning*, not only at final
-selection — comparing normalized scores across different lengths mid-search. Defensible
-but non-standard. Preserve exactly during #1/#2 so perf work stays reviewable; raise as
-a separate question.
 
-**Now has evidence, from #40.** Measured on the tutorial 5 model across five held-out
-subsets, paired:
+`inference.py:203` applies length normalization during *pruning*, not only at final selection,
+comparing normalized scores across lengths mid-search. Defensible but non-standard.
 
-- `alpha=0.6`, the shipped default, is **indistinguishable from `alpha=0.0`**
-  (−0.07 ± 0.03 BLEU). It is not doing the job it exists for.
-- `alpha=1.0` is a real if small gain, +0.25 ± 0.06.
-- The bias it targets is plainly present: mean output length falls monotonically with
-  beam width, 12.61 tokens at greedy to 9.73 at beam 10, against references averaging
-  11.62.
+**The evidence, from #40**, measured on the tutorial 5 model across five held-out subsets:
+`alpha=0.6`, the shipped default, is **indistinguishable from `alpha=0.0`** (−0.07 ± 0.03
+BLEU), while `alpha=1.0` gives +0.25 ± 0.06. The bias it targets is plainly there — mean output
+length falls from 12.61 tokens at greedy to 9.73 at beam 10, against references averaging 11.62.
 
-So the question is no longer whether the semantics are defensible in the abstract. It is
-why a correction that measurably does nothing is on by default. Two candidate answers,
-and the evidence does not distinguish them: the default is too weak, or normalizing
-during pruning blunts it. Sweeping `alpha` with normalization applied only at final
-selection would separate the two, and that is now a cheap experiment because
-`scripts/sweep_decoding.py` exists.
+So the question is not whether the semantics are defensible, but **why a correction that
+measurably does nothing is on by default.** Two candidates the evidence cannot separate: the
+default is too weak, or normalizing during pruning blunts it.
+
+**Done when** `alpha` has been swept with normalization applied only at final selection, which
+separates them — cheap now that `scripts/sweep_decoding.py` exists.
 
 ## Code — other gaps
 
@@ -806,8 +671,9 @@ teaches the convention.
   will be stale again within a week.
 
 **#85 Only BLEU carries a signature; chrF and TER do not**
-Task #70's subject says "with every score", but PR #55 attaches `.signature` to
-`compute_bleu`'s result alone. Measured on the combined main + PR #55 + PR #58 tree:
+
+Task #70's subject says "with every score", but PR #55 attaches `.signature` to `compute_bleu`
+alone:
 
 ```
 BLEU  nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0
@@ -815,36 +681,29 @@ chrF  MISSING
 TER   MISSING
 ```
 
-chrF is the case that proves this is not cosmetic. `compute_chrf` defaults to
-`word_order=2` (chrF++) while sacreBLEU's `corpus_chrf` defaults to `0`. That one
-undeclared parameter caused two separate confusions here: a correct implementation
-judged broken by 0.45 points against the wrong baseline, and
-`notes/EVAL_CHRF_TER_TRANSPOSE_BUG.md` stating the right value (78.4) beside a snippet
-returning 76.97. A chrF signature declares `nw:2` and prevents both, so chrF needs one
-more than BLEU does.
-- Call `get_signature()` on CHRF and TER as `compute_bleu` already does, and widen
-  `tests/test_bleu_signature.py` to all three. Cheap once #55 and #58 are both in.
+**chrF is the case that proves this is not cosmetic.** `compute_chrf` defaults to
+`word_order=2` (chrF++) while sacreBLEU's `corpus_chrf` defaults to `0`. That one undeclared
+parameter caused two separate confusions here: a correct implementation judged broken by 0.45
+points against the wrong baseline, and a bug note stating the right value beside a snippet
+returning the wrong one. A chrF signature declares `nw:2` and prevents both — so chrF needs one
+*more* than BLEU does.
+
+**Done when** `get_signature()` is called on CHRF and TER as it is on BLEU, and
+`tests/test_bleu_signature.py` covers all three. Cheap once PR #55 is in.
 
 **#86 `evaluate_model` has no test, and it is the function callers use**
-Coverage on the combined tree, after PR #58 adds the first evaluation tests this repo
-has ever had:
 
-| Function | Tested by |
-|---|---|
-| `compute_bleu` | `test_metric_reference_shape`, `test_bleu_signature` |
-| `compute_chrf`, `compute_ter`, `_as_reference_streams` | `test_metric_reference_shape` |
-| `evaluate_model` | **nothing** |
-| `save_translations` | **nothing** |
+PR #58 tests the three metric wrappers well and leaves `evaluate_model` and
+`save_translations` untested. But `evaluate_model` is what `examples/evaluate.py`,
+`examples/train.py` and any student actually call, and it is **where the transpose bug did its
+damage**: `compute_chrf_score` defaults True, so every call reported a wrong chrF.
 
-PR #58 tests the three wrappers well, but `evaluate_model` is what
-`examples/evaluate.py`, `examples/train.py` and any student actually call, and it is
-where the transpose bug did its damage: `compute_chrf_score: bool = True` is the
-default, so every call reported a wrong chrF. Fixing the wrappers without testing the
-aggregator leaves the same hole one level up, where the thing under test is not the
-thing being used.
-- Run `evaluate_model` end to end on a tiny fixture and assert its returned bleu/chrf/ter
-  match the three wrappers called directly, under default flags and with
-  `compute_ter_score=True`. Cover `save_translations` too.
+Fixing the wrappers without testing the aggregator leaves the same hole one level up, where the
+thing under test is not the thing being used.
+
+**Done when** `evaluate_model` runs end to end on a tiny fixture and its returned bleu/chrf/ter
+match the three wrappers called directly — under default flags and with
+`compute_ter_score=True` — and `save_translations` is covered too.
 
 **#82 Add an on-target language check to `torchlingo.diagnostics`**
 Borrowed from mtsurvey, which reports an on-target rate using GlotLID: the share of
@@ -879,32 +738,20 @@ What remains here are the corrections it generated.
 
 main broke on 2026-09-19 and stayed broken until someone happened to look.
 
-The break itself is instructive: **no PR could have caught it.** #25 introduced
-`preprocessing/alignment.py` carrying a docstring example that asserts
-`looks_aligned()` on a single-row frame, which cannot pass. #32 added the
-`--doctest-modules` gate that runs it. #32 could not have fixed the example,
-because it branched from a main where the file did not exist yet. Both were
-green on their own branches; the *combination* fails.
+**No PR could have caught it**, which is the point. #25 added a docstring example that cannot
+pass; #32 added the `--doctest-modules` gate that runs it, having branched from a main where
+that file did not exist. Both green alone; the *combination* fails. A merge-order interaction
+can only surface in a post-merge run on main — so that run is load-bearing and unwatched.
 
-That is a merge-order interaction, and the only place it can surface is a
-post-merge run on main. Which means the post-merge run is load-bearing and
-currently nobody watches it:
+Nothing notifies on a failed push-to-main run; it sits in the Actions tab, and the next person
+to open a PR inherits a red main and may assume they caused it.
 
-- A PR's checks run against the *merge result*, so #39 was green while main was
-  red. Green on your PR says nothing about the branch you are merging into.
-- Nothing notifies on a failed push-to-main run. It sits in the Actions tab.
-- The next person to open a PR inherits a red main and may reasonably assume
-  their branch caused it.
+**Done when** a failed push-to-main run notifies someone: an `if: failure()` step posting to the
+lab's Discord, or just enabling GitHub's own Actions-failure email. Neither needs new
+infrastructure.
 
-Cheapest fix that would have caught this: notify on failure of the `push` to
-main run — a GitHub Actions step on `if: failure()` posting to the Discord
-channel the lab already uses, or simply enabling GitHub's own "Actions failure"
-email for the repo. Neither needs new infrastructure.
-
-Worth pairing with #51 and #53, which are the same family: a check that reports
-but does not block, a check that runs a fifth of what it claims, and a check
-nobody reads. Each is individually defensible and together they mean a green
-tick carries less than it appears to.
+Same family as #51 and #53: a check that does not block, a check that runs a fifth of what it
+claims, and a check nobody reads.
 
 ## Tests
 
@@ -943,32 +790,17 @@ shim. Bump the action versions. Unrelated to anything in flight, and cheap.
 
 **#44 Gate the sdist on "no Git LFS pointer shipped"**
 
-`data/example.tsv` and `data/pretrained/model.pt` moved to Git LFS, and CI checks out
-without LFS on purpose to keep runs light. That combination has a sharp edge: a build
-that packages an LFS-tracked file in a no-LFS checkout ships 130 bytes of pointer text
-under the name of a 17 MB corpus, with nothing in the build complaining. It would reach
-PyPI looking fine and open as garbage.
+CI checks out without LFS to keep runs light. A build that packages an LFS-tracked file in a
+no-LFS checkout ships **130 bytes of pointer text under the name of a 17 MB corpus**, with
+nothing complaining, and it would reach PyPI looking fine and open as garbage.
 
-`MANIFEST.in` now excludes both explicitly, so this is closed *by construction* rather
-than *by check*. Two things that must agree with nothing checking they do, again:
-a future `recursive-include` would reopen it silently.
+`MANIFEST.in` now excludes both files explicitly, so this is closed *by construction* rather
+than *by check* — a future `recursive-include` reopens it silently. Two things that must agree
+with nothing checking they do.
 
-- Add a release-job step that scans the built sdist and wheel for any member beginning
-  `version https://git-lfs` and fails on a hit.
-- Cheap, no LFS dependency, catches the whole class rather than today's two files.
-- **Match on the first line, not anywhere in the file.** A `grep -rl` for the string
-  flagged `tests/test_data_integrity.py` and `tests/test_sentencepiece.py`, which contain
-  it as the literal the skip logic compares against. The detector would fail the build on
-  the detector. Compare `head -c 23` instead.
-
-Verified once by hand against the CI-built artifacts from run 34992013848, which is the
-real case: a no-LFS checkout. The sdist carries only the small multilingual examples and
-the wheel carries no data at all.
-
-Related, worth watching rather than acting on: LFS storage and bandwidth come out of the
-org's quota. Two files at ~28 MB is nothing, but every clone by every student fetches
-them. If a course section of 60 blows through the free tier, the fallback is to host the
-corpus outside git and download it on first use.
+**Done when** a release-job step scans the built sdist and wheel for any member beginning
+`version https://git-lfs` and fails on a hit. Cheap, no LFS dependency, and it catches the class
+rather than today's two files.
 
 ## Inference gaps
 
@@ -983,25 +815,22 @@ current main, or dispatch a run with
 automatically, whatever branch they target.
 
 
-**#22 `examples/` is outside the lint gate**
-CLAUDE.md and CI lint `src` and `tests` only. Running `ruff check examples` turns up 32
-pre-existing errors across `train.py`, `evaluate.py`, `inference_ceb_cmn.py`,
-`train_ceb_cmn_simple.py` and `multilingual_training_example.py` — unsorted imports,
-unused imports and variables, `f`-strings with no placeholders, deprecated `typing.List`,
-a blind `except Exception`.
-- These are *examples*, i.e. the code students are most likely to copy, so they are
-  arguably the worst place in the repo to let style rot.
-- Not fixed here: it is unrelated to attention and a 5-file mechanical diff would bury
-  the review, exactly the reasoning applied to the ruff split in #14.
-- Suggested: fix under its own PR, then add `examples` to the lint scope so it stays
-  fixed.
-- **`scripts/` has the same gap**, found the same way: `generate_sentencepiece_models.py`
-  trips EXE001 (shebang, not executable) and BLE001 (blind `except Exception`). Widen the
-  scope to `src tests examples scripts` in one go.
-- The gap keeps widening. `scripts/` has gained `bench_decode.py`, `execute_notebooks.py`,
-  `train_example_model.py`, `sweep_decoding.py` and `diagnose_corpus.py`, all linted by
-  hand on the way in and none of them gated. Hand-linting is exactly the thing that stops
-  happening once whoever is doing it moves on.
+**#22 `examples/` and `scripts/` are outside the lint gate**
+
+CLAUDE.md and CI lint `src` and `tests` only. `ruff check examples` turns up 32 pre-existing
+errors across five files — unsorted and unused imports, `f`-strings without placeholders,
+deprecated `typing.List`, a blind `except Exception`. `scripts/` has the same gap.
+
+**These are the code students are most likely to copy**, which makes them arguably the worst
+place in the repo to let style rot.
+
+The gap keeps widening: `scripts/` has since gained `bench_decode.py`,
+`execute_notebooks.py`, `train_example_model.py`, `sweep_decoding.py`, `diagnose_corpus.py` and
+`render_report.py`, all linted by hand on the way in and none of them gated. Hand-linting is
+exactly what stops happening once whoever does it moves on.
+
+**Done when** the scope is `src tests examples scripts`. Fix under its own PR first, since a
+five-file mechanical diff would bury any review it rode along with.
 
 ## Visualization
 
@@ -1052,49 +881,39 @@ is the second time the same trap has closed.
 - Two occurrences is the argument for #89, which makes the check explicit instead of
   relying on someone noticing a third time.
 
-**#88 Open the tutorial 7 PR** — unblocked 2026-09-26, PR #58 has merged
+**#88 Open the tutorial 7 PR** — unblocked 2026-09-26, PR #58 merged
 
-The evaluation tutorial is written, executed and verified on the **local** branch
-`docs/evaluation-tutorial` (commit `1516aa0`). Not pushed: it depends on unmerged work,
-and the standing rule is to hold such work locally rather than stack.
+Written, executed and verified on the **local** branch `docs/evaluation-tutorial` (commit
+`1516aa0`), held locally rather than stacked. It needs PR #55 for the `.signature` it prints.
 
-Depends on PR #58 (the chrF/TER transpose fix, and `concepts/evaluation.md`) and PR #55
-(the `.signature` the notebook prints). The branch is `main` with both merged in.
+At PR time: rebase onto a `main` carrying #58 and #55; expect a small nav conflict in
+`docs/mkdocs.yml`, since PR #51 also edits the tutorials block — **tutorial 7 goes after
+tutorial 6**; re-execute and re-run every check; say in the body that it closes Task #84.
 
-At PR time:
+Already verified on the branch: 7/7 notebooks execute cleanly, no local paths in outputs, every
+number quoted in prose appears in an output, `mkdocs --strict` exits 0, ruff clean, tests pass.
+It needs no LFS artifact, so it takes the CI gate to 3 of 7.
 
-1. Rebase onto a `main` that carries #58 and #55.
-2. Re-check `docs/mkdocs.yml`. The branch adds three nav entries: tutorial 7,
-   `concepts/evaluation.md` and `reference/evaluation.md`. PR #51 also edits the
-   tutorials nav block to add tutorial 6, so expect a small textual conflict there.
-   **Tutorial 7 belongs after tutorial 6.**
-3. Re-execute the notebook and re-run every check.
-4. Say in the body that it closes #84.
-
-Already verified on the branch: 7/7 notebooks execute cleanly, zero errors, zero
-warnings and zero local paths in the committed outputs, every number quoted in prose
-appears in an output, `mkdocs --strict` EXIT=0, ruff clean, 693 tests pass. In CI the
-gate would run **3 of 7** rather than 2 of 6, because the notebook needs no LFS artifact.
+**Done when** the PR is open and green.
 
 **#89 Fail the docs build when a page is off-nav**
 
-`mkdocs` reports pages missing from the nav at **INFO**, so `--strict` exits 0 while they
-sit unreachable. Measured on the tutorial 7 branch: `--strict` EXIT=0 with **11** pages
-off-nav.
+`mkdocs` reports off-nav pages at **INFO**, so `--strict` exits 0 while they sit unreachable.
+Measured: `--strict` EXIT=0 with **11** pages off-nav.
 
-The trap has now caught five pages across two PRs (#63's three, #84's two), and the
-second was noticed only because someone happened to be auditing the first. That is not a
-process that catches the third.
+The trap has caught five pages across two PRs, and the second was noticed only because someone
+was auditing the first. That does not catch the third.
 
-- Check that every page under `docs/docs/` is either in the nav or on a declared
-  exception list, and fail when one is neither.
-- **The exception list is the whole design problem.** `_generated/*.md` are *supposed*
-  to be off-nav: they are snippet files pulled into other pages with `--8<--` includes,
-  not standalone pages. So the orphan list is not a to-do list, and a naive check would
-  cry wolf on five files immediately. Declare those deliberately.
-- `MULTILINGUAL_ANALYSIS.md`, `MULTILINGUAL_QUICKSTART.md` and `TESTING_GUIDE.md` are
-  genuinely orphaned and predate all of this; decide whether they are nav pages or
-  should move out of the docs tree.
+**The exception list is the whole design problem.** `_generated/*.md` are *supposed* to be
+off-nav — they are snippet files pulled in with `--8<--` includes, not standalone pages — so a
+naive check cries wolf on five files immediately. They must be declared deliberately.
+
+`MULTILINGUAL_ANALYSIS.md`, `MULTILINGUAL_QUICKSTART.md` and `TESTING_GUIDE.md` are genuinely
+orphaned and predate all of this; decide whether they are nav pages or should leave the docs
+tree.
+
+**Done when** every page under `docs/docs/` is either in the nav or on a declared exception
+list, and the build fails when one is neither.
 
 **#92 Tutorials 3 and 5 bypass the library's own evaluation API**
 
@@ -1111,91 +930,46 @@ wrong number could be noticed.
 - Worth doing after #58 lands, so the tutorials pick up the signature and the fixed
   reshaping at the same time.
 
-**#49 The pretrained checkpoint predates the enlarged corpus**
-
-`data/pretrained/model.pt` was trained on 73,082 pairs. After #29 the corpus holds
-86,430, so the shipped model has never seen 18% of the data it is meant to represent.
-
-Nothing is broken: the model's held-out talks are still whole talks, still held out, and
-still present in the corpus, because #29 is a strict superset. It is stale rather than
-wrong.
-
-Worth retraining because everything downstream reads off this one checkpoint. Tutorial 5
-shows its translations, #40 measures decoding options on it, and its BLEU of roughly 5 is
-the number a student meets first.
-
-- Rerun `scripts/train_example_model.py`; about 20 epochs.
-- Regenerate `docs/docs/_generated/decoding_sweep.json` afterwards, since #40's numbers
-  are measured on this checkpoint. `--rerender` is not enough; the sweep itself must
-  re-run, which takes about an hour on CPU.
-- Check whether BLEU actually moves. 18% more data on a small model may buy very little,
-  and that is worth knowing either way. If it does not move, say so in tutorial 5 rather
-  than quietly retraining.
-
 **#53 The notebook gate is weaker than its green check implies**
 
-CI checks out without Git LFS on purpose, so `data/example.tsv` is a pointer there and
-`scripts/execute_notebooks.py` skips tutorials 2 through 5. **The job passes having run
-exactly two notebooks out of six** — tutorial 1 and tutorial 6, the only two that need no
-LFS artifact — and the check mark on the PR looks the same either way.
-- The skip list only grows. PR #59 gives tutorial 4 a second requirement
-  (`data/pretrained/model.pt`) so it can show Transformer cross-attention; tutorial 4 was
-  already skipped for the corpus, so the CI count is unchanged, but the gap between "what
-  CI proves" and "what a reader runs" widens with every tutorial that touches real data.
-- It can go the other way. Tutorial 7 (#88) uses fixed strings rather than a model, so it
-  needs no LFS artifact and **runs in CI**, taking the gate to 3 of 7. Worth noting as a
-  design lever: a tutorial whose subject does not require a trained model should not
-  acquire one, because that is the difference between a lesson CI protects and one it
-  cannot see.
+CI checks out without Git LFS on purpose, so `data/example.tsv` is a pointer and
+`execute_notebooks.py` skips tutorials 2 through 5. **The job passes having run two notebooks
+of six**, and the check mark looks identical either way.
 
-That was the accepted trade when LFS went in, and it is still the right one. The problem
-is that nothing says so at the point where someone reads the green check.
+Found concretely in #50, which adds an assertion inside tutorial 3 whose whole purpose is to
+fire when the model stops being decisive. It cannot fire in CI, because tutorial 3 does not run
+there.
 
-Found concretely in #50. That change adds an assertion inside tutorial 3, whose whole
-purpose is to fire when the model stops being decisive and the surrounding explanation
-stops being true. It cannot fire in CI, because tutorial 3 does not run there. It was
-verified by running the gate locally, twice, which is not a thing that keeps happening on
-its own.
+The skip list only grows as tutorials touch real data. It can go the other way: tutorial 7 uses
+fixed strings, needs no artifact, and runs — a design lever worth knowing, since a tutorial
+whose subject needs no trained model should not acquire one.
 
-Options, roughly in order of cost:
+Options, cheapest first: **say it in the check** (the job already knows what it skipped, so put
+that in the job summary); **fetch LFS for the notebook job only**, ~28 MB per run, which the
+keep-CI-light decision ruled out on four-version-matrix grounds that do not apply to one job;
+or a **scheduled full run** with LFS.
 
-- **Say it in the check.** The job already prints "2/2 notebooks executed cleanly" and
-  lists what it skipped. Make the job summary carry that so it is visible on the PR
-  without opening the log. Cheapest, and removes the false impression.
-- **Fetch LFS for the notebook job only.** One `lfs: true` on one job, roughly 28 MB per
-  run. This is the option the keep-CI-light decision ruled out, but the reasoning there
-  was about every job on a four-version matrix, not about one job that is the only place
-  tutorials execute at all. Worth revisiting on those narrower terms.
-- **A scheduled full run.** Nightly or weekly with LFS, so drift is caught within a day
-  without touching per-PR cost.
-
-Related: #51, which is the same shape from the other direction. That gate runs and does
-not block; this one blocks and does not run.
-
-PR #44 was partial relief: tutorial 6 needs no LFS artifact, so it does run in CI, taking
-the gate from 1 of 5 to the 2 of 6 above. The false impression is unchanged — the green
-check still does not say what it skipped.
+**Done when** the green check states what it did not run. Same family as #51 and #60.
 
 **#63 Three pages have no mkdocs nav entry** — in review as PR #51
 
-`docs/mkdocs.yml` belonged to a PR we were not stacking on, so three pages shipped
-without a nav entry: tutorial 6, `reference/diagnostics.md`, and `related-work.md`. A
-page absent from nav is INFO rather than a warning under `--strict` — verified on each
-branch, the build stays clean — so none of this blocks. But each page is reachable only
-by direct link until PR #51 lands. PR #51 also restores the `capture_cross_attention`
-link that could not resolve without the nav entry; see #74.
-- The same trap has already caught the next pair of pages. See #84.
+`docs/mkdocs.yml` belonged to a PR we were not stacking on, so tutorial 6,
+`reference/diagnostics.md` and `related-work.md` shipped without nav entries. Off-nav is INFO
+rather than a warning, so `--strict` stays clean and nothing blocks — but each page is reachable
+only by direct link until PR #51 lands.
 
-| Page | From | Place it |
-|---|---|---|
-| `tutorials/06-diagnosing-failures.ipynb` | PR #44 | Tutorials, after `05-real-translations.ipynb` |
-| `reference/diagnostics.md` | PR #45 | API Reference, after `config.md` |
-| `related-work.md` | PR #46 | Top level, near Home |
+| Page | Place it |
+|---|---|
+| `tutorials/06-diagnosing-failures.ipynb` | Tutorials, after `05-real-translations.ipynb` |
+| `reference/diagnostics.md` | API Reference, after `config.md` |
+| `related-work.md` | Top level, near Home |
 
-One more thing to undo at the same time: `related-work.md` refers to
-`torchlingo.diagnostics` as plain code text rather than linking to
-`reference/diagnostics.md`, because linking a page that does not exist on `main` fails
-`--strict`. Once PR #45 has merged, make it a link.
+Also undo at the same time: `related-work.md` names `torchlingo.diagnostics` as plain code
+rather than linking to `reference/diagnostics.md`, because linking a page absent from `main`
+fails `--strict`. Make it a link once that page is there.
+
+The same trap has already caught the next pair of pages — see Task #84 — which is what #89 is
+for.
 
 **#65 Tutorial 6 and `torchlingo.diagnostics` are two copies of the same checks** — in review as PR #52
 
@@ -1210,22 +984,18 @@ reads.
 
 **#66 Adopt `nltk.translate.gale_church`; split #29 into two different jobs**
 
-#29 conflates two goals that want different tools, and proposes hand-writing an algorithm
-that is already a dependency away.
+#29 conflated two goals that want different tools, and proposed hand-writing an algorithm that
+is a dependency away: `nltk.translate.gale_church.align_blocks()` ships with exactly the priors
+#29 specifies, including `VARIANCE_CHARACTERS=6.8`.
 
-`nltk.translate.gale_church.align_blocks()` ships with exactly the priors #29 specifies:
-(1,1)=0.89, (1,2)=(2,1)=0.089, (2,2)=0.011, (0,1)=(1,0)=0.0099, and
-`VARIANCE_CHARACTERS=6.8`.
+- **To recover the 98 talks (~13k pairs):** use Vecalign or Bertalign. Embedding-based aligners
+  measurably beat length-based ones — an English–Slovak evaluation (*Scientific Reports*, 2023)
+  puts both significantly ahead. Gale-Church is the wrong tool for the production job.
+- **To teach alignment:** implement it, because the implementation *is* the lesson, but pin the
+  output against NLTK's as a test oracle rather than shipping ours as the only word on it.
 
-- **To recover the 98 talks (~13k pairs)** — use Vecalign or Bertalign. Embedding-based
-  aligners measurably outperform length-based ones; an English–Slovak evaluation
-  (*Scientific Reports*, 2023) puts Vecalign and Bertalign significantly ahead, with
-  hunalign and Bleualign behind. Gale-Church is the wrong tool for the production job.
-- **To teach alignment** — implement it, because the implementation *is* the lesson, but
-  pin the output against NLTK's as a test oracle rather than shipping ours as the only
-  word on it.
-
-Same split applies to #52 (Moore 2002): still a good lesson, superseded in practice.
+**Done when** those two are separate tasks with the right tool on each. Same split applies to
+#52.
 
 **#68 Cite `torcheck` as prior art in the diagnostics docs**
 
@@ -1298,91 +1068,45 @@ notebook gate if it is not already there. Repository settings, not a code change
 
 **#52 Try Moore (2002) if more of the corpus is wanted**
 
-Raised by Eric: Moore improved on Gale and Church for bitext alignment.
-[Moore (2002)](https://aclanthology.org/2002.amta-papers.14/) aligns in two passes — a
-length-based pass like the one #29 ships, whose confident pairs train an IBM Model 1
-word-translation model, then a second pass scoring length *and* word correspondence, with
-the search confined to segments the first pass found plausible.
+Raised by Eric. [Moore (2002)](https://aclanthology.org/2002.amta-papers.14/) aligns in two
+passes: a length-based pass like the one #29 ships, whose confident pairs train IBM Model 1,
+then a second pass scoring length *and* word correspondence.
 
-What it would buy here, honestly: not much, and that is why #29 shipped length alone.
-Gale-Church recovered 13,152 of a possible 13,305 pairs at a quality indistinguishable
-from the talks that never needed repair. The 153 it gave up are the ceiling.
+**Honestly, it would buy little here**, which is why #29 shipped length alone: Gale-Church
+recovered 13,152 of a possible 13,305 pairs at a quality indistinguishable from the talks that
+never needed repair. The 153 it gave up are the ceiling, and the 89 single-stream talks are
+unreachable by either method.
 
-Where it would matter:
+Where it *would* matter: the case pinned by `test_a_long_dropped_sentence_is_handled_worse`.
+Length treats a long deletion as so improbable that a poor one-to-one scores better, whereas a
+dropped sentence shares no *words* with anything — exactly what lexical evidence sees. The
+method is also the transferable part for any noisier corpus.
 
-- The limitation pinned by `test_a_long_dropped_sentence_is_handled_worse`. Length treats
-  a long deletion as so improbable that a poor one-to-one scores better; a dropped
-  sentence shares no *words* with anything, which is precisely what lexical evidence
-  sees.
-- The 89 talks present in only one language stream. Length cannot help there and neither
-  can Moore, so those are gone regardless.
-- Any future corpus noisier than this one. The method is the transferable part.
-
-Also a genuinely good teaching progression if #48 wants one: length alone, then why it
-fails, then lexical evidence. Cited in `concepts/data-pipeline.md` and in the module
-already, so the pointer exists whether or not the code follows.
+**Done when** either the code lands or this is closed as not worth it. Also a good teaching
+progression for #48: length alone, why it fails, then lexical evidence.
 
 **#48 Audit what we have built for pedagogical value, and write down the sequencing**
 
-Enough has accumulated that nobody can now say what a student is meant to learn, in what
-order, or where the gaps are. The material was built task by task, each one justified on
-its own, and never against a curriculum.
+Enough accumulated that nobody could say what a student is meant to learn, in what order, or
+where the gaps are. It was built task by task, each justified alone, never against a
+curriculum.
 
-**Does something like this already exist?** Partly, and not enough.
-`docs/docs/tutorials/index.md` has a "Learning Path" section, but it is student-facing
-navigation over the five notebooks: a card per tutorial with a one-line description. It
-states no outcomes, covers none of the concept pages or library modules, and predates
-most of what exists now. It is a table of contents, not an audit.
+**First pass is written: `notes/CURRICULUM.md`**, which now holds the sequencing, the outcomes,
+the gaps and the redundancy findings. The largest gap it found: everything teaches the
+machinery working, nothing teaches **why a model fails**, which is what a student actually
+hits.
 
-What the artifact should carry:
+**What remains is instructor-owned and cannot be done here.** Those outcomes are
+reverse-engineered from the material, so they describe what exists rather than what the course
+needs. Four questions for Eric are listed at the bottom of that file.
 
-- **Sequencing.** What depends on what. Some of this is already load-bearing and
-  undocumented: tutorial 3 loads the checkpoint tutorial 2 trains, and #40's lesson only
-  works on a model that is wrong often enough to be interesting, which is why it uses
-  tutorial 5's checkpoint rather than tutorial 3's toy.
-- **Learning outcomes per unit**, stated as what a student can *do* afterwards, not what
-  was covered.
-- **Coverage gaps**, which is the real output. Likely candidates on a first glance:
-  training dynamics beyond "loss goes down", evaluation beyond BLEU, and anything about
-  why a model fails rather than how it works.
-- **Redundancy**, the other half. Beam search is now explained in `concepts/decoding.md`,
-  reimplemented in tutorial 3, and visualized in two places.
+One more, from `docs/docs/related-work.md`: **does Joey NMT belong in the syllabus** as a
+comparison point — the same system as a configured toolkit rather than a library you call —
+rather than only in related work? Its toy config trains in 3m52s on CPU to 93.62 BLEU, cheap
+enough to run beside ours.
 
-Worth auditing against, since each was justified pedagogically when it was built:
-
-| Where | What it teaches |
-|---|---|
-| Tutorials 1-5 | The end-to-end path, toy model through real translations |
-| `concepts/decoding.md` | Greedy vs beam, cost, what the knobs buy (#40), search framing (#41) |
-| `concepts/data-pipeline.md` | Loading, cleaning, alignment detection (#46) and repair (#29) |
-| `concepts/vocabulary.md` | Words vs subwords |
-| `concepts/models.md`, `training.md`, `what-is-nmt.md` | Architecture and training |
-| `reference/visualization.md` | Attention maps, beam search traces |
-| Generated measurements | `decode_bench`, `decoding_sweep`, `alignment_diagnosis`, `realign_report` |
-
-**First pass written: `notes/CURRICULUM.md`.** What it found:
-
-- Two load-bearing dependencies nobody had written down. Tutorial 3 cannot run without
-  tutorial 2's checkpoint, and tutorial 3's model is too small to demonstrate the thing
-  tutorial 3 teaches, which is why #40 had to measure on tutorial 5's model and why #50
-  exists.
-- Five coverage gaps, the largest being **why a model fails**. Everything teaches the
-  machinery working; nothing teaches diagnosis, which is what a student actually hits.
-  Others: evaluation beyond BLEU, training dynamics when training goes wrong, how much
-  data is enough, and inference cost in practice.
-- Beam search now appears four times and attention three. Defensible, but currently by
-  accumulation rather than decision.
-
-Still open, and genuinely instructor-owned: the outcomes in that file are reverse-
-engineered from the material, so they describe what exists rather than what the course
-needs. Four questions are listed at the bottom of it for you. #42 is the same shape.
-
-One more question for the audit, from the competitive assessment written up in
-`docs/docs/related-work.md`: **does Joey NMT belong *in* the syllabus** as a comparison
-point — "here is the same system as a configured toolkit rather than a library you
-call" — instead of only in related work? Their toy config trains in 3m52s on CPU to
-93.62 BLEU, so it is cheap enough for a student to run beside ours.
-
+**Done when** those questions are answered and `CURRICULUM.md` states outcomes the course
+wants rather than outcomes the code implies.
 
 **#28 Attention parameters skip `_init_weights`**
 `SimpleSeq2SeqLSTM._init_weights` matches on `weight_ih` / `weight_hh` / `bias`, so
