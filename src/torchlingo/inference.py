@@ -289,7 +289,7 @@ def attention_for_sequence(
 def greedy_decode(
     model: nn.Module,
     src: torch.Tensor,
-    max_len: int = 100,
+    max_len: int | None = None,
     device: torch.device | None = None,
     config: Config | None = None,
     return_attention: bool = False,
@@ -335,6 +335,10 @@ def greedy_decode(
     """
 
     cfg = config if config is not None else get_default_config()
+    # One source of truth for how long a generation may run. Carrying a literal
+    # here is how this drifted: the decoders said 100 and evaluate_model said 200,
+    # so two BLEU numbers for one model could differ on any target between them.
+    max_len = max_len if max_len is not None else cfg.max_decode_length
     device = device if device is not None else next(model.parameters()).device
 
     model.eval()
@@ -452,7 +456,7 @@ def beam_search_decode(
     model: nn.Module,
     src: torch.Tensor,
     beam_size: int = 5,
-    max_len: int = 100,
+    max_len: int | None = None,
     alpha: float = 0.6,
     device: torch.device | None = None,
     config: Config | None = None,
@@ -521,6 +525,10 @@ def beam_search_decode(
     """
 
     cfg = config if config is not None else get_default_config()
+    # One source of truth for how long a generation may run. Carrying a literal
+    # here is how this drifted: the decoders said 100 and evaluate_model said 200,
+    # so two BLEU numbers for one model could differ on any target between them.
+    max_len = max_len if max_len is not None else cfg.max_decode_length
     device = device if device is not None else next(model.parameters()).device
 
     model.eval()
@@ -637,7 +645,7 @@ def translate_batch(
     tgt_vocab: BaseVocab,
     decode_strategy: str = "greedy",
     beam_size: int = 5,
-    max_len: int = 100,
+    max_len: int | None = None,
     device: torch.device | None = None,
     config: Config | None = None,
 ) -> list[str]:
@@ -672,6 +680,10 @@ def translate_batch(
     """
 
     cfg = config if config is not None else get_default_config()
+    # One source of truth for how long a generation may run. Carrying a literal
+    # here is how this drifted: the decoders said 100 and evaluate_model said 200,
+    # so two BLEU numbers for one model could differ on any target between them.
+    max_len = max_len if max_len is not None else cfg.max_decode_length
     device = device if device is not None else next(model.parameters()).device
 
     if decode_strategy == "beam":
