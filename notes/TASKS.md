@@ -1,10 +1,10 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-09-26. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #114 and PRs to #81, so every number below 82 names one of each. Say
+Tasks run to #125 and PRs to #100, so every number below 101 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
@@ -19,10 +19,13 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-What passes the filter today: #16 and #113, because the release is what Monday depends
-on; #42 and #94, which are Lecture 7 itself; #95, #96, #100, #109 and #110, which
-Assignment 8's text needs before it is handed out on Sep 30; and #112, which builds the
-measurement the others wait on.
+What passes the filter as of 2026-09-26: **#95**, because Assignment 8's handout needs its
+numbers by Oct 5; **#113**, landing the open PRs; **#120** and **#121**, both of which Cowork
+is waiting on; and **#124**, which is queued for the moment Assignment 6 closes.
+
+Everything Lecture 7 and 8 needed directly is done. Lecture 7 runs Monday with tutorial 2 as
+its activity, Lecture 8 is rebuilt, and Task #42 closed on Cowork's word that it needs
+nothing.
 
 The test to apply is *"must this be done for Lecture 7 or Lecture 8 to happen
 correctly?"* — not "is this related to them". #44 failed that test on inspection: it
@@ -358,20 +361,29 @@ September 2023, with no license, no version, and nothing matching in `byu-matrix
 conclusion drawn from that, that the course would lose the tool whenever the account was
 reclaimed, no longer holds.
 
-**What is left is smaller but still worth doing.**
+**Inspected 2026-09-26, and it is in better shape than the binaries suggested.** One
+`grader.py` of 16 KB plus a README — no build, no PyInstaller, nothing to sign. The README
+documents usage: `python3 grader.py source target output`, with a fourth argument `False`
+for non-UTF-8 input. Running from source **deletes the download-and-override-Gatekeeper step
+entirely**, on all three platforms, which was the part that actually bit students.
 
-- **Point Lectures 4 and 5 at the repository rather than the OneDrive binaries.** This is
-  the part that still bites students: they are currently told to download an unsigned 301 MB
-  executable and override Gatekeeper to run it. Running it from source removes that step
-  entirely, and "override your OS's code signing" is a bad habit to teach regardless of
-  where the code lives. Cowork owns the decks, so this is a request to them.
-- **Read the repository before recommending anything else.** Whether it has a license, a
-  README that tells a student how to run it, and whether it works on all three platforms
-  from source are all unknown here and all cheap to check.
-- **Drop the diagnostics-rewrite contingency.** It was only ever justified by the source
-  being gone. `torchlingo.diagnostics` already does the alignment and contamination halves,
-  so if the two tools should converge that is now a design question rather than a rescue,
-  and it should not be decided under deadline.
+**Two blockers, both Eric's, before the decks can point at it:**
+
+1. **It is `PRIVATE`.** Eighteen students cannot clone a private repository in the lab org.
+2. **It has no license** — `licenseInfo` is null, so strictly nobody has been granted the
+   right to use or redistribute it. That is also what made the OneDrive arrangement fragile.
+   A permissive license additionally settles whether TorchLingo could ever absorb the checks.
+
+**Then, in order:** verify it runs on a student-shaped input (ours, small), then Cowork
+updates the Lecture 4 and 5 decks to clone it rather than download binaries.
+
+**One caveat:** last pushed **2024-09-17**, so it predates the current assignments. Worth
+checking its checks still match what Lectures 4 and 5 ask for before a deck points at it.
+
+**Dropped:** the diagnostics-rewrite contingency. It was only ever justified by the source
+being gone. `torchlingo.diagnostics` already does the alignment and contamination halves, so
+convergence is now a design question rather than a rescue, and should not be decided under
+deadline.
 
 ### #121 A Lecture 9 subword notebook, and it is ours to write
 
