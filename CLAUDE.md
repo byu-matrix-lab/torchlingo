@@ -331,6 +331,32 @@ New notebooks copy tutorial 2's two-cell setup pattern: detect Colab and install
 unconditionally, then verify and fail loudly. Not the old commented-out install, which was
 the bug.
 
+## Where things belong
+
+Four files accumulate knowledge, and putting something in the wrong one is how it gets
+lost. Stated because it took three corrections in one sitting to get right.
+
+| | holds | test |
+|---|---|---|
+| `notes/TASKS.md` | **only tasks that can be finished and removed** | could this row ever disappear? |
+| `CLAUDE.md` | standing habits and practices | will this still be true next month? |
+| `notes/reports/` | experimental outcomes | is this a measurement? |
+| `notes/handoff/` | the conversation with the Cowork session | is this a message to someone? |
+
+**A finished task is deleted, not marked done.** Marking it "Done" in place leaves the file
+describing shipped work as pending, and the rows then outnumber the live work. If a finished
+task carries something durable, move that thing to the file above where it belongs *before*
+deleting the task — the git history keeps the rest.
+
+Three things that are **not** tasks and must not be filed as them: a standing habit, a watch
+item, and a finding. A watch item in particular looks like a task and never completes, which
+is exactly what the first column forbids.
+
+The cost of getting this wrong is not tidiness. A measurement of how training budget beat
+data by roughly 7x sat inside a task entry for days, where nobody would look for it — and it
+was the prior for the learning-curve experiment that was later designed without it. It is now
+in `notes/reports/training-budget.md`.
+
 ## Handing the baton
 
 Two Claude sessions work on CS 479: this one, in the repository, and a Cowork session
