@@ -39,7 +39,7 @@
         12.21
       ]
     },
-    "seconds": 8.26
+    "seconds": 7.26
   },
   "by_beam_size": {
     "1": {
@@ -76,7 +76,7 @@
           1.0
         ]
       },
-      "seconds": 8.28
+      "seconds": 7.7
     },
     "2": {
       "bleu": {
@@ -112,7 +112,7 @@
           0.17
         ]
       },
-      "seconds": 26.78
+      "seconds": 23.98
     },
     "3": {
       "bleu": {
@@ -148,7 +148,7 @@
           0.12
         ]
       },
-      "seconds": 49.18
+      "seconds": 39.76
     },
     "5": {
       "bleu": {
@@ -184,7 +184,7 @@
           0.085
         ]
       },
-      "seconds": 90.18
+      "seconds": 78.34
     },
     "10": {
       "bleu": {
@@ -220,7 +220,7 @@
           0.08
         ]
       },
-      "seconds": 189.46
+      "seconds": 162.54
     }
   },
   "by_alpha": {
@@ -411,65 +411,76 @@
     "1": {
       "greedy": {
         "bleu": 7.17,
+        "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
         "mean_length": 12.54,
         "same_as_greedy": 1.0,
-        "seconds": 7.1
+        "seconds": 9.7
       },
       "by_beam_size": {
         "1": {
           "bleu": 7.17,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 12.54,
           "same_as_greedy": 1.0,
-          "seconds": 7.1
+          "seconds": 10.9
         },
         "2": {
           "bleu": 8.7,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 11.62,
           "same_as_greedy": 0.15,
-          "seconds": 23.1
+          "seconds": 33.6
         },
         "3": {
           "bleu": 8.8,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.93,
           "same_as_greedy": 0.12,
-          "seconds": 41.4
+          "seconds": 41.5
         },
         "5": {
           "bleu": 9.33,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.41,
           "same_as_greedy": 0.09,
-          "seconds": 79.5
+          "seconds": 72.1
         },
         "10": {
           "bleu": 8.61,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 9.81,
           "same_as_greedy": 0.095,
-          "seconds": 187.3
+          "seconds": 150.5
         }
       },
       "by_alpha": {
         "0.0": {
           "bleu": 9.12,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.29,
           "same_as_greedy": 0.09
         },
         "0.3": {
           "bleu": 9.42,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.36,
           "same_as_greedy": 0.09
         },
         "0.6": {
           "bleu": 9.33,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.41,
           "same_as_greedy": 0.09
         },
         "1.0": {
           "bleu": 9.71,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.8,
           "same_as_greedy": 0.085
         },
         "1.5": {
           "bleu": 8.42,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 13.62,
           "same_as_greedy": 0.08
         }
@@ -479,65 +490,76 @@
     "2": {
       "greedy": {
         "bleu": 7.32,
+        "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
         "mean_length": 11.54,
         "same_as_greedy": 1.0,
-        "seconds": 8.2
+        "seconds": 6.5
       },
       "by_beam_size": {
         "1": {
           "bleu": 7.32,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 11.54,
           "same_as_greedy": 1.0,
-          "seconds": 8.7
+          "seconds": 6.8
         },
         "2": {
           "bleu": 8.47,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.62,
           "same_as_greedy": 0.15,
-          "seconds": 28.5
+          "seconds": 20.0
         },
         "3": {
           "bleu": 9.03,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.21,
           "same_as_greedy": 0.1,
-          "seconds": 51.3
+          "seconds": 36.8
         },
         "5": {
           "bleu": 8.88,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 9.9,
           "same_as_greedy": 0.065,
-          "seconds": 98.3
+          "seconds": 72.9
         },
         "10": {
           "bleu": 8.36,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 9.15,
           "same_as_greedy": 0.07,
-          "seconds": 197.2
+          "seconds": 147.7
         }
       },
       "by_alpha": {
         "0.0": {
           "bleu": 8.76,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 9.72,
           "same_as_greedy": 0.07
         },
         "0.3": {
           "bleu": 8.85,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 9.82,
           "same_as_greedy": 0.075
         },
         "0.6": {
           "bleu": 8.88,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 9.9,
           "same_as_greedy": 0.065
         },
         "1.0": {
           "bleu": 8.82,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.21,
           "same_as_greedy": 0.08
         },
         "1.5": {
           "bleu": 7.88,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 12.65,
           "same_as_greedy": 0.08
         }
@@ -547,65 +569,76 @@
     "3": {
       "greedy": {
         "bleu": 8.08,
+        "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
         "mean_length": 12.99,
         "same_as_greedy": 1.0,
-        "seconds": 9.2
+        "seconds": 6.3
       },
       "by_beam_size": {
         "1": {
           "bleu": 8.08,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 12.99,
           "same_as_greedy": 1.0,
-          "seconds": 8.2
+          "seconds": 6.6
         },
         "2": {
           "bleu": 9.38,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 12.12,
           "same_as_greedy": 0.18,
-          "seconds": 26.6
+          "seconds": 20.5
         },
         "3": {
           "bleu": 9.54,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 11.54,
           "same_as_greedy": 0.135,
-          "seconds": 52.5
+          "seconds": 38.2
         },
         "5": {
           "bleu": 9.62,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.89,
           "same_as_greedy": 0.115,
-          "seconds": 97.6
+          "seconds": 66.7
         },
         "10": {
           "bleu": 9.25,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.42,
           "same_as_greedy": 0.105,
-          "seconds": 192.6
+          "seconds": 143.5
         }
       },
       "by_alpha": {
         "0.0": {
           "bleu": 9.57,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.74,
           "same_as_greedy": 0.105
         },
         "0.3": {
           "bleu": 9.63,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.79,
           "same_as_greedy": 0.105
         },
         "0.6": {
           "bleu": 9.62,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.89,
           "same_as_greedy": 0.115
         },
         "1.0": {
           "bleu": 9.75,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 11.28,
           "same_as_greedy": 0.115
         },
         "1.5": {
           "bleu": 8.62,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 14.18,
           "same_as_greedy": 0.1
         }
@@ -615,65 +648,76 @@
     "4": {
       "greedy": {
         "bleu": 8.07,
+        "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
         "mean_length": 12.03,
         "same_as_greedy": 1.0,
-        "seconds": 8.8
+        "seconds": 6.6
       },
       "by_beam_size": {
         "1": {
           "bleu": 8.07,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 12.03,
           "same_as_greedy": 1.0,
-          "seconds": 9.4
+          "seconds": 6.9
         },
         "2": {
           "bleu": 9.55,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 11.35,
           "same_as_greedy": 0.21,
-          "seconds": 28.4
+          "seconds": 20.8
         },
         "3": {
           "bleu": 9.82,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.68,
           "same_as_greedy": 0.155,
-          "seconds": 51.3
+          "seconds": 38.9
         },
         "5": {
           "bleu": 9.9,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.35,
           "same_as_greedy": 0.135,
-          "seconds": 87.4
+          "seconds": 85.9
         },
         "10": {
           "bleu": 9.41,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 9.59,
           "same_as_greedy": 0.12,
-          "seconds": 189.8
+          "seconds": 186.7
         }
       },
       "by_alpha": {
         "0.0": {
           "bleu": 9.6,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.13,
           "same_as_greedy": 0.125
         },
         "0.3": {
           "bleu": 9.61,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.2,
           "same_as_greedy": 0.12
         },
         "0.6": {
           "bleu": 9.9,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.35,
           "same_as_greedy": 0.135
         },
         "1.0": {
           "bleu": 10.32,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.77,
           "same_as_greedy": 0.14
         },
         "1.5": {
           "bleu": 9.53,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 13.42,
           "same_as_greedy": 0.115
         }
@@ -683,65 +727,76 @@
     "5": {
       "greedy": {
         "bleu": 7.1,
+        "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
         "mean_length": 12.21,
         "same_as_greedy": 1.0,
-        "seconds": 8.0
+        "seconds": 7.2
       },
       "by_beam_size": {
         "1": {
           "bleu": 7.1,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 12.21,
           "same_as_greedy": 1.0,
-          "seconds": 8.0
+          "seconds": 7.3
         },
         "2": {
           "bleu": 7.76,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 11.38,
           "same_as_greedy": 0.17,
-          "seconds": 27.3
+          "seconds": 25.0
         },
         "3": {
           "bleu": 8.6,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.7,
           "same_as_greedy": 0.12,
-          "seconds": 49.4
+          "seconds": 43.4
         },
         "5": {
           "bleu": 8.27,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.12,
           "same_as_greedy": 0.085,
-          "seconds": 88.1
+          "seconds": 94.1
         },
         "10": {
           "bleu": 8.02,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 9.49,
           "same_as_greedy": 0.08,
-          "seconds": 180.4
+          "seconds": 184.3
         }
       },
       "by_alpha": {
         "0.0": {
           "bleu": 8.35,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.02,
           "same_as_greedy": 0.07
         },
         "0.3": {
           "bleu": 8.25,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.03,
           "same_as_greedy": 0.07
         },
         "0.6": {
           "bleu": 8.27,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.12,
           "same_as_greedy": 0.085
         },
         "1.0": {
           "bleu": 8.17,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 10.38,
           "same_as_greedy": 0.095
         },
         "1.5": {
           "bleu": 7.28,
+          "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
           "mean_length": 12.8,
           "same_as_greedy": 0.08
         }

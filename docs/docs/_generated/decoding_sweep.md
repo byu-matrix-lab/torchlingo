@@ -15,12 +15,12 @@ smaller than the noise, and that is itself the finding.
 
 | `beam_size` | BLEU | mean length | same output as greedy | seconds |
 |---|---|---|---|---|
-| greedy | 7.55 ± 0.22 | 12.26 ± 0.24 | 100% | 8 |
+| greedy | 7.55 ± 0.22 | 12.26 ± 0.24 | 100% | 7 |
 | 1 | 7.55 ± 0.22 | 12.26 ± 0.24 | 100% | 8 |
-| 2 | 8.77 ± 0.32 | 11.42 ± 0.24 | 17% | 27 |
-| 3 | 9.16 ± 0.23 | 10.81 ± 0.22 | 13% | 49 |
-| 5 | 9.2 ± 0.29 | 10.33 ± 0.17 | 10% | 90 |
-| 10 | 8.73 ± 0.26 | 9.69 ± 0.21 | 9% | 189 |
+| 2 | 8.77 ± 0.32 | 11.42 ± 0.24 | 17% | 24 |
+| 3 | 9.16 ± 0.23 | 10.81 ± 0.22 | 13% | 40 |
+| 5 | 9.2 ± 0.29 | 10.33 ± 0.17 | 10% | 78 |
+| 10 | 8.73 ± 0.26 | 9.69 ± 0.21 | 9% | 163 |
 
 **Length normalization**, at `beam_size=5`:
 
@@ -54,3 +54,13 @@ eye, and it is what the claims on this page rest on:
 
 Reproduce with `python scripts/sweep_decoding.py`. BLEU and lengths are
 deterministic given the sampled subset; seconds are machine-dependent.
+
+Every BLEU number above was produced with:
+
+```
+nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0
+```
+
+That is the sacreBLEU signature. BLEU is sensitive enough to tokenization that
+a score without one is not comparable to anyone else's, so it is recorded here
+rather than left implicit.
