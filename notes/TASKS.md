@@ -48,9 +48,14 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | | Task | State |
 |---|---|---|
 | #94 | One Colab link for the Lecture 7 in-class activity | **Done** — PR #73 merged, and shipped in 0.2.0 |
-| #96 | Restate the step count in epochs | **Due Wed Sep 30** — unit decided |
-| #100 | Put the alignment check in front of students | **Due Wed Sep 30** |
-| #95 | One end-to-end 100K-pair run: wall clock and BLEU | **Due Wed Oct 7** — corpus ready, start now |
+| #96 | Restate the step count in epochs | **Done** — 30 to 36, in roadmap v3 and the A8 handout |
+| #100 | Put the alignment check in front of students | **Closed as moot** — its slot was Lecture 5, which has run |
+| #95 | One end-to-end 100K-pair run: wall clock and BLEU | **RUNNING** — Cowork needs the numbers by Oct 5 |
+| #119 | The learning curve: does more than 100K pairs help? | **Open — Eric's priority.** Ceiling is 1.32M |
+| #120 | `grader.exe` has no source and no home | Contingent — lands here if the author does not reply |
+| #121 | A Lecture 9 subword notebook, and it is ours | **Answer to Cowork by Oct 3** |
+| #122 | Make Assignment 9's control hard to get wrong in code | Open — worth more than the wording fix |
+| #123 | A14's two-directions case has never been run | Open — highest uncertainty, due Oct 28 |
 | #97 | SentencePiece on versus off, controlled | **Due Mon Oct 12** |
 | #102 | Inference cannot resume a long decode | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
@@ -58,7 +63,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #101 | Give the tutorials stable unique names | Open — after the tutorial PRs land |
 | #103 | Extend the notebook gate to `docs/docs/course/` | **Unblocked and now live** — four are on `main`, ungated |
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
-| #107 | The optimizations exist and nothing uses them | Open — 74% of an epoch is wasted padding |
+| #107 | The optimizations exist and nothing uses them | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
 | #109 | A8's 100K floor has no low-resource variant | **Open — Eric, before Oct 7** |
 | #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | Open — settle before A8's text |
@@ -78,7 +83,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #22 | `examples/` and `scripts/` are outside the lint gate | Open |
 | #28 | Attention params skip `_init_weights` | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | Open |
-| #42 | Lecture 7 assignment | **Routed to Cowork** — likely closes with nothing built |
+| #42 | Lecture 7 assignment | **Closed** — Cowork: "it needs nothing", as predicted |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
 | #48 | Audit pedagogical value; write down sequencing and outcomes | In progress — `notes/CURRICULUM.md` |
 | #51 | The docs gate reports but does not block | Open — repo settings |
@@ -513,6 +518,141 @@ The original cautions still hold for every one of them, because the release prov
 worth respecting: a green tick is green only against the base the checks last saw, and
 each of these predates today's `main`. Refresh and let CI re-run rather than trusting an
 old green. That is how all four of the merged ones were handled.
+
+### #119 The learning curve: does going past 100K pairs actually help?
+
+**Eric's priority, 2026-09-26. "Can we judiciously go from 100K sentences to more?"**
+
+**The ceiling is 1,319,631 pairs** — measured, being the distinct German sources in
+`data/bitext/all.de` after dropping blanks and source-equals-target. So the curve has room
+for roughly **13x** the current point, not the 2x that "more" might have meant.
+
+**#95's run is the 100K point**, so the curve extends work already under way rather than
+starting over.
+
+#### The confound that has to be designed out first
+
+More data means more batches per epoch, so training every point for the same number of
+*epochs* gives the larger points more gradient steps as well as more data. The curve then
+shows data and compute mixed together, and attributes all of it to data.
+
+**This repository has already published exactly that mistake**: a comparison that gave one
+model 19% more data *and* 80% more training while claiming data was the only difference. It
+is an easy one to make twice.
+
+Three honest designs, and they answer different questions:
+
+| design | question it answers | cost |
+|---|---|---|
+| equal epochs | what a student gets by pointing the assignment at more data | grows linearly with data |
+| equal optimizer steps | what more *unique* data buys at a fixed compute budget | flat across points |
+| train each to convergence | how much quality the data can ultimately support | largest, and unbounded |
+
+**Equal steps is the one to lead with**, because a student's real constraint is a Colab
+session rather than an epoch count, and because every point then costs the same wall clock.
+Report epochs-completed alongside, so the equal-epochs reading is recoverable from the same
+runs rather than needing a second sweep.
+
+#### Controls that must hold across points
+
+- **Nested subsets.** 25K must be a subset of 50K, and so on. Independent draws add
+  sampling noise to the curve and can invert two adjacent points on their own.
+- **One fixed dev and test set**, identical for every point, with their source groups
+  excluded from every training set. `split_bitext.py` already groups by source, so this
+  builds on a verified split rather than a fresh one.
+- **One fixed tokenizer** across all points. Refitting SentencePiece per point changes the
+  vocabulary at the same time as the data, which is the Assignment 9 control bug in a
+  different costume. State which split it was fit on, since fitting on the largest train set
+  and fitting on 100K are different choices and neither is neutral.
+- **The 100-token cap**, so memory stays at the measured 9.60 GiB regardless of corpus size.
+  Data size changes batch *count*, not batch shape, so the ladder's memory result carries
+  over unchanged.
+
+#### Judiciousness, concretely
+
+Epoch time scales about linearly with pairs: 192 s at 100K measured, so roughly 25 minutes an
+epoch at 800K. At 36 epochs a full seven-point sweep is on the order of **44 hours**, which
+is why the design above matters more than the compute.
+
+- Walk it upward like the ladder, cheapest first, and stop when the curve flattens. If 200K
+  barely beats 100K there is no case for 800K.
+- **Measure seed noise once, at the cheapest point**, with two or three seeds. Without it
+  there is no way to know whether a 0.4 BLEU gap between adjacent points is real, and the
+  temptation will be to read it as real.
+- Every number to JSON, and the report generated, per `notes/reports/`.
+
+#### What it settles beyond Eric's question
+
+**#109.** If the curve is steep below 100K, a low-resource student with 40K is losing a
+quantified amount rather than an unknown one, which turns A8's floor from a judgement into
+an arithmetic problem.
+
+### #120 `grader.exe` has no source and no home
+
+**From Cowork, 2026-09-26. Not a request yet: Eric has written to the author.**
+
+The tool Lectures 4 and 5 both send students to is four PyInstaller binaries and an
+`Instructions.md` in a PhD student's personal OneDrive. 27 MB Windows, 25 MB Intel Mac,
+105 MB M-series, **301 MB Linux**. The Windows and M-series builds date from September 2023.
+Nothing matching it exists in `byu-matrix-lab` or on the author's GitHub, and there is no
+license and no version.
+
+Two consequences, and the second is the one that would bother a reviewer:
+
+- The course loses the tool the day that OneDrive account is reclaimed.
+- Students are currently told to download an unsigned 301 MB executable and override
+  Gatekeeper to run it. That is a bad habit to teach regardless of where the code lands.
+
+**If the source is gone this lands here**, and `torchlingo.diagnostics` is the obvious home:
+public, tested, pip-installable, already in front of students, and it already does the
+alignment and contamination halves of the job. The checks are documented in the Lecture 4
+deck, so there is a specification. A rewrite there also deletes the download-a-binary step
+from the course entirely.
+
+### #121 A Lecture 9 subword notebook, and it is ours to write
+
+**Cowork needs an answer by Oct 3; Lecture 9 is Mon Oct 5, Assignment 9 due Oct 12.**
+
+The existing SentencePiece handout is OpenNMT-specific and has to be replaced.
+`docs/docs/course/lecture-09-subword-tokenization.ipynb` is the natural form, and that
+directory is now ours.
+
+**The demonstration it should carry**, which is already agreed and is better than a diagram:
+before subwording a student's tokens are words; after it the same 100-token cap excludes a
+*different* set of sentences; they can count the difference on their own data.
+`audit_bitext.py`'s cap-pricing table is exactly this measurement, so the notebook and the
+audit tool tell one story.
+
+The one-line version Cowork asked for: **their tokens stop being words, the same sentence
+gets roughly 1.8x longer, and every length-based rule they have written now selects a
+different set of sentences.**
+
+### #122 Make Assignment 9's control hard to get wrong in code, not just in prose
+
+**Cowork fixed the wording; they also said that if the library can make it hard to get wrong,
+that is worth more. It is.**
+
+A9 asks students to hold everything fixed except the tokenizer. If the length cap is
+expressed in tokens, changing the tokenizer changes the training set, so the comparison has
+two variables and the write-up credits all of it to the tokenizer.
+
+The wording fix is "choose the sentence set once, with the subword tokenizer, and use that
+same set for both runs". A student can still not do that, and nothing will tell them.
+
+What would: a way to select a sentence set once and carry it between runs — an explicit id
+list, or a split written to disk and reused, rather than a cap re-applied per run. Worth
+scoping against what `NMTDataset` already offers before adding anything.
+
+### #123 A14's two-directions case has never been run
+
+**Due Wed Oct 28. Lowest risk by date, highest uncertainty by evidence.**
+
+`preprocessing.multilingual` has never been exercised at "two directions, intermingled,
+separate test sets per direction", which is precisely what Assignment 14 asks for. Lecture
+14's handout is a Word document written for OpenNMT and needs replacing outright.
+
+Distinct from **#99**, which is the tutorial. This is the question of whether the code path
+works at all, and it should be answered before a notebook is written on top of it.
 
 ### #118 What does a paid Colab session actually provide?
 
