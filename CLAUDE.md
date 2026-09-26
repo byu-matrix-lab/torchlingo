@@ -311,6 +311,52 @@ Nothing reached the remote, but it went unnoticed for several commands. Put
 `git branch --show-current` between the checkout and anything destructive, and
 read it.
 
+## `docs/docs/course/` belongs to this repository
+
+The CS 479 in-class notebooks live in `docs/docs/course/`. The Cowork session writes their
+content but does **not** run git: changes arrive as requests in
+`notes/handoff/from-cowork.md`, and committing, the nav entry and the pull request happen
+here.
+
+Two standing constraints:
+
+- **Instructor notebooks never go public.** Lectures 3 and 4 have separate INSTRUCTOR
+  notebooks carrying worked solutions. They stay out of this tree.
+- **Nothing moves under a live assignment.** Students work in Google Drive copies. A
+  change to a notebook whose assignment is open waits until the assignment closes, and the
+  Drive copies are never deleted while students are in them — only the copies on Eric's
+  desktop are Cowork's to remove.
+
+New notebooks copy tutorial 2's two-cell setup pattern: detect Colab and install
+unconditionally, then verify and fail loudly. Not the old commented-out install, which was
+the bug.
+
+## Handing the baton
+
+Two Claude sessions work on CS 479: this one, in the repository, and a Cowork session
+that owns the course decks. They cannot message each other, so `notes/handoff/` is the
+channel. The protocol itself — which file is the mailbox, how entries are appended, and
+why — is in `notes/README.md`.
+
+**One rule belongs here rather than there: a baton pass in either direction means
+reconciling `notes/TASKS.md` in the same sitting.**
+
+A handoff is precisely when the lists go stale, and the only moment when both sides know
+what actually changed. It typically closes some tasks, reopens others, and creates work
+that only the *receiving* side can see is now possible.
+
+The first pass under this rule is the evidence for it. One baton return closed Task #42
+outright ("it needs nothing"), settled Task #96, made Task #100 moot because its lecture
+slot had already passed, and created five tasks that were invisible from this side until
+Cowork wrote them down — including `grader.exe` having no source or license, a dependency
+the course had been carrying blind for a year.
+
+None of that is discoverable by reading the code. It arrives only in the handoff, and if
+the lists are not reconciled then, the next session inherits a list describing last week.
+
+So read the incoming entry, walk the status table **before** starting work, and say in the
+reply which tasks moved.
+
 ## Project Goals
 
 This library prioritizes:
