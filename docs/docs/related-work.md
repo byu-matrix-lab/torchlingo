@@ -123,8 +123,9 @@ any of the following, which is where this project puts its effort:
 **Diagnosis as a subject.** A model that does not work fails silently: training runs, the
 loss curve looks like a loss curve, translations appear, and every number is wrong.
 Tutorial 6 breaks a working model five different ways and makes the student watch a
-specific check fire for each. The checks ship as `torchlingo.diagnostics` so they can be
-used on real work, not only read.
+specific check fire for each. The checks ship as
+[`torchlingo.diagnostics`](reference/diagnostics.md) so they can be used on real work,
+not only read.
 
 **Empirical discipline, taught through MT rather than asserted.** Controlled comparison,
 test-set contamination, `ln(V)` as the reference for "learned nothing", significance
