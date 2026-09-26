@@ -47,7 +47,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 
 | | Task | State |
 |---|---|---|
-| #94 | One Colab link for the Lecture 7 in-class activity | **Due Mon Sep 28** — in review, PR #73 |
+| #94 | One Colab link for the Lecture 7 in-class activity | **Done** — PR #73 merged, and shipped in 0.2.0 |
 | #96 | Restate the step count in epochs | **Due Wed Sep 30** — unit decided |
 | #100 | Put the alignment check in front of students | **Due Wed Sep 30** |
 | #95 | One end-to-end 100K-pair run: wall clock and BLEU | **Due Wed Oct 7** — corpus ready, start now |
@@ -56,18 +56,18 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
 | #101 | Give the tutorials stable unique names | Open — after the tutorial PRs land |
-| #103 | Extend the notebook gate to `docs/docs/course/` | **Unblocked** — four have arrived |
+| #103 | Extend the notebook gate to `docs/docs/course/` | **Unblocked and now live** — four are on `main`, ungated |
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | Open — 74% of an epoch is wasted padding |
-| #108 | Nothing releases the device allocator's cache | Open — measured: 99.8% of held memory is reclaimable |
+| #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
 | #109 | A8's 100K floor has no low-resource variant | **Open — Eric, before Oct 7** |
 | #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | Open — settle before A8's text |
-| #111 | Does the Lecture 6 activity notebook go public? | **Open — Eric's decision** |
-| #112 | Expired Lecture 6 refs in the briefing; build the ladder | Briefing done — ladder blocked on PR #84 |
+| #111 | Does the Lecture 6 activity notebook go public? | **Done** — Eric ruled yes; merged in PR #85 |
+| #112 | Expired Lecture 6 refs in the briefing; build the ladder | Briefing done — rungs 5 to 40 measured, 80 running |
 | #113 | Land the six PRs still open | All six refreshed and green against today's `main` |
 | #115 | The four course notebooks, and the deck's link switch | **Done** — PR #85 merged; badges resolve |
 | #116 | `create_dataloaders` discards the `Config` it is handed | **Done** — PR #84 merged; ladder unblocked |
-| #117 | A PR based on `main` self-closed during an unrelated merge | Open — recovered; contradicts `CLAUDE.md` |
+| #117 | A PR based on `main` self-closed during an unrelated merge | Recovered — correction in **PR #91**, Eric's review |
 | #118 | What does a paid Colab session actually provide? | **Coulson** — blocks any A8 memory claim |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
@@ -103,7 +103,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #86 | `evaluate_model` has no test, and it is what callers use | Open — after PR #58 |
 | #88 | Open the tutorial 7 PR | **Unblocked — PR #58 has merged** |
 | #89 | Fail the docs build when a page is off-nav | Open |
-| #90 | `CLAUDE.md`'s numbering example is stale | Open |
+| #90 | `CLAUDE.md`'s numbering example is stale | In review — **PR #91**, folded in |
 | #91 | `metric_comparison.json` records no BLEU signature | Open — after PRs #55 and #58 |
 | #92 | Tutorials 3 and 5 bypass the library's own evaluation API | Open |
 
@@ -746,8 +746,42 @@ throughput, sequence length dominates memory.** They are separate levers and the
 a memory failure, so the lever that matters for #95 is the cap, while the lever for epoch
 time is batch size.
 
-Next: walk rungs 10, 20, 40 and 80, one at a time. The prior two rungs are preserved in
-`data/ladder-backup/` rather than overwritten, being the invalid 512-cap pair.
+**The whole ladder, 2026-09-26.** Batch 64, `d_model` 256, 3 layers, bucketing on, MPS on a
+64 GiB machine, two epochs a rung, seed 1. Truncation percentages are from
+`audit_bitext.py`, on the longer side of each pair.
+
+| cap | device held | s/epoch | drops |
+|---|---|---|---|
+| 5 | 0.31 GiB | 136.2 | 99.04% |
+| 10 | 1.28 | 138.1 | 89.38% |
+| 20 | 1.43 | 147.3 | 56.82% |
+| 40 | 2.52 | 167.8 | 16.91% |
+| 80 | 6.46 | 183.0 | 2.70% |
+| 100 | *running* | — | 1.30% |
+| none | 35.80 | 192.0 | 0% |
+
+**Two corrections to earlier arithmetic in this very entry.** The growth is **not quadratic
+in the cap**: beyond 40 it settles at about **length^1.4** (40 to 80 is 2.56x for 2x; 80 to
+266 is 5.54x for 3.3x), because the linear embedding and feed-forward activations dominate
+until sequences get long enough for attention to overtake them. And the **512 positional
+ceiling never bound anything** — the corpus's longest pair is 266 subwords, so the run
+labelled "uncapped" *is* the cap-266 measurement.
+
+**Rung 5 should not be quoted.** At a 5-token cap 99.04% of pairs are truncated, so it is a
+degenerate run rather than a data point about scaling, and the 4.1x it appeared to show from
+5 to 10 is an artifact of that.
+
+**The practically useful finding.** Memory and time are separate levers with different
+shapes. Across the whole range time moves 1.41x while memory moves 115x. So **batch count
+sets how long an epoch takes and the length cap sets whether it fits at all** — which is the
+one sentence students need, and it is now measured rather than reasoned.
+
+Next: rung 100, because that is Eric's agreed cap and therefore the only figure Assignment 8
+depends on. Extrapolation says 8 to 9 GiB, which is why it is being measured instead. Then
+#118 supplies Colab's ceiling and the two halves meet.
+
+The prior two rungs are preserved in `data/ladder-backup/` rather than overwritten, being the
+invalid 512-cap pair; each real rung is backed up there too as it completes.
 
 Superseded note, kept because the reasoning above depends on it: the rungs completed so
 far have to be discarded rather than reused, since they are all the same configuration.
