@@ -8,6 +8,79 @@ file every time.
 
 ---
 
+## 2026-09-26, later
+
+**The four notebooks are in PR #85 and will be on `main` before Monday. Filenames are
+final. One thing you cleared needs re-reading.**
+
+### Answers to what you asked
+
+**Filenames: no renames.** `lecture-03-word-embeddings`, `lecture-04-tmx-cleaning`,
+`lecture-05-sentence-alignment`, `lecture-06-mt-evaluation`, all under
+`docs/docs/course/`. Cite them in slides as they stand. If that ever has to change you
+will get an entry here before the rename, not after.
+
+**Badges verified.** All four point at
+`byu-matrix-lab/torchlingo/blob/main/docs/docs/course/<name>`, which matches the real
+remote and tutorial 2's known-good badge. They resolve the moment PR #85 merges, which is
+what Monday's link switch needs.
+
+**Nav.** They appear under a "Course Notebooks" section, with a comment recording that
+they are numbered by lecture and therefore do not line up with the tutorial numbers.
+`mkdocs build --strict` exits 0 and all four pages render.
+
+### The one correction, and it matters because you cleared it
+
+**Lecture 4's inline TMX sample is not synthetic.** You described it as "44 lines of
+synthetic TMX written inline, not Church material", and read the file against the private
+repository's concern on that basis. The segs are real Church curriculum and scripture
+text in English–Spanish: "Come, follow me", "Faith is not a perfect knowledge",
+"2 Nephi 31:20" / "2 Nefi 31:20", "Charity never faileth", "Behold, I say unto you… watch
+and pray always", plus `<ph>` placeholder tags of the kind the corpus actually carries.
+
+Your *conclusion* about the assignment still holds — the student cells are genuine stubs
+and the substantial function is a detector, exactly as you said. But the data
+characterisation was wrong, and Eric's go-public ruling had been made on it. It went back
+to him with the correction and he confirmed it publishes as is: short, publicly available
+scripture, not private corpus material. Nothing for you to do. Recorded because a
+clearance that rested on a wrong premise should not stay on the record unmarked.
+
+### Your queued change is accepted, for after Monday
+
+The `compute_chrf` / `compute_ter` wrapper removal in `lecture-06-mt-evaluation.ipynb`
+will be made from this side after Mon Sep 28, imports going back to
+`torchlingo.evaluation`, and verified on the Part 1 example expecting **chrF 78.40** and
+failing loudly on 100.00. The Part 4 `# TODO:` cell will be left exactly as it is.
+
+### CI: your analysis is encoded, the gate is not built yet
+
+Deliberately not attached to PR #85, because putting Monday's deadline behind a CI change
+is the wrong trade. The four are published but not executed. Your breakdown is recorded
+in the PR and is the specification for the follow-up: Lecture 5 gateable as is, Lecture 4
+needs `translate-toolkit`, Lecture 3 downloads a model, and Lecture 6 Parts 1–3 only —
+with the point you made, that a green check on Lecture 6 would cover the demonstration
+half and say nothing about the half students submit from. The runner's `REQUIREMENTS`
+understands files, not pip packages or half-runnable notebooks, so it needs real work.
+
+### Lecture 8 is now over-subscribed, and that is yours to triage
+
+Retargeting the expired Lecture 6 recommendations has quietly piled four of the five
+tutorial-6 debugging questions onto Lecture 8, on top of the train/dev/test lesson and
+the A8 handout, in 75 minutes on Wed Sep 30. That does not fit. The briefing's table now
+says so and proposes an order — splits first, then `diagnose_alignment`, then the
+measurement thread as homework via tutorial 7, then `check_eval_mode` after A8 — but the
+call is yours. Briefing suggestions 3 and 4 moved off Lecture 6 for the same reason.
+
+### Still open
+
+- **The A5 audit.** Still blocked, and neither of us can unblock it: you cannot reach the
+  private repository and the audit script lives there. This needs Eric to either stage
+  `scripts/audit_bitext.py` somewhere you can read or run it himself against the
+  submissions. Flagging it as his, not ours.
+- **A8's low-resource floor.** Yours to keep chasing him on; eleven days out.
+
+---
+
 ## 2026-09-26
 
 **TorchLingo 0.2.0 is on PyPI. The reason to keep OpenNMT in the decks is gone, and

@@ -185,9 +185,10 @@ the copy a student reads:
 
 - **Tutorial 2, "Train a Tiny Model", already is the Lecture 7 activity.** It maps
   directly onto the OpenNMT Quickstart it replaces.
-- **A new tutorial 7 on evaluation covers Lecture 6 ground.** Written and verified,
-  waiting on PR #58 to merge. It teaches BLEU versus chrF versus TER as a decision
-  between two systems, no model or corpus required.
+- **A new tutorial 7 on evaluation covers Lecture 6 ground.** Written and verified.
+  **No longer blocked:** PR #58 merged and 0.2.0 is on PyPI, so the wrappers it needed
+  are published. It teaches BLEU versus chrF versus TER as a decision between two
+  systems, no model or corpus required. Its own pull request is still open.
 
 ---
 
@@ -267,13 +268,26 @@ Tutorial 6 organises debugging as five questions, and they already fall in the
 course's own order. That is a useful coincidence: the tutorial can be split across
 lectures instead of taught once.
 
-| Tutorial 6 question | Library call | Where it lands |
-|---|---|---|
-| Is the data what you think it is? | `diagnose_alignment` | Lecture 5, with cleaning |
-| Is it learning *anything*? | `check_loss_moved`, `uniform_loss` | Lecture 7, first training |
-| Is it learning the *wrong* thing? | `check_generalization`, `check_contamination` | Lecture 6, with splits |
-| Is the measurement lying? | the evaluation thread | Lecture 6 |
-| Is it the environment? | `check_eval_mode` | Lecture 8, first real inference |
+**Retargeted 2026-09-26.** Three of these five slots have since expired. The original
+column is kept because it records where each question *belongs* when the course is
+taught in order, which is the version worth having in a Fall 2027 rewrite.
+
+| Tutorial 6 question | Library call | Belongs in | Live target |
+|---|---|---|---|
+| Is the data what you think it is? | `diagnose_alignment` | Lecture 5, with cleaning | **Lecture 8** — Lecture 5 has run |
+| Is it learning *anything*? | `check_loss_moved`, `uniform_loss` | Lecture 7, first training | Lecture 7, unchanged |
+| Is it learning the *wrong* thing? | `check_generalization`, `check_contamination` | Lecture 6, with splits | **Lecture 8**, with the splits lesson below |
+| Is the measurement lying? | the evaluation thread | Lecture 6 | **Lecture 8** — A8 requires SacreBLEU |
+| Is it the environment? | `check_eval_mode` | Lecture 8, first real inference | Lecture 8, unchanged |
+
+**This crowds Lecture 8, and that is a real cost rather than a bookkeeping note.**
+Four of the five now land in one 75-minute lecture on Wed Sep 30, which is also where
+Assignment 8 is handed out and where the train/dev/test lesson goes. That is more than
+fits. The triage is yours, but the order the repository would defend is: the splits
+lesson first, because A8's deliverable depends on it; then `diagnose_alignment`, because
+it is the one that catches a corpus already broken; then the measurement thread, which
+can be carried by tutorial 7 as homework rather than lecture time; and `check_eval_mode`
+last, since nothing breaks until students run real inference after A8.
 
 Six specific suggestions, cheapest first.
 
@@ -288,15 +302,20 @@ default, and it puts a nonzero floor under the loss, so a converged model platea
 well above zero. Students read that plateau as failure. The Lecture 8 deck already
 debriefs what went wrong for people; this belongs in it.
 
-**3. Run the new evaluation tutorial as Lecture 6's Colab activity.** It needs no
-model, no corpus and no GPU, so it works in a room where nothing is installed yet.
-Students watch BLEU prefer the system that reversed the meaning of every sentence,
-which is the sharpest possible version of Lecture 6's existing "raw BLEU is not
-comparable" thread.
+**3. Set the new evaluation tutorial as homework after Lecture 8.** *Retargeted
+2026-09-26: this said "Lecture 6's Colab activity", and Lecture 6 ran on Wed Sep 23.*
+It needs no model, no corpus and no GPU, so it is not competing for lecture time and
+does not care what is installed. Students watch BLEU prefer the system that reversed the
+meaning of every sentence. Homework rather than an activity specifically because Lecture
+8 is already over-subscribed, per the table above — and because A8 asks students to
+report SacreBLEU that same week, so it arrives exactly when they need it.
 
-**4. Teach the signature in Lecture 6, where SacreBLEU is introduced.** The lecture
-already argues that raw BLEU is not comparable. The signature is the concrete
-mechanism for fixing that, and the library now prints one next to every BLEU.
+**4. Teach the signature alongside Assignment 8, not in Lecture 6.** *Retargeted
+2026-09-26 for the same reason.* Lecture 6 introduced SacreBLEU and already argued that
+raw BLEU is not comparable; the signature is the concrete mechanism for fixing that, and
+the library now prints one next to every BLEU. The natural hook is now A8's reporting
+requirement: ask for the signature next to the score, and the lesson teaches itself when
+two students' numbers turn out not to be comparable.
 
 **5. Move the beam-size discussion after Assignment 8, not before.** Tutorial 3
 sweeps beam size and every row comes out identical, because a toy model is decisive
