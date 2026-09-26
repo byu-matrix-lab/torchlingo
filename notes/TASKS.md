@@ -64,9 +64,9 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | Open — settle before A8's text |
 | #111 | Does the Lecture 6 activity notebook go public? | **Open — Eric's decision** |
 | #112 | Expired Lecture 6 refs in the briefing; build the ladder | Briefing done — ladder blocked on PR #84 |
-| #113 | Land the eight PRs still open | **PR #85 gates the Lecture 6 deck edit** |
-| #115 | The four course notebooks, and the deck's link switch | **In review, PR #85 — gating** |
-| #116 | `create_dataloaders` discards the `Config` it is handed | In review, PR #84 — blocks the ladder |
+| #113 | Land the six PRs still open | All six refreshed and green against today's `main` |
+| #115 | The four course notebooks, and the deck's link switch | **Done** — PR #85 merged; badges resolve |
+| #116 | `create_dataloaders` discards the `Config` it is handed | **Done** — PR #84 merged; ladder unblocked |
 | #117 | A PR based on `main` self-closed during an unrelated merge | Open — recovered; contradicts `CLAUDE.md` |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
@@ -461,7 +461,7 @@ Worth noting they also audited `CS479_COURSE_ROADMAP.md` for anything that shoul
 public before it was committed — no URLs, no SharePoint links, no student names, no
 credentials.
 
-### #113 Land the eight PRs still open
+### #113 Land the six PRs still open
 
 **No longer blocking anything.** Four of the nine landed on 2026-09-26 and **0.2.0 is
 published**, verified by installing from PyPI: 11 of 11 modules import, chrF reads 78.40
@@ -471,13 +471,34 @@ remains is improvement rather than repair.
 Landed: **#53** the version guard and the bump, **#58** the chrF and TER fix, **#73**
 tutorial 2's install, **#81** the decode-length unification.
 
-Still open, eight as of 2026-09-26: **PR #51** nav entries, **PR #52** tutorial 6 imports,
-**PR #54** the length-normalization resolution, **PR #55** the sacreBLEU signature,
-**PR #57** the causal-mask convention, **PR #59** Transformer attention, **PR #84** the
-dropped Config, **PR #85** the four course notebooks.
+Also landed 2026-09-26, both admin-merged with Eric's per-PR approval: **PR #85** the four
+course notebooks, and **PR #84** the dropped `Config`. PR #85 was what gated the Lecture 6
+deck's link switch, so that is unblocked — the badges resolve off `main` now.
 
-**PR #85 is the one with a deadline**: the Lecture 6 deck's link switches to its Colab
-badge on Mon Sep 28, and the badge cannot resolve until it merges.
+Still open, six: **PR #51** nav entries, **PR #52** tutorial 6 imports, **PR #54** the
+length-normalization resolution, **PR #55** the sacreBLEU signature, **PR #57** the
+causal-mask convention, **PR #59** Transformer attention.
+
+**All six were refreshed on 2026-09-26 and are green against today's `main`.** They had
+each been 27 commits behind. The refresh was free at that moment because none carried an
+approval, so pushing dismissed nothing — the right time to do it, since a refresh *after*
+approval costs the approval.
+
+The staleness was not hypothetical. Before the refresh all six were green on ten checks and
+**none of them had ever run `Tag matches pyproject version`**, the gate PR #53 added. They
+were green against a `main` that did not have it, which is precisely the PR #17 pattern.
+All six now carry the gate and pass it.
+
+The two with real semantic overlap came out clean, which is worth recording because the
+expectation was the opposite: **PR #54** touches `inference.py`, which PR #81 rewrote for
+decode length, and **PR #55** touches evaluation, which PR #58 rewrote for reference shape.
+Tests pass on both.
+
+**One genuine conflict, and it was self-inflicted.** PR #51 collided with `main` on
+`docs/mkdocs.yml`, because PR #85 added the Course Notebooks nav section in the same place
+PR #51 adds tutorial 6. A `merge-tree` dry run *before* PR #85 merged had reported all
+eight clean, so the conflict was created in between. Resolved by keeping both — tutorial 6
+inside Tutorials, the Course section after it — and `mkdocs build --strict` exits 0.
 
 Two of those now have knock-on effects worth knowing. PR #51 is what fixes **Task #84**,
 which stopped being a prediction and became a live defect the moment PR #58 landed.
@@ -657,7 +678,41 @@ from what the rungs actually show, which is narrower —
 - Wall clock at 1559 batches is ~123 ms/batch, so **batch count dominates**, not sequence
   length. If throughput is the goal, larger batches beat shorter sequences.
 
-Next: rerun the ladder once **PR #84** lands, one rung at a time. The rungs completed so
+**Rung 5 re-run for real, 2026-09-26, and it settles the question the other way.** PR #84
+merged, so the cap now reaches the data. Same script, same seed, same corpus, the only
+difference being that `max_seq_length=5` is now obeyed:
+
+| | rung 5, real cap | the same command at the 512 cap |
+|---|---|---|
+| device held | **0.31 GiB** | 35.80 GiB |
+| reclaimable by `empty_cache` | 0.25 GiB | 35.73 GiB |
+| peak resident | 0.91 GiB | 3.54 GiB |
+| seconds/epoch | 136.2 | 192.0 |
+| batches/epoch | 1562 | 1559 |
+| val loss | 5.5253, 4.8594 | 7.0392, 6.3099 |
+
+**Sequence length is the driver.** A genuine 5-token cap holds **115x less** device memory
+than the same run uncapped. The original pre-ladder diagnosis — attention memory quadratic
+in the batch's longest sequence — was right, and the retraction recorded above was an
+artifact of the broken knob rather than a correction to the physics. Restated plainly so the
+record is not left pointing the wrong way.
+
+**What this demotes.** #108 remains a real defect, but it is secondary rather than the
+cause. At 5 tokens there is only 0.25 GiB to reclaim, so unreleased cache is not what
+creates 35 GiB — length is. Calling `empty_cache` would have released the spike *after* it
+was taken, which on unified memory is often too late. The allocation has to be bounded, not
+returned.
+
+**What it confirms.** Wall clock barely moved: 136.2 s/epoch against 192.0, a 1.4x gain for
+a 100x memory reduction, at essentially the same batch count. **Batch count dominates
+throughput, sequence length dominates memory.** They are separate levers and the crash was
+a memory failure, so the lever that matters for #95 is the cap, while the lever for epoch
+time is batch size.
+
+Next: walk rungs 10, 20, 40 and 80, one at a time. The prior two rungs are preserved in
+`data/ladder-backup/` rather than overwritten, being the invalid 512-cap pair.
+
+Superseded note, kept because the reasoning above depends on it: the rungs completed so
 far have to be discarded rather than reused, since they are all the same configuration.
 
 ## Code — decoding performance
