@@ -1,0 +1,92 @@
+# notes/
+
+Working notes for TorchLingo. Two kinds of thing live here, and the distinction is
+the point of this file.
+
+**Reference documents** are current state. They get edited in place, and the latest
+version is the truth.
+
+**Handoff logs** are a conversation. They get appended to, newest entry first, and
+nothing in them is edited after the fact.
+
+## The layout
+
+```
+notes/
+  README.md                        this file
+  TASKS.md                         the authoritative task list
+  CURRICULUM.md                    pedagogical sequencing and outcomes
+  CS479_COURSE_ROADMAP.md          the CS 479 course map, per lecture
+  TORCHLINGO_VS_OPENNMT.md         competitive assessment
+  EVAL_CHRF_TER_TRANSPOSE_BUG.md   a bug report; delete when PR #58 merges
+  handoff/
+    briefing.md                    standing briefing for the Cowork session
+    to-cowork.md                   messages out, newest first
+    from-cowork.md                 messages in, newest first
+    ARCHIVE/                       entries that have been acted on
+```
+
+## The handoff protocol, and why it exists
+
+Two Claude sessions work on CS 479: **this one**, in the TorchLingo repository, and a
+**Cowork session** rebuilding the course decks and writing in-class notebooks. They
+cannot message each other. `ListAgents` from here shows fourteen peer sessions and
+none of them is that one.
+
+What they *can* both do is read and write this working tree. So the tree is the
+channel, and these two files are the mailbox:
+
+| File | Written by | Read by |
+|---|---|---|
+| `handoff/to-cowork.md` | the repository session | the Cowork session |
+| `handoff/from-cowork.md` | the Cowork session | the repository session |
+
+The alternative was Eric copying messages between two chat windows, which is slower,
+loses the history, and makes "what did we already tell them" unanswerable.
+
+### How to use it
+
+**Writing.** Append a new entry at the **top**, under a date heading. Keep it short
+and say what you want. Point at a longer document rather than restating it.
+
+```markdown
+## 2026-09-24
+
+**Subject in one line.**
+
+Two or three sentences. What changed, and what you want done about it.
+
+- Anything needing an answer, as a list, so nothing gets lost in prose.
+```
+
+**Reading.** Start at the top and stop when you reach an entry you have already acted
+on. Move handled entries into `ARCHIVE/YYYY-MM-DD-subject.md` so the live file stays
+short.
+
+**Never edit someone else's entry.** Correct it by adding a new one that says what
+changed. The log is a record of what was believed when, which is exactly what is lost
+by editing in place, and this project has already been bitten several times by a note
+that quietly stopped being true.
+
+### briefing.md versus to-cowork.md
+
+They do different jobs and both are needed.
+
+- **`briefing.md` is current state**, edited in place. It is what a session reads
+  *once* to get oriented: the ask, the corrections, the corpus numbers, the
+  curriculum recommendations. It is long, and it is meant to be.
+- **`to-cowork.md` is what changed**, appended. It is what a session reads *every
+  time*, so it can find three new lines without re-reading six hundred.
+
+If an entry in the log turns out to matter permanently, fold it into the briefing and
+archive the entry. That keeps the briefing authoritative and the log short.
+
+### The weakness, stated plainly
+
+**Neither side is notified.** This is polling, not publish-and-subscribe: each
+session sees the other's message only when it next looks at the file. That is fine
+for a handoff measured in hours and useless for a conversation measured in minutes.
+
+If one of those fourteen peer sessions ever turns out to *be* the Cowork session,
+`SendMessage` addresses it directly and this protocol becomes a written record rather
+than the transport. Both are worth having; only one of them is available today.

@@ -4,44 +4,661 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #77 and PRs to #48, so every number below 49 names one of each. Say
+Tasks run to #114 and PRs to #81, so every number below 82 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
 
+## This file is the whole list; the session mirror is only what is urgent
+
+**Convention, Eric's, 2026-09-25.** A task stays on the in-session task list only if it
+contributes to **Lecture 7 (Mon Sep 28)** or **Lecture 8 (Wed Sep 30)**. Everything else
+lives here and here alone.
+
+That keeps the working list short enough to be read, without losing anything: this file
+is authoritative and always has every task. The mirror is a filter over it, not a second
+copy of it.
+
+What passes the filter today: #16 and #113, because the release is what Monday depends
+on; #42 and #94, which are Lecture 7 itself; #95, #96, #100, #109 and #110, which
+Assignment 8's text needs before it is handed out on Sep 30; and #112, which builds the
+measurement the others wait on.
+
+The test to apply is *"must this be done for Lecture 7 or Lecture 8 to happen
+correctly?"* — not "is this related to them". #44 failed that test on inspection: it
+gates the sdist against shipping a Git LFS pointer, which sounds release-critical until
+you check, and the installed wheel turns out to carry **no data files at all**.
+
 Everything here is work that can be finished and then deleted. Standing rules live in
-`CLAUDE.md`; decisions and findings live where they apply.
+`CLAUDE.md`; decisions and findings live where they apply. `notes/README.md` maps the
+rest of this directory, including the `handoff/` protocol used to exchange messages
+with the Cowork session rebuilding the CS 479 decks.
 
 ## Status
 
+"In review" means the work is written and sitting in an open pull request; the task
+is not finished until that PR merges, and only then does the row disappear.
+
+**Tasks #93 to #100 have external deadlines.** They come from
+`notes/CS479_COURSE_ROADMAP.md`: CS 479 is pivoting to TorchLingo *this* semester, and
+eighteen students hit the library in class on **Mon Sep 28**. Those tasks are dated, they
+are sequenced against a calendar nobody here controls, and they outrank everything else in
+this file until Oct 28. See "The CS 479 pivot" below for the schedule and the reasoning.
+
 | | Task | State |
 |---|---|---|
-| #16 | Release pipeline broken — nothing ships | Open |
-| #4 | Resolve length-normalization semantics | Open |
-| #7 | PyTorch deprecation warnings | Open |
+| #94 | One Colab link for the Lecture 7 in-class activity | **Due Mon Sep 28** — in review, PR #73 |
+| #96 | Restate the step count in epochs | **Due Wed Sep 30** — unit decided |
+| #100 | Put the alignment check in front of students | **Due Wed Sep 30** |
+| #95 | One end-to-end 100K-pair run: wall clock and BLEU | **Due Wed Oct 7** — corpus ready, start now |
+| #97 | SentencePiece on versus off, controlled | **Due Mon Oct 12** |
+| #102 | Inference cannot resume a long decode | **Needed by Mon Oct 19** — largest undone piece |
+| #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
+| #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
+| #101 | Give the tutorials stable unique names | Open — after the tutorial PRs land |
+| #103 | Extend the notebook gate to `docs/docs/course/` | **Unblocked** — four have arrived |
+| #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
+| #107 | The optimizations exist and nothing uses them | Open — 74% of an epoch is wasted padding |
+| #108 | Nothing releases the device allocator's cache | Open — measured: 99.8% of held memory is reclaimable |
+| #109 | A8's 100K floor has no low-resource variant | **Open — Eric, before Oct 7** |
+| #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | Open — settle before A8's text |
+| #111 | Does the Lecture 6 activity notebook go public? | **Open — Eric's decision** |
+| #112 | Expired Lecture 6 refs in the briefing; build the ladder | Briefing done — ladder blocked on PR #84 |
+| #113 | Land the eight PRs still open | **PR #85 gates the Lecture 6 deck edit** |
+| #115 | The four course notebooks, and the deck's link switch | **In review, PR #85 — gating** |
+| #116 | `create_dataloaders` discards the `Config` it is handed | In review, PR #84 — blocks the ladder |
+| #117 | A PR based on `main` self-closed during an unrelated merge | Open — recovered; contradicts `CLAUDE.md` |
+| #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
+| #4 | Resolve length-normalization semantics | In review — PR #54 |
+| #7 | PyTorch deprecation warnings | In review — PR #57 |
 | #8 | Verify Eole claims before syllabus use | Open |
 | #9 | `pre-commit install` (still not installed) | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
 | #22 | `examples/` and `scripts/` are outside the lint gate | Open |
 | #28 | Attention params skip `_init_weights` | Open |
-| #35 | Malformed tag `v.0.0.8` on the remote | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | Open |
-| #42 | Lecture 7 assignment | Open — scope needed |
+| #42 | Lecture 7 assignment | **Routed to Cowork** — likely closes with nothing built |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
 | #48 | Audit pedagogical value; write down sequencing and outcomes | In progress — `notes/CURRICULUM.md` |
 | #51 | The docs gate reports but does not block | Open — repo settings |
 | #52 | Try Moore (2002) if more of the corpus is wanted | Open |
 | #53 | Notebook gate runs 2 of 6 tutorials in CI, and looks green | Open |
 | #60 | Nobody is told when main goes red | Open |
-| #63 | Add mkdocs nav entries for three pages | Open |
-| #65 | Make tutorial 6 import the checks instead of redefining them | Open |
+| #63 | Add mkdocs nav entries for three pages | In review — PR #51 |
+| #65 | Make tutorial 6 import the checks instead of redefining them | In review — PR #52 |
 | #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | Open |
 | #68 | Cite `torcheck` as prior art in the diagnostics docs | Open |
-| #70 | Print the sacreBLEU signature with every score | Open |
+| #70 | Print the sacreBLEU signature with every score | In review — PR #55 |
 | #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
 | #72 | Prune the prose entries for finished tasks | Open |
-| #74 | Fix the broken anchor and diagnose the 93 docs warnings | Open |
-| #77 | Prune the stale worktrees and merged local branches | Open |
+| #74 | Fix the broken anchor and diagnose the 93 docs warnings | Anchor in PR #51; the 93 warnings still open |
+| #78 | Tutorial 5's committed outputs predate the retrained checkpoint | In review — PR #57 |
+| #79 | An order-dependent test; does not reproduce on main today | Open |
+| #81 | Fail the build on hand-typed generated numbers | Open |
+| #82 | Add an on-target language check to `torchlingo.diagnostics` | Open |
+| #83 | Show attention on the Transformer, not only the LSTM | In review — PR #59 |
+| #84 | The two evaluation pages ARE off-nav on main now | **Open — the prediction came true** |
+| #85 | Only BLEU carries a signature; chrF and TER do not | Open — after PRs #55 and #58 |
+| #86 | `evaluate_model` has no test, and it is what callers use | Open — after PR #58 |
+| #88 | Open the tutorial 7 PR | **Unblocked — PR #58 has merged** |
+| #89 | Fail the docs build when a page is off-nav | Open |
+| #90 | `CLAUDE.md`'s numbering example is stale | Open |
+| #91 | `metric_comparison.json` records no BLEU signature | Open — after PRs #55 and #58 |
+| #92 | Tutorials 3 and 5 bypass the library's own evaluation API | Open |
+
+## The CS 479 pivot
+
+From `notes/CS479_COURSE_ROADMAP.md`, handed over 2026-09-24. OpenNMT-py is in maintenance
+mode and CS 479 is moving to TorchLingo **this** semester. Five assignments train a model
+(Lectures 7, 8, 9, 13, 14), all five are written against OpenNMT today, and they are
+consecutive and cumulative, so it is one crossing rather than five.
+
+This converts the repository from a teaching library with a hypothetical audience into the
+thing eighteen students have to get working, on their own data, on a deadline.
+
+### The calendar
+
+Day-of-week verified against 2026 for every date below.
+
+| Task | Needed in class | Assignment due | Slack |
+|---|---|---|---|
+| #94 Lecture 7 Colab link | **Mon Sep 28** | — | 4 days |
+| #96 step count to epochs | Wed Sep 30 | Wed Oct 7 | 6 days |
+| #100 alignment check | Wed Sep 30 | Wed Oct 7 | 6 days |
+| #95 100K run, wall clock and BLEU | Wed Sep 30 | **Wed Oct 7** | 13 days |
+| #97 SentencePiece on/off | Mon Oct 5 | Mon Oct 12 | 18 days |
+| #98 back-translation | Mon Oct 19 | Mon Oct 26 | 32 days |
+| #99 multilingual tagging | Wed Oct 21 | Wed Oct 28 | 34 days |
+
+**Two dates decide the pivot.** Mon Sep 28 is the first contact and the one that happens in
+a room with eighteen laptops. Wed Oct 7 is Assignment 8, the heaviest in the course, and the
+one that answers whether students can actually train on their own data.
+
+### Order, and the one place to push back
+
+The roadmap's suggested order is straight down the calendar. Two changes:
+
+**Resume is already verified, so nothing gates #95.** The roadmap puts "verify Colab resume"
+first, on the grounds that it had been written twice and run zero times. That is no longer
+true. Coulson tested it in Colab and reported on PR #17, 2026-09-23: *"Was able to mount and
+continue runs using Google Drive!"* That covers #38's item 1 (mounts, lands under `MyDrive`)
+and item 3 (continues rather than restarting), which were the two that mattered. His review
+shows as `DISMISSED` only because a later push dismissed it; the finding stands.
+
+What is left is thin and not worth its own experiment: no transcript, so there is no record
+that it trained *only* the remaining epochs rather than restarting and looking like it
+continued. #95 runs on Colab anyway and will exercise resume as a side effect, so that
+confirmation is folded into #95 rather than run separately.
+
+**#95 is the long pole in wall-clock, not in effort.** A 100K-pair run is hours that cannot
+be compressed, so it starts now and the short work happens while it trains.
+
+So: start #95, then #94 before Monday, then #96 and #100 off the numbers #95 produces.
+
+### What the course does not need
+
+Worth stating, because it bounds the work. The course uses SacreBLEU and COMET directly, so
+TorchLingo's evaluation module must be **correct** but need not become a metrics suite. LLM
+prompting (Lecture 12), quality estimation (Lectures 10, 11) and speech (Lectures 15, 16)
+all run on other tooling. Course decks and assignment text are Eric's, not this
+repository's.
+
+### Two discrepancies in the roadmap itself
+
+- Its "Open questions" section says *"Assignment 8 is due Sep 30."* The schedule table and
+  the hard dates both say **Wed Oct 7**; Sep 30 is when the material is first needed in
+  class. The later date is the one used above.
+- The header says "corrected 2026-09-25" and the repository assessment "Sep 25", but it was
+  handed over on Sep 24. **Resolved: a UTC timestamp**, so the document is not from the
+  future and nothing else in it needs re-dating.
+
+### Students are on paid Colab
+
+Eric's call, 2026-09-24: **students should be running on a paid Colab subscription**, and
+anyone who has not started one needs to now. Two consequences for the work below.
+
+- Benchmark #95 on a paid-tier GPU, not a free T4. The roadmap's "free Colab T4" framing is
+  superseded, and a wall-clock number measured on the wrong tier would be worse than none,
+  because it would be quoted at students.
+- The subscription is a **prerequisite with a deadline**, like the MTEval accounts. It is
+  course communication rather than library work, so it sits with Eric, but it belongs in
+  whatever the Lecture 7 activity tells students to have ready.
+
+Resume still matters on paid Colab. Sessions are longer, not unlimited, and a student who
+loses a 100K run at hour three loses it just as completely.
+
+### #94 One Colab link for the Lecture 7 in-class activity
+
+Twenty minutes, eighteen laptops, no local install, on a paid Colab GPU. Tutorial 2, "Train
+a Tiny Model", already maps onto the OpenNMT Quickstart activity it replaces, and six
+tutorials already carry Open-in-Colab badges, so this is framing rather than capability.
+
+- It must **fail loudly rather than quietly**. The Fall 2025 Lecture 8 debrief shows the
+  install activity went badly for several students on a stack that had been in use for
+  years; a new framework raises that risk.
+- The failure mode to design against is a student who gets no output and cannot tell
+  whether the library is broken or they are.
+
+### #95 One end-to-end 100K-pair run
+
+The largest controlled run on record is **64,311 pairs, 36 epochs, BLEU 7.32**. The
+assignment asks for at least 100,000 pairs and expects "reasonably intelligible output".
+
+Two numbers are wanted, and the assignment text cannot be honest without them: **wall-clock
+time on a paid Colab GPU**, and **achievable BLEU**. A third falls out for free: whether it
+fits a student's compute budget at all.
+
+- Start it now. It is hours of wall clock that cannot be compressed.
+- Run at the epoch count #96 settles on, not at some other number, or it measures the wrong
+  thing.
+- Confirm resume along the way, which closes the one residual from #38 item 3.
+- Route the numbers through a JSON single source of truth, as with every other quantitative
+  claim here.
+
+### #96 Restate the step count in epochs
+
+**Decided 2026-09-24: epochs are the unit.** So this is no longer a choice between units,
+only the question of which epoch count.
+
+**The 20,000 came from a config nobody here has.** Eric has never used OpenNMT; the figure
+is inherited from Steve Richardson's Fall 2025 offering. Converting it needs that config's
+`batch_type` and `batch_size`, and without them the translation swings wildly: at sentence
+batches of 64, 20,000 steps is 12.8 epochs on 100K pairs, while at token batches of 4096 it
+is closer to 33. Those two readings differ by almost 3x, and one of them undertrains badly.
+
+So stop reverse-engineering it. **Set the epoch count from this repository's own
+measurements instead**, which is the only evidence available that is actually about
+TorchLingo:
+
+| data | epochs | BLEU |
+|---|---|---|
+| 53,520 | 20 | 4.96 |
+| 53,520 | 36 | **7.01** |
+| 64,311 | 36 | **7.32** |
+
+Holding data fixed, 20 to 36 epochs bought **+2.05 BLEU**. Adding 20% more data at fixed
+epochs bought **+0.29, CI [−0.16, +0.71]**, crossing zero. Training budget mattered roughly
+**7x** more than data volume.
+
+**Recommendation: 30 to 36 epochs.** It is the only budget measured to produce this
+library's best output, and it happens to coincide with the token-batching reading of 20,000
+steps, which is weak corroboration rather than the basis.
+
+- Note the risk this exposes in the assignment as written: it puts a hard floor on the thing
+  that did not matter (100K pairs) and a soft, unit-ambiguous floor on the thing that did.
+- `step_limit` exists and is honoured in `training.py:450`, so a step figure *can* still be
+  expressed if a student is handed one. It is a cap rather than a target, so it is a fallback
+  and not the recommendation.
+- Whether 36 epochs on 100K fits a session at all is #95's question. 36 epochs is 56,268
+  steps at `batch_size=64`.
+
+### #97 SentencePiece on versus off, controlled
+
+Assignment 9 retrains Assignment 8's system with SentencePiece so the two can be compared.
+The comparison is the assignment, so the only thing that may differ between the two runs is
+the tokenizer. Same concern as #59: nothing currently checks that a comparison controlled
+its variables.
+
+### #98 Back-translation as a documented workflow
+
+Train X-to-English on reversed data, back-translate held-out target sentences, add the
+synthetic pairs, retrain English-to-X, compare. Reversing the direction should be a
+configuration change rather than a second project.
+
+### #99 Multilingual tagging tutorial
+
+Bidirectional English and X from the Assignment 8/9 system, directions intermingled,
+separate test sets per direction, target-language tagging. Replaces the
+"MNMT Guide Using OpenNMT.docx" handout.
+
+### #100 Put the alignment check in front of students
+
+**Not in the roadmap's numbered sequence; added here, so it is the easiest one to cut.**
+
+Tutorial 6 already checks corpus alignment with `diagnose_alignment` and makes the point
+that a misaligned corpus still loads, still batches and still shows a falling loss.
+
+That is the most expensive mistake available in this course. Lectures 4 and 5 are entirely
+about producing an aligned corpus, and Lecture 8 is where a bad one finally surfaces, three
+weeks later. The roadmap calls getting this in front of students before Assignment 8 high
+value for low effort, and it agrees with the Fall 2025 debrief, which lists dirty data as
+one of the three reasons student models produced bad output.
+
+### #102 Inference cannot resume, so a long decode cannot survive an interruption
+
+Found 2026-09-24 while mapping the curriculum placements onto repository work. Not on any
+list before that, and it is the **largest undone piece of work for the second half**.
+
+Training has checkpoint-and-resume, verified in Colab. **Inference has nothing.**
+
+Assignment 13 back-translates at least as many sentences as the training set, so 100,000 or
+more. Throughput is *not* the problem, which was the expected answer and the wrong one: the
+decode benchmark measures **27.5 ms per sentence** with batched beams, so 100K extrapolates
+to well under an hour and less on a GPU. Read that as an order of magnitude, since it was
+measured on 8 sentences at `max_len=25` and a real model at `max_len=60` will be several
+times slower.
+
+The problem is that a multi-hour decode dying at hour two starts over from zero. That is
+exactly the failure that made resume a priority for training, one level up.
+
+- **Write output incrementally and skip inputs already done.** Better for students, because
+  it asks no discipline of them.
+- **Or decode in explicit shards**, so a failure costs one shard. Cheaper to build, easier
+  to explain, relies on the student following the workflow.
+
+Needed before Assignment 13's material is due in class on Mon Oct 19. Nothing before then
+blocks on it, so it is not this week's work, but it is not small either.
+
+### #103 Extend the notebook gate to `docs/docs/course/`
+
+`scripts/execute_notebooks.py` globs **only** `docs/docs/tutorials/*.ipynb`, and
+mkdocs-jupyter runs with `execute: false` and `allow_errors: true`. So a notebook anywhere
+else can rot completely and neither the docs build nor a reader surfaces it.
+
+The Cowork session has been asked to write lecture notebooks into
+`docs/docs/course/lecture-NN-<slug>.ipynb`. The moment the first one lands it is ungated.
+
+- Extend the glob, and add `REQUIREMENTS` entries so anything needing LFS data or a GPU
+  **skips** rather than fails.
+- Decide whether a GPU-dependent course notebook can be gated at all, or should be declared
+  exempt explicitly rather than silently.
+- Makes #53 worse until #53 is fixed: a second directory widens the gap between what the
+  green check proves and what it appears to prove.
+
+Blocked until the first course notebook exists; there is nothing to gate before that.
+
+### The machine crash of 2026-09-25, and what it taught
+
+A 36-epoch benchmark run left unattended consumed all application memory and took the
+machine down. It died in epoch 1 around step 800 of 1563, so within minutes rather than
+over hours. Written down because three separate findings came out of it and two of them
+are about this repository rather than about the accident.
+
+**What actually caused it.** Not the library. The benchmark script used a plain
+`DataLoader(shuffle=True)`, so batches were random rather than length-sorted, and padded
+toward the long tail. Attention memory is quadratic in the longest member of a batch:
+
+| longest in batch | per batch, forward only |
+|---|---|
+| 100 tokens | 0.18 GB |
+| 512 tokens | 4.83 GB |
+| 568 tokens | 5.95 GB |
+
+Roughly double that with activations stored for backward. On Metal that is unified
+memory, so it is application RAM, and nothing ever releases it. See #107 and #108.
+
+**The library's defaults are defensible and were not changed to cover this.**
+`NMTDataset` truncates at `max_seq_length`, which is 512, and 512 is genuinely the
+positional encoding's capacity. Lowering a library default to compensate for a script
+that failed to pass `max_length` would have hidden the lesson.
+
+**Nothing was lost.** Both repositories came back clean: no stale locks, no partial
+commits, no corrupt index. The session task list and this file both survived.
+
+### #107 The optimizations already exist and nothing uses them
+
+Measured on the 100K training split, real tokenizer, batch 64:
+
+```
+real tokens                2.90 M per epoch
+random batching, padded   10.97 M    3.79x waste
+length-bucketed, padded    2.90 M    1.00x waste
+saving                     8.06 M tokens per epoch, 74%
+```
+
+`BucketBatchSampler` and `create_dataloaders(use_bucketing=...)` already exist, as does
+`train_model(use_amp=...)` with bfloat16 where supported, and `num_workers` and
+`pin_memory`. **All of them default off, and the benchmark used none.** That is a failure
+against the standing rule to check the inventory before hand-rolling, and it is most of
+why memory ran away.
+
+- Rewrite the benchmark to use bucketing, and AMP on a GPU.
+- Decide whether `use_bucketing` should default True. It changes batch composition and
+  therefore results, which argues against flipping it silently; but 74% matters
+  enormously to a student on a Colab budget, so the course guidance should say to enable
+  it even if the default stays.
+- Not a gap: decoding is already optimized, 27.5 ms against 109.5 ms for the reference
+  path, because `inference_fast` batches the beams within a sentence.
+
+### #108 Nothing releases the device allocator's cache
+
+The one genuine absence rather than an unused flag: there is no `empty_cache()` call
+anywhere in `src/torchlingo/`. On CUDA that is usually harmless. On Metal it is not,
+because the memory is the machine's, and a spike is held against everything else running.
+
+- Smallest useful version: release at each epoch boundary, on whichever backend is
+  active, with a comment saying why. Epoch granularity is far too coarse to cost
+  throughput.
+- Bigger and not obviously right: cap a batch by total tokens rather than sentence count,
+  which bounds the worst case instead of releasing after it. Real MT toolkits do this, but
+  it changes what `batch_size` means and a teaching library should not do that lightly.
+
+### #109 Assignment 8's 100K floor has no low-resource variant
+
+**From the Cowork session, and it moves a conclusion. Eric's call, needed before Oct 7.**
+
+"Students have up to 200K bitext" is wrong as a general statement. The Lecture 4 and 5
+assignment says medium and high-resource languages prepare **at least** 200K, while
+**low-resource students prepare everything that exists for their language** — and the
+course defines low-resource as under 200K available. For some of them that is far below
+200K before any cleaning.
+
+So the 104,000-pair threshold will flag those students, and the right reading is *not*
+that they cannot do Assignment 8. It is that **A8's floor was written for the medium and
+high-resource case and has no low-resource variant.** That is an assignment design
+question rather than a data problem.
+
+It also bounds Part C's arithmetic. "200K raw minus 29.9% equals 140K clean, clears the
+floor with 36K spare" holds only for the students who started at 200K. For the rest the
+subtraction starts lower and the floor may be unreachable however clean their pipeline is.
+
+This makes the A5 audit more valuable, not less: it becomes the thing that says how many
+students need a different assignment and how much smaller it has to be. Languages were
+chosen in Lecture 2 and bitexts delivered Sep 23, so it is a lookup, not a forecast.
+
+### #110 The OpenNMT evidence implies 65 to 165 epochs, not 30 to 36
+
+The Cowork session found a config, with a caveat. The Fall 2025 *instructor* notebook
+sets only `train_steps: 1000`, but a Fall 2025 **student** submission that ran the real
+20,000-step assignment used `batch_type: tokens`, `batch_size: 8192`, `accum_count: 2`.
+
+At those settings, 20,000 steps on 100K pairs is somewhere around **65 to 165 epochs**,
+taking 20 to 50 subword tokens per sentence as the bracket. That is two to five times the
+30-to-36 recommendation and outside the 12.8-to-33 range the briefing considered.
+
+**Do not simply raise the number.** The 30-to-36 comes from measured convergence here:
+validation loss had flattened at 36 epochs, −0.0010 per epoch over the last five. Both
+can be true — OpenNMT students may have been training well past convergence, and 20,000
+steps may never have been tuned. And it is one student's file, not the reference config.
+
+But the gap is too large to split, and training budget dominated data volume by roughly
+7x in this repository's own runs, so it is the parameter least safe to guess at. What
+settles it: run #95 as a ladder that reports validation loss per epoch, so the flattening
+point is visible rather than assumed. If loss is still falling at 36, the OpenNMT figure
+is evidence rather than noise.
+
+### #111 Does the Lecture 6 activity notebook go in the public repository?
+
+**Eric's decision.** The Cowork session held it back rather than committing it, which was
+the right call.
+
+"CS 479 MT Evaluation Activity - Lecture 6" is already shared with students on Colab. Its
+Part 4 hands them a working scoring cell — `compute_bleu` and `compute_chrf` already
+written — which is Assignment 6 step 3. Eric saw that, judged it plumbing rather than the
+assignment, and shipped it. The ranking and the analysis are the graded thinking and both
+are untouched.
+
+Their distinction is the one worth keeping: a Colab link shared with one cohort and a
+public repository are different questions, and an answer to the second is not an answer to
+the first. Three options: public as-is, public with the scoring cell replaced by a prompt,
+or route to `torchlingo-private`.
+
+If it lands, two fixes first: its install cell is the old `!pip install -q` pattern, and it
+carries local `compute_chrf` and `compute_ter` wrappers written to route around the
+transpose bug. Those come out when PR #58 merges.
+
+Worth noting they also audited `CS479_COURSE_ROADMAP.md` for anything that should not be
+public before it was committed — no URLs, no SharePoint links, no student names, no
+credentials.
+
+### #113 Land the eight PRs still open
+
+**No longer blocking anything.** Four of the nine landed on 2026-09-26 and **0.2.0 is
+published**, verified by installing from PyPI: 11 of 11 modules import, chrF reads 78.40
+rather than 100.00, and the decode budget is one number. So Monday is covered and what
+remains is improvement rather than repair.
+
+Landed: **#53** the version guard and the bump, **#58** the chrF and TER fix, **#73**
+tutorial 2's install, **#81** the decode-length unification.
+
+Still open, eight as of 2026-09-26: **PR #51** nav entries, **PR #52** tutorial 6 imports,
+**PR #54** the length-normalization resolution, **PR #55** the sacreBLEU signature,
+**PR #57** the causal-mask convention, **PR #59** Transformer attention, **PR #84** the
+dropped Config, **PR #85** the four course notebooks.
+
+**PR #85 is the one with a deadline**: the Lecture 6 deck's link switches to its Colab
+badge on Mon Sep 28, and the badge cannot resolve until it merges.
+
+Two of those now have knock-on effects worth knowing. PR #51 is what fixes **Task #84**,
+which stopped being a prediction and became a live defect the moment PR #58 landed.
+PR #55 is what **Task #85** and **Task #91** wait on.
+
+*Written as "Task #84", "Task #85" deliberately: PRs #84 and #85 now exist and are
+unrelated to those tasks. This paragraph used bare numbers until 2026-09-26 and was
+exactly the collision the numbering rule in `CLAUDE.md` describes.*
+
+The original cautions still hold for every one of them, because the release proved both
+worth respecting: a green tick is green only against the base the checks last saw, and
+each of these predates today's `main`. Refresh and let CI re-run rather than trusting an
+old green. That is how all four of the merged ones were handled.
+
+### #117 A PR based on `main` closed itself during an unrelated merge
+
+**Second instance, and it breaks the stacking explanation.** On 2026-09-26 **PR #84** went
+OPEN to CLOSED — never merged, no merge commit — at 17:42:16Z, one second after **PR #86**
+was squash-merged at 17:42:15Z with `--admin --delete-branch`. The two are unrelated: PR #86
+was notes, PR #84 was `src/torchlingo/data_processing/batching.py`.
+
+Caught by the post-merge open-set comparison. Before: `#86 #85 #84 #59 #57 #55 #54 #52 #51`.
+After: the same minus **both** #86 and #84.
+
+Recovered fully. The remote branch and commit `2841e14` survived with all three call sites
+intact, and `gh pr reopen 84` restored it with base `main`.
+
+**Why this matters past the recovery.** `CLAUDE.md` says of the three PR-loss failures that
+"every one of them is specific to a PR whose base is another PR", and lists PR #26's silent
+close with cause never established. **PR #84's base was `main`.** So the silent close is not
+stacking-specific, and that sentence is now contradicted by evidence. PR #26 and PR #84 are
+two instances of one unexplained mechanism.
+
+The shared signature, which is the lead worth following: both closed within one second of an
+unrelated merge, and PR #86's merge passed `--delete-branch`.
+
+- Correct the `CLAUDE.md` passage and add PR #84 to its table.
+- Test whether `--delete-branch` on an admin squash-merge is implicated. If it is, stop
+  passing it and delete branches as a separate step.
+- Keep the open-set comparison. It cost one command and saved a pull request — which is the
+  case that rule was written on, now with a second data point.
+
+### #115 The four course notebooks, and Monday's link switch
+
+**In review, PR #85. Deadline Mon Sep 28.** The Cowork session wrote
+`lecture-03-word-embeddings`, `lecture-04-tmx-cleaning`, `lecture-05-sentence-alignment`
+and `lecture-06-mt-evaluation` into `docs/docs/course/`, and ownership of that directory
+moved here: changes to the notebooks are made from this side, and Cowork sends
+instructions through `notes/handoff/from-cowork.md` rather than editing the tree.
+
+Eric's decision: the repository copy becomes canonical on **Mon Sep 28** after Assignment 6
+closes at 10:00, the Lecture 6 deck's link changes from the Drive URL to the Colab badge
+off `main`, and the Drive copy is retired. **The badge cannot resolve until PR #85
+merges**, which is what makes this dated rather than tidy.
+
+Verified before publishing: no stored outputs, no credentials, no local paths, no student
+names; badges match the real remote and tutorial 2's known-good pattern;
+`mkdocs build --strict` exits 0 with all four rendering.
+
+- **Correction on the record.** Cowork cleared Lecture 4's inline TMX as "44 lines of
+  synthetic TMX, not Church material" and read it against the private repository's concern
+  on that basis. It is real Church curriculum and scripture text in English–Spanish
+  ("2 Nephi 31:20", "Charity never faileth", `<ph>` tags). Its conclusion about the
+  assignment stubs still holds; the data characterisation did not, and Eric's go-public
+  ruling had rested on it. Re-put to him with the correction and confirmed: publishes as
+  is, being short publicly available scripture rather than corpus material.
+- **Queued for after Monday, not before:** swap the notebook's local `compute_chrf` /
+  `compute_ter` wrappers back to `torchlingo.evaluation` imports, and verify **chrF 78.40**
+  on its Part 1 example. 100.00 means the reference shape is wrong again. Students are in a
+  Drive copy until Monday and nothing moves underneath a live assignment.
+- **Leave alone:** the Part 4 `# TODO:` cell. It pre-writes Assignment 6's step 3
+  deliberately and Eric ruled it fine.
+- **Never publish:** the INSTRUCTOR notebooks for Lectures 3 and 4, which carry worked
+  solutions.
+- Gating these is **#103**, now unblocked.
+
+### #116 `create_dataloaders` discards the `Config` it is handed
+
+**In review, PR #84.** It accepts a `Config` and uses it for batch size, workers, device
+and padding, then builds its `NMTDataset` objects without passing it on, so the datasets
+fall back to `get_default_config()` and every dataset-level field is dropped in silence.
+
+```
+config asked for max_seq_length : 5
+dataset.max_length actually is  : 512
+```
+
+Cost already paid: the length ladder in **#112** produced two rungs that agreed to three
+decimals because both ran at 512. Nothing raised.
+
+Wider than `max_seq_length`: `NMTDataset` resolves `src_col`, `tgt_col`, `src_tok_col`,
+`tgt_tok_col`, `max_length` and `eos_idx` from the config. A custom column name is the
+likeliest to bite a student — it surfaces as a missing-column `ValueError` naming the
+*default* columns, pointing them at the corpus instead of the config that was discarded.
+
+Fixed by forwarding `config` to all three constructions, `None` included so the dataset
+resolves the default itself and callers passing nothing are unaffected. Five tests,
+including one that asserts on tensor shapes rather than the stored attribute, since the
+attribute would pass if `max_length` were stored and never read. Suite: 711 OK, 21 skipped.
+
+### #114 The wheel ships no data, so tutorials 4 and 5 cannot find what they load
+
+Found 2026-09-25 while checking whether #44 was release-critical. It is not, and the
+reason is the finding: the installed package contains **zero** data files. Verified
+against the real 0.0.8 wheel.
+
+So `data/example.tsv` and `data/pretrained/` exist in the repository and not in a pip
+install. A student who opens tutorial 4 or 5 from its Colab badge, installs with pip, and
+runs it will fail at the load, with nothing explaining why.
+
+- **Monday is unaffected.** Tutorial 2 builds its own corpus inline; its only mention of
+  `data/example.tsv` is prose. Checked.
+- Tutorial 2's prose says the file "ships with the repo", which is true of the repo and
+  false of the wheel a student installs. Worth rewording either way.
+- Options: fetch the file over HTTP in the notebooks that need it, ship it as package
+  data, or say plainly that those tutorials need a clone. The first keeps the Colab badge
+  honest, which is the point of having one.
+- Related to #53's finding that the published wheel was missing five modules. Same
+  shape: what the repository has is not what the wheel carries, and nothing checks.
+
+### #112 Expired Lecture 6 references, and the ladder that should have been built first
+
+Two pieces of cleanup on my own work.
+
+**The briefing contradicts itself.** Part A2's prose retired the Lecture 6 placement once
+Lecture 6 turned out to have already run, but its table still lands two rows there, and
+suggestion 3 still says to run the evaluation tutorial as Lecture 6's Colab activity.
+Their better idea for that tutorial: **reading before Assignment 8** rather than a class
+activity. Worth taking.
+
+**Build the ladder rather than another single long run.** 5 tokens, then 10, 20, 40, 80,
+measuring peak resident memory and seconds per epoch at each rung and stopping before the
+wall instead of finding it by crashing. What the crash says it needs:
+
+- bucketed batching and AMP on, per #107, so it measures the configuration anyone would
+  actually use rather than the worst one
+- peak memory per rung, not only time
+- a ceiling that aborts the rung rather than the machine
+- per-epoch validation loss, so #110's flattening question falls out of the same data
+- every number to JSON
+
+This replaces the single 36-epoch shot as the way to answer #95, and it is what should
+have been built first.
+
+**Progress 2026-09-26, and it found a library defect instead of a memory curve.**
+
+`torchlingo-private/scripts/ladder.py` is written and two rungs have run. The rungs are
+worthless as length measurements and valuable for a different reason.
+
+| | rung "5" | rung "10" |
+|---|---|---|
+| seconds/epoch | 192.0 | 189.3 |
+| batches/epoch | 1559 | 1559 |
+| peak resident | 3.54 GiB | 3.40 GiB |
+| device held | 35.80 GiB | 35.47 GiB |
+| reclaimed by `empty_cache` | 35.73 | 35.40 |
+| val loss | 7.0392, 6.3099 | 7.0405, 6.3025 |
+
+Agreement to three decimals across every axis is not a finding about sequence length; it
+is two runs of the same thing. **`create_dataloaders` was discarding the `Config` it was
+handed** — see **#116** — so both rungs trained at the default 512 cap. The ladder's knob
+was never connected.
+
+**Retraction.** This file and the Cowork handoff were told that rung 5 held 35.80 GiB "at
+5 tokens, where attention is negligible, so the crash was #108 rather than sequence
+length". The premise was false: it was never 5 tokens. The conclusion has to be rebuilt
+from what the rungs actually show, which is narrower —
+
+- At **full length**, a 2-epoch run holds ~35.5 GiB of which **99.8% is reclaimable
+  cache**. That is direct support for **#108**, and it is measured rather than argued.
+- Peak resident memory is only ~3.5 GiB, so **RSS is the wrong number to guard**. The
+  watchdog's first version measured it alone and would have sat quietly through the growth
+  that took the machine down. It now checks resident *and* device-held and kills on the
+  worse; verified firing at `device-held 5.67 GiB` while resident was 0.88.
+- **Sequence length is not exonerated, because it was never varied.** Whether attention
+  drives the wall is still open, and the real ladder has not been walked yet.
+- Wall clock at 1559 batches is ~123 ms/batch, so **batch count dominates**, not sequence
+  length. If throughput is the goal, larger batches beat shorter sequences.
+
+Next: rerun the ladder once **PR #84** lands, one rung at a time. The rungs completed so
+far have to be discarded rather than reused, since they are all the same configuration.
 
 ## Code — decoding performance
 
@@ -216,7 +833,7 @@ work *inside* each call rather than the number of calls.
   forwarded* instead. Read that column, not the call column, or the harness will make a
   real improvement look like no change at all.
 
-**#4 Resolve length-normalization semantics**
+**#4 Resolve length-normalization semantics** — in review as PR #54
 `inference.py:203` applies length normalization during *pruning*, not only at final
 selection — comparing normalized scores across different lengths mid-search. Defensible
 but non-standard. Preserve exactly during #1/#2 so perf work stays reviewable; raise as
@@ -250,7 +867,7 @@ Not implemented. `config.py:663` states multi-GPU "requires custom DataParallel 
 That sentence is now the honest final answer rather than a placeholder, and should be
 left in place.
 
-**#7 One PyTorch deprecation warning left**
+**#7 One PyTorch deprecation warning left** — in review as PR #57
 On torch 2.13.0, "Support for mismatched key_padding_mask and attn_mask is deprecated",
 raised from the decode path. It will eventually break. The decode path passes a boolean
 `tgt_key_padding_mask` alongside a float `tgt_mask`; making both the same dtype should
@@ -275,7 +892,90 @@ single 24GB GPU. Both are from Eole's README, not from running it.
 **#9 Run `pre-commit install`**
 `.pre-commit-config.yaml` exists in the repo but hooks are not installed in this clone.
 
+**#91 `metric_comparison.json` records no BLEU signature**
+
+`docs/docs/_generated/metric_comparison.json` on the PR #58 branch ends with
+`"bleu_signature": "not recorded"`, because `scripts/compare_metrics.py` was written
+before PR #55 gave `compute_bleu` a `.signature`. The generated page therefore publishes
+scores with no record of how they were produced, which is the exact thing #70 exists to
+prevent, in the one place that is *generated* and so should have been easiest to get
+right.
+
+- Once #55 and #58 are both in, teach `compare_metrics.py` to read `.signature` and
+  regenerate both the JSON and the markdown.
+- Related to #85: chrF and TER have no signature to record yet, so this lands properly
+  only after that one.
+
+**#90 `CLAUDE.md`'s numbering example is stale**
+
+The "Say PR #X and Task #Y" rule says *"tasks run to #62, pull requests to #42, so every
+number below 43 names one of each."* Tasks now run to #92 and PRs to #64. The rule is
+right and its reasoning is intact; only the arithmetic has rotted, in the file that
+teaches the convention.
+
+- One line, in `CLAUDE.md` rather than `notes/`, so it cannot ride along on a notes-only
+  PR. Fold it into the next change that touches `CLAUDE.md` for another reason.
+- Consider dropping the specific numbers instead. They were never the point, and they
+  will be stale again within a week.
+
+**#85 Only BLEU carries a signature; chrF and TER do not**
+Task #70's subject says "with every score", but PR #55 attaches `.signature` to
+`compute_bleu`'s result alone. Measured on the combined main + PR #55 + PR #58 tree:
+
+```
+BLEU  nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0
+chrF  MISSING
+TER   MISSING
+```
+
+chrF is the case that proves this is not cosmetic. `compute_chrf` defaults to
+`word_order=2` (chrF++) while sacreBLEU's `corpus_chrf` defaults to `0`. That one
+undeclared parameter caused two separate confusions here: a correct implementation
+judged broken by 0.45 points against the wrong baseline, and
+`notes/EVAL_CHRF_TER_TRANSPOSE_BUG.md` stating the right value (78.4) beside a snippet
+returning 76.97. A chrF signature declares `nw:2` and prevents both, so chrF needs one
+more than BLEU does.
+- Call `get_signature()` on CHRF and TER as `compute_bleu` already does, and widen
+  `tests/test_bleu_signature.py` to all three. Cheap once #55 and #58 are both in.
+
+**#86 `evaluate_model` has no test, and it is the function callers use**
+Coverage on the combined tree, after PR #58 adds the first evaluation tests this repo
+has ever had:
+
+| Function | Tested by |
+|---|---|
+| `compute_bleu` | `test_metric_reference_shape`, `test_bleu_signature` |
+| `compute_chrf`, `compute_ter`, `_as_reference_streams` | `test_metric_reference_shape` |
+| `evaluate_model` | **nothing** |
+| `save_translations` | **nothing** |
+
+PR #58 tests the three wrappers well, but `evaluate_model` is what
+`examples/evaluate.py`, `examples/train.py` and any student actually call, and it is
+where the transpose bug did its damage: `compute_chrf_score: bool = True` is the
+default, so every call reported a wrong chrF. Fixing the wrappers without testing the
+aggregator leaves the same hole one level up, where the thing under test is not the
+thing being used.
+- Run `evaluate_model` end to end on a tiny fixture and assert its returned bleu/chrf/ter
+  match the three wrappers called directly, under default flags and with
+  `compute_ter_score=True`. Cover `save_translations` too.
+
+**#82 Add an on-target language check to `torchlingo.diagnostics`**
+Borrowed from mtsurvey, which reports an on-target rate using GlotLID: the share of
+hypotheses actually written in the target language. It catches a failure BLEU hides
+badly, because a model that copies the source scores non-zero against a related-language
+reference and looks merely weak rather than broken. Fits the existing `CheckResult`
+shape. The dependency is the open question: GlotLID is a FastText model download, so the
+check should degrade to a clear "not installed" rather than fail.
+
 ## Possible tooling to productize
+
+**#81 Fail the build on hand-typed generated numbers**
+mtsurvey gates its write-ups on a claim checker: every quoted number must resolve to an
+entry in the generating JSON, and a hand-typed constant fails CI. This repo has the
+inputs for it already — `docs/docs/_generated/*.json` from `scripts/sweep_decoding.py`
+and `scripts/compare_metrics.py` — but nothing enforces the link, which is how the
+chrF `63.39` in #80 survived. Scope it to the generated pages first rather than all of
+`docs/`.
 
 
 ---
@@ -396,92 +1096,24 @@ therefore cannot detect scrambled beam state or bad memory expansion.
 - Mitigated by the new `tests/test_decoding_equivalence.py`, but the old tests should
   eventually migrate to the history-sensitive fixture rather than sitting alongside it.
 
+**#79 `test_different_optimizers_produce_different_results` is order-dependent**
+Filed after it failed under `python -m unittest discover tests`, the runner `CLAUDE.md`
+documents, while CI's `pytest tests/` was green. **Re-checked on main 2026-09-23: it now
+passes under `unittest discover`, 4 runs out of 4** (693 tests, 21 skipped), so the
+failure is intermittent rather than a standing red suite. That is worse to leave alone,
+not better — a test that depends on whatever seeded the RNG before it will come back.
+- The assertion is the weak part: it checks that Adam or SGD *improved* over 2 epochs on
+  a tiny fixture. When the two optimizers produced byte-identical curves
+  (`Epoch 1/2 | Train: 2.1852` / `Epoch 2/2 | Train: 2.1852`) the real claim — that the
+  two optimizers take *different* trajectories — was the thing that had failed.
+- Seed inside the test, and assert the difference rather than the improvement.
+- Worth sweeping for other order-dependent tests while in there: run the suite under
+  both runners and diff. The two documented ways to run the suite disagreeing, with
+  nothing checking that they agree, is the same shape as the tag-vs-`pyproject` defect.
+
 ---
 
 ## Release
-
-**#16 The release pipeline is broken — nothing since Feb 2026 has shipped**
-
-*Downgraded from BLOCKING on 2026-09-10:* nobody is installing from PyPI yet, so this is
-a latent breakage rather than an active one. Still must be fixed before the first
-classroom install, and the tag-vs-`pyproject` CI check should land **before** the next
-tag so the mismatch fails loudly instead of silently for a third time.
-
-Found while reviewing backlog status. `pyproject.toml` has said `version = "0.0.8"`
-since February and is never bumped, so tagging a release builds a stale-version artifact:
-
-```
-pyproject.toml version   0.0.8      (unchanged since Feb 2026)
-latest PyPI release      0.0.8      (uploaded 2026-02-18)
-GitHub tags              v0.1.0, v0.1.1
-  v0.1.0 assets          torchlingo-0.0.7-*.whl   <- tag says 0.1.0, artifact says 0.0.7
-  v0.1.1 assets          (none)                   <- build or publish failed silently
-```
-
-PyPI rejects duplicate versions, so a build that produces `0.0.8` when `0.0.8` already
-exists cannot upload. **Two tags have failed this way without anyone noticing**, because
-the publish job's failure is not surfaced anywhere.
-
-`main` is now eight merges ahead of `v0.1.1` (#7 through #14), so the beam search speedup,
-the decoding contract suite, the tie-breaking rule, LSTM attention, the repaired corpus
-and every tutorial fix are all unreachable via `pip install torchlingo`.
-
-### Verified 2026-09-13, from the Actions history
-
-An earlier guess recorded here — that the workflow might never fire on a tag, because
-`tags:` sits under the same `push:` trigger as a `paths:` filter — is **wrong**. Every
-`v*` tag has a run. Path filters do not suppress tag pushes:
-
-```
-v0.1.1    push   failure   2026-07-18
-v0.0.8    push   success   2026-02-18
-v.0.0.8   push   failure   2026-02-18   <- malformed tag name, see below
-v0.1.0    push   failure   2026-02-18
-v0.0.7    push   success   2026-01-30
-v0.0.6    push   success   2026-01-30
-```
-
-So the pipeline runs; it fails at the end. Per-job results for the two failed releases:
-
-| | v0.1.0 | v0.1.1 |
-|---|---|---|
-| tests 3.10-3.13 | pass | pass |
-| Build wheels and sdist | pass | pass |
-| Create GitHub Release | pass | **fail** |
-| Publish to PyPI | **fail** | **fail** |
-
-The publish log gives the cause outright:
-
-```
-ERROR  HTTPError: 400 Bad Request from https://upload.pypi.org/legacy/
-```
-
-which is what PyPI returns for a filename that already exists. That confirms the original
-diagnosis: the build produced `0.0.8` because `pyproject.toml` says so, and `0.0.8` was
-already on PyPI from February. The version collision is real and is the primary fault.
-
-**Still unexplained:** why `Create GitHub Release` failed on v0.1.1 but succeeded on
-v0.1.0. The step's own output is not in the archived log, so the cause is not recoverable
-from here. It explains the "no assets" observation above, and it is a *second*,
-independent failure — worth confirming before trusting the next tag, since fixing the
-version collision alone would not have fixed v0.1.1.
-
-Fix should cover both halves:
-- Bump `pyproject.toml` and cut a release that actually publishes.
-- Make CI **fail** a tag build when the git tag and `pyproject.toml` disagree, so a
-  mismatch is loud rather than silent. Same class of problem as #14 (ruff version drift):
-  two sources of truth with nothing checking they agree.
-- Do the tag-vs-version check **first**, so the next tag cannot fail the same way.
-
-**Do not test this by pushing a `v*` tag.** The `publish` job fires on any ref matching
-`refs/tags/v*` and will attempt a real PyPI upload. The Actions history answers most
-questions without that risk, which is how the table above was produced.
-
-**#35 A malformed tag `v.0.0.8` exists on the remote**
-Found while auditing the Actions history for #16. Someone typed `v.0.0.8` instead of
-`v0.0.8`; it matches the `v*` trigger, ran, and failed. Both tags exist on origin today.
-Harmless but confusing, and it is the kind of thing the tag-vs-version check in #16 would
-have caught at push time. Decide whether to delete it or leave it as history.
 
 **#38 Colab checkpointing has never been run in Colab**
 PR #17 adds `training_checkpoint.py` with `is_colab()`, `mount_drive()` and a Drive-backed
@@ -498,7 +1130,8 @@ Asked Coulson on PR #17 to try it. What needs checking:
    train only the remaining epochs.
 
 Item 3 is the one that matters. If it restarts from epoch 0 the feature does not work,
-whatever the unit tests say.
+whatever the unit tests say. **Item 3 is now #93**, promoted out of here because CS 479
+gave it a deadline; items 1 and 2 stay in this task.
 - Open: whether to gate the #17 merge on this, or merge with the limitation documented,
   which it currently is in both the module docstring and the reference page.
 - **Coulson accepted on 2026-09-16:** "I will return to this to review and test in Colab
@@ -630,9 +1263,22 @@ a blind `except Exception`.
 
 ## Course material
 
-**#42 Lecture 7 assignment** — *placeholder, scope needed*
-Captured so it is not lost. Not startable yet: what lecture 7 covers, which course it
-belongs to, what students are meant to produce, and when it is needed are all unknown here.
+**#42 Lecture 7 assignment** — *routed to the Cowork session 2026-09-26*
+Captured so it is not lost. Never startable from this side, for the reason below.
+
+**Eric's call 2026-09-26: this is Cowork's to scope**, and if it needs a notebook they write
+one into `docs/docs/course/` as they did the other four. Requested in
+`notes/handoff/to-cowork.md`.
+
+Much of the original unknown has since been answered by the pivot: Lecture 7 is **Mon Sep
+28**, in CS 479, and is two lectures in one — the paper-review assignment plus
+neural-network foundations — with **tutorial 2 as the in-class activity**, already merged.
+What remains unknown is the only thing that matters here: what students submit.
+
+**The likely answer is that this task closes with nothing built.** A paper review needs no
+supporting material, and the activity already exists. That was said plainly in the request
+rather than left open, because the alternative is inventing a deliverable to fill a
+placeholder. Closes on Cowork's word either way.
 
 **The assignment itself lives in the LMS, not in this repo.** So the work here is whatever
 *supporting material* the assignment needs — a starter notebook, a script with gaps to
@@ -698,6 +1344,99 @@ Cheap: a note box in `concepts/decoding.md` and a line in the tutorial. No code.
 
 ## Docs and tutorials
 
+**#78 Tutorial 5's committed outputs predate the retrained checkpoint** — in review as PR #57
+The notebook shipped translations produced by the old checkpoint, so a student reading
+the page and a student running the cell saw different results. Re-executed against the
+current checkpoint in PR #57. Re-executing is what surfaced #7: the fresh run baked three
+PyTorch warnings and a `/Users/ringger/...` path into the committed outputs, which main
+did not have, so both are fixed in the same PR.
+
+**#83 Show attention on the Transformer, not only the LSTM** — in review as PR #59
+Tutorial 4 taught alignment on the LSTM's additive attention, which is the architecture
+students do *not* use for the rest of the course. PR #59 adds Part 8: load the pretrained
+Transformer, decode one held-out sentence, and read its cross-attention through
+`attention_for_sequence`. Two things that made this non-obvious and are worth keeping in
+the prose: PyTorch hardcodes `need_weights=False` inside
+`TransformerDecoderLayer._mha_block`, so a plain forward hook returns `None` and you need
+`capture_cross_attention`; and the teacher-forced second pass is *exact* rather than an
+approximation, because the decoder is causally masked.
+- Costs CI nothing, but it does make tutorial 4 depend on `data/pretrained/model.pt`, so
+  tutorial 4 joins the LFS skip list. See #53.
+
+**#84 The two evaluation pages ARE off-nav, as of 2026-09-26** — no longer a prediction
+PR #58 merged, and it did not touch `docs/mkdocs.yml`. So `concepts/evaluation.md` and
+`reference/evaluation.md` are now on `main` and unreachable from the site. The thing this
+task predicted has happened.
+
+`mkdocs build --strict` still exits 0, because a page missing from the nav is an INFO
+rather than a warning — which is exactly how the three pages in #63 went unreachable, and
+is the second time the same trap has closed.
+
+- **PR #51 is the fix**, since it is the one that edits the nav. Landing it closes this.
+- The nav entries also exist on the local `docs/evaluation-tutorial` branch, which had to
+  edit `mkdocs.yml` anyway to place tutorial 7. Either route works; #51 is nearer.
+- Two occurrences is the argument for #89, which makes the check explicit instead of
+  relying on someone noticing a third time.
+
+**#88 Open the tutorial 7 PR** — unblocked 2026-09-26, PR #58 has merged
+
+The evaluation tutorial is written, executed and verified on the **local** branch
+`docs/evaluation-tutorial` (commit `1516aa0`). Not pushed: it depends on unmerged work,
+and the standing rule is to hold such work locally rather than stack.
+
+Depends on PR #58 (the chrF/TER transpose fix, and `concepts/evaluation.md`) and PR #55
+(the `.signature` the notebook prints). The branch is `main` with both merged in.
+
+At PR time:
+
+1. Rebase onto a `main` that carries #58 and #55.
+2. Re-check `docs/mkdocs.yml`. The branch adds three nav entries: tutorial 7,
+   `concepts/evaluation.md` and `reference/evaluation.md`. PR #51 also edits the
+   tutorials nav block to add tutorial 6, so expect a small textual conflict there.
+   **Tutorial 7 belongs after tutorial 6.**
+3. Re-execute the notebook and re-run every check.
+4. Say in the body that it closes #84.
+
+Already verified on the branch: 7/7 notebooks execute cleanly, zero errors, zero
+warnings and zero local paths in the committed outputs, every number quoted in prose
+appears in an output, `mkdocs --strict` EXIT=0, ruff clean, 693 tests pass. In CI the
+gate would run **3 of 7** rather than 2 of 6, because the notebook needs no LFS artifact.
+
+**#89 Fail the docs build when a page is off-nav**
+
+`mkdocs` reports pages missing from the nav at **INFO**, so `--strict` exits 0 while they
+sit unreachable. Measured on the tutorial 7 branch: `--strict` EXIT=0 with **11** pages
+off-nav.
+
+The trap has now caught five pages across two PRs (#63's three, #84's two), and the
+second was noticed only because someone happened to be auditing the first. That is not a
+process that catches the third.
+
+- Check that every page under `docs/docs/` is either in the nav or on a declared
+  exception list, and fail when one is neither.
+- **The exception list is the whole design problem.** `_generated/*.md` are *supposed*
+  to be off-nav: they are snippet files pulled into other pages with `--8<--` includes,
+  not standalone pages. So the orphan list is not a to-do list, and a naive check would
+  cry wolf on five files immediately. Declare those deliberately.
+- `MULTILINGUAL_ANALYSIS.md`, `MULTILINGUAL_QUICKSTART.md` and `TESTING_GUIDE.md` are
+  genuinely orphaned and predate all of this; decide whether they are nav pages or
+  should move out of the docs tree.
+
+**#92 Tutorials 3 and 5 bypass the library's own evaluation API**
+
+Both call `sacrebleu` directly rather than `torchlingo.evaluation`. Tutorial 6 and the
+new tutorial 7 use the library. So a student meets two different ways to score, and the
+library's own evaluation API is the one the earlier tutorials never touch.
+
+This is also part of why the chrF/TER transpose bug survived: nothing in `docs/` or
+`tests/` exercised `compute_chrf` or `compute_ter`, so there was no path along which the
+wrong number could be noticed.
+
+- Route tutorials 3 and 5 through `compute_bleu`, which is the function they are already
+  imitating.
+- Worth doing after #58 lands, so the tutorials pick up the signature and the fixed
+  reshaping at the same time.
+
 **#49 The pretrained checkpoint predates the enlarged corpus**
 
 `data/pretrained/model.pt` was trained on 73,082 pairs. After #29 the corpus holds
@@ -740,8 +1479,17 @@ to show on that model.
 
 CI checks out without Git LFS on purpose, so `data/example.tsv` is a pointer there and
 `scripts/execute_notebooks.py` skips tutorials 2 through 5. **The job passes having run
-exactly one notebook out of five**, and the check mark on the PR looks the same either
-way.
+exactly two notebooks out of six** — tutorial 1 and tutorial 6, the only two that need no
+LFS artifact — and the check mark on the PR looks the same either way.
+- The skip list only grows. PR #59 gives tutorial 4 a second requirement
+  (`data/pretrained/model.pt`) so it can show Transformer cross-attention; tutorial 4 was
+  already skipped for the corpus, so the CI count is unchanged, but the gap between "what
+  CI proves" and "what a reader runs" widens with every tutorial that touches real data.
+- It can go the other way. Tutorial 7 (#88) uses fixed strings rather than a model, so it
+  needs no LFS artifact and **runs in CI**, taking the gate to 3 of 7. Worth noting as a
+  design lever: a tutorial whose subject does not require a trained model should not
+  acquire one, because that is the difference between a lesson CI protects and one it
+  cannot see.
 
 That was the accepted trade when LFS went in, and it is still the right one. The problem
 is that nothing says so at the point where someone reads the green check.
@@ -754,7 +1502,7 @@ its own.
 
 Options, roughly in order of cost:
 
-- **Say it in the check.** The job already prints "1/1 notebooks executed cleanly" and
+- **Say it in the check.** The job already prints "2/2 notebooks executed cleanly" and
   lists what it skipped. Make the job summary carry that so it is visible on the PR
   without opening the log. Cheapest, and removes the false impression.
 - **Fetch LFS for the notebook job only.** One `lfs: true` on one job, roughly 28 MB per
@@ -767,16 +1515,19 @@ Options, roughly in order of cost:
 Related: #51, which is the same shape from the other direction. That gate runs and does
 not block; this one blocks and does not run.
 
-Partial relief from PR #44: tutorial 6 needs no LFS artifact, so it does run in CI. The
-gate now executes 2 of 6 rather than 1 of 5. The false impression is unchanged — the
-green check still does not say what it skipped.
+PR #44 was partial relief: tutorial 6 needs no LFS artifact, so it does run in CI, taking
+the gate from 1 of 5 to the 2 of 6 above. The false impression is unchanged — the green
+check still does not say what it skipped.
 
-**#63 Three pages have no mkdocs nav entry** — *unblocked 2026-09-23, PR #17 merged*
+**#63 Three pages have no mkdocs nav entry** — in review as PR #51
 
-`docs/mkdocs.yml` belongs to PR #17, and we are not stacking, so three pages shipped
-without a nav entry. A page absent from nav is INFO rather than a warning under
-`--strict` — verified on each branch, the build stays clean — so none of this blocks.
-But each page is reachable only by direct link until PR #17 lands.
+`docs/mkdocs.yml` belonged to a PR we were not stacking on, so three pages shipped
+without a nav entry: tutorial 6, `reference/diagnostics.md`, and `related-work.md`. A
+page absent from nav is INFO rather than a warning under `--strict` — verified on each
+branch, the build stays clean — so none of this blocks. But each page is reachable only
+by direct link until PR #51 lands. PR #51 also restores the `capture_cross_attention`
+link that could not resolve without the nav entry; see #74.
+- The same trap has already caught the next pair of pages. See #84.
 
 | Page | From | Place it |
 |---|---|---|
@@ -789,7 +1540,7 @@ One more thing to undo at the same time: `related-work.md` refers to
 `reference/diagnostics.md`, because linking a page that does not exist on `main` fails
 `--strict`. Once PR #45 has merged, make it a link.
 
-**#65 Tutorial 6 and `torchlingo.diagnostics` are two copies of the same checks**
+**#65 Tutorial 6 and `torchlingo.diagnostics` are two copies of the same checks** — in review as PR #52
 
 PR #44 defines the five checks inline in the notebook; PR #45 ships them as a module.
 Until one sources from the other they can drift, and the notebook is the copy a student
@@ -833,7 +1584,7 @@ frozen/dead/live, naming the culprit.
   differs, when to reach for it instead.
 - Check its current maintenance status first. It was found, not evaluated.
 
-**#70 Print the sacreBLEU signature with every score**
+**#70 Print the sacreBLEU signature with every score** — in review as PR #55
 
 Adopted from the Joey NMT baseline run, which logs
 `nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0` next to every BLEU.
@@ -873,19 +1624,8 @@ were pending. Anything whose row is gone from the table should be gone from the 
 - Not a `sed`. The table is the index people read and it is correct now; the bodies need
   a careful pass.
 
-**#77 Prune the stale worktrees and merged local branches**
 
-`git worktree list` shows four leftovers under the session scratchpad, holding
-`exp/control-54k-36epochs`, `fix/honest-training-and-comparison`,
-`data/retrain-on-enlarged-corpus` (prunable) and `docs/decoding-option-effects`. A branch
-held by a worktree cannot be checked out elsewhere, and `gh pr merge --delete-branch`
-cannot clean it up -- two merges this session reported exactly that failure.
-
-- `git worktree prune`, then remove the remaining ones deliberately.
-- Delete the merged local branches, `backup/*` included, now their PRs are long merged.
-
-
-**#74 A broken anchor and 93 unexplained warnings in the docs build**
+**#74 A broken anchor and 93 unexplained warnings in the docs build** — anchor in PR #51; the 93 warnings still open
 
 Two pre-existing docs-hygiene items, both visible in every `mkdocs build --strict` run
 and neither currently failing it:
@@ -897,6 +1637,11 @@ and neither currently failing it:
 - 93 `Div ... unclosed ... closing implicitly` warnings, from the Material card grids.
   Believed benign; never actually diagnosed. Confirm, then either fix the markup or
   record why it is acceptable so the next person does not re-investigate.
+  **New detail, 2026-09-23:** these print as `[WARNING]` yet `--strict` still exits 0,
+  so they are not reaching the logger `--strict` gates on; they come from a markdown
+  extension writing to its own. Worth establishing which, because it means `--strict`
+  is a weaker gate than its name implies and other extension warnings are escaping it
+  too. Same shape as #89, one layer down.
 
 **#51 The docs gate reports but does not block**
 
