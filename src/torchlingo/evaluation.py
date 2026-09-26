@@ -69,6 +69,61 @@ def _char_tokenize(text: str) -> str:
     return " ".join(list(text))
 
 
+def _as_reference_streams(
+    references: list[str] | list[list[str]],
+) -> list[list[str]]:
+    """Reshape references into the *streams* sacreBLEU's corpus metrics expect.
+
+    This is the shape that everyone gets wrong once. The natural way to hold
+    references is one list per sentence::
+
+        [["ref for sentence 1"], ["ref for sentence 2"]]
+
+    sacreBLEU wants the transpose -- one list per *reference slot*, each
+    running the length of the corpus::
+
+        [["ref for sentence 1", "ref for sentence 2"]]
+
+    Pass the first shape and sacreBLEU reads it as two separate reference
+    streams holding one sentence each, scores against that, and returns a
+    number rather than an error. ``compute_chrf`` and ``compute_ter`` did
+    exactly that: on a three-sentence corpus chrF read 54.85 where the truth
+    was 67.91, and TER read 50.00 where the truth was 25.00. Nothing noticed,
+    because nothing used them.
+
+    Hence one helper rather than the same transposition written three times.
+
+    Args:
+        references: Either one reference per sentence, or a list of
+            equally-sized reference lists, one per sentence.
+
+    Returns:
+        list[list[str]]: Reference streams, ready for ``corpus_*``.
+
+    Raises:
+        ValueError: If sentences carry differing numbers of references, which
+            sacreBLEU cannot represent and would otherwise silently truncate.
+
+    Example:
+        >>> _as_reference_streams(["a", "b"])
+        [['a', 'b']]
+        >>> _as_reference_streams([["a1", "a2"], ["b1", "b2"]])
+        [['a1', 'b1'], ['a2', 'b2']]
+    """
+    if not references:
+        return [[]]
+    if isinstance(references[0], str):
+        return [list(references)]
+
+    counts = {len(refs) for refs in references}
+    if len(counts) > 1:
+        raise ValueError(
+            "every sentence must carry the same number of references; got "
+            f"{sorted(counts)}"
+        )
+    return [list(slot) for slot in zip(*references)]
+
+
 def compute_bleu(
     predictions: list[str],
     references: list[str] | list[list[str]],
@@ -155,17 +210,9 @@ def compute_bleu(
         # Use 'none' tokenizer since we've already tokenized at char level
         tokenize = "none"
 
-    # Transpose references for sacrebleu metrics API
-    # Current format: [[ref1], [ref2], [ref3], ...] (one ref per sentence)
-    # Needed format for metrics.BLEU: [[ref1, ref2, ref3, ...]] (all refs in one list)
-    if references and isinstance(references[0], list):
-        # We have List[List[str]], transpose to get all first refs, all second refs, etc.
-        num_refs = len(references[0]) if references else 0
-        transposed_refs = []
-        for ref_idx in range(num_refs):
-            transposed_refs.append([sent_refs[ref_idx] for sent_refs in references])
-    else:
-        transposed_refs = [references]  # Fallback
+    # Shared with compute_chrf and compute_ter, so the three cannot disagree
+    # about what a reference list means. They did: see _as_reference_streams.
+    transposed_refs = _as_reference_streams(references)
 
     # Use metrics.BLEU class (newer API)
     bleu_metric = sacrebleu.metrics.BLEU(lowercase=lowercase, tokenize=tokenize)
@@ -214,14 +261,23 @@ def compute_chrf(
         >>> refs = ["Le chat s'est assis", "Bonjour monde"]
         >>> result = compute_chrf(preds, refs)
         >>> print(f"chrF: {result.score:.2f}")
-        chrF: 63.39
-    """
-    if references and isinstance(references[0], str):
-        references = [[ref] for ref in references]
+        chrF: 57.12
 
+        This example used to read ``63.39``, which is what the old
+        reference-shape bug produced -- the wrong number was documented and
+        nothing noticed, because nothing called this function. See
+        :func:`_as_reference_streams`.
+
+        chrF is the metric to reach for on short text, where BLEU collapses:
+
+        >>> compute_chrf(["Hello world"], ["Hello world"]).score
+        100.0
+        >>> compute_bleu(["Hello world"], ["Hello world"]).score
+        0.0
+    """
     return sacrebleu.corpus_chrf(
         predictions,
-        references,
+        _as_reference_streams(references),
         word_order=word_order,
     )
 
@@ -246,18 +302,25 @@ def compute_ter(
         TER object with .score attribute (0-100, lower is better).
 
     Example:
-        >>> preds = ["The cat sat", "Hello"]
-        >>> refs = ["A cat sits", "Hi there"]
-        >>> result = compute_ter(preds, refs)
-        >>> print(f"TER: {result.score:.2f}")
-        TER: 80.00
-    """
-    if references and isinstance(references[0], str):
-        references = [[ref] for ref in references]
+        Note the direction: TER is an error rate, so **lower is better** and a
+        perfect translation scores 0.
 
+        >>> preds = ["Hello world", "How are you"]
+        >>> refs = ["Hello world", "How are you doing"]
+        >>> print(f"TER: {compute_ter(preds, refs).score:.2f}")
+        TER: 16.67
+
+        >>> print(f"TER: {compute_ter(refs, refs).score:.2f}")
+        TER: 0.00
+
+        That first example is chosen to discriminate. The previous one here
+        scored 80.00 both correctly and under the old reference-shape bug, so
+        it could never have caught it; this one reads 16.67 correctly and 0.00
+        when the references are misread.
+    """
     return sacrebleu.corpus_ter(
         predictions,
-        references,
+        _as_reference_streams(references),
         normalized=normalized,
     )
 
@@ -270,7 +333,7 @@ def evaluate_model(
     device: torch.device | None = None,
     decode_strategy: str = "greedy",
     beam_size: int = 5,
-    max_decode_length: int = 200,
+    max_decode_length: int | None = None,
     lowercase: bool = False,
     compute_chrf_score: bool = True,
     compute_ter_score: bool = False,
@@ -331,7 +394,16 @@ def evaluate_model(
         ... )
         >>> print(f"BLEU: {scores['bleu']:.2f}")  # doctest: +SKIP
     """
+    from .config import get_default_config
     from .inference import translate_batch
+
+    # Resolve from config rather than carrying a literal. This function used to
+    # default to 200 while every decoder defaulted to 100, so the same model
+    # scored differently through here than through a decoder called directly, on
+    # any target between the two lengths.
+    cfg = config if config is not None else get_default_config()
+    if max_decode_length is None:
+        max_decode_length = cfg.max_decode_length
 
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
