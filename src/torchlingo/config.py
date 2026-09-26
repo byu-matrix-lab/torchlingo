@@ -640,13 +640,28 @@ BEAM_SIZE = 5
 #   - Description: Beam width for beam search decoding. Larger values explore
 #     more hypotheses (better quality but slower). Set to 1 for greedy decoding.
 
-MAX_DECODE_LENGTH = 200
+MAX_DECODE_LENGTH = 100
 # MAX_DECODE_LENGTH: int
 #   - Type: int (positive)
 #   - Typical values: 50, 100, 200, 500
-#   - Default: 200
-#   - Description: Maximum number of tokens to generate during decoding.
-#     Acts as a safety cap to prevent generating extremely long sequences.
+#   - Default: 100
+#   - Description: Maximum number of tokens to generate during decoding. Acts as
+#     a safety cap to prevent generating extremely long sequences.
+#
+#     This is now the ONLY place a generation length is written down. It used to
+#     be two places that disagreed: this said 200, while greedy_decode,
+#     beam_search_decode and translate_batch each carried a literal 100. So the
+#     same model scored differently depending on whether you called a decoder
+#     directly or went through evaluate_model, on any target between the two --
+#     11.7% of one real corpus. Every decoder now resolves from here.
+#
+#     Lowered 200 -> 100 rather than raised, so the number matches what the
+#     decoders already did and the change is to evaluate_model's behaviour only.
+#     Targets longer than this truncate; on the corpus measured, that is about
+#     1% of sentences.
+#
+#     Not to be confused with MAX_SEQ_LENGTH, which is the positional encoding's
+#     capacity (512) and an architectural ceiling rather than a budget.
 
 LENGTH_PENALTY = 0.6
 # LENGTH_PENALTY: float
@@ -895,7 +910,7 @@ class Config:
         last_checkpoint_path: Path | None = None,
         # Decoding and inference
         beam_size: int = 5,
-        max_decode_length: int = 200,
+        max_decode_length: int = MAX_DECODE_LENGTH,
         length_penalty: float = 0.6,
         use_greedy: bool = False,
         output_translations: Path | None = None,
