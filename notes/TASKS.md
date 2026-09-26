@@ -47,7 +47,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 
 | | Task | State |
 |---|---|---|
-| #94 | One Colab link for the Lecture 7 in-class activity | **Due Mon Sep 28** — in review, PR #73 |
+| #94 | One Colab link for the Lecture 7 in-class activity | **Done** — PR #73 merged, and shipped in 0.2.0 |
 | #96 | Restate the step count in epochs | **Due Wed Sep 30** — unit decided |
 | #100 | Put the alignment check in front of students | **Due Wed Sep 30** |
 | #95 | One end-to-end 100K-pair run: wall clock and BLEU | **Due Wed Oct 7** — corpus ready, start now |
@@ -56,18 +56,18 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
 | #101 | Give the tutorials stable unique names | Open — after the tutorial PRs land |
-| #103 | Extend the notebook gate to `docs/docs/course/` | **Unblocked** — four have arrived |
+| #103 | Extend the notebook gate to `docs/docs/course/` | **Unblocked and now live** — four are on `main`, ungated |
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | Open — 74% of an epoch is wasted padding |
-| #108 | Nothing releases the device allocator's cache | Open — measured: 99.8% of held memory is reclaimable |
+| #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
 | #109 | A8's 100K floor has no low-resource variant | **Open — Eric, before Oct 7** |
 | #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | Open — settle before A8's text |
-| #111 | Does the Lecture 6 activity notebook go public? | **Open — Eric's decision** |
-| #112 | Expired Lecture 6 refs in the briefing; build the ladder | Briefing done — ladder blocked on PR #84 |
+| #111 | Does the Lecture 6 activity notebook go public? | **Done** — Eric ruled yes; merged in PR #85 |
+| #112 | Expired Lecture 6 refs in the briefing; build the ladder | **Done** — see `notes/reports/length-ladder.md` |
 | #113 | Land the six PRs still open | All six refreshed and green against today's `main` |
 | #115 | The four course notebooks, and the deck's link switch | **Done** — PR #85 merged; badges resolve |
 | #116 | `create_dataloaders` discards the `Config` it is handed | **Done** — PR #84 merged; ladder unblocked |
-| #117 | A PR based on `main` self-closed during an unrelated merge | Open — recovered; contradicts `CLAUDE.md` |
+| #117 | A PR based on `main` self-closed during an unrelated merge | Recovered — correction in **PR #91**, Eric's review |
 | #118 | What does a paid Colab session actually provide? | **Coulson** — blocks any A8 memory claim |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
@@ -103,7 +103,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #86 | `evaluate_model` has no test, and it is what callers use | Open — after PR #58 |
 | #88 | Open the tutorial 7 PR | **Unblocked — PR #58 has merged** |
 | #89 | Fail the docs build when a page is off-nav | Open |
-| #90 | `CLAUDE.md`'s numbering example is stale | Open |
+| #90 | `CLAUDE.md`'s numbering example is stale | In review — **PR #91**, folded in |
 | #91 | `metric_comparison.json` records no BLEU signature | Open — after PRs #55 and #58 |
 | #92 | Tutorials 3 and 5 bypass the library's own evaluation API | Open |
 
@@ -746,11 +746,24 @@ throughput, sequence length dominates memory.** They are separate levers and the
 a memory failure, so the lever that matters for #95 is the cap, while the lever for epoch
 time is batch size.
 
-Next: walk rungs 10, 20, 40 and 80, one at a time. The prior two rungs are preserved in
-`data/ladder-backup/` rather than overwritten, being the invalid 512-cap pair.
+**All seven rungs are measured. The numbers live in
+[`notes/reports/length-ladder.md`](reports/length-ladder.md), not here.**
 
-Superseded note, kept because the reasoning above depends on it: the rungs completed so
-far have to be discarded rather than reused, since they are all the same configuration.
+This file tracks work; `reports/` records what was measured. The curve was written into
+this entry first, which was the wrong place: nobody looks for a memory measurement inside
+a task list, and it put the figures next to the arithmetic done on them — including the
+arithmetic that was wrong twice. The report is generated from JSON and CI checks that it
+still matches, so it cannot drift the way a hand-typed table here would.
+
+**The one line worth having in the task list**: at the agreed 100-token cap the run holds
+**9.60 GiB against 35.80 uncapped**, which is 73% of the memory cost removed for 1.30% of
+the data at identical wall clock. The cap is doing the job it was chosen for.
+
+What that leaves open is **#118** — whether 9.60 GiB fits the accelerator students are
+actually assigned. This machine cannot answer it.
+
+Rungs are preserved in `data/ladder-backup/` as each completes, including the invalid
+512-cap pair, rather than being overwritten.
 
 ## Code — decoding performance
 
