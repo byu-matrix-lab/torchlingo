@@ -4,10 +4,30 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #112 and PRs to #78, so every number below 79 names one of each. Say
+Tasks run to #114 and PRs to #79, so every number below 80 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
+
+## This file is the whole list; the session mirror is only what is urgent
+
+**Convention, Eric's, 2026-09-25.** A task stays on the in-session task list only if it
+contributes to **Lecture 7 (Mon Sep 28)** or **Lecture 8 (Wed Sep 30)**. Everything else
+lives here and here alone.
+
+That keeps the working list short enough to be read, without losing anything: this file
+is authoritative and always has every task. The mirror is a filter over it, not a second
+copy of it.
+
+What passes the filter today: #16 and #113, because the release is what Monday depends
+on; #42 and #94, which are Lecture 7 itself; #95, #96, #100, #109 and #110, which
+Assignment 8's text needs before it is handed out on Sep 30; and #112, which builds the
+measurement the others wait on.
+
+The test to apply is *"must this be done for Lecture 7 or Lecture 8 to happen
+correctly?"* — not "is this related to them". #44 failed that test on inspection: it
+gates the sdist against shipping a Git LFS pointer, which sounds release-critical until
+you check, and the installed wheel turns out to carry **no data files at all**.
 
 Everything here is work that can be finished and then deleted. Standing rules live in
 `CLAUDE.md`; decisions and findings live where they apply. `notes/README.md` maps the
@@ -45,6 +65,8 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | Open — settle before A8's text |
 | #111 | Does the Lecture 6 activity notebook go public? | **Open — Eric's decision** |
 | #112 | Expired Lecture 6 refs in the briefing; build the ladder | Open |
+| #113 | Land the nine open PRs, which unblocks the release | **Open — Lecture 7 critical** |
+| #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #16 | Release pipeline broken — nothing ships | In review — PR #53 |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
 | #7 | PyTorch deprecation warnings | In review — PR #57 |
@@ -456,6 +478,61 @@ transpose bug. Those come out when PR #58 merges.
 Worth noting they also audited `CS479_COURSE_ROADMAP.md` for anything that should not be
 public before it was committed — no URLs, no SharePoint links, no student names, no
 credentials.
+
+### #113 Land the nine open PRs, which is what unblocks the release
+
+**Lecture 7 critical**, because Monday depends on the release and the release depends on
+these. All nine target `main` and none are stacked.
+
+| PR | |
+|---|---|
+| #51 | nav entries for the three deferred pages |
+| #52 | tutorial 6 imports the diagnostics instead of a second copy |
+| #53 | version-mismatch guard, and the bump to 0.2.0 — **the release gate** |
+| #54 | the length-normalization question resolved |
+| #55 | sacreBLEU signature with every score |
+| #57 | one causal-mask convention, tutorial 5 clean |
+| #58 | chrF and TER fixed, the three metrics taught |
+| #59 | attention on the Transformer |
+| #73 | tutorial 2's install actually runs — **Monday's blocker** |
+
+PyPI serves 0.0.8, which lacks `diagnostics`, `visualization` and `training_checkpoint`.
+Tutorial 2 survives that, verified against the real wheel, so Monday is not lost if the
+release slips. But the release is what makes tutorials 4, 6 and 7 work for anyone who
+pip installs, and PR #53 carries both the guard and the bump.
+
+Two cautions, both already learned expensively here:
+
+- **A green tick is green against the base the checks last saw.** Several of these are
+  days old. Merge `main` in and let CI re-run, or build the merge result locally, before
+  trusting one.
+- **The release has not succeeded since February.** PR #53 fixes the version collision
+  that broke `v0.1.0` and `v0.1.1`, but a *second* failure on `v0.1.1`, in
+  `Create GitHub Release`, was never root-caused. There is no dry run, since `publish`
+  fires on any `v*` tag. Tag early in the week, not Sunday night.
+
+Not mine to merge: all nine need review, and admin override is authorized for notes-only
+diffs. #73 is the one worth doing first.
+
+### #114 The wheel ships no data, so tutorials 4 and 5 cannot find what they load
+
+Found 2026-09-25 while checking whether #44 was release-critical. It is not, and the
+reason is the finding: the installed package contains **zero** data files. Verified
+against the real 0.0.8 wheel.
+
+So `data/example.tsv` and `data/pretrained/` exist in the repository and not in a pip
+install. A student who opens tutorial 4 or 5 from its Colab badge, installs with pip, and
+runs it will fail at the load, with nothing explaining why.
+
+- **Monday is unaffected.** Tutorial 2 builds its own corpus inline; its only mention of
+  `data/example.tsv` is prose. Checked.
+- Tutorial 2's prose says the file "ships with the repo", which is true of the repo and
+  false of the wheel a student installs. Worth rewording either way.
+- Options: fetch the file over HTTP in the notebooks that need it, ship it as package
+  data, or say plainly that those tutorials need a clone. The first keeps the Colab badge
+  honest, which is the point of having one.
+- Related to #53's finding that the published wheel was missing five modules. Same
+  shape: what the repository has is not what the wheel carries, and nothing checks.
 
 ### #112 Expired Lecture 6 references, and the ladder that should have been built first
 
