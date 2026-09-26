@@ -170,10 +170,14 @@ ALWAYS complete these steps after making code changes:
 
 ### Say "PR #X" and "Task #Y", never a bare `#N`
 
-The two numbering schemes overlap almost completely — tasks run to #62, pull
-requests to #42, so every number below 43 names one of each. Write **"PR #37"**
-for a pull request and **"Task #37"** for a task-list item, in prose, commit
-messages and GitHub comments alike.
+The two numbering schemes overlap almost completely — as of 2026-09-26 tasks run
+to #118 and pull requests to #91, so **every number below 92 names one of each**.
+Write **"PR #37"** for a pull request and **"Task #37"** for a task-list item, in
+prose, commit messages and GitHub comments alike.
+
+*These figures go stale by design; the overlap only ever grows, so the rule gets
+stronger rather than weaker as they age. Earlier text said tasks ran to #62 and
+PRs to #42.*
 
 This is not pedantry. Task #37 ("stacked PRs fight the stale-review rule") was
 retired in the same breath as PR #37 (the `val_losses` fix) was listed as open
