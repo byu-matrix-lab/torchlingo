@@ -66,7 +66,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #107 | The optimizations exist and nothing uses them | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
 | #109 | A8's 100K floor has no low-resource variant | **Open — Eric, before Oct 7** |
-| #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | Open — settle before A8's text |
+| #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | **Closed** — units never commensurable; live half folded into #95 |
 | #111 | Does the Lecture 6 activity notebook go public? | **Done** — Eric ruled yes; merged in PR #85 |
 | #112 | Expired Lecture 6 refs in the briefing; build the ladder | **Done** — see `notes/reports/length-ladder.md` |
 | #113 | Land the six PRs still open | All six refreshed and green against today's `main` |
@@ -220,6 +220,25 @@ fits a student's compute budget at all.
 - Confirm resume along the way, which closes the one residual from #38 item 3.
 - Route the numbers through a JSON single source of truth, as with every other quantitative
   claim here.
+
+**Launched 2026-09-26**: 36 epochs, 100-token cap, bucketing on, watchdog at 24 GiB, MPS.
+`benchmark_a8.py` had to be fixed first — it was the script that took the machine down and
+still had all three causes present, no length cap, no bucketing, no guard.
+
+#### Acceptance criterion inherited from #110, which is now closed
+
+**Report whether validation loss is still falling at epoch 36, and say so explicitly in the
+handout either way.** The full per-epoch curve is in the JSON for this reason.
+
+This is the one live part of #110. The OpenNMT step count itself was never commensurable
+with ours — 16,384 tokens per update against about 1,726, a 9.5x gap — but converted to
+tokens their students trained **3.4x longer** than 36 epochs gives: 328M target tokens
+against 97M, which is 122 epochs of this corpus.
+
+So the question is not "who was right" but simply whether this model is still improving when
+the assignment tells eighteen students to stop. If it is, the recommendation needs raising
+regardless of where the original figure came from, and **#119**'s curve will want the same
+answer at every corpus size.
 
 ### #96 Restate the step count in epochs
 
@@ -422,7 +441,34 @@ This makes the A5 audit more valuable, not less: it becomes the thing that says 
 students need a different assignment and how much smaller it has to be. Languages were
 chosen in Lecture 2 and bitexts delivered Sep 23, so it is a lookup, not a forecast.
 
-### #110 The OpenNMT evidence implies 65 to 165 epochs, not 30 to 36
+### #110 The OpenNMT evidence implies 65 to 165 epochs — CLOSED 2026-09-26
+
+**Eric's call, and the arithmetic backs it: the pivot to TorchLingo retires this. The one
+live question in it moves to #95 rather than closing with it.**
+
+**Why the reconciliation is dead.** The two step counts were never commensurable. OpenNMT
+ran `batch_type: tokens, batch_size: 8192, accum_count: 2`, so 16,384 target tokens per
+update. TorchLingo's `batch_size` counts **sentences**: 64 sentences at the measured mean of
+27.0 target subwords is about **1,726 tokens per step, 9.5x smaller**. "20,000 steps" in one
+system says nothing about step counts in the other, which is exactly why the bracket had to
+be quoted as 65 *to* 165 — its width was entirely the unknown tokens-per-sentence. Nothing
+to reconcile once we do not run OpenNMT.
+
+**What was nevertheless real, and does not close.** Converting both to tokens:
+
+| | target tokens | epochs of this corpus |
+|---|---|---|
+| OpenNMT, 20,000 steps | 328M | **122** |
+| TorchLingo, 36 epochs | 97M | 36 |
+
+So those students trained about **3.4x longer** than the 30-to-36 recommendation gives. The
+figure was not noise; it was a genuinely larger training budget. Whether TorchLingo *needs*
+that budget is a question about TorchLingo, answerable only here, and it is the acceptance
+criterion now written into **#95** — whose run reports validation loss per epoch for exactly
+this.
+
+Closed rather than deleted so the 9.5x unit mismatch stays on the record. It is the kind of
+thing that gets rediscovered as a contradiction by whoever next finds an OpenNMT config.
 
 The Cowork session found a config, with a caveat. The Fall 2025 *instructor* notebook
 sets only `train_steps: 1000`, but a Fall 2025 **student** submission that ran the real
