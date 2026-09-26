@@ -47,9 +47,10 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 
 | | Task | State |
 |---|---|---|
-| #95 | One end-to-end 100K-pair run: wall clock and BLEU | **RUNNING** — Cowork needs the numbers by Oct 5 |
-| #119 | The learning curve: does more than 100K pairs help? | **Open — Eric's priority.** Ceiling is 1.32M |
-| #120 | `grader.exe` has no source and no home | Contingent — lands here if the author does not reply |
+| #95 | The data learning curve, whose 100K point is A8's number | **RUNNING** — Cowork needs the 100K figures by Oct 5 |
+| #49 | The shipped checkpoint predates the enlarged corpus | Open — `train_pairs` 64,311 against a corpus of 86,430 |
+| #120 | The grader now has a source repository | Open — point the course at it; decide on diagnostics |
+| #125 | Compress the essay-length task bodies in `TASKS.md` | Open — ~300 lines, needs judgement not reflow |
 | #121 | A Lecture 9 subword notebook, and it is ours | **Answer to Cowork by Oct 3** |
 | #122 | Make Assignment 9's control hard to get wrong in code | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | Open — highest uncertainty, due Oct 28 |
@@ -63,7 +64,6 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
-| #109 | A8's 100K floor has no low-resource variant | **Open — Eric, before Oct 7** |
 | #113 | Land the six PRs still open | All six refreshed and green against today's `main` |
 | #118 | What does a paid Colab session actually provide? | **Coulson** — blocks any A8 memory claim |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
@@ -87,7 +87,6 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #68 | Cite `torcheck` as prior art in the diagnostics docs | Open |
 | #70 | Print the sacreBLEU signature with every score | In review — PR #55 |
 | #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
-| #72 | Prune the prose entries for finished tasks | Open |
 | #74 | Fix the broken anchor and diagnose the 93 docs warnings | Anchor in PR #51; the 93 warnings still open |
 | #78 | Tutorial 5's committed outputs predate the retrained checkpoint | In review — PR #57 |
 | #79 | An order-dependent test; does not reproduce on main today | Open |
@@ -122,7 +121,15 @@ produced two copies that disagreed within days.
 
 What stays below are the dated tasks themselves.
 
-### #95 One end-to-end 100K-pair run
+### #95 The data learning curve, whose 100K point is Assignment 8's number
+
+**Merged with #119 on 2026-09-26, Eric's call.** They were one experiment tracked twice: the
+100K run *is* the curve's anchor point. #119's design requirements are folded in below, and
+the deadline-bearing half stays at this number because Cowork's handoff references it.
+
+**Two deliverables from one sweep.** The 100K point answers Assignment 8 — expected BLEU and
+wall clock, needed by **Oct 5** — and the remaining points answer whether more data is worth
+having at all.
 
 The largest controlled run on record is **64,311 pairs, 36 epochs, BLEU 7.32**. The
 assignment asks for at least 100,000 pairs and expects "reasonably intelligible output".
@@ -134,7 +141,6 @@ fits a student's compute budget at all.
 - Start it now. It is hours of wall clock that cannot be compressed.
 - Run at the epoch count #96 settles on, not at some other number, or it measures the wrong
   thing.
-- Confirm resume along the way, which closes the one residual from #38 item 3.
 - Route the numbers through a JSON single source of truth, as with every other quantitative
   claim here.
 
@@ -154,8 +160,74 @@ against 97M, which is 122 epochs of this corpus.
 
 So the question is not "who was right" but simply whether this model is still improving when
 the assignment tells eighteen students to stop. If it is, the recommendation needs raising
-regardless of where the original figure came from, and **#119**'s curve will want the same
-answer at every corpus size.
+regardless of where the original figure came from — and the curve below wants the same answer
+at every corpus size, which is the other reason these two tasks belong together.
+
+
+#### The curve, merged from #119
+
+**The ceiling is 1,319,631 pairs** — measured, being the distinct German sources in
+`data/bitext/all.de` after dropping blanks and source-equals-target. So the curve has room
+for roughly **13x** the current point, not the 2x that "more" might have meant.
+
+#### The confound that has to be designed out first
+
+More data means more batches per epoch, so training every point for the same number of
+*epochs* gives the larger points more gradient steps as well as more data. The curve then
+shows data and compute mixed together, and attributes all of it to data.
+
+**This repository has already published exactly that mistake**: a comparison that gave one
+model 19% more data *and* 80% more training while claiming data was the only difference. It
+is an easy one to make twice.
+
+Three honest designs, and they answer different questions:
+
+| design | question it answers | cost |
+|---|---|---|
+| equal epochs | what a student gets by pointing the assignment at more data | grows linearly with data |
+| equal optimizer steps | what more *unique* data buys at a fixed compute budget | flat across points |
+| train each to convergence | how much quality the data can ultimately support | largest, and unbounded |
+
+**Equal steps is the one to lead with**, because a student's real constraint is a Colab
+session rather than an epoch count, and because every point then costs the same wall clock.
+Report epochs-completed alongside, so the equal-epochs reading is recoverable from the same
+runs rather than needing a second sweep.
+
+#### Controls that must hold across points
+
+- **Nested subsets.** 25K must be a subset of 50K, and so on. Independent draws add
+  sampling noise to the curve and can invert two adjacent points on their own.
+- **One fixed dev and test set**, identical for every point, with their source groups
+  excluded from every training set. `split_bitext.py` already groups by source, so this
+  builds on a verified split rather than a fresh one.
+- **One fixed tokenizer** across all points. Refitting SentencePiece per point changes the
+  vocabulary at the same time as the data, which is the Assignment 9 control bug in a
+  different costume. State which split it was fit on, since fitting on the largest train set
+  and fitting on 100K are different choices and neither is neutral.
+- **The 100-token cap**, so memory stays at the measured 9.60 GiB regardless of corpus size.
+  Data size changes batch *count*, not batch shape, so the ladder's memory result carries
+  over unchanged.
+
+#### Judiciousness, concretely
+
+Epoch time scales about linearly with pairs: 192 s at 100K measured, so roughly 25 minutes an
+epoch at 800K. At 36 epochs a full seven-point sweep is on the order of **44 hours**, which
+is why the design above matters more than the compute.
+
+- Walk it upward like the ladder, cheapest first, and stop when the curve flattens. If 200K
+  barely beats 100K there is no case for 800K.
+- **Measure seed noise once, at the cheapest point**, with two or three seeds. Without it
+  there is no way to know whether a 0.4 BLEU gap between adjacent points is real, and the
+  temptation will be to read it as real.
+- Every number to JSON, and the report generated, per `notes/reports/`.
+
+#### What it settles beyond Eric's question
+
+**It prices the low-resource case.** A8's floor is already settled — at least 100K pairs, and
+if your cleaned data has less, use all of it and say so — so this is no longer a blocking
+question. But if the curve is steep below 100K, a student with 40K is losing a *quantified*
+amount rather than an unknown one, and that is worth telling them rather than leaving as a
+shrug.
 
 ### #97 SentencePiece on versus off, controlled
 
@@ -266,29 +338,6 @@ because the memory is the machine's, and a spike is held against everything else
   which bounds the worst case instead of releasing after it. Real MT toolkits do this, but
   it changes what `batch_size` means and a teaching library should not do that lightly.
 
-### #109 Assignment 8's 100K floor has no low-resource variant
-
-**From the Cowork session, and it moves a conclusion. Eric's call, needed before Oct 7.**
-
-"Students have up to 200K bitext" is wrong as a general statement. The Lecture 4 and 5
-assignment says medium and high-resource languages prepare **at least** 200K, while
-**low-resource students prepare everything that exists for their language** — and the
-course defines low-resource as under 200K available. For some of them that is far below
-200K before any cleaning.
-
-So the 104,000-pair threshold will flag those students, and the right reading is *not*
-that they cannot do Assignment 8. It is that **A8's floor was written for the medium and
-high-resource case and has no low-resource variant.** That is an assignment design
-question rather than a data problem.
-
-It also bounds Part C's arithmetic. "200K raw minus 29.9% equals 140K clean, clears the
-floor with 36K spare" holds only for the students who started at 200K. For the rest the
-subtraction starts lower and the floor may be unreachable however clean their pipeline is.
-
-This makes the A5 audit more valuable, not less: it becomes the thing that says how many
-students need a different assignment and how much smaller it has to be. Languages were
-chosen in Lecture 2 and bitexts delivered Sep 23, so it is a lookup, not a forecast.
-
 ### #113 Land the six PRs still open
 
 **No longer blocking anything.** Four of the nine landed on 2026-09-26 and **0.2.0 is
@@ -366,95 +415,78 @@ people.
 **Leave the Part 4 `# TODO:` cell exactly as it is.** It pre-writes Assignment 6's step 3
 deliberately; Cowork flagged it and Eric ruled it fine.
 
-### #119 The learning curve: does going past 100K pairs actually help?
+### #49 The shipped checkpoint predates the enlarged corpus
 
-**Eric's priority, 2026-09-26. "Can we judiciously go from 100K sentences to more?"**
+**Confirmed still live on 2026-09-26** by reading the checkpoint rather than the note: it
+reports `train_pairs: 64311` against a corpus of 86,430 in `data/example.tsv`. So the shipped
+model has never seen about a quarter of the data it is meant to represent.
 
-**The ceiling is 1,319,631 pairs** — measured, being the distinct German sources in
-`data/bitext/all.de` after dropping blanks and source-equals-target. So the curve has room
-for roughly **13x** the current point, not the 2x that "more" might have meant.
+Nothing is broken — the held-out talks are still whole talks and still held out, since the
+corpus grew by a strict superset. It is stale rather than wrong.
 
-**#95's run is the 100K point**, so the curve extends work already under way rather than
-starting over.
+Worth retraining because everything downstream reads off this one checkpoint: tutorial 5
+shows its translations, the decoding sweep measures on it, and its BLEU is the first number a
+student meets.
 
-#### The confound that has to be designed out first
+- Rerun `scripts/train_example_model.py`. Its default is now 40 epochs as a ceiling with
+  early stopping, so this no longer risks reproducing the undertrained baseline that caused
+  the training-budget error — see [`reports/training-budget.md`](reports/training-budget.md).
+- Regenerate `docs/docs/_generated/decoding_sweep.json` afterwards. `--rerender` is not
+  enough; the sweep itself must re-run, which takes about an hour.
+- Not urgent, and **not** on the CS 479 critical path: no assignment depends on it.
 
-More data means more batches per epoch, so training every point for the same number of
-*epochs* gives the larger points more gradient steps as well as more data. The curve then
-shows data and compute mixed together, and attributes all of it to data.
+### #125 Compress the essay-length task bodies in this file
 
-**This repository has already published exactly that mistake**: a comparison that gave one
-model 19% more data *and* 80% more training while claiming data was the only difference. It
-is an easy one to make twice.
+**Eric's ask, 2026-09-26.** Bodies here average around 19 lines; what/why/done-when would fit
+in six. Roughly 300 lines.
 
-Three honest designs, and they answer different questions:
+**Not a reflow job, which is why it is a task rather than a chore.** The "why" is load-bearing
+in a repository where decisions get revisited — it is what stops a settled question being
+reopened — and several bodies carry measured numbers that exist nowhere else.
 
-| design | question it answers | cost |
-|---|---|---|
-| equal epochs | what a student gets by pointing the assignment at more data | grows linearly with data |
-| equal optimizer steps | what more *unique* data buys at a fixed compute budget | flat across points |
-| train each to convergence | how much quality the data can ultimately support | largest, and unbounded |
+The rule that came out of the #72 pass, which is the one to apply here:
 
-**Equal steps is the one to lead with**, because a student's real constraint is a Colab
-session rather than an epoch count, and because every point then costs the same wall clock.
-Report epochs-completed alongside, so the equal-epochs reading is recoverable from the same
-runs rather than needing a second sweep.
+1. what to do,
+2. the single fact that makes it worth doing,
+3. how you know when it is done.
 
-#### Controls that must hold across points
+Everything else — how it was found, who raised it, what was tried first — is archaeology, and
+git history holds it.
 
-- **Nested subsets.** 25K must be a subset of 50K, and so on. Independent draws add
-  sampling noise to the curve and can invert two adjacent points on their own.
-- **One fixed dev and test set**, identical for every point, with their source groups
-  excluded from every training set. `split_bitext.py` already groups by source, so this
-  builds on a verified split rather than a fresh one.
-- **One fixed tokenizer** across all points. Refitting SentencePiece per point changes the
-  vocabulary at the same time as the data, which is the Assignment 9 control bug in a
-  different costume. State which split it was fit on, since fitting on the largest train set
-  and fitting on 100K are different choices and neither is neutral.
-- **The 100-token cap**, so memory stays at the measured 9.60 GiB regardless of corpus size.
-  Data size changes batch *count*, not batch shape, so the ladder's memory result carries
-  over unchanged.
+**Where a body carries a finding that outlives the task, move it to `notes/reports/` rather
+than deleting it.** That is what happened with the training-budget finding, which turned out
+to be the prior for #95's learning curve and was invisible inside a task entry.
 
-#### Judiciousness, concretely
+Do it a section at a time and review each diff. This is the file both sessions read every
+time; a bad compression is worse than a long file.
 
-Epoch time scales about linearly with pairs: 192 s at 100K measured, so roughly 25 minutes an
-epoch at 800K. At 36 epochs a full seven-point sweep is on the order of **44 hours**, which
-is why the design above matters more than the compute.
+### #120 The grader now has a source repository
 
-- Walk it upward like the ladder, cheapest first, and stop when the curve flattens. If 200K
-  barely beats 100K there is no case for 800K.
-- **Measure seed noise once, at the cheapest point**, with two or three seeds. Without it
-  there is no way to know whether a 0.4 BLEU gap between adjacent points is real, and the
-  temptation will be to read it as real.
-- Every number to JSON, and the report generated, per `notes/reports/`.
+**Resolved 2026-09-26, and it went the good way.** Eric supplied the source:
+**<https://github.com/byu-matrix-lab/data-cleaning-pipeline-grader>**, in the lab's own
+organisation.
 
-#### What it settles beyond Eric's question
+That retires the finding Cowork raised the same day. Their trace had found only four
+PyInstaller binaries and an `Instructions.md` in a personal OneDrive — 27 MB Windows, 25 MB
+Intel Mac, 105 MB M-series, **301 MB Linux**, the Windows and M-series builds dating from
+September 2023, with no license, no version, and nothing matching in `byu-matrix-lab`. The
+conclusion drawn from that, that the course would lose the tool whenever the account was
+reclaimed, no longer holds.
 
-**#109.** If the curve is steep below 100K, a low-resource student with 40K is losing a
-quantified amount rather than an unknown one, which turns A8's floor from a judgement into
-an arithmetic problem.
+**What is left is smaller but still worth doing.**
 
-### #120 `grader.exe` has no source and no home
-
-**From Cowork, 2026-09-26. Not a request yet: Eric has written to the author.**
-
-The tool Lectures 4 and 5 both send students to is four PyInstaller binaries and an
-`Instructions.md` in a PhD student's personal OneDrive. 27 MB Windows, 25 MB Intel Mac,
-105 MB M-series, **301 MB Linux**. The Windows and M-series builds date from September 2023.
-Nothing matching it exists in `byu-matrix-lab` or on the author's GitHub, and there is no
-license and no version.
-
-Two consequences, and the second is the one that would bother a reviewer:
-
-- The course loses the tool the day that OneDrive account is reclaimed.
-- Students are currently told to download an unsigned 301 MB executable and override
-  Gatekeeper to run it. That is a bad habit to teach regardless of where the code lands.
-
-**If the source is gone this lands here**, and `torchlingo.diagnostics` is the obvious home:
-public, tested, pip-installable, already in front of students, and it already does the
-alignment and contamination halves of the job. The checks are documented in the Lecture 4
-deck, so there is a specification. A rewrite there also deletes the download-a-binary step
-from the course entirely.
+- **Point Lectures 4 and 5 at the repository rather than the OneDrive binaries.** This is
+  the part that still bites students: they are currently told to download an unsigned 301 MB
+  executable and override Gatekeeper to run it. Running it from source removes that step
+  entirely, and "override your OS's code signing" is a bad habit to teach regardless of
+  where the code lives. Cowork owns the decks, so this is a request to them.
+- **Read the repository before recommending anything else.** Whether it has a license, a
+  README that tells a student how to run it, and whether it works on all three platforms
+  from source are all unknown here and all cheap to check.
+- **Drop the diagnostics-rewrite contingency.** It was only ever justified by the source
+  being gone. `torchlingo.diagnostics` already does the alignment and contamination halves,
+  so if the two tools should converge that is now a design question rather than a rescue,
+  and it should not be decided under deadline.
 
 ### #121 A Lecture 9 subword notebook, and it is ours to write
 
@@ -843,42 +875,6 @@ budget beat data by about 7x, and the data effect's confidence interval crossed 
 
 What remains here are the corrections it generated.
 
-**#55 Correct tutorial 5.** It currently teaches "more data" as the top lever, measured.
-The honest version is the better lesson: the interesting hypothesis was wrong, the boring
-one (you stopped training too early) was right, and only controlling the variable told
-them apart. Numbers to use are in the table above; artifacts in
-`docs/docs/_generated/checkpoint_comparison.json`, which also needs regenerating from the
-controlled run.
-
-**#56 Correct #34.** Its description and commit message both claim "same architecture,
-same 36 epochs, same seed — the only thing that changed is the data." False. The
-checkpoint itself is fine and worth shipping; only the explanation of why it is better
-needs replacing.
-
-**#57 Add a note to #27.** It claims "They are 18% more data", which is true, and makes
-no BLEU claim, so nothing there is wrong. But the implicit case for the work is quality,
-and the measured quality effect is indistinguishable from zero at this scale. Worth
-saying so plainly, and restating the real justification: it is a correctness fix for data
-being discarded for a fixable reason, it teaches Gale-Church, and it will matter at a
-scale where the model is not the binding constraint.
-
-**#58 The script's default undertrains.** `train_example_model.py` defaults to
-`--epochs 20`, which is what produced the BLEU 4.96 checkpoint. 36 epochs gives 7.01 on
-the same data, and by then validation loss has flattened (mean change over the last five
-epochs: −0.0010/epoch). A default that stops well short of convergence teaches the wrong
-thing about training, and it is what made "more data" look like the answer. Change the
-default to 36, or add early stopping on the validation curve so the run ends when it
-should rather than when a hardcoded count runs out.
-
-**#59 Nothing checks that a comparison controlled its variables.** This is the general
-version, and the reason the error survived review. `compare_checkpoints.py` pins the test
-set and bootstraps the difference, which is why the *measurement* was sound; it never
-looks at how the two checkpoints were trained. It has both checkpoint dicts in hand and
-could refuse, or at least warn loudly, when `len(train_losses)`, `train_pairs`,
-`model_config` or the seed differ — printing what differs alongside the BLEU delta so a
-reader sees the confound next to the number. Same shape as every other finding on this
-list: two things that must agree, with nothing checking they do.
-
 **#60 Nobody is told when main goes red**
 
 main broke on 2026-09-19 and stayed broken until someone happened to look.
@@ -939,29 +935,6 @@ not better — a test that depends on whatever seeded the RNG before it will com
 
 ## Release
 
-**#38 Colab checkpointing has never been run in Colab**
-PR #17 adds `training_checkpoint.py` with `is_colab()`, `mount_drive()` and a Drive-backed
-default directory. None of it has ever executed in Colab. CI cannot cover it: GitHub
-runners have no Drive to mount. Josh said the same of his original in PR #1, so this code
-path has now been **written twice and run zero times**.
-
-Asked Coulson on PR #17 to try it. What needs checking:
-1. `mount_drive()` actually mounts, and `default_checkpoint_dir` lands under `MyDrive`
-   rather than the runtime's own disk — a checkpoint on runtime disk dies with the
-   runtime, defeating the purpose.
-2. `latest.pt` and `best.pt` appear in Drive; the startup free-space line is sane.
-3. Interrupt the runtime partway, re-run the same cell: it should print a resume line and
-   train only the remaining epochs.
-
-Item 3 is the one that matters. If it restarts from epoch 0 the feature does not work,
-whatever the unit tests say. **Item 3 is now #93**, promoted out of here because CS 479
-gave it a deadline; items 1 and 2 stay in this task.
-- Open: whether to gate the #17 merge on this, or merge with the limitation documented,
-  which it currently is in both the module docstring and the reference page.
-- **Coulson accepted on 2026-09-16:** "I will return to this to review and test in Colab
-  when I finish the other PRs." He has since reviewed everything else, so #17 is next in
-  his queue and this is the one open item with a named owner.
-
 **#36 CI actions are pinned to a deprecated Node runtime**
 Every run now warns: `actions/checkout@v4`, `actions/setup-python@v5` and
 `actions/download-artifact@v4` target Node 20, which GitHub deprecated, and are being
@@ -998,59 +971,6 @@ them. If a course section of 60 blows through the free tier, the fallback is to 
 corpus outside git and download it on first use.
 
 ## Inference gaps
-
-**#34 Surface attention weights from greedy and beam decoding**
-Raised by Coulson on PR #10: can we visualize alignments for beam search too?
-
-Not today. Weights come only from a teacher-forced `model(src, tgt, return_attention=True)`,
-which aligns a translation you already have. Both decoders compute weights and throw them
-away — `inference.py:237` in greedy, and the LSTM beam path added in #12. So you can plot
-the alignment of a *reference* translation but not of one the model generated, which is
-the more interesting picture.
-- Greedy is straightforward: accumulate the per-step weights.
-- Beam is not. Weights belong to a hypothesis and hypotheses get pruned, so either carry
-  per-beam weight history and filter to the winner, or re-run `decode_prefix` on the
-  winning sequence once the search finishes. The second is cheaper and matches how the
-  reference already re-scores prefixes.
-- Shape it as an opt-in `return_attention=False` on both decoders so the default return
-  type does not move — #9 has just standardized those, along with the contract tests.
-**Correction (2026-09-18): this is bigger than recorded, and the "cheap alternative"
-above does not exist.** I claimed decode-then-teacher-force already yields the alignment,
-making this ergonomics rather than a missing feature. That is true of the LSTM only:
-
-```
-SimpleSeq2SeqLSTM.forward(src, tgt, return_attention=False)   <- exists
-SimpleTransformer.forward(src, tgt, ...)                      <- no such parameter
-```
-
-`SimpleTransformer` has **no attention-returning path at all**. There is nothing to
-teacher-force into and no recipe to document. And the Transformer is the architecture the
-tutorials train, the pretrained checkpoint uses, and a student is most likely to reach
-for, so the gap is in the worse place.
-
-Getting cross-attention out of `nn.Transformer` is also not a one-liner. PyTorch hardcodes
-`need_weights=False` inside `TransformerDecoderLayer._mha_block`, so a forward hook on
-`multihead_attn` captures `(output, None)`. The options are to wrap each layer's
-`multihead_attn.forward` to force `need_weights=True` while capturing, or to subclass the
-decoder layer and override `_mha_block`. The wrapper is less invasive and can be a context
-manager, which also keeps the cost off the default path.
-
-Revised shape:
-
-1. A way to capture Transformer cross-attention at all. This is the real work and
-   everything else depends on it.
-2. Then the original item: surface it from greedy and beam decoding rather than only from
-   a teacher-forced pass.
-
-Worth doing because it is also a good lesson. Explaining *why* the weights are not simply
-available — a fused fast path that discards them unless asked — teaches something true
-about how these libraries are built.
-
-Knock-on for #48: the audit lists "attention appears three times" under redundancy. The
-sharper problem is that it appears three times for the **LSTM** and zero times for the
-Transformer. Tutorial 4 teaches attention on an LSTM trained on a synthetic reversal task;
-a student who moves to the Transformer cannot inspect attention on the model they are
-using.
 
 ## Lint and tooling gaps
 
@@ -1095,37 +1015,6 @@ All three raised by Coulson on Discord, 2026-09-14, after reviewing the open PRs
 **The answer to his direct question was no.** That is now fixed: `visualization.py` gained
 `format_beam_search` and `plot_beam_search`, and `beam_search_decode` takes an optional
 trace recording candidates *before* pruning. The two below are what remains.
-
-**#40 Visualize the effect of decoding options**
-Distinct from #39: that shows how the search works on one run, this shows what the knobs
-do across runs — `beam_size`, `alpha`, greedy versus beam.
-
-Tutorial 3 already sweeps beam sizes 1, 2, 3, 5, 10 and prints a table where every row is
-identical, because the toy model is decisive. That teaches nothing. On a model where the
-answers differ, the sweep would show the diminishing returns past beam 3-5 that the docs
-currently **assert in prose without evidence** — the same gap #12 closed for the
-performance numbers.
-
-Also worth showing `alpha`: its effect on output length is easy to demonstrate and hard to
-intuit from the formula, and it connects to the open question in #4.
-
-Smaller than #39; can reuse `scripts/bench_decode.py`'s structure for sweeping and
-emitting JSON.
-
-**#41 Connect beam search back to prior coursework**
-The point stands regardless of which course number is right: students have likely met beam
-search as a general search algorithm before meeting it as a decoder. The docs teach it
-from scratch in NMT terms and never connect it to what they already know. A short framing
-— best-first search with a fixed-width frontier, where the heuristic is the model's log
-probability and pruning is what makes it tractable — lets them transfer understanding
-instead of rebuilding it.
-
-Cheap: a note box in `concepts/decoding.md` and a line in the tutorial. No code.
-
-- **Open question for Coulson, not for us to settle:** which course. He says 312 and flags
-  his own uncertainty; the answer recorded when he asked a related question on PR #8 was
-  that the walkthrough sits in CS 479, with whether it should be taught earlier left open.
-  Reference the concept rather than a number until that is confirmed.
 
 ## Docs and tutorials
 
@@ -1242,23 +1131,6 @@ the number a student meets first.
 - Check whether BLEU actually moves. 18% more data on a small model may buy very little,
   and that is worth knowing either way. If it does not move, say so in tutorial 5 rather
   than quietly retraining.
-
-**#50 Tutorial 3 still teaches the wrong lesson about beam size**
-
-#40 put the real measurement in `concepts/decoding.md`, but tutorial 3 is untouched: it
-still sweeps `beam_size` over 1, 2, 3, 5, 10 and prints a table where every row is
-identical, because its toy model is decisive. A student runs it, sees no difference, and
-draws the obvious and wrong conclusion.
-
-The cell is not wrong to exist — a sweep is the right thing to show. It just has nothing
-to show on that model.
-
-- Minimum: say so in the notebook. "Every row is identical because this model is too
-  small to be uncertain; see the measured version on a real model" costs two sentences
-  and removes the misconception.
-- Better: have the cell assert the rows are identical and explain why, so it becomes a
-  deliberate demonstration of when a sweep tells you nothing.
-- Tutorial 5 is where a real sweep belongs, since it has the model for it.
 
 **#53 The notebook gate is weaker than its green check implies**
 
@@ -1396,20 +1268,6 @@ upstream issue is outward-facing and is Eric's call.
 - One-line fix upstream; a courteous thing to send given we cite them favourably.
 - If yes: report from a clean clone, not the patched scratch copy.
 
-**#72 Prune the prose entries for retired tasks**
-
-The Status table was reconciled against the merge history on 2026-09-23. The prose
-entries further down mostly remain, so the file still describes shipped work as though it
-were pending. Anything whose row is gone from the table should be gone from the body too.
-
-- Read each before deleting. Some carry findings worth keeping even though the task is
-  finished — the recurring "two things that must agree, with nothing checking they do"
-  observation is one, and it has now described four separate defects. Move those into the
-  place they apply rather than losing them with the task.
-- Not a `sed`. The table is the index people read and it is correct now; the bodies need
-  a careful pass.
-
-
 **#74 A broken anchor and 93 unexplained warnings in the docs build** — anchor in PR #51; the 93 warnings still open
 
 Two pre-existing docs-hygiene items, both visible in every `mkdocs build --strict` run
@@ -1463,25 +1321,6 @@ Where it would matter:
 Also a genuinely good teaching progression if #48 wants one: length alone, then why it
 fails, then lexical evidence. Cited in `concepts/data-pipeline.md` and in the module
 already, so the pointer exists whether or not the code follows.
-
-**#47 Docstring examples are not executed, and 30 of them fail**
-
-`pytest --doctest-modules src/torchlingo` reports **30 failed, 24 passed**. Nothing runs
-doctests, so CLAUDE.md's "keep examples runnable and concise" is unenforced and the
-examples students are most likely to copy have rotted.
-
-Found the usual way: an example written in #46 asserted `looks_aligned()` on a
-single-row frame, which cannot pass, because one row has no length variation to
-correlate. It was wrong the day it was written and nothing noticed.
-
-Failures span `preprocessing/base.py`, `multilingual.py`, `multilingual_helpers.py`,
-`sentencepiece.py` and `training.py`, among others. Only `preprocessing/alignment.py` is
-fixed so far, in #29.
-
-- Fix in batches by module, since the failures are unrelated to each other.
-- Then add `--doctest-modules` to the test job so it stays fixed. Fixing without gating
-  just resets the clock, the same lesson as #26.
-- Same shape as #14 and #16: two things that must agree, with nothing checking.
 
 **#48 Audit what we have built for pedagogical value, and write down the sequencing**
 
@@ -1545,63 +1384,10 @@ call" — instead of only in related work? Their toy config trains in 3m52s on C
 93.62 BLEU, so it is cheap enough for a student to run beside ours.
 
 
-**#46 Teach the corpus repair instead of doing it silently**
-
-Coulson's suggestion on his approval of #19: the data cleaning "could be recorded and used
-as an example for cleaning data. Instead of doing it quietly in the background we could
-explain it to the students to reinforce the idea of clean data."
-
-He is right, and right about its weak part too. The repair currently lives entirely in
-`scripts/realign_corpus.py`, so the single most pedagogically loaded thing in the repo is
-the one thing no student sees. What makes it teachable is that the diagnosis is already
-quantified and the numbers are dramatic:
-
-```
-                      broken    repaired
-length correlation     0.001       0.969
-anchor agreement        1.4%       38.9%
-```
-
-That is a complete lesson in how to tell misaligned parallel data from your own modeling
-mistake, which is exactly the confusion a student cannot resolve on their own.
-
-- Use the alignment diagnosis as the spine, not the cleaning filters. Coulson notes the
-  stage-direction removal "does almost nothing so it may be a poor example," and he is
-  right: it removes exactly one line. It belongs as a footnote at most.
-- The two checks are cheap enough to run live in a notebook on the shipped corpus, and
-  the broken state can be reconstructed by re-zipping the columns, so students can see
-  both numbers move.
-- `tests/test_data_integrity.py` already encodes the thresholds and the reasoning. The
-  tutorial and the test should quote the same source rather than restate the numbers.
-- Open question for the author: standalone tutorial, or a section inside tutorial 1 where
-  the corpus is first loaded.
-
-
-**#26 Four broken doc links block `mkdocs build --strict`**
-All four link to source files as though they were doc pages, so docs cannot be gated in
-CI as-is:
-`MULTILINGUAL_ANALYSIS.md` → `preprocessing/multilingual.py` and → `config.py`;
-`MULTILINGUAL_QUICKSTART.md` → `examples/multilingual_training_example.py`;
-`TESTING_GUIDE.md` → `preprocessing/sentencepiece.py#L102`.
-Point them at the mkdocstrings reference pages or at GitHub URLs, then add a docs build to
-CI. A fifth warning (missing return annotation in `visualization.py`) was introduced by #5
-and fixed there.
-
 **#28 Attention parameters skip `_init_weights`**
 `SimpleSeq2SeqLSTM._init_weights` matches on `weight_ih` / `weight_hh` / `bias`, so
 `AdditiveAttention`'s `W_dec`/`W_enc`/`v` and `attn_combine` keep PyTorch's default Linear
 init. Defensible — they train well, additive reaches 93.6% alignment accuracy — but it is
 currently implicit rather than chosen. Either extend `_init_weights` deliberately or leave
 a comment saying the default is intended. Small, and worth settling while it is fresh.
-
-**#29 Recover the last 98 talks with a sentence aligner**
-#20 keeps only talks whose two transcripts have identical line counts (564 of 662). The
-remaining 98 have differing counts — median delta 0, 90th percentile 1, max 19 — so their
-segmentation diverged slightly rather than catastrophically. A Gale-Church length-based
-aligner handling 1-1, 1-2, 2-1, 1-0 and 0-1 would recover roughly **13k additional pairs**
-on top of the 73k already in hand.
-- Explicitly *not* done in #20: guessing at alignment is how this corpus got into trouble
-  in the first place, and 73k correct pairs beat 86k uncertain ones for a teaching library.
-- Worth doing only if the extra data is actually wanted; it is a real aligner, not a
-  one-liner, and `scripts/realign_corpus.py` is the natural place for it.
 
