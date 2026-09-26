@@ -4,7 +4,7 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #114 and PRs to #79, so every number below 80 names one of each. Say
+Tasks run to #114 and PRs to #81, so every number below 82 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
@@ -57,7 +57,6 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
 | #101 | Give the tutorials stable unique names | Open — after the tutorial PRs land |
 | #103 | Extend the notebook gate to `docs/docs/course/` | Open — when the first one arrives |
-| #105 | Unify every decode length on one number: 100 | Done in code; PR pending |
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | Open — 74% of an epoch is wasted padding |
 | #108 | Nothing releases the device allocator's cache | Open — the crash's proximate cause |
@@ -65,9 +64,8 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | Open — settle before A8's text |
 | #111 | Does the Lecture 6 activity notebook go public? | **Open — Eric's decision** |
 | #112 | Expired Lecture 6 refs in the briefing; build the ladder | Open |
-| #113 | Land the nine open PRs, which unblocks the release | **Open — Lecture 7 critical** |
+| #113 | Land the six PRs still open | Open — none blocking now |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
-| #16 | Release pipeline broken — nothing ships | In review — PR #53 |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
 | #7 | PyTorch deprecation warnings | In review — PR #57 |
 | #8 | Verify Eole claims before syllabus use | Open |
@@ -75,7 +73,6 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
 | #22 | `examples/` and `scripts/` are outside the lint gate | Open |
 | #28 | Attention params skip `_init_weights` | Open |
-| #35 | Malformed tag `v.0.0.8` on the remote | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | Open |
 | #42 | Lecture 7 assignment | Open — scope needed |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
@@ -94,14 +91,13 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #74 | Fix the broken anchor and diagnose the 93 docs warnings | Anchor in PR #51; the 93 warnings still open |
 | #78 | Tutorial 5's committed outputs predate the retrained checkpoint | In review — PR #57 |
 | #79 | An order-dependent test; does not reproduce on main today | Open |
-| #80 | Teach evaluation beyond BLEU | In review — PR #58 |
 | #81 | Fail the build on hand-typed generated numbers | Open |
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | Open |
 | #83 | Show attention on the Transformer, not only the LSTM | In review — PR #59 |
-| #84 | The two evaluation pages will land off-nav | Fixed on the tutorial 7 branch; lands with #88 |
+| #84 | The two evaluation pages ARE off-nav on main now | **Open — the prediction came true** |
 | #85 | Only BLEU carries a signature; chrF and TER do not | Open — after PRs #55 and #58 |
 | #86 | `evaluate_model` has no test, and it is what callers use | Open — after PR #58 |
-| #88 | Open the tutorial 7 PR once PR #58 merges | Written and verified; held local |
+| #88 | Open the tutorial 7 PR | **Unblocked — PR #58 has merged** |
 | #89 | Fail the docs build when a page is off-nav | Open |
 | #90 | `CLAUDE.md`'s numbering example is stale | Open |
 | #91 | `metric_comparison.json` records no BLEU signature | Open — after PRs #55 and #58 |
@@ -356,23 +352,6 @@ that failed to pass `max_length` would have hidden the lesson.
 **Nothing was lost.** Both repositories came back clean: no stale locks, no partial
 commits, no corrupt index. The session task list and this file both survived.
 
-### #105 Unify every decode length on one number
-
-Done in code, PR pending. There were two numbers for one thing:
-`Config.max_decode_length` said 200 while `greedy_decode`, `beam_search_decode`,
-`translate_batch` and both `inference_fast` entry points each carried a literal 100, and
-`evaluate_model` carried its own 200. So one model scored differently through
-`evaluate_model` than through a decoder called directly, on any target between the two.
-On the German corpus that is **160,166 targets, 11.7%**.
-
-All seven now take `max_len=None` and resolve from `cfg.max_decode_length`, which is the
-documented Config pattern and removes the duplicates rather than syncing them. Lowered
-200 to 100 rather than raised, so the number matches what the decoders already did and
-only `evaluate_model`'s behaviour changes.
-
-`MAX_SEQ_LENGTH` stays 512, now documented as a different kind of thing: capacity, not
-budget. Conflating the two is what made this hard to see.
-
 ### #107 The optimizations already exist and nothing uses them
 
 Measured on the 100K training split, real tokenizer, batch 64:
@@ -479,40 +458,28 @@ Worth noting they also audited `CS479_COURSE_ROADMAP.md` for anything that shoul
 public before it was committed — no URLs, no SharePoint links, no student names, no
 credentials.
 
-### #113 Land the nine open PRs, which is what unblocks the release
+### #113 Land the six PRs still open
 
-**Lecture 7 critical**, because Monday depends on the release and the release depends on
-these. All nine target `main` and none are stacked.
+**No longer blocking anything.** Four of the nine landed on 2026-09-26 and **0.2.0 is
+published**, verified by installing from PyPI: 11 of 11 modules import, chrF reads 78.40
+rather than 100.00, and the decode budget is one number. So Monday is covered and what
+remains is improvement rather than repair.
 
-| PR | |
-|---|---|
-| #51 | nav entries for the three deferred pages |
-| #52 | tutorial 6 imports the diagnostics instead of a second copy |
-| #53 | version-mismatch guard, and the bump to 0.2.0 — **the release gate** |
-| #54 | the length-normalization question resolved |
-| #55 | sacreBLEU signature with every score |
-| #57 | one causal-mask convention, tutorial 5 clean |
-| #58 | chrF and TER fixed, the three metrics taught |
-| #59 | attention on the Transformer |
-| #73 | tutorial 2's install actually runs — **Monday's blocker** |
+Landed: **#53** the version guard and the bump, **#58** the chrF and TER fix, **#73**
+tutorial 2's install, **#81** the decode-length unification.
 
-PyPI serves 0.0.8, which lacks `diagnostics`, `visualization` and `training_checkpoint`.
-Tutorial 2 survives that, verified against the real wheel, so Monday is not lost if the
-release slips. But the release is what makes tutorials 4, 6 and 7 work for anyone who
-pip installs, and PR #53 carries both the guard and the bump.
+Still open: **#51** nav entries, **#52** tutorial 6 imports, **#54** the
+length-normalization resolution, **#55** the sacreBLEU signature, **#57** the causal-mask
+convention, **#59** Transformer attention.
 
-Two cautions, both already learned expensively here:
+Two of those now have knock-on effects worth knowing. #51 is what fixes #84, which stopped
+being a prediction and became a live defect the moment #58 landed. #55 is what #85 and #91
+wait on.
 
-- **A green tick is green against the base the checks last saw.** Several of these are
-  days old. Merge `main` in and let CI re-run, or build the merge result locally, before
-  trusting one.
-- **The release has not succeeded since February.** PR #53 fixes the version collision
-  that broke `v0.1.0` and `v0.1.1`, but a *second* failure on `v0.1.1`, in
-  `Create GitHub Release`, was never root-caused. There is no dry run, since `publish`
-  fires on any `v*` tag. Tag early in the week, not Sunday night.
-
-Not mine to merge: all nine need review, and admin override is authorized for notes-only
-diffs. #73 is the one worth doing first.
+The original cautions still hold for every one of them, because the release proved both
+worth respecting: a green tick is green only against the base the checks last saw, and
+each of these predates today's `main`. Refresh and let CI re-run rather than trusting an
+old green. That is how all four of the merged ones were handled.
 
 ### #114 The wheel ships no data, so tutorials 4 and 5 cannot find what they load
 
@@ -790,15 +757,6 @@ single 24GB GPU. Both are from Eole's README, not from running it.
 **#9 Run `pre-commit install`**
 `.pre-commit-config.yaml` exists in the repo but hooks are not installed in this clone.
 
-**#80 Teach evaluation beyond BLEU** — in review as PR #58
-Students currently meet exactly one number. PR #58 fixes two real bugs found while
-writing the lesson (chrF's documented value was `63.39` against a measured `57.12`, and
-the TER example did not discriminate) and adds `concepts/evaluation.md` plus
-`reference/evaluation.md`, generated from `scripts/compare_metrics.py` so the prose and
-the table cannot drift. Still open after it lands: no neural metric anywhere in the
-library. COMET needs a model download, so it belongs behind an extra rather than in the
-default install.
-
 **#91 `metric_comparison.json` records no BLEU signature**
 
 `docs/docs/_generated/metric_comparison.json` on the PR #58 branch ends with
@@ -1021,89 +979,6 @@ not better — a test that depends on whatever seeded the RNG before it will com
 ---
 
 ## Release
-
-**#16 The release pipeline is broken — nothing since Feb 2026 has shipped** — in review as PR #53
-
-*Downgraded from BLOCKING on 2026-09-10:* nobody is installing from PyPI yet, so this is
-a latent breakage rather than an active one. Still must be fixed before the first
-classroom install, and the tag-vs-`pyproject` CI check should land **before** the next
-tag so the mismatch fails loudly instead of silently for a third time.
-
-Found while reviewing backlog status. `pyproject.toml` has said `version = "0.0.8"`
-since February and is never bumped, so tagging a release builds a stale-version artifact:
-
-```
-pyproject.toml version   0.0.8      (unchanged since Feb 2026)
-latest PyPI release      0.0.8      (uploaded 2026-02-18)
-GitHub tags              v0.1.0, v0.1.1
-  v0.1.0 assets          torchlingo-0.0.7-*.whl   <- tag says 0.1.0, artifact says 0.0.7
-  v0.1.1 assets          (none)                   <- build or publish failed silently
-```
-
-PyPI rejects duplicate versions, so a build that produces `0.0.8` when `0.0.8` already
-exists cannot upload. **Two tags have failed this way without anyone noticing**, because
-the publish job's failure is not surfaced anywhere.
-
-`main` is now eight merges ahead of `v0.1.1` (#7 through #14), so the beam search speedup,
-the decoding contract suite, the tie-breaking rule, LSTM attention, the repaired corpus
-and every tutorial fix are all unreachable via `pip install torchlingo`.
-
-### Verified 2026-09-13, from the Actions history
-
-An earlier guess recorded here — that the workflow might never fire on a tag, because
-`tags:` sits under the same `push:` trigger as a `paths:` filter — is **wrong**. Every
-`v*` tag has a run. Path filters do not suppress tag pushes:
-
-```
-v0.1.1    push   failure   2026-07-18
-v0.0.8    push   success   2026-02-18
-v.0.0.8   push   failure   2026-02-18   <- malformed tag name, see below
-v0.1.0    push   failure   2026-02-18
-v0.0.7    push   success   2026-01-30
-v0.0.6    push   success   2026-01-30
-```
-
-So the pipeline runs; it fails at the end. Per-job results for the two failed releases:
-
-| | v0.1.0 | v0.1.1 |
-|---|---|---|
-| tests 3.10-3.13 | pass | pass |
-| Build wheels and sdist | pass | pass |
-| Create GitHub Release | pass | **fail** |
-| Publish to PyPI | **fail** | **fail** |
-
-The publish log gives the cause outright:
-
-```
-ERROR  HTTPError: 400 Bad Request from https://upload.pypi.org/legacy/
-```
-
-which is what PyPI returns for a filename that already exists. That confirms the original
-diagnosis: the build produced `0.0.8` because `pyproject.toml` says so, and `0.0.8` was
-already on PyPI from February. The version collision is real and is the primary fault.
-
-**Still unexplained:** why `Create GitHub Release` failed on v0.1.1 but succeeded on
-v0.1.0. The step's own output is not in the archived log, so the cause is not recoverable
-from here. It explains the "no assets" observation above, and it is a *second*,
-independent failure — worth confirming before trusting the next tag, since fixing the
-version collision alone would not have fixed v0.1.1.
-
-Fix should cover both halves:
-- Bump `pyproject.toml` and cut a release that actually publishes.
-- Make CI **fail** a tag build when the git tag and `pyproject.toml` disagree, so a
-  mismatch is loud rather than silent. Same class of problem as #14 (ruff version drift):
-  two sources of truth with nothing checking they agree.
-- Do the tag-vs-version check **first**, so the next tag cannot fail the same way.
-
-**Do not test this by pushing a `v*` tag.** The `publish` job fires on any ref matching
-`refs/tags/v*` and will attempt a real PyPI upload. The Actions history answers most
-questions without that risk, which is how the table above was produced.
-
-**#35 A malformed tag `v.0.0.8` exists on the remote**
-Found while auditing the Actions history for #16. Someone typed `v.0.0.8` instead of
-`v0.0.8`; it matches the `v*` trigger, ran, and failed. Both tags exist on origin today.
-Harmless but confusing, and it is the kind of thing the tag-vs-version check in #16 would
-have caught at push time. Decide whether to delete it or leave it as history.
 
 **#38 Colab checkpointing has never been run in Colab**
 PR #17 adds `training_checkpoint.py` with `is_colab()`, `mount_drive()` and a Drive-backed
@@ -1340,16 +1215,22 @@ approximation, because the decoder is causally masked.
 - Costs CI nothing, but it does make tutorial 4 depend on `data/pretrained/model.pt`, so
   tutorial 4 joins the LFS skip list. See #53.
 
-**#84 The two evaluation pages will land off-nav** — fixed on the tutorial 7 branch
-PR #58 adds `concepts/evaluation.md` and `reference/evaluation.md` but does not touch
-`docs/mkdocs.yml`, so both arrive unreachable from the site. This is not caught by
-`mkdocs build --strict`: a page missing from the nav is an INFO, not a warning, which is
-exactly how the three pages in #63 went unreachable.
-- Both nav entries are on the local `docs/evaluation-tutorial` branch, which had to edit
-  `mkdocs.yml` anyway to place tutorial 7. So this lands with #88 rather than separately.
-- The recurrence is the argument for #89.
+**#84 The two evaluation pages ARE off-nav, as of 2026-09-26** — no longer a prediction
+PR #58 merged, and it did not touch `docs/mkdocs.yml`. So `concepts/evaluation.md` and
+`reference/evaluation.md` are now on `main` and unreachable from the site. The thing this
+task predicted has happened.
 
-**#88 Open the tutorial 7 PR once PR #58 merges**
+`mkdocs build --strict` still exits 0, because a page missing from the nav is an INFO
+rather than a warning — which is exactly how the three pages in #63 went unreachable, and
+is the second time the same trap has closed.
+
+- **PR #51 is the fix**, since it is the one that edits the nav. Landing it closes this.
+- The nav entries also exist on the local `docs/evaluation-tutorial` branch, which had to
+  edit `mkdocs.yml` anyway to place tutorial 7. Either route works; #51 is nearer.
+- Two occurrences is the argument for #89, which makes the check explicit instead of
+  relying on someone noticing a third time.
+
+**#88 Open the tutorial 7 PR** — unblocked 2026-09-26, PR #58 has merged
 
 The evaluation tutorial is written, executed and verified on the **local** branch
 `docs/evaluation-tutorial` (commit `1516aa0`). Not pushed: it depends on unmerged work,
