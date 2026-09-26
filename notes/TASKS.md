@@ -57,6 +57,8 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #122 | Make Assignment 9's control hard to get wrong in code | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | Open — highest uncertainty, due Oct 28 |
 | #124 | Simplify Lecture 6's chrF/TER wrappers | **After Mon Sep 28**, not before — A6 is live |
+| #126 | Tutorial 6 has no nav entry and no Colab badge | **Due Wed Sep 30** — Lecture 8 assigns it as reading |
+| #127 | Harmonize both notebook families against the roadmap | Open — Cowork cannot tell which notebook serves which lecture |
 | #97 | SentencePiece on versus off, controlled | **Due Mon Oct 12** |
 | #102 | Inference cannot resume a long decode | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
@@ -302,6 +304,59 @@ PR #53 added — the PR #17 pattern, live. Refreshing was free because none carr
 Knock-ons: **PR #51** fixes **Task #84**, now a live defect rather than a prediction. **PR
 #55** is what **Task #85** and **Task #91** wait on. (Task, not PR: PRs #84 and #85 exist and
 are unrelated — the collision `CLAUDE.md`'s numbering rule describes.)
+
+### #126 Tutorial 6 has no nav entry and no Colab badge
+
+**Due Wed Sep 30**, because Lecture 8 assigns tutorial 6 as reading alongside Assignment 8.
+
+Measured 2026-09-26. It is the only tutorial of six that is missing both:
+
+| | 01 | 02 | 03 | 04 | 05 | **06** |
+|---|---|---|---|---|---|---|
+| Colab badge | yes | yes | yes | yes | yes | **none** |
+| In nav | yes | yes | yes | yes | yes | **no** |
+
+So a student told to read it **cannot browse to it** — it does not appear on the tutorials page
+at all — and **cannot run it**, because there is no badge to open it in Colab.
+
+- **The nav half is already in PR #51**, green and waiting on a reviewer. If that has not landed
+  by Wednesday, add the entry directly rather than waiting.
+- **The badge is two lines**, and tutorial 6 is the best candidate for one: it needs no LFS
+  artifact — it is one of only two tutorials that actually execute in CI — so unlike tutorials
+  4 and 5 it genuinely works from a pip install. **#114** does not touch it.
+
+**Done when** tutorial 6 appears in the tutorials nav and opens in Colab from its own badge.
+
+### #127 Harmonize both notebook families against the course roadmap
+
+**Eric's ask, 2026-09-26.** There are now two families of notebooks and nothing that says which
+one serves which lecture, so Cowork cannot tell when a TorchLingo tutorial belongs in a deck —
+**including for lectures that have already run.**
+
+What exists:
+
+| Family | Files | Numbered by |
+|---|---|---|
+| `docs/docs/tutorials/` | 01–06, plus tutorial 7 pending on a local branch | library topic |
+| `docs/docs/course/` | `lecture-03` … `lecture-06` | lecture |
+
+The two numbering schemes do not line up and were never meant to, which is exactly why a
+mapping is needed rather than an inference. Tutorial 2 is the Lecture 7 activity; tutorial 6 is
+Lecture 8 reading; tutorial 7 is post-Lecture-8 homework. None of that is derivable from the
+filenames.
+
+**The deliverable is a reference document, not a task entry** — a lecture-by-lecture table
+giving, for each of Lectures 1 to 14: which notebooks serve it, from which family, whether the
+lecture has run, and whether the notebook exists yet. `notes/CURRICULUM.md` is the natural home,
+since it already holds sequencing and outcomes.
+
+**It must cover past lectures too**, which is the part that is easy to skip. Lectures 1 to 6 have
+run, but the mapping still matters: a student revisiting them, an assignment that refers back,
+and next year's offering all need it — and where a TorchLingo tutorial would have improved a
+past lecture, that is worth recording as a Fall 2027 note rather than losing.
+
+**Done when** Cowork can read one table and know which notebook to cite in any lecture, and the
+answer for "none yet" is explicit rather than absent.
 
 ### #124 Simplify Lecture 6's chrF and TER wrappers
 
