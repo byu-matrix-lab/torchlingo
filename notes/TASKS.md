@@ -4,7 +4,7 @@ Opened 2026-08-22, last updated 2026-09-23. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #108 and PRs to #77, so every number below 78 names one of each. Say
+Tasks run to #112 and PRs to #78, so every number below 79 names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
@@ -41,6 +41,10 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | Open — 74% of an epoch is wasted padding |
 | #108 | Nothing releases the device allocator's cache | Open — the crash's proximate cause |
+| #109 | A8's 100K floor has no low-resource variant | **Open — Eric, before Oct 7** |
+| #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | Open — settle before A8's text |
+| #111 | Does the Lecture 6 activity notebook go public? | **Open — Eric's decision** |
+| #112 | Expired Lecture 6 refs in the briefing; build the ladder | Open |
 | #16 | Release pipeline broken — nothing ships | In review — PR #53 |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
 | #7 | PyTorch deprecation warnings | In review — PR #57 |
@@ -384,6 +388,98 @@ because the memory is the machine's, and a spike is held against everything else
 - Bigger and not obviously right: cap a batch by total tokens rather than sentence count,
   which bounds the worst case instead of releasing after it. Real MT toolkits do this, but
   it changes what `batch_size` means and a teaching library should not do that lightly.
+
+### #109 Assignment 8's 100K floor has no low-resource variant
+
+**From the Cowork session, and it moves a conclusion. Eric's call, needed before Oct 7.**
+
+"Students have up to 200K bitext" is wrong as a general statement. The Lecture 4 and 5
+assignment says medium and high-resource languages prepare **at least** 200K, while
+**low-resource students prepare everything that exists for their language** — and the
+course defines low-resource as under 200K available. For some of them that is far below
+200K before any cleaning.
+
+So the 104,000-pair threshold will flag those students, and the right reading is *not*
+that they cannot do Assignment 8. It is that **A8's floor was written for the medium and
+high-resource case and has no low-resource variant.** That is an assignment design
+question rather than a data problem.
+
+It also bounds Part C's arithmetic. "200K raw minus 29.9% equals 140K clean, clears the
+floor with 36K spare" holds only for the students who started at 200K. For the rest the
+subtraction starts lower and the floor may be unreachable however clean their pipeline is.
+
+This makes the A5 audit more valuable, not less: it becomes the thing that says how many
+students need a different assignment and how much smaller it has to be. Languages were
+chosen in Lecture 2 and bitexts delivered Sep 23, so it is a lookup, not a forecast.
+
+### #110 The OpenNMT evidence implies 65 to 165 epochs, not 30 to 36
+
+The Cowork session found a config, with a caveat. The Fall 2025 *instructor* notebook
+sets only `train_steps: 1000`, but a Fall 2025 **student** submission that ran the real
+20,000-step assignment used `batch_type: tokens`, `batch_size: 8192`, `accum_count: 2`.
+
+At those settings, 20,000 steps on 100K pairs is somewhere around **65 to 165 epochs**,
+taking 20 to 50 subword tokens per sentence as the bracket. That is two to five times the
+30-to-36 recommendation and outside the 12.8-to-33 range the briefing considered.
+
+**Do not simply raise the number.** The 30-to-36 comes from measured convergence here:
+validation loss had flattened at 36 epochs, −0.0010 per epoch over the last five. Both
+can be true — OpenNMT students may have been training well past convergence, and 20,000
+steps may never have been tuned. And it is one student's file, not the reference config.
+
+But the gap is too large to split, and training budget dominated data volume by roughly
+7x in this repository's own runs, so it is the parameter least safe to guess at. What
+settles it: run #95 as a ladder that reports validation loss per epoch, so the flattening
+point is visible rather than assumed. If loss is still falling at 36, the OpenNMT figure
+is evidence rather than noise.
+
+### #111 Does the Lecture 6 activity notebook go in the public repository?
+
+**Eric's decision.** The Cowork session held it back rather than committing it, which was
+the right call.
+
+"CS 479 MT Evaluation Activity - Lecture 6" is already shared with students on Colab. Its
+Part 4 hands them a working scoring cell — `compute_bleu` and `compute_chrf` already
+written — which is Assignment 6 step 3. Eric saw that, judged it plumbing rather than the
+assignment, and shipped it. The ranking and the analysis are the graded thinking and both
+are untouched.
+
+Their distinction is the one worth keeping: a Colab link shared with one cohort and a
+public repository are different questions, and an answer to the second is not an answer to
+the first. Three options: public as-is, public with the scoring cell replaced by a prompt,
+or route to `torchlingo-private`.
+
+If it lands, two fixes first: its install cell is the old `!pip install -q` pattern, and it
+carries local `compute_chrf` and `compute_ter` wrappers written to route around the
+transpose bug. Those come out when PR #58 merges.
+
+Worth noting they also audited `CS479_COURSE_ROADMAP.md` for anything that should not be
+public before it was committed — no URLs, no SharePoint links, no student names, no
+credentials.
+
+### #112 Expired Lecture 6 references, and the ladder that should have been built first
+
+Two pieces of cleanup on my own work.
+
+**The briefing contradicts itself.** Part A2's prose retired the Lecture 6 placement once
+Lecture 6 turned out to have already run, but its table still lands two rows there, and
+suggestion 3 still says to run the evaluation tutorial as Lecture 6's Colab activity.
+Their better idea for that tutorial: **reading before Assignment 8** rather than a class
+activity. Worth taking.
+
+**Build the ladder rather than another single long run.** 5 tokens, then 10, 20, 40, 80,
+measuring peak resident memory and seconds per epoch at each rung and stopping before the
+wall instead of finding it by crashing. What the crash says it needs:
+
+- bucketed batching and AMP on, per #107, so it measures the configuration anyone would
+  actually use rather than the worst one
+- peak memory per rung, not only time
+- a ceiling that aborts the rung rather than the machine
+- per-epoch validation loss, so #110's flattening question falls out of the same data
+- every number to JSON
+
+This replaces the single 36-epoch shot as the way to answer #95, and it is what should
+have been built first.
 
 ## Code — decoding performance
 
