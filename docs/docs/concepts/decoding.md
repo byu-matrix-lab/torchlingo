@@ -319,19 +319,54 @@ against a reference average of 11.62.
 Read that carefully, because it is a stronger claim than it looks. Across 0.0 to 1.0 —
 from no normalization at all to full per-token averaging — **this knob does nothing you
 can measure**, while the bias it exists to correct is plainly visible in the length
-column above. The shipped default is doing no work.
+column above.
 
-Two things that does not mean.
+### But it is not inert, and that is the interesting part
 
-**It is not evidence that length normalization is useless in general.** It is evidence
-about this model at this quality on this test set. A stronger model, a longer-sentence
-corpus, or a language pair with a different length ratio could all change it.
+It would be easy to conclude the setting is ignored. It is not. Instrumenting the search
+on the pretrained checkpoint, over 120 sentences, `alpha` changes *which translation is
+returned* for:
 
-**It is not settled why.** TorchLingo applies normalization during *pruning* as well as
-at final selection, which is defensible but non-standard, and that could blunt it.
-Distinguishing "the default is too weak" from "normalizing during pruning cancels it out"
-needs one more experiment: sweep `alpha` with the correction applied only at final
-selection and compare. That is the open question, now with numbers attached to it.
+| Compared with the `alpha=0.6` default | Sentences whose output changes |
+| --- | --- |
+| `alpha=0.0` | 15 / 120 |
+| `alpha=0.3` | 9 / 120 |
+| `alpha=1.0` | 28 / 120 |
+| `alpha=1.5` | 88 / 120 |
+
+So the knob is connected. It swaps the answer on one sentence in eight at the default,
+and those swaps simply do not add up to a BLEU difference: the replacements are about as
+often worse as better. **A setting that changes a lot and measures nothing is the more
+useful thing to have seen**, because "it does nothing" and "what it does has no net
+value" call for different responses, and only the second is true here.
+
+### Where the correction can actually act
+
+This was an open question on the task list, phrased as: normalization is applied during
+*pruning* as well as at final selection, which is defensible but non-standard, so perhaps
+pruning cancels it out. Measuring it dissolved the question rather than answering it.
+
+Every candidate within a beam-search step has **the same length**. A hypothesis that
+emits `<eos>` is moved out of the live beams, and every surviving beam extends by exactly
+one token, so at the moment of pruning the length divisor is a *shared positive constant*
+— and a shared constant cannot reorder anything. Applying the normalized key during
+pruning is mathematically a no-op.
+
+The behaviour is therefore already equivalent to the conventional "normalize at final
+selection only". There was nothing non-standard to fix. The only place `alpha` acts is
+the final choice among finished hypotheses, which *do* differ in length — a mean of 36
+distinct lengths across a mean of 81 finished hypotheses per sentence, so there is
+plenty for it to act on.
+
+That invariant is load-bearing and invisible in the code, so
+`tests/test_length_normalization.py` pins it. If a future change left finished beams in
+the live set, they would stop growing while their siblings extended, candidates of
+different lengths would meet in the same sort, and `alpha` would quietly begin steering
+the search — a real change in semantics that no output would announce.
+
+**None of this says length normalization is useless in general.** It is evidence about
+this model at this quality on this test set. A stronger model, a longer-sentence corpus,
+or a language pair with a different length ratio could all change it.
 
 **And the method is the transferable part.** Sweep the knob, pair the comparisons, put
 error bars on them, and read output length next to BLEU. That is what turned this from

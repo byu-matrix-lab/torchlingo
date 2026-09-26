@@ -153,6 +153,22 @@ def _rank_key(tokens: list[int], score: float, alpha: float) -> tuple[float, lis
     length-normalized score, then lowest token IDs. Because no two live
     hypotheses share a token sequence, the ordering is total - never ambiguous.
 
+    **Where alpha can and cannot act.** The divisor depends only on length, so
+    among candidates of equal length it is a shared positive constant and the
+    ordering is the same for every alpha. Beam search calls this at two sites,
+    and the distinction matters:
+
+    - *Pruning*, where every candidate has just been extended by one token from
+      a set of equal-length beams, so they are all the same length and alpha
+      changes nothing. ``tests/test_length_normalization.py`` pins that
+      invariant, because it depends on finished hypotheses leaving ``beams``
+      rather than lingering at a shorter length.
+    - *Final selection*, among finished hypotheses that stopped at different
+      steps and therefore do differ in length. This is the only place alpha has
+      an effect -- and it is a real one: on the pretrained checkpoint it changes
+      the returned translation for 15 of 120 sentences at alpha=0 versus the
+      0.6 default, and 88 of 120 at alpha=1.5.
+
     Args:
         tokens: Hypothesis token IDs.
         score: Cumulative (unnormalized) log probability.
@@ -471,9 +487,13 @@ def beam_search_decode(
         src: Source tensor with shape (1, src_len). Batch size 1 is assumed.
         beam_size: Number of beams to maintain.
         max_len: Maximum generated length.
-        alpha: Length normalization factor (Wu et al., 2016). Applied during
-            pruning as well as final selection, so it shapes which hypotheses
-            survive rather than only which one is returned.
+        alpha: Length normalization factor (Wu et al., 2016). Only affects which
+            finished hypothesis is returned, never which ones survive pruning:
+            every candidate within a step has the same length, so the divisor is
+            a shared constant there and cannot reorder them. See
+            :func:`_rank_key`. This is therefore equivalent to the conventional
+            "normalize at final selection only", despite the key being applied
+            at both sites.
         device: Torch device. Defaults to model device.
         config: TorchLingo Config for special token indices.
         trace: If a list is given, one :class:`BeamStep` per step is appended to
