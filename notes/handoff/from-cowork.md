@@ -10,6 +10,193 @@ true; left noted rather than silently deleted.)
 
 ---
 
+## 2026-09-26, fourth
+
+**Decided: the repository copy becomes canonical on Monday.**
+
+Answering the question in the entry below. Eric's call is to make the switch Mon Sep 28,
+after Assignment 6 closes at 10:00. From then:
+
+- The Lecture 6 deck's notebook link changes from the Drive URL to the Colab badge on
+  `main`, and I will make that deck edit.
+- The Drive copy is retired. `docs/docs/course/lecture-06-mt-evaluation.ipynb` is the only
+  copy that matters after Monday.
+- The chrF and TER wrapper removal queued below can go ahead on the same day, for the same
+  reason: nothing is moving underneath a live assignment any more.
+
+## 2026-09-26, third
+
+**Ownership of `docs/docs/course/` has moved to you. One queued change, for after Monday.**
+
+Eric's instruction: now that the notebooks are in the repository, changes to them are made
+by the repository session, and I send instructions through this file rather than editing
+the tree. So the cleanup I said I would do myself is a request instead.
+
+### Queued: simplify `lecture-06-mt-evaluation.ipynb` after Mon Sep 28
+
+**Not before Monday.** Assignment 6 is due that morning and students are working in a
+Drive copy of this notebook. Nothing should move underneath them.
+
+**The change.** The notebook's third code cell (the one after the `!pip install` cell)
+currently reads:
+
+```python
+from torchlingo.evaluation import compute_bleu
+import sacrebleu
+
+# chrF and TER come straight from sacrebleu, with all the references in one list.
+def compute_chrf(preds, refs, word_order=2):
+    return sacrebleu.corpus_chrf(preds, [refs], word_order=word_order)
+
+def compute_ter(preds, refs):
+    return sacrebleu.corpus_ter(preds, [refs])
+
+print('sacrebleu', sacrebleu.__version__)
+```
+
+It should become:
+
+```python
+from torchlingo.evaluation import compute_bleu, compute_chrf, compute_ter
+```
+
+plus whatever version print you want to keep.
+
+**Why the wrappers exist.** They were written on Sep 23 to route around the reference-shape
+bug, before PR #58 landed. They call sacreBLEU in the stream shape directly, which is why
+the numbers in the Lecture 6 deck were correct all along and did not need recomputing. With
+0.2.0 the library does the same thing, so the wrappers are now redundant rather than
+protective.
+
+**Verification after the change**, on the notebook's own Part 1 example
+(`["Hello world", "How are you"]` against `["Hello world", "How are you doing"]`):
+
+```
+BLEU   0.00      (the lesson: p4 = 0 sinks the geometric mean)
+chrF  78.40      (not 100.00, which is what the bug returned)
+```
+
+If chrF comes back 100.00 after the edit, the reference shape is wrong again and the
+notebook is teaching the wrong number to eighteen people.
+
+**One thing to leave alone.** The `# TODO:` cell in Part 4 that contains the three
+`compute_*` calls is pre-written deliberately. I flagged it as doing Assignment 6's step 3
+and Eric ruled it fine. It is not an oversight, and it should not be turned back into a
+stub without asking him.
+
+### A question, since two copies now exist
+
+There is a repository copy and a Drive copy of this notebook, and the Lecture 6 deck links
+the Drive one. That is the setup that drifts. I would rather it did not, and the obvious fix
+is that the repository becomes canonical and the deck's link changes to the Colab badge off
+`main`, with the Drive copy retired once Assignment 6 is in.
+
+That is Eric's call and I have put it to him. Flagging it here so you know a link change
+may be coming and so nobody edits the Drive copy in the meantime.
+
+### Filenames
+
+Slides will cite these notebooks by filename. If any of the four needs renaming, say so
+here first rather than renaming and letting me find out, since a rename is a broken link in
+a deck a student is looking at.
+
+## 2026-09-26, later
+
+**Four student notebooks are in `docs/docs/course/`. Eric decided the public/private
+question and it went the other way from my flag.**
+
+Files added, none of them run through git:
+
+| File | Serves | Needs |
+|---|---|---|
+| `lecture-03-word-embeddings.ipynb` | Lecture 3, multilingual embedding space | network, model download |
+| `lecture-04-tmx-cleaning.ipynb` | Lecture 4, TMX extraction and repair | `translate-toolkit` only |
+| `lecture-05-sentence-alignment.ipynb` | Lecture 5, Gale-Church | `nltk` only |
+| `lecture-06-mt-evaluation.ipynb` | Lecture 6, BLEU and chrF | `torchlingo`, `sacrebleu`; Part 4 needs student uploads |
+
+**The decision.** I raised the Lecture 6 notebook as a borderline case against briefing Part
+A section 3, because it pre-writes Assignment 6's scoring call. Eric's ruling: all
+student-facing notebooks go public as they are, the code in them is simple enough that he
+is not worried about undermining learning. So there is nothing held back and no routing
+decision pending on your side.
+
+**Instructor copies are not included and should not be.** Lectures 3 and 4 have separate
+INSTRUCTOR notebooks carrying worked solutions. Those stay out of the public tree.
+
+**On the one that worried your README.** `extract_tmx.py` is named in the private
+repository's README as a finished answer to the Lectures 4 and 5 assignment, so I read the
+Lecture 4 notebook against that before copying it. It is not that. Its sample data is 44
+lines of synthetic TMX written inline, not Church material, and its two student cells are
+genuine stubs: `PATTERN = None` with a hint, and two `clean_one` / `clean_two` functions
+that return their argument unchanged. The one substantial function in it is a *detector*
+that reports which of the 16 steps each remaining problem belongs to, which is a grading
+rubric turned inside out rather than a pipeline. The private repository's concern does not
+reach this file.
+
+**Checked before copying, since the tree is public:** stored outputs are empty in all four,
+no local filesystem paths, no SharePoint links, no student names, no credentials.
+
+**One change from the originals,** and it is the only one: each file now opens with an
+Open-in-Colab badge pointing at `docs/docs/course/<name>` on `main`, per briefing Part A
+section 4. Content is otherwise untouched.
+
+**What CI can and cannot execute here,** because I would rather you scoped the gate
+deliberately than discovered this:
+
+- Lecture 5 runs end to end on `nltk` with inline data. Gateable as is.
+- Lecture 4 needs `translate-toolkit`, otherwise inline. Gateable.
+- Lecture 3 downloads an embedding model. Needs a `REQUIREMENTS` entry or it fails in CI.
+- Lecture 6 splits: Parts 1 to 3 run standalone on inline data and I have executed them;
+  Part 4 requires files a student uploads and never will run in CI.
+
+So a green check on Lecture 6 would cover the demonstration half and say nothing about the
+half students actually submit from. Worth encoding rather than assuming.
+
+**Still true about Lecture 6:** its local `compute_chrf` and `compute_ter` wrappers are
+still in place. Assignment 6 is due Monday and students are in the Drive copy now. I will
+simplify the repository copy back to `torchlingo.evaluation` imports after Monday, at which
+point the Drive copy and this one should be reconciled to one source.
+
+## 2026-09-26
+
+**Checked the 0.2.0 chrF fix against everything already on a slide. Nothing needs
+recomputing.**
+
+You asked that any chrF or TER figure computed with an older version be recomputed. I
+reran the four numbers on Lecture 6's "Which System Would You Rather Ship?" slide using
+0.2.0's own `_as_reference_streams`, loaded from the installed wheel:
+
+```
+slide says        A  BLEU  9.4  chrF 44.5   |   B  BLEU 74.1  chrF 88.8
+recomputed 0.2.0  A  BLEU  9.4  chrF 44.5   |   B  BLEU 74.1  chrF 88.8
+```
+
+Identical, and the reason is that the Lecture 6 notebook's local wrappers were already
+calling sacreBLEU in the stream shape. They were written to route around the bug rather
+than inherit it. The notebook's chrF 78.40 on the two-sentence case matches your figure
+exactly.
+
+**Not removing those wrappers yet.** Assignment 6 is due Monday and students are in that
+notebook now. Swapping its imports mid-assignment risks breaking a working thing to gain
+nothing, since the numbers do not move. I will simplify it back to
+`from torchlingo.evaluation import compute_bleu, compute_chrf, compute_ter` after Monday.
+
+**Lecture 7's deck is built and does not need the install caveat retired**, because it
+never carried one: it points students at tutorial 2's Colab badge rather than reproducing
+an install cell, and its Colab slide shows a bare `!pip install torchlingo` with no pin.
+The deck also carries your suggestion 1: a slide giving `ln(V)` as the reference point for
+the first loss number, with the label-smoothing floor noted so a plateau does not read as
+failure.
+
+**Two of the four items you left with me have moved.** The Colab announcement is drafted
+and with Eric, who confirmed the syllabus already required a paid plan, so it goes out as
+a reminder. The A5 audit is still blocked: `scripts/audit_bitext.py` on the private side
+does not help me, because I cannot reach the private repository either. Staged files or a
+path is what unblocks it.
+
+**A8's low-resource floor is the one that needs Eric, not either of us**, and it is now
+eleven days out. Flagged to him again today.
+
 ## 2026-09-25
 
 **Lecture 7 runs Monday on a deck that still says "install OpenNMT." That is the

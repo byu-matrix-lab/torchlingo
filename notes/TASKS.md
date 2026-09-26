@@ -56,15 +56,17 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
 | #101 | Give the tutorials stable unique names | Open — after the tutorial PRs land |
-| #103 | Extend the notebook gate to `docs/docs/course/` | Open — when the first one arrives |
+| #103 | Extend the notebook gate to `docs/docs/course/` | **Unblocked** — four have arrived |
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | Open — 74% of an epoch is wasted padding |
-| #108 | Nothing releases the device allocator's cache | Open — the crash's proximate cause |
+| #108 | Nothing releases the device allocator's cache | Open — measured: 99.8% of held memory is reclaimable |
 | #109 | A8's 100K floor has no low-resource variant | **Open — Eric, before Oct 7** |
 | #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | Open — settle before A8's text |
 | #111 | Does the Lecture 6 activity notebook go public? | **Open — Eric's decision** |
-| #112 | Expired Lecture 6 refs in the briefing; build the ladder | Open |
-| #113 | Land the six PRs still open | Open — none blocking now |
+| #112 | Expired Lecture 6 refs in the briefing; build the ladder | Briefing done — ladder blocked on PR #84 |
+| #113 | Land the eight PRs still open | **PR #85 gates the Lecture 6 deck edit** |
+| #115 | The four course notebooks, and the deck's link switch | **In review, PR #85 — gating** |
+| #116 | `create_dataloaders` discards the `Config` it is handed | In review, PR #84 — blocks the ladder |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
 | #7 | PyTorch deprecation warnings | In review — PR #57 |
@@ -458,7 +460,7 @@ Worth noting they also audited `CS479_COURSE_ROADMAP.md` for anything that shoul
 public before it was committed — no URLs, no SharePoint links, no student names, no
 credentials.
 
-### #113 Land the six PRs still open
+### #113 Land the eight PRs still open
 
 **No longer blocking anything.** Four of the nine landed on 2026-09-26 and **0.2.0 is
 published**, verified by installing from PyPI: 11 of 11 modules import, chrF reads 78.40
@@ -468,18 +470,84 @@ remains is improvement rather than repair.
 Landed: **#53** the version guard and the bump, **#58** the chrF and TER fix, **#73**
 tutorial 2's install, **#81** the decode-length unification.
 
-Still open: **#51** nav entries, **#52** tutorial 6 imports, **#54** the
-length-normalization resolution, **#55** the sacreBLEU signature, **#57** the causal-mask
-convention, **#59** Transformer attention.
+Still open, eight as of 2026-09-26: **PR #51** nav entries, **PR #52** tutorial 6 imports,
+**PR #54** the length-normalization resolution, **PR #55** the sacreBLEU signature,
+**PR #57** the causal-mask convention, **PR #59** Transformer attention, **PR #84** the
+dropped Config, **PR #85** the four course notebooks.
 
-Two of those now have knock-on effects worth knowing. #51 is what fixes #84, which stopped
-being a prediction and became a live defect the moment #58 landed. #55 is what #85 and #91
-wait on.
+**PR #85 is the one with a deadline**: the Lecture 6 deck's link switches to its Colab
+badge on Mon Sep 28, and the badge cannot resolve until it merges.
+
+Two of those now have knock-on effects worth knowing. PR #51 is what fixes **Task #84**,
+which stopped being a prediction and became a live defect the moment PR #58 landed.
+PR #55 is what **Task #85** and **Task #91** wait on.
+
+*Written as "Task #84", "Task #85" deliberately: PRs #84 and #85 now exist and are
+unrelated to those tasks. This paragraph used bare numbers until 2026-09-26 and was
+exactly the collision the numbering rule in `CLAUDE.md` describes.*
 
 The original cautions still hold for every one of them, because the release proved both
 worth respecting: a green tick is green only against the base the checks last saw, and
 each of these predates today's `main`. Refresh and let CI re-run rather than trusting an
 old green. That is how all four of the merged ones were handled.
+
+### #115 The four course notebooks, and Monday's link switch
+
+**In review, PR #85. Deadline Mon Sep 28.** The Cowork session wrote
+`lecture-03-word-embeddings`, `lecture-04-tmx-cleaning`, `lecture-05-sentence-alignment`
+and `lecture-06-mt-evaluation` into `docs/docs/course/`, and ownership of that directory
+moved here: changes to the notebooks are made from this side, and Cowork sends
+instructions through `notes/handoff/from-cowork.md` rather than editing the tree.
+
+Eric's decision: the repository copy becomes canonical on **Mon Sep 28** after Assignment 6
+closes at 10:00, the Lecture 6 deck's link changes from the Drive URL to the Colab badge
+off `main`, and the Drive copy is retired. **The badge cannot resolve until PR #85
+merges**, which is what makes this dated rather than tidy.
+
+Verified before publishing: no stored outputs, no credentials, no local paths, no student
+names; badges match the real remote and tutorial 2's known-good pattern;
+`mkdocs build --strict` exits 0 with all four rendering.
+
+- **Correction on the record.** Cowork cleared Lecture 4's inline TMX as "44 lines of
+  synthetic TMX, not Church material" and read it against the private repository's concern
+  on that basis. It is real Church curriculum and scripture text in English–Spanish
+  ("2 Nephi 31:20", "Charity never faileth", `<ph>` tags). Its conclusion about the
+  assignment stubs still holds; the data characterisation did not, and Eric's go-public
+  ruling had rested on it. Re-put to him with the correction and confirmed: publishes as
+  is, being short publicly available scripture rather than corpus material.
+- **Queued for after Monday, not before:** swap the notebook's local `compute_chrf` /
+  `compute_ter` wrappers back to `torchlingo.evaluation` imports, and verify **chrF 78.40**
+  on its Part 1 example. 100.00 means the reference shape is wrong again. Students are in a
+  Drive copy until Monday and nothing moves underneath a live assignment.
+- **Leave alone:** the Part 4 `# TODO:` cell. It pre-writes Assignment 6's step 3
+  deliberately and Eric ruled it fine.
+- **Never publish:** the INSTRUCTOR notebooks for Lectures 3 and 4, which carry worked
+  solutions.
+- Gating these is **#103**, now unblocked.
+
+### #116 `create_dataloaders` discards the `Config` it is handed
+
+**In review, PR #84.** It accepts a `Config` and uses it for batch size, workers, device
+and padding, then builds its `NMTDataset` objects without passing it on, so the datasets
+fall back to `get_default_config()` and every dataset-level field is dropped in silence.
+
+```
+config asked for max_seq_length : 5
+dataset.max_length actually is  : 512
+```
+
+Cost already paid: the length ladder in **#112** produced two rungs that agreed to three
+decimals because both ran at 512. Nothing raised.
+
+Wider than `max_seq_length`: `NMTDataset` resolves `src_col`, `tgt_col`, `src_tok_col`,
+`tgt_tok_col`, `max_length` and `eos_idx` from the config. A custom column name is the
+likeliest to bite a student — it surfaces as a missing-column `ValueError` naming the
+*default* columns, pointing them at the corpus instead of the config that was discarded.
+
+Fixed by forwarding `config` to all three constructions, `None` included so the dataset
+resolves the default itself and callers passing nothing are unaffected. Five tests,
+including one that asserts on tensor shapes rather than the stored attribute, since the
+attribute would pass if `max_length` were stored and never read. Suite: 711 OK, 21 skipped.
 
 ### #114 The wheel ships no data, so tutorials 4 and 5 cannot find what they load
 
@@ -524,6 +592,44 @@ wall instead of finding it by crashing. What the crash says it needs:
 
 This replaces the single 36-epoch shot as the way to answer #95, and it is what should
 have been built first.
+
+**Progress 2026-09-26, and it found a library defect instead of a memory curve.**
+
+`torchlingo-private/scripts/ladder.py` is written and two rungs have run. The rungs are
+worthless as length measurements and valuable for a different reason.
+
+| | rung "5" | rung "10" |
+|---|---|---|
+| seconds/epoch | 192.0 | 189.3 |
+| batches/epoch | 1559 | 1559 |
+| peak resident | 3.54 GiB | 3.40 GiB |
+| device held | 35.80 GiB | 35.47 GiB |
+| reclaimed by `empty_cache` | 35.73 | 35.40 |
+| val loss | 7.0392, 6.3099 | 7.0405, 6.3025 |
+
+Agreement to three decimals across every axis is not a finding about sequence length; it
+is two runs of the same thing. **`create_dataloaders` was discarding the `Config` it was
+handed** — see **#116** — so both rungs trained at the default 512 cap. The ladder's knob
+was never connected.
+
+**Retraction.** This file and the Cowork handoff were told that rung 5 held 35.80 GiB "at
+5 tokens, where attention is negligible, so the crash was #108 rather than sequence
+length". The premise was false: it was never 5 tokens. The conclusion has to be rebuilt
+from what the rungs actually show, which is narrower —
+
+- At **full length**, a 2-epoch run holds ~35.5 GiB of which **99.8% is reclaimable
+  cache**. That is direct support for **#108**, and it is measured rather than argued.
+- Peak resident memory is only ~3.5 GiB, so **RSS is the wrong number to guard**. The
+  watchdog's first version measured it alone and would have sat quietly through the growth
+  that took the machine down. It now checks resident *and* device-held and kills on the
+  worse; verified firing at `device-held 5.67 GiB` while resident was 0.88.
+- **Sequence length is not exonerated, because it was never varied.** Whether attention
+  drives the wall is still open, and the real ladder has not been walked yet.
+- Wall clock at 1559 batches is ~123 ms/batch, so **batch count dominates**, not sequence
+  length. If throughput is the goal, larger batches beat shorter sequences.
+
+Next: rerun the ladder once **PR #84** lands, one rung at a time. The rungs completed so
+far have to be discarded rather than reused, since they are all the same configuration.
 
 ## Code — decoding performance
 
