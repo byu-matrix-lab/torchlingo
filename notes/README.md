@@ -53,6 +53,29 @@ channel, and these two files are the mailbox:
 The alternative was Eric copying messages between two chat windows, which is slower,
 loses the history, and makes "what did we already tell them" unanswerable.
 
+### The baton rule: a handoff updates the task lists
+
+**Eric's standing instruction, 2026-09-26. Whenever the baton is handed in either
+direction, reconcile `TASKS.md` in the same sitting.**
+
+A handoff is exactly the moment the lists go stale, and the only moment when both sides
+know what actually changed. Passing the baton typically closes some tasks, reopens
+others, and creates work that only the *receiving* side can see is now possible.
+
+What that looked like the first time, which is why it is a rule rather than a habit. One
+baton pass closed Task #42 outright ("it needs nothing"), settled #96, made #100 moot
+because its lecture slot had passed, and created five tasks that were invisible from this
+side until Cowork said them — including one, `grader.exe` having no source, that is a
+dependency the course had been carrying blind for a year.
+
+None of that is discoverable by reading the code. It arrives only in the handoff, and if
+the lists are not reconciled then, the next session inherits a list that describes the
+previous week.
+
+So: **read the incoming entry, then walk the status table before starting any work.** Mark
+what the handoff closed, add what it created, and say in the reply which tasks moved. It
+costs a few minutes and it is what stops two sessions working from different pictures.
+
 ### How to use it
 
 **Writing.** Append a new entry at the **top**, under a date heading. Keep it short
