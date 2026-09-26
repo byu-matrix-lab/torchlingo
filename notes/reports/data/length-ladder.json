@@ -1,0 +1,138 @@
+{
+  "title": "How the length cap drives memory, and how little it drives time",
+  "summary": "A 36-epoch training run consumed all application memory and took a machine down. This walks the sequence-length cap up one rung at a time to find out what actually caused it, with a ceiling that kills the rung rather than the machine.\n\nThe answer is the length cap, and the useful part is how differently it drives the two things people conflate: memory and time.",
+  "config": {
+    "corpus": "German bitext, 100,000 training pairs, SentencePiece, longest pair 266 subwords (p50 23)",
+    "batch_size": 64,
+    "d_model": 256,
+    "layers": 3,
+    "heads": 8,
+    "device": "MPS (Apple Metal, unified memory)",
+    "machine_ram_gb": 64,
+    "bucketing": true,
+    "amp": false,
+    "epochs": 2,
+    "seed": 1,
+    "agreed_cap": 100
+  },
+  "caveats": [
+    "**These are MPS unified-memory figures.** On Metal the allocator's reserve is taken from the machine's own RAM, so it is not comparable to CUDA device memory as an absolute number. Treat the *shape* as transferable and the magnitudes as machine-specific. Confirming the shape on the accelerator students are actually given is Task #118.",
+    "**Two epochs per rung.** Enough for memory and seconds per epoch, which stabilise immediately. Not enough to say anything about convergence, so this does not settle Task #110's question about whether validation loss is still falling at 36 epochs.",
+    "**`device held` is a reserve, not a requirement.** It reflects peak allocation plus whatever the pool kept, so it overstates what the model strictly needs. It is the right number for 'will this run beside anything else', and the wrong one for 'how big a model could I fit'.",
+    "**Validation loss rises with the cap** across these rungs, which is not a regression. A tighter cap truncates more of every sentence, leaving an easier and less meaningful prediction task. Loss is not comparable across rungs, and only the within-rung trend means anything."
+  ],
+  "corrections": [
+    "**The first attempt measured nothing.** Rungs nominally at 5 and 10 tokens agreed to three decimal places on memory, time and loss, because `create_dataloaders` was discarding the `Config` it was handed and both ran at the default cap. Fixed in torchlingo PR #84; the rungs were rerun.",
+    "**The crash was attributed to unreleased cache, then to length, and length is right.** With the cap honoured, a 5-token run holds 0.31 GiB where the same command uncapped holds 35.80. Task #108 (nothing calls `empty_cache`) is real but secondary: it returns the spike after it has been taken, which on unified memory is usually too late.",
+    "**The 512 positional ceiling never bound anything** on this corpus, whose longest pair is far shorter. The run labelled uncapped is the longest-pair measurement, not a 512-token one.",
+    "**Growth was predicted as quadratic in the cap and is not.** The exponent table above shows it climbing toward the quadratic only at the long end."
+  ],
+  "open_question": "Whether this fits a paid Colab session, which is the question Assignment 8 actually turns on. That needs Colab's ceiling measured on the accelerator students are assigned (Task #118) and cannot be answered from this machine. Until both halves exist, no memory claim belongs in the A8 handout \u2014 only the ordering of the levers, which is solid.",
+  "rungs": [
+    {
+      "cap": 5,
+      "effective_cap": 5,
+      "device_held_gb": 0.31,
+      "device_reclaimed_gb": 0.25,
+      "peak_resident_gb": 0.91,
+      "seconds_per_epoch": 136.2,
+      "batches_per_epoch": 1562,
+      "val_loss_per_epoch": [
+        5.5253,
+        4.8594
+      ],
+      "truncated_fraction": 0.99036,
+      "do_not_quote": true
+    },
+    {
+      "cap": 10,
+      "effective_cap": 10,
+      "device_held_gb": 1.28,
+      "device_reclaimed_gb": 1.23,
+      "peak_resident_gb": 1.02,
+      "seconds_per_epoch": 138.1,
+      "batches_per_epoch": 1562,
+      "val_loss_per_epoch": [
+        6.7076,
+        6.1414
+      ],
+      "truncated_fraction": 0.89376,
+      "do_not_quote": false
+    },
+    {
+      "cap": 20,
+      "effective_cap": 20,
+      "device_held_gb": 1.43,
+      "device_reclaimed_gb": 1.38,
+      "peak_resident_gb": 0.97,
+      "seconds_per_epoch": 147.3,
+      "batches_per_epoch": 1561,
+      "val_loss_per_epoch": [
+        6.9997,
+        6.3294
+      ],
+      "truncated_fraction": 0.56818,
+      "do_not_quote": false
+    },
+    {
+      "cap": 40,
+      "effective_cap": 40,
+      "device_held_gb": 2.52,
+      "device_reclaimed_gb": 2.46,
+      "peak_resident_gb": 1.36,
+      "seconds_per_epoch": 167.8,
+      "batches_per_epoch": 1560,
+      "val_loss_per_epoch": [
+        7.0166,
+        6.2917
+      ],
+      "truncated_fraction": 0.16913,
+      "do_not_quote": false
+    },
+    {
+      "cap": 80,
+      "effective_cap": 80,
+      "device_held_gb": 6.46,
+      "device_reclaimed_gb": 6.4,
+      "peak_resident_gb": 2.11,
+      "seconds_per_epoch": 183.0,
+      "batches_per_epoch": 1559,
+      "val_loss_per_epoch": [
+        7.0334,
+        6.3051
+      ],
+      "truncated_fraction": 0.02701,
+      "do_not_quote": false
+    },
+    {
+      "cap": 100,
+      "effective_cap": 100,
+      "device_held_gb": 9.6,
+      "device_reclaimed_gb": 9.54,
+      "peak_resident_gb": 2.27,
+      "seconds_per_epoch": 192.0,
+      "batches_per_epoch": 1560,
+      "val_loss_per_epoch": [
+        7.0366,
+        6.2977
+      ],
+      "truncated_fraction": 0.01302,
+      "do_not_quote": false
+    },
+    {
+      "cap": null,
+      "effective_cap": 266,
+      "device_held_gb": 35.8,
+      "device_reclaimed_gb": 35.73,
+      "peak_resident_gb": 3.54,
+      "seconds_per_epoch": 192.0,
+      "batches_per_epoch": 1559,
+      "val_loss_per_epoch": [
+        7.0392,
+        6.3099
+      ],
+      "truncated_fraction": 0.0,
+      "do_not_quote": false
+    }
+  ]
+}
