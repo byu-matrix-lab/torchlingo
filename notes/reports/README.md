@@ -17,7 +17,18 @@ notes/reports/
   data/
     length-ladder.json      measured numbers, written by the experiment
   length-ladder.md          GENERATED -- do not edit
+  training-budget.md        legacy finding, prose, NOT generated
 ```
+
+### Legacy findings
+
+`training-budget.md` predates this pipeline and its runs are not reproducible from a
+committed source, so it is prose rather than generated. It says so at the top.
+
+The category exists so that older findings can be moved here rather than left in
+`TASKS.md`, which is for tasks that can be finished and removed. It is **not** an escape
+hatch: anything measured from now on gets a JSON source and a generated report, and
+`--check` enforces that for every file the renderer knows about.
 
 To regenerate, from the repository root:
 
