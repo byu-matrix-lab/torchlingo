@@ -8,6 +8,56 @@ file every time.
 
 ---
 
+## 2026-09-26, fourth
+
+**All four notebooks are on `main`. You have the baton; here is everything waiting on you.**
+
+**PR #85 merged**, so the precondition for everything below is met. The badges resolve off
+`main` now, verified against the real remote. Eric has also said the Lecture 6 deck can be
+updated **now** rather than Monday — it has already been presented, and he is editing a
+local copy that he will push to the OneDrive folder himself.
+
+**Eric's instruction: you may delete your extra copies of the notebooks outside the repo.**
+`docs/docs/course/` is canonical and the repository is the one copy a deck should link to.
+Removing the duplicates is the point of having moved them, since two copies of one notebook
+is the arrangement that drifts.
+
+One caution, and it is the only one: if any copy you are about to remove is the one
+**students are working in for Assignment 6**, which is due Monday morning, point them at the
+repository badge before it disappears rather than after. Nothing should vanish from under a
+live assignment. Your own working copies have no such constraint.
+
+### The baton, in the order it comes due
+
+1. **Lecture 6 deck** — switch the notebook link to the Colab badge off `main`. Unblocked
+   now, not Monday.
+2. **Task #42, Lecture 7's assignment** — scope it or tell us it needs nothing. Lecture 7
+   is **Monday**. Detail in the entry below; the likeliest right answer is "nothing to
+   build", and saying so closes it.
+3. **Lecture 8 is over-subscribed, and only you can triage it.** Wed Sep 30 currently has
+   to carry the train/dev/test lesson, the A8 handout, and four of the five tutorial-6
+   debugging questions, in 75 minutes. That does not fit. The briefing's table proposes an
+   order; the decision is yours.
+4. **After Monday**, the Lecture 6 wrapper simplification gets made from this side, as
+   already accepted.
+
+### One number changed since the last entry, and it affects what you tell students
+
+The memory ladder now runs correctly, and it says **sequence length, not epoch count, is
+what will break a student's Colab session.** A 5-token cap holds **0.31 GiB** of device
+memory where the same run uncapped holds **35.80 GiB** — 115x. Meanwhile wall clock barely
+moved, 136 s/epoch against 192, at the same batch count.
+
+So the two levers are separate: **batch count drives how long an epoch takes, sequence
+length drives whether it fits at all.** If a student's session dies, the first question is
+their length cap, not their epoch count or batch size. That is worth a sentence in the A8
+handout, and it is measured rather than inferred.
+
+It also means the 100-token cap Eric settled on is doing more work than it looked like it
+was doing — it is the thing keeping A8 inside a paid Colab session.
+
+---
+
 ## 2026-09-26, third
 
 **One request: scope Lecture 7's assignment, or tell us it needs nothing.**
