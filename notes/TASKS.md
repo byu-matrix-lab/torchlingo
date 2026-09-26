@@ -63,7 +63,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #109 | A8's 100K floor has no low-resource variant | **Open — Eric, before Oct 7** |
 | #110 | OpenNMT evidence implies 65 to 165 epochs, not 30 to 36 | Open — settle before A8's text |
 | #111 | Does the Lecture 6 activity notebook go public? | **Done** — Eric ruled yes; merged in PR #85 |
-| #112 | Expired Lecture 6 refs in the briefing; build the ladder | Briefing done — rungs 5 to 40 measured, 80 running |
+| #112 | Expired Lecture 6 refs in the briefing; build the ladder | **Done** — see `notes/reports/length-ladder.md` |
 | #113 | Land the six PRs still open | All six refreshed and green against today's `main` |
 | #115 | The four course notebooks, and the deck's link switch | **Done** — PR #85 merged; badges resolve |
 | #116 | `create_dataloaders` discards the `Config` it is handed | **Done** — PR #84 merged; ladder unblocked |
@@ -746,45 +746,24 @@ throughput, sequence length dominates memory.** They are separate levers and the
 a memory failure, so the lever that matters for #95 is the cap, while the lever for epoch
 time is batch size.
 
-**The whole ladder, 2026-09-26.** Batch 64, `d_model` 256, 3 layers, bucketing on, MPS on a
-64 GiB machine, two epochs a rung, seed 1. Truncation percentages are from
-`audit_bitext.py`, on the longer side of each pair.
+**All seven rungs are measured. The numbers live in
+[`notes/reports/length-ladder.md`](reports/length-ladder.md), not here.**
 
-| cap | device held | s/epoch | drops |
-|---|---|---|---|
-| 5 | 0.31 GiB | 136.2 | 99.04% |
-| 10 | 1.28 | 138.1 | 89.38% |
-| 20 | 1.43 | 147.3 | 56.82% |
-| 40 | 2.52 | 167.8 | 16.91% |
-| 80 | 6.46 | 183.0 | 2.70% |
-| 100 | *running* | — | 1.30% |
-| none | 35.80 | 192.0 | 0% |
+This file tracks work; `reports/` records what was measured. The curve was written into
+this entry first, which was the wrong place: nobody looks for a memory measurement inside
+a task list, and it put the figures next to the arithmetic done on them — including the
+arithmetic that was wrong twice. The report is generated from JSON and CI checks that it
+still matches, so it cannot drift the way a hand-typed table here would.
 
-**Two corrections to earlier arithmetic in this very entry.** The growth is **not quadratic
-in the cap**: beyond 40 it settles at about **length^1.4** (40 to 80 is 2.56x for 2x; 80 to
-266 is 5.54x for 3.3x), because the linear embedding and feed-forward activations dominate
-until sequences get long enough for attention to overtake them. And the **512 positional
-ceiling never bound anything** — the corpus's longest pair is 266 subwords, so the run
-labelled "uncapped" *is* the cap-266 measurement.
+**The one line worth having in the task list**: at the agreed 100-token cap the run holds
+**9.60 GiB against 35.80 uncapped**, which is 73% of the memory cost removed for 1.30% of
+the data at identical wall clock. The cap is doing the job it was chosen for.
 
-**Rung 5 should not be quoted.** At a 5-token cap 99.04% of pairs are truncated, so it is a
-degenerate run rather than a data point about scaling, and the 4.1x it appeared to show from
-5 to 10 is an artifact of that.
+What that leaves open is **#118** — whether 9.60 GiB fits the accelerator students are
+actually assigned. This machine cannot answer it.
 
-**The practically useful finding.** Memory and time are separate levers with different
-shapes. Across the whole range time moves 1.41x while memory moves 115x. So **batch count
-sets how long an epoch takes and the length cap sets whether it fits at all** — which is the
-one sentence students need, and it is now measured rather than reasoned.
-
-Next: rung 100, because that is Eric's agreed cap and therefore the only figure Assignment 8
-depends on. Extrapolation says 8 to 9 GiB, which is why it is being measured instead. Then
-#118 supplies Colab's ceiling and the two halves meet.
-
-The prior two rungs are preserved in `data/ladder-backup/` rather than overwritten, being the
-invalid 512-cap pair; each real rung is backed up there too as it completes.
-
-Superseded note, kept because the reasoning above depends on it: the rungs completed so
-far have to be discarded rather than reused, since they are all the same configuration.
+Rungs are preserved in `data/ladder-backup/` as each completes, including the invalid
+512-cap pair, rather than being overwritten.
 
 ## Code — decoding performance
 
