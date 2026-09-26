@@ -135,6 +135,14 @@ nav:
     - Attention and Alignment: tutorials/04-attention-and-alignment.ipynb
     - Translating Unseen Sentences: tutorials/05-real-translations.ipynb
     - Diagnosing Failures: tutorials/06-diagnosing-failures.ipynb
+  # CS 479 in-class notebooks, archived here rather than in Google Drive so the
+  # repository is the one copy a deck can link to. Numbered by lecture, which is
+  # why they do not line up with the tutorial numbers above.
+  - Course Notebooks:
+    - Word Embeddings (Lecture 3): course/lecture-03-word-embeddings.ipynb
+    - TMX Cleaning (Lecture 4): course/lecture-04-tmx-cleaning.ipynb
+    - Sentence Alignment (Lecture 5): course/lecture-05-sentence-alignment.ipynb
+    - MT Evaluation (Lecture 6): course/lecture-06-mt-evaluation.ipynb
   - API Reference:
     - reference/index.md
     - Config: reference/config.md

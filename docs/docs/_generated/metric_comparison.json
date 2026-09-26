@@ -1,0 +1,74 @@
+{
+  "settings": {
+    "n_sentences": 200,
+    "beam_size": 5,
+    "max_len": 60,
+    "seed": 1,
+    "torch": "2.13.0"
+  },
+  "held_out": {
+    "greedy": {
+      "bleu": {
+        "score": 7.17,
+        "higher_is_better": true,
+        "counts": "word n-grams, 1 to 4"
+      },
+      "chrf": {
+        "score": 29.83,
+        "higher_is_better": true,
+        "counts": "character n-grams, plus word n-grams up to order 2"
+      },
+      "ter": {
+        "score": 90.2,
+        "higher_is_better": false,
+        "counts": "edits per reference word"
+      }
+    },
+    "beam": {
+      "bleu": {
+        "score": 9.33,
+        "higher_is_better": true,
+        "counts": "word n-grams, 1 to 4"
+      },
+      "chrf": {
+        "score": 30.09,
+        "higher_is_better": true,
+        "counts": "character n-grams, plus word n-grams up to order 2"
+      },
+      "ter": {
+        "score": 80.36,
+        "higher_is_better": false,
+        "counts": "edits per reference word"
+      }
+    }
+  },
+  "short_text": {
+    "predictions": [
+      "Hello world",
+      "How are you"
+    ],
+    "references": [
+      "Hello world",
+      "How are you doing"
+    ],
+    "note": "one translation exact, one close; neither long enough for a 4-gram",
+    "metrics": {
+      "bleu": {
+        "score": 0.0,
+        "higher_is_better": true,
+        "counts": "word n-grams, 1 to 4"
+      },
+      "chrf": {
+        "score": 78.4,
+        "higher_is_better": true,
+        "counts": "character n-grams, plus word n-grams up to order 2"
+      },
+      "ter": {
+        "score": 16.67,
+        "higher_is_better": false,
+        "counts": "edits per reference word"
+      }
+    }
+  },
+  "bleu_signature": "not recorded"
+}
