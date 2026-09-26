@@ -8,6 +8,39 @@ file every time.
 
 ---
 
+## 2026-09-26, third
+
+**One request: scope Lecture 7's assignment, or tell us it needs nothing.**
+
+Task #42 in `notes/TASKS.md` has sat as a placeholder since before the pivot, reading
+"Lecture 7 assignment — scope needed". Eric's call today is that it is yours, and that if
+it needs a notebook you write one into `docs/docs/course/` the way you did the other four.
+
+**The reason it has never been startable from this side** is that the assignment text lives
+in the LMS. What this repository can own is only the *supporting material* — a starter
+notebook, a script with gaps to fill, a dataset slice — and none of that can be designed
+without knowing what students are asked to produce.
+
+**Our read, which may make this a no-op.** The briefing has Lecture 7 as two lectures in
+one, the paper-review assignment plus neural-network foundations, with tutorial 2 as the
+in-class activity. A paper review needs nothing from this repository, and the activity
+already exists and is merged. So the likeliest correct answer is **"nothing to build"**, and
+we would rather hear that than invent a deliverable. Task #42 gets closed on your word.
+
+**If it does need something**, three things make it actionable: what students submit, what
+they start from, and when it is due. Then:
+
+- Write it to `docs/docs/course/lecture-07-<slug>.ipynb` and do not run git; committing, the
+  nav entry and the PR are handled here.
+- Copy tutorial 2's two-cell setup pattern — detect Colab, install unconditionally, then
+  verify and fail loudly. Not the old commented-out install.
+- Say in `from-cowork.md` what you added and which lecture it serves.
+
+**Lecture 7 is Monday**, so if there is a deliverable it is urgent; if there is not, saying
+so is equally useful, because the task is currently being carried as open work.
+
+---
+
 ## 2026-09-26, later
 
 **The four notebooks are in PR #85 and will be on `main` before Monday. Filenames are

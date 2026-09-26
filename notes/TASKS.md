@@ -67,6 +67,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #113 | Land the eight PRs still open | **PR #85 gates the Lecture 6 deck edit** |
 | #115 | The four course notebooks, and the deck's link switch | **In review, PR #85 — gating** |
 | #116 | `create_dataloaders` discards the `Config` it is handed | In review, PR #84 — blocks the ladder |
+| #117 | A PR based on `main` self-closed during an unrelated merge | Open — recovered; contradicts `CLAUDE.md` |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
 | #7 | PyTorch deprecation warnings | In review — PR #57 |
@@ -76,7 +77,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #22 | `examples/` and `scripts/` are outside the lint gate | Open |
 | #28 | Attention params skip `_init_weights` | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | Open |
-| #42 | Lecture 7 assignment | Open — scope needed |
+| #42 | Lecture 7 assignment | **Routed to Cowork** — likely closes with nothing built |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
 | #48 | Audit pedagogical value; write down sequencing and outcomes | In progress — `notes/CURRICULUM.md` |
 | #51 | The docs gate reports but does not block | Open — repo settings |
@@ -490,6 +491,34 @@ The original cautions still hold for every one of them, because the release prov
 worth respecting: a green tick is green only against the base the checks last saw, and
 each of these predates today's `main`. Refresh and let CI re-run rather than trusting an
 old green. That is how all four of the merged ones were handled.
+
+### #117 A PR based on `main` closed itself during an unrelated merge
+
+**Second instance, and it breaks the stacking explanation.** On 2026-09-26 **PR #84** went
+OPEN to CLOSED — never merged, no merge commit — at 17:42:16Z, one second after **PR #86**
+was squash-merged at 17:42:15Z with `--admin --delete-branch`. The two are unrelated: PR #86
+was notes, PR #84 was `src/torchlingo/data_processing/batching.py`.
+
+Caught by the post-merge open-set comparison. Before: `#86 #85 #84 #59 #57 #55 #54 #52 #51`.
+After: the same minus **both** #86 and #84.
+
+Recovered fully. The remote branch and commit `2841e14` survived with all three call sites
+intact, and `gh pr reopen 84` restored it with base `main`.
+
+**Why this matters past the recovery.** `CLAUDE.md` says of the three PR-loss failures that
+"every one of them is specific to a PR whose base is another PR", and lists PR #26's silent
+close with cause never established. **PR #84's base was `main`.** So the silent close is not
+stacking-specific, and that sentence is now contradicted by evidence. PR #26 and PR #84 are
+two instances of one unexplained mechanism.
+
+The shared signature, which is the lead worth following: both closed within one second of an
+unrelated merge, and PR #86's merge passed `--delete-branch`.
+
+- Correct the `CLAUDE.md` passage and add PR #84 to its table.
+- Test whether `--delete-branch` on an admin squash-merge is implicated. If it is, stop
+  passing it and delete branches as a separate step.
+- Keep the open-set comparison. It cost one command and saved a pull request — which is the
+  case that rule was written on, now with a second data point.
 
 ### #115 The four course notebooks, and Monday's link switch
 
@@ -1234,9 +1263,22 @@ a blind `except Exception`.
 
 ## Course material
 
-**#42 Lecture 7 assignment** — *placeholder, scope needed*
-Captured so it is not lost. Not startable yet: what lecture 7 covers, which course it
-belongs to, what students are meant to produce, and when it is needed are all unknown here.
+**#42 Lecture 7 assignment** — *routed to the Cowork session 2026-09-26*
+Captured so it is not lost. Never startable from this side, for the reason below.
+
+**Eric's call 2026-09-26: this is Cowork's to scope**, and if it needs a notebook they write
+one into `docs/docs/course/` as they did the other four. Requested in
+`notes/handoff/to-cowork.md`.
+
+Much of the original unknown has since been answered by the pivot: Lecture 7 is **Mon Sep
+28**, in CS 479, and is two lectures in one — the paper-review assignment plus
+neural-network foundations — with **tutorial 2 as the in-class activity**, already merged.
+What remains unknown is the only thing that matters here: what students submit.
+
+**The likely answer is that this task closes with nothing built.** A paper review needs no
+supporting material, and the activity already exists. That was said plainly in the request
+rather than left open, because the alternative is inventing a deliverable to fill a
+placeholder. Closes on Cowork's word either way.
 
 **The assignment itself lives in the LMS, not in this repo.** So the work here is whatever
 *supporting material* the assignment needs — a starter notebook, a script with gaps to
