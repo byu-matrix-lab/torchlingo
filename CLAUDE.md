@@ -170,10 +170,14 @@ ALWAYS complete these steps after making code changes:
 
 ### Say "PR #X" and "Task #Y", never a bare `#N`
 
-The two numbering schemes overlap almost completely — tasks run to #62, pull
-requests to #42, so every number below 43 names one of each. Write **"PR #37"**
-for a pull request and **"Task #37"** for a task-list item, in prose, commit
-messages and GitHub comments alike.
+The two numbering schemes overlap almost completely — as of 2026-09-26 tasks run
+to #118 and pull requests to #91, so **every number below 92 names one of each**.
+Write **"PR #37"** for a pull request and **"Task #37"** for a task-list item, in
+prose, commit messages and GitHub comments alike.
+
+*These figures go stale by design; the overlap only ever grows, so the rule gets
+stronger rather than weaker as they age. Earlier text said tasks ran to #62 and
+PRs to #42.*
 
 This is not pedantry. Task #37 ("stacked PRs fight the stale-review rule") was
 retired in the same breath as PR #37 (the `val_losses` fix) was listed as open
@@ -195,14 +199,39 @@ distinct ways in this repository:
 
 | | |
 |---|---|
-| Auto-close | #11 and #12 closed when the base branch was deleted on merge |
-| Lost approvals | a rebase that changed no content dismissed the approval on #27 and #34 |
-| Silent close | #26 closed unmerged during an unrelated merge, cause never established |
+| Auto-close | PRs #11 and #12 closed when the base branch was deleted on merge |
+| Lost approvals | a rebase that changed no content dismissed the approval on PRs #27 and #34 |
+| Silent close | PR #26 closed unmerged during an unrelated merge, cause never established |
 
-Each cost real time to recover from, and every one of them is specific to a PR
-whose base is another PR. GitHub has no rebase exemption for
+Each cost real time to recover from. GitHub has no rebase exemption for
 `dismiss_stale_reviews_on_push`, so there is no configuration that makes the
 pattern safe here.
+
+**Corrected 2026-09-26.** This passage used to claim that every one of those
+failures "is specific to a PR whose base is another PR". That is no longer
+true, and the correction matters more than the original claim did.
+
+**PR #84 closed itself while based on `main`.** It went OPEN to CLOSED, never
+merged and with no merge commit, at 17:42:16Z — one second after the unrelated
+PR #86 was squash-merged at 17:42:15Z with `--admin --delete-branch`. The two
+touched different files. It was caught only by the open-set comparison below,
+and recovered in full with `gh pr reopen`.
+
+So the silent close is **not** stacking-specific, and PR #26 and PR #84 are two
+instances of one unexplained mechanism. Both closed within a second of an
+unrelated merge that passed `--delete-branch`. A later notes merge without that
+flag closed nothing, which is one data point each way rather than a finding.
+
+Two consequences:
+
+- **Do not read "my PR targets `main`" as "my PR is safe."** Compare the open set
+  after every merge regardless of what anything is based on.
+- Prefer merging **without** `--delete-branch`, deleting the branch as a separate
+  step afterwards, until the mechanism is understood. The cost is one command;
+  the failure it may avoid cost a day to notice the first time.
+
+The stacking argument still stands on its own two remaining legs — auto-close and
+lost approvals are both genuinely specific to stacked PRs.
 
 What to do instead:
 
@@ -226,10 +255,17 @@ Deleting first auto-closes the dependents, which is how #11 and #12 were lost.
 After a merge, the set of open PRs should be exactly what it was, minus the one
 merged. Compare it.
 
-This costs one command and catches a failure that took a day to notice: #26 was
+This costs one command and catches a failure that took a day to notice: PR #26 was
 closed unmerged one second after an unrelated merge, its base branch was never
 deleted, and the cause was never established. A check is worth more than a
 diagnosis when the mechanism is unknown.
+
+**It has now paid for itself.** On 2026-09-26 the same thing happened to PR #84,
+one second after PR #86's unrelated merge, and the comparison is the only reason
+anyone noticed: before was `#86 #85 #84 #59 #57 #55 #54 #52 #51`, after was the
+same set minus **both** #86 and #84. Reopening took one command because the loss
+was caught immediately. PR #84 was based on `main`, so do not skip this check on
+the grounds that nothing is stacked.
 
 ### Retargeting a PR dismisses its approvals
 
