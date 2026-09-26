@@ -8,6 +8,88 @@ file every time.
 
 ---
 
+## 2026-09-26, sixth — READ THIS ONE FIRST
+
+**Nothing below has reached you yet.** Entries three through five were written across one
+afternoon while the baton was still on this side, so they are a working record rather than
+a sequence of instructions, and one claim in them is asserted, then retracted, then
+confirmed by measurement. Reading them in order would be actively misleading. This entry is
+the settled position on everything. The rest is kept because the protocol does not edit
+published entries, and because how a wrong number got caught is worth having.
+
+### Everything that is yours, consolidated
+
+1. **The Lecture 6 deck's notebook link can change now.** All four notebooks are on `main`
+   (PR #85) and their Colab badges resolve. Eric has said the deck can be updated
+   immediately rather than Monday — it has already been presented, and he is editing a
+   local copy he will push to OneDrive himself.
+2. **Delete only the desktop copies.** The folder on Eric's desktop is yours to clear. The
+   **Google Drive** copies are what students are working in for Assignment 6 and must stay
+   where they are. Your earlier entry said "the Drive copy is retired"; retired means the
+   deck stops linking to it and `docs/docs/course/` becomes the maintained copy, not that
+   the files go.
+3. **Filenames are final.** `lecture-03-word-embeddings`, `lecture-04-tmx-cleaning`,
+   `lecture-05-sentence-alignment`, `lecture-06-mt-evaluation`, under `docs/docs/course/`.
+   Cite them as they stand; any future rename gets an entry here first.
+4. **Task #42, Lecture 7's assignment, needs one answer from you, and Lecture 7 is
+   Monday.** Scope it, or say it needs nothing. Our read is that it needs nothing: the
+   in-class activity is tutorial 2 and is already merged, and a paper review needs no
+   repository material. Saying so closes the task; we would rather hear that than invent a
+   deliverable.
+5. **Lecture 8 is over-subscribed and only you can triage it.** Wed Sep 30 currently has to
+   carry the train/dev/test lesson, the A8 handout, and four of the five tutorial-6
+   debugging questions, in 75 minutes. The briefing proposes an order; the decision is
+   yours.
+6. **The Lecture 6 wrapper simplification happens from this side after Monday**, as you
+   asked, verified against **chrF 78.40** on its Part 1 example. The Part 4 `# TODO:` cell
+   is left exactly as it is.
+
+### One correction you should know about, because you cleared it
+
+**Lecture 4's inline TMX sample is real Church curriculum and scripture text** in
+English–Spanish — "Come, follow me", "2 Nephi 31:20", "Charity never faileth", `<ph>` tags —
+not the synthetic data it was described as. Your conclusion about the assignment stubs was
+right and stands; the data characterisation was not, and Eric's publish ruling had rested
+on it. Re-put to him with the correction and confirmed: it publishes as is, being short
+publicly available scripture rather than corpus material. Nothing for you to do.
+
+### The memory question, settled — this is what replaces the back-and-forth below
+
+Entry four told you the 100-token cap "keeps A8 inside a paid Colab session". Entry five
+retracted that as unsupported. **It has now been measured, and the cap does its job:**
+
+| | cap 100 | no cap |
+|---|---|---|
+| device memory held | **9.60 GiB** | 35.80 GiB |
+| seconds per epoch | 192.0 | 192.0 |
+| pairs truncated | 1.30% | 0% |
+
+**73% of the memory cost removed for 1.30% of the data, at identical wall clock.** Peak
+memory is set by the *longest* batch rather than the median one, so clipping the tail is
+cheap in data and large in memory. The full curve, its caveats and its corrections are in
+`notes/reports/length-ladder.md`.
+
+**What is still not established, and this is the part that matters for the handout:** those
+are Apple Metal unified-memory figures on a 64 GiB machine. They are not CUDA numbers.
+Coulson is measuring what a paid Colab session actually provides (Task #118). Until that
+exists, **no memory figure belongs in the A8 handout.**
+
+What *is* safe to tell students today, and is solid:
+
+> **Batch count sets how long an epoch takes. The length cap sets whether it fits at all.**
+
+If a session dies, the first thing to check is the length cap — not the epoch count, not
+the batch size. That ordering held across every rung.
+
+### Still not yours, still blocked
+
+**The A5 audit.** Neither of us can unblock it: you cannot reach the private repository and
+`audit_bitext.py` lives there. It needs Eric to run it or to stage it somewhere you can
+read. It now also prices every candidate length cap, which is what makes a student's cap
+choice a measured decision rather than a guess.
+
+---
+
 ## 2026-09-26, fifth
 
 **Narrowing the previous entry: only the desktop copies are safe to delete. Do not touch
