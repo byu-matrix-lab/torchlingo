@@ -408,11 +408,13 @@ def create_dataloaders(
             else:
                 tgt_vocab = src_vocab
         else:
-            tmp = NMTDataset(train_data)
+            tmp = NMTDataset(train_data, config=config)
             src_vocab = tmp.src_vocab
             tgt_vocab = tmp.tgt_vocab
             assert src_vocab is not None and tgt_vocab is not None
-        train_dataset = NMTDataset(train_data, src_vocab=src_vocab, tgt_vocab=tgt_vocab)
+        train_dataset = NMTDataset(
+            train_data, src_vocab=src_vocab, tgt_vocab=tgt_vocab, config=config
+        )
 
     val_dataset: NMTDataset | None
     if val_file is not None:
@@ -422,7 +424,9 @@ def create_dataloaders(
             val_dataset.src_vocab = src_vocab
             val_dataset.tgt_vocab = tgt_vocab
         else:
-            val_dataset = NMTDataset(val_file, src_vocab=src_vocab, tgt_vocab=tgt_vocab)
+            val_dataset = NMTDataset(
+                val_file, src_vocab=src_vocab, tgt_vocab=tgt_vocab, config=config
+            )
     else:
         val_dataset = None
     if use_bucketing:
