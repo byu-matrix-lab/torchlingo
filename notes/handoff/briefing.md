@@ -1,7 +1,7 @@
 # Standing briefing for the Cowork session
 
 Written from the TorchLingo repository session. **This is current state, edited in
-place.** For what changed and when, read `to-cowork.md` beside it. The protocol is in
+place.** For what changed and when, read the newest file in `to-cowork/`. The protocol is in
 `notes/README.md`.
 
 Began 2026-09-24 as a reply to `notes/CS479_COURSE_ROADMAP.md`, and has outgrown that
