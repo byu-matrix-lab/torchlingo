@@ -245,7 +245,141 @@ def render_length_ladder(doc: dict) -> str:
     return "\n".join(out)
 
 
-RENDERERS = {"length-ladder": render_length_ladder}
+def render_a8_benchmark(doc: dict) -> str:
+    """Build the Assignment 8 benchmark and learning-curve report.
+
+    Two things this renderer refuses to do, because both would produce a plausible and wrong
+    picture:
+
+    It never puts runs from different split families on one line. The curve's splits are
+    nested with a single shared tokenizer; the A8 baseline used its own split and fit its own
+    tokenizer. Two 100K runs from the two families differ by both, so a difference between
+    them cannot be attributed to anything in particular.
+
+    And it always says whether a point converged or ran out of budget. A converged point
+    reports the best that much data can do; a capped one reports what it got in the budget.
+    Drawing one line through both understates wherever the caps fall.
+
+    Args:
+        doc (dict): Parsed ``a8-benchmark.json``.
+
+    Returns:
+        str: The complete Markdown document.
+    """
+    cfg, runs = doc["config"], doc["runs"]
+    curve = [r for r in runs if r["split_family"] == "curve" and r["pairs"]]
+    baseline = [r for r in runs if r["split_family"] == "a8-baseline"]
+    scales = sorted({r["d_model"] for r in curve})
+
+    out = [
+        GENERATED_WARNING.replace("length-ladder.json", "a8-benchmark.json"),
+        "",
+        f"# {doc['title']}",
+        "",
+        doc["summary"].strip(),
+        "",
+        "## How to read this",
+        "",
+        "Every row says **why it stopped**, and that decides what its score means:",
+        "",
+        (
+            "- **converged** — validation stopped improving. This is the best that much data can "
+            "do at that model size."
+        ),
+        (
+            "- **budget-capped** — it hit the optimizer-step budget while still improving. This is "
+            "what it got in the budget, and it is a *floor* rather than a ceiling."
+        ),
+        "",
+        (
+            "Comparing the two kinds as if they were one measurement understates every capped "
+            "point. They are kept labelled rather than averaged."
+        ),
+        "",
+        (
+            "**The two families are also not comparable with each other.** The A8 baseline used "
+            "its own split and fit its own tokenizer, on Apple Metal; every curve row used the "
+            "nested splits with one shared tokenizer, on an A100. A 100,000-pair row appears in "
+            "both, and the two differ by split, tokenizer and device at once — so the gap "
+            "between them is not attributable to any one of the three."
+        ),
+        "",
+        "## Assignment 8's own configuration",
+        "",
+        f"The A8 baseline: {cfg['corpus']}, {cfg['model']}.",
+        "",
+        "| epochs | BLEU | chrF | wall clock | stopped because |",
+        "|---|---|---|---|---|",
+    ]
+    for r in sorted(baseline, key=lambda r: r["epochs_run"]):
+        out.append(
+            f"| {r['epochs_run']} | **{r['bleu']:.2f}** | {r['chrf']:.2f} | "
+            f"{r['train_minutes']:.1f} min | {r['regime']} |"
+        )
+
+    if len(baseline) >= 2:
+        lo, hi = sorted(baseline, key=lambda r: r["epochs_run"])[:2]
+        out += [
+            "",
+            (
+                f"**{lo['epochs_run']} epochs is not enough.** Going to {hi['epochs_run']} buys "
+                f"**{hi['bleu'] - lo['bleu']:+.2f} BLEU**, and only the longer run converged. The "
+                "assignment's 30-to-36 recommendation stops while the model is still improving."
+            ),
+            "",
+            (
+                "**So the instruction should be a step budget rather than an epoch count**: train "
+                "until validation stops improving, which is about 100,000 optimizer steps. That "
+                "phrasing survives a student changing their corpus size, where a fixed epoch count "
+                "does not."
+            ),
+        ]
+
+    out += ["", "## The learning curve", ""]
+    header = "| pairs | " + " | ".join(f"d_model {d}" for d in scales) + " |"
+    out += [header, "|" + "---|" * (len(scales) + 1)]
+    for pairs in sorted({r["pairs"] for r in curve}):
+        cells = []
+        for d in scales:
+            hit = next(
+                (r for r in curve if r["pairs"] == pairs and r["d_model"] == d), None
+            )
+            if hit is None:
+                cells.append("—")
+            else:
+                mark = "" if hit["regime"] == "converged" else r"\*"
+                cells.append(f"{hit['bleu']:.2f}{mark}")
+        out.append(f"| {pairs:,} | " + " | ".join(cells) + " |")
+    out += ["", "An asterisk marks a budget-capped point: a floor, not a ceiling.", ""]
+
+    for d in scales:
+        col = sorted((r for r in curve if r["d_model"] == d), key=lambda r: r["pairs"])
+        if len(col) < 2:
+            continue
+        params = col[0]["parameters"]
+        first, last = col[0], col[-1]
+        factor = last["pairs"] / first["pairs"]
+        out.append(
+            f"- **d_model {d}** ({params:,} parameters): {factor:.0f}x the data, from "
+            f"{first['pairs']:,} to {last['pairs']:,}, moves BLEU "
+            f"{first['bleu']:.2f} to {last['bleu']:.2f} — **{last['bleu'] - first['bleu']:+.2f}**."
+        )
+
+    out += ["", "## What it means", ""]
+    for finding in doc["findings"]:
+        out.append(f"- {finding.strip()}")
+
+    out += ["", "## Caveats", ""]
+    for caveat in doc["caveats"]:
+        out.append(f"- {caveat.strip()}")
+    out.append("")
+    return "\n".join(out)
+
+
+RENDERERS = {
+    "length-ladder": render_length_ladder,
+    "a8-benchmark": render_a8_benchmark,
+}
 
 
 def main() -> int:

@@ -50,7 +50,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 
 | | Task | State |
 |---|---|---|
-| #95 | The data learning curve, whose 100K point is A8's number | **36 epochs answered: not enough.** Curve 16 of 21 |
+| #95 | The data learning curve, whose 100K point is A8's number | **Curve published** — 16 of 21 points, 5 running |
 | #49 | The shipped checkpoint predates the enlarged corpus | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | Open — point the course at it; decide on diagnostics |
 | #121 | A Lecture 9 subword notebook, and it is ours | **Answer to Cowork by Oct 3** |
@@ -58,9 +58,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #123 | A14's two-directions case has never been run | Open — highest uncertainty, due Oct 28 |
 | #124 | Simplify Lecture 6's chrF/TER wrappers | **After Mon Sep 28**, not before — A6 is live |
 | #133 | One metadata namespace for both notebook families | **In review, PR #113** — needs your approval |
-| #134 | Publish the A8 and curve numbers as a generated report | **Cowork needs these by Oct 5** |
 | #135 | `examples/*.py` still do not checkpoint | Open — the five a student is most likely to copy |
-| #136 | The curve mixes converged and budget-limited points | Open — must be labelled, not averaged over |
 | #128 | Run the learning curve on the cluster | **RUNNING** — array 13900963, 7 of 21 done |
 | #129 | Extract a shared `~/Projects/hpc` | Open — after #128 gives a second implementation to diff |
 | #130 | `pyproject`, installed metadata and `__version__` must agree | In review — **PR #105** |
@@ -358,25 +356,6 @@ missing a gate that `main` gained after their checks ran.
 Knock-on: **PR #55** is what **Task #85** and **Task #91** wait on. (Task, not PR: PRs #84 and #85 exist and
 are unrelated — the collision `CLAUDE.md`'s numbering rule describes.)
 
-### #134 Publish the A8 and curve numbers as a generated report
-
-**Cowork needs the 100K figures by Oct 5** or the Assignment 8 handout ships saying expected
-quality is unknown. The numbers exist; the report does not.
-
-Measured on MPS, 36 epochs at the 100-token cap: **BLEU 11.46, chrF 32.88, 64.7 min**, 10.00 GiB
-held, verdict *workable but A8 must state expected quality explicitly*.
-
-`collect_benchmark.py` is written and produces the consolidated JSON. What is missing is the
-renderer and the report, following `notes/reports/`: JSON is the source, Markdown is generated,
-`--check` keeps them honest.
-
-**Two things the report must say plainly**, because both change how a number is read:
-
-- **The config.** Every figure so far is the 11.7M-parameter course model, not the 56M
-  Transformer-base the docs show. See #131.
-- **MPS is not CUDA.** The wall clock does not transfer to a student on Colab. The cluster's
-  A100 numbers do, once they land.
-
 ### #135 `examples/*.py` still do not checkpoint
 
 The #103 audit found that no `train_model` caller checkpointed. Three are fixed —
@@ -390,32 +369,6 @@ exactly the failure `training_checkpoint` exists for.
 
 Left separate deliberately: those five files sit outside the lint gate (#22), so a change there
 is unguarded, and a five-file mechanical diff would bury its own review.
-
-### #136 The curve mixes converged and budget-limited points
-
-**Found in the first cluster results and it changes how the curve must be read.** Points do not
-all stop for the same reason:
-
-| d_model | pairs | epochs | converged |
-|---|---|---|---|
-| 64 | 25,000 | 260 | yes |
-| 64 | 50,000 | 129 | yes |
-| 64 | 100,000 | 65 | **no — hit the step budget** |
-| 64 | 1,200,000 | 6 | **no** |
-| 256 | 25,000 | 77 | yes |
-
-Small corpora converge and stop early: *this is the best that much data can do.* Large corpora
-exhaust the 100,000-step budget while still improving: *this is what that much data gets in
-100,000 steps.* **Those are different measurements**, and a curve drawn through both without
-saying which is which understates the large end.
-
-- Every point already records `val_flattened`, epochs and the budget, so the distinction is in
-  the data rather than lost. The report has to **label it**, not average over it.
-- Do not describe the sweep as "equal compute". It is **each point to convergence, capped at
-  100,000 steps**, which is a different and more defensible claim.
-- If the large end matters enough, the fix is a bigger budget for those points only — which
-  breaks comparability in the other direction and should be a deliberate second sweep rather
-  than a quiet change to this one.
 
 ### #133 One metadata namespace for both notebook families
 
