@@ -78,28 +78,28 @@ describes last week will mislead every lecture at once rather than one of them.
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | **Wed Sep 30** — say by Tue Sep 29 if it will not be ready |
 | #153 | Pre-norm answered for Cowork: `SimpleTransformer` is post-norm | **L8b** | **Answered** — deliver in the next hand-off; both 8b slides stand |
-| #154 | The notebook gate still runs tutorials only, and course/ has seven | **hyg** | Open — three new ones arrived today, all ungated |
+| #154 | Execute only the zero-dependency notebooks | **hyg** | **Decided: keep CI lightweight** — structural half merged |
 | #155 | A8's "What To Do" overlaps the kickoff notebook's first four steps | **L8a** | **Your call** — Cowork flagged it and did not act |
 | #144 | Tutorial 2 is a tutorial used as Lecture 7's in-class activity | **L7** | **Your call** — the one notebook where family and role disagree |
 | #145 | Say which assignment each notebook jump-starts | **hyg** | **Your call** — four proposed; blocks #146 |
 | #146 | Stamp the purpose cell into all ten notebooks, and gate it | **hyg** | Open — mechanics done in PR #117; waits on #144 and #145 |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
-| #148 | Five assignments are missing from the schedule | **hyg** | Open — `leads_to` cannot name an assignment the SSOT omits |
+| #148 | Five assignments are missing from the schedule | **hyg** | Open — asked in the ninth entry, **unanswered**; see #156 |
+| #156 | The restructure orphaned #148's unanswered question | **hyg** | **Before the next baton** — re-raise it where they will read |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **10+** | Open — it wrote a 2-run report over a 21-run source |
 | #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **10+** | **Your call** — it holds the corpus prep and all the HPC tooling |
 | #151 | The LSTM asks for dropout it cannot apply | **10+** | Open — nine tests warn; a student setting it gets nothing |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
 | #140 | Split tutorial 4 at Part 6 — Parts 6 to 8 are Lecture 8 material | **L8a/8b** | Open — **a Lecture 8 split makes this land somewhere** |
-| #141 | Lecture 6's notebook is an activity with homework inside it | **L6** | **After Mon Sep 28** — A6 is live until then |
+| #141 | Lecture 6's notebook is an activity with homework inside it | **L6** | **Tue Sep 29** — same notebook, same live assignment |
 | #142 | Decide which notebook owns BLEU before splitting either | **10+** | Open — tutorial 3 Part 5 versus the planned tutorial 7 |
-| #143 | Two merged branches are still on the remote | **hyg** | Open — **needs your permission**; the delete is blocked here |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **10+** | Open — point the course at it; decide on diagnostics |
 | #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Lecture 9 is Wed Oct 7; A9 Wed Oct 14** — the only notebook L9 has on its own subject |
 | #122 | Make Assignment 9's control hard to get wrong in code | **L9** | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | **10+** | Open — highest uncertainty, due Oct 28 |
-| #124 | Simplify Lecture 6's chrF/TER wrappers | **L6** | **After Mon Sep 28**, not before — A6 is live |
+| #124 | Simplify Lecture 6's chrF/TER wrappers | **L6** | **Tue Sep 29** — A6 due tomorrow; chrF 78.40 verified today |
 | #135 | `examples/*.py` still do not checkpoint | **L8a** | Open — the five a student is most likely to copy |
 | #129 | Extract a shared `~/Projects/hpc` | **10+** | Open — after #128 gives a second implementation to diff |
 | #97 | SentencePiece on versus off, controlled | **L9** | **Due Mon Oct 12** |
@@ -133,7 +133,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #79 | An order-dependent test | **hyg** | **Fails on unmodified `main`** — so it blocks nothing; CI cannot see it |
 | #81 | Fail the build on hand-typed generated numbers | **hyg** | Open |
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | **10+** | Open |
-| #85 | Only BLEU carries a signature; chrF and TER do not | **10+** | Open — nothing blocks it |
+| #85 | Only BLEU carries a signature; chrF and TER do not | **L6** | Confirmed 2026-09-27 — **do it with or before #124** |
 | #86 | `evaluate_model` has no test, and it is what callers use | **10+** | Open — after PR #58 |
 | #88 | Open the tutorial 7 PR | **10+** | Open — nothing blocks it; **see #142 first** |
 | #89 | Fail the docs build when a page is off-nav | **hyg** | Open |
@@ -608,18 +608,6 @@ so splitting first would produce two evaluation tutorials and a choice nobody ma
 the task. PR #88 is the unrelated rung-5 ladder change, already merged. Task #88 is the
 evaluation tutorial. Exactly the collision the naming rule in `CLAUDE.md` exists to prevent.
 
-### #143 Two merged branches are still on the remote
-
-`test/version-consistency` (PR #105) and `notes/reconcile-after-105` (PR #114) were both merged
-without `--delete-branch`, which is the order `CLAUDE.md` now prefers — delete as a separate step
-so a dependent PR cannot be auto-closed by the deletion.
-
-**The separate step is blocked here.** `git push origin --delete <branch>` is refused by the
-permission classifier, which reads a remote-ref delete as a merge action. Not a workaround
-candidate; it needs either your hand or a Bash permission rule.
-
-Harmless while it waits. Worth clearing so the branch list stays a list of live work.
-
 ### #101 Give the tutorials stable unique names
 
 **Still a semester boundary, and the metadata namespace (PR #113) is why it can wait rather than
@@ -664,6 +652,19 @@ from torchlingo.evaluation import compute_bleu, compute_chrf, compute_ter
 `["Hello world", "How are you doing"]`): **chrF 78.40**. If it comes back **100.00** the
 reference shape is wrong again and the notebook is teaching a wrong number to eighteen
 people.
+
+**Verification done 2026-09-27, ahead of the edit.** `compute_chrf` returns **78.40** on that
+exact example, so the reference shape is right and the local wrappers are redundant rather than
+protective. `compute_ter` returns 16.67 and `compute_bleu` 0.00 with a full signature.
+
+**Still blocked until Tue Sep 29**, and the date was nearly misread: A6 is due **Mon Sep 28**,
+which is tomorrow, not yesterday. Students are in their Drive copies now. The verification was
+worth doing today because it is read-only — it de-risks Tuesday's edit without touching a
+notebook under a live assignment.
+
+**Confirms #85 in passing:** `chrF` and `TER` come back with **no signature** where BLEU carries
+the full sacreBLEU one. So swapping the wrappers in trades a correct number for a correct number
+that cannot say how it was computed, and #85 should land first or alongside.
 
 **Leave the Part 4 `# TODO:` cell exactly as it is.** It pre-writes Assignment 6's step 3
 deliberately; Cowork flagged it and Eric ruled it fine.

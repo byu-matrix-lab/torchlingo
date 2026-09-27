@@ -399,7 +399,7 @@ that owns the course decks. They cannot message each other, so `notes/handoff/` 
 channel. The protocol itself — which file is the mailbox, how entries are appended, and
 why — is in `notes/README.md`.
 
-**One rule belongs here rather than there: a baton pass in either direction means
+**Two rules belong here rather than there. First: a baton pass in either direction means
 reconciling `notes/TASKS.md` in the same sitting.**
 
 A handoff is precisely when the lists go stale, and the only moment when both sides know
@@ -417,6 +417,24 @@ the lists are not reconciled then, the next session inherits a list describing l
 
 So read the incoming entry, walk the status table **before** starting work, and say in the
 reply which tasks moved.
+
+**Second: an unanswered question gets re-raised in the next hand-off, not left in the old
+one.** Eric, 2026-09-27, agreeing with the case below.
+
+A hand-off asks questions the other side alone can answer. Some come back answered, and the
+rest are silently inherited by a file nobody will open again — because each hand-off is read
+once, when it arrives.
+
+This is not hypothetical, and the one-file-per-hand-off layout made it worse before it made
+it better. Five assignments missing from the schedule (#148) were Question 4 of the ninth
+entry to Cowork. They received it, did not answer it, and that entry is now in `archive/`.
+The current hand-off does not mention it, so the next baton would not have surfaced it at
+all — and it is no longer bookkeeping, because `leads_to` validates against that table and a
+correct declaration for an unlisted assignment is rejected.
+
+So before writing a hand-off, **check the previous one for questions that came back
+unanswered, and carry them forward.** Say that they are repeats; a question asked twice with
+no acknowledgement is a different signal from a question asked once.
 
 ## Project Goals
 
