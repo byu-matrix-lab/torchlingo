@@ -55,6 +55,8 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #146 | Stamp the purpose cell into all ten notebooks, and gate it | Open — mechanics done in PR #117; waits on #144 and #145 |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **Due Mon Oct 12** — raises #121's value; do them as one |
 | #148 | Five assignments are missing from the schedule | Open — `leads_to` cannot name an assignment the SSOT omits |
+| #149 | `collect_benchmark.py` silently drops a run file it cannot find | Open — it wrote a 2-run report over a 21-run source |
+| #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **Your call** — it holds the corpus prep and all the HPC tooling |
 | #138 | Renumbering lectures silently redirects every `serves_lectures` | **With the Lecture 8 split** — no check can catch this one |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | Open — the claim is wrong either way; ties to #121 |
 | #140 | Split tutorial 4 at Part 6 — Parts 6 to 8 are Lecture 8 material | Open — **a Lecture 8 split makes this land somewhere** |
@@ -458,6 +460,42 @@ assignments. Worth establishing which, because it is no longer only a documentat
 `leads_to` validates against this table, so a notebook cannot declare that it jump-starts an
 assignment the schedule does not name. If A7 exists and is unlisted, the validator will reject a
 correct declaration.
+
+### #149 `collect_benchmark.py` silently drops a run file it cannot find
+
+`rows = [run_record(p) for p in args.runs if p.exists()]`. A path that does not exist is
+filtered out without a word, and the script then reports how many runs it *did* write — which
+reads like success.
+
+**It happened on 2026-09-27 and wrote a two-run report over a twenty-one-run source.** The cause
+was `zsh` not word-splitting an unquoted `$RUNS`, so all 21 paths arrived as one long
+nonexistent path. The report regenerated cleanly, with a correct-looking table, from two runs.
+
+Caught only because the summary it prints listed two rows where twenty-three were expected. A
+reader who trusted the file would have published a curve with the entire sweep missing.
+
+**Fix:** fail on a named path that does not exist, and say which. `--runs` names files
+explicitly, so a missing one is always a mistake rather than an absence to tolerate. This is the
+same shape as #137, which was fixed an hour earlier in the other script: a filter that should
+have been an error.
+
+Worth checking `scripts/collect_ladder.py` for the same pattern while in there.
+
+### #150 `torchlingo-private` has no git remote, so nothing in it is backed up
+
+`git remote -v` prints nothing. The repository is local to this machine only.
+
+It holds the corpus preparation scripts, `benchmark_a8.py`, `split_curve.py`, `runtime_guard.py`,
+the whole `hpc/` directory, and the findings prose that every published report is generated from.
+The German corpus itself is deliberately unversioned and can be rebuilt from the TMX; the
+*scripts* cannot be rebuilt from anything.
+
+Committing has been giving a false sense of safety — including to me, which is how this was
+found: I reported "pushed private" after a push that had failed for want of a remote.
+
+**Your call**, because it is an account and privacy decision rather than a technical one: a
+private GitHub repository under the lab, or a different backup entirely. The `.gitignore` already
+keeps the corpus and checkpoints out, so a remote would carry scripts and notes only.
 
 ### #138 Renumbering lectures silently redirects every `serves_lectures`
 
