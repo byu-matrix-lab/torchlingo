@@ -55,14 +55,13 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #146 | Stamp the purpose cell into all ten notebooks, and gate it | Open — mechanics done in PR #117; waits on #144 and #145 |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **Due Mon Oct 12** — raises #121's value; do them as one |
 | #148 | Five assignments are missing from the schedule | Open — `leads_to` cannot name an assignment the SSOT omits |
-| #137 | A schedule row that does not parse vanishes from the notebook map | **Before Lecture 8 is split** — a split is what triggers it |
 | #138 | Renumbering lectures silently redirects every `serves_lectures` | **With the Lecture 8 split** — no check can catch this one |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | Open — the claim is wrong either way; ties to #121 |
 | #140 | Split tutorial 4 at Part 6 — Parts 6 to 8 are Lecture 8 material | Open — **a Lecture 8 split makes this land somewhere** |
 | #141 | Lecture 6's notebook is an activity with homework inside it | **After Mon Sep 28** — A6 is live until then |
 | #142 | Decide which notebook owns BLEU before splitting either | Open — tutorial 3 Part 5 versus the planned tutorial 7 |
 | #143 | Two merged branches are still on the remote | Open — **needs your permission**; the delete is blocked here |
-| #95 | The data learning curve, whose 100K point is A8's number | **Curve published** — 17 of 21 points, 4 running |
+| #95 | The data learning curve, whose 100K point is A8's number | **All 21 points measured** — re-collect and regenerate |
 | #49 | The shipped checkpoint predates the enlarged corpus | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | Open — point the course at it; decide on diagnostics |
 | #121 | A Lecture 9 subword notebook, and it is ours | **Answer to Cowork by Oct 3** |
@@ -70,9 +69,9 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #123 | A14's two-directions case has never been run | Open — highest uncertainty, due Oct 28 |
 | #124 | Simplify Lecture 6's chrF/TER wrappers | **After Mon Sep 28**, not before — A6 is live |
 | #135 | `examples/*.py` still do not checkpoint | Open — the five a student is most likely to copy |
-| #128 | Run the learning curve on the cluster | **RUNNING** — array 13900963, 17 of 21 done |
+| #128 | Run the learning curve on the cluster | **COMPLETE, 21 of 21** — two commands left to publish |
 | #129 | Extract a shared `~/Projects/hpc` | Open — after #128 gives a second implementation to diff |
-| #131 | Name the model family, and which config the numbers used | Open — docs show a config nothing runs |
+| #131 | Name the model family, and which config the numbers used | **Unblocked** — the sweep measured the documented default; do it after #128 |
 | #97 | SentencePiece on versus off, controlled | **Due Mon Oct 12** |
 | #102 | Inference cannot resume a long decode | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
@@ -82,7 +81,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
-| #113 | Land the PRs still open | Three: **PR #117** new and green-pending; **#103**, **#54** |
+| #113 | Land the PRs still open | Two left: **#103** and **#54**, both awaiting review |
 | #118 | What does a paid Colab session actually provide? | **Coulson** — blocks any A8 memory claim |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
@@ -460,29 +459,6 @@ assignments. Worth establishing which, because it is no longer only a documentat
 assignment the schedule does not name. If A7 exists and is unlisted, the validator will reject a
 correct declaration.
 
-### #137 A schedule row that does not parse vanishes from the notebook map
-
-**Do this before Lecture 8 is split**, because a split is exactly what triggers it.
-
-The generated notebook map reads lecture numbers and titles out of the "Semester at a glance"
-table rather than restating them, which is what makes the two impossible to disagree. The
-parser accepts a bare number or a comma list. Tested against the forms a split could take:
-
-| lecture column | result |
-|---|---|
-| `8` | parsed |
-| `8, 9` | parsed |
-| `8a` | **skipped silently** |
-| `8-9` | **skipped silently** |
-| `8 (part 1)` | **skipped silently** |
-
-A skipped row does not error. The lecture simply is not in the map, and the map still looks
-complete. Writing `8a` and `8b` would drop both halves of the split lecture and report nothing.
-
-**Fix:** fail on a row inside the schedule section whose first column is neither `—` nor
-parseable. Widening the pattern to accept `8a` is the wrong fix on its own — the point is that
-an unrecognized form must be loud, whatever forms are eventually accepted.
-
 ### #138 Renumbering lectures silently redirects every `serves_lectures`
 
 **Do this with the Lecture 8 split, and note that no check can catch it.**
@@ -494,8 +470,13 @@ Lecture 8, which may be the right half or the wrong one; tutorial 4 would claim 
 became.
 
 This is the one failure mode the generated map cannot detect, because both sides stay
-internally consistent. #137's guard does not help: it catches an unparseable row, not a correct
-row that now means something else.
+internally consistent. **The parser's own guard does not help here**, and the distinction is
+worth being precise about: it rejects a lecture column it cannot *read*, so `8a` or `8-9` now
+fail loudly rather than vanishing. A renumbered row reads perfectly — it simply means a
+different lecture than the notebooks think it does.
+
+So `8a`/`8b` is the scheme the tooling can protect and renumbering is the one it cannot, which
+is a reason to prefer the former if the students are served equally well either way.
 
 **So the renumber and the metadata sweep are one change, not two.** Ten notebooks, one field
 each. If Lecture 8 splits into `8a`/`8b` rather than renumbering, this collapses to deciding
@@ -610,8 +591,16 @@ question lives, and reading as "small corpora do worse". The step budget is now 
 (`--step-budget`, recorded in the report) with the epoch ceiling at 400 so only the budget
 binds. **That makes the curve an equal-compute comparison by construction.**
 
-Remaining: stage the splits, `sbatch --array=0-6 --partition=cs --qos=cs --gpus=a100:1`,
-collect, render.
+**Finished 2026-09-27. All 21 points measured** — `tiny` 7, `course` 7, `base` 7 — and the queue
+is empty. Results are at `~/torchlingo/data/curve/{size}/work-{scale}/*.json` on the cluster.
+
+Remaining, and it is two commands: pull the JSONs back, `collect_benchmark.py` over all 21, then
+`render_report.py`.
+
+**One consequence worth carrying to #131:** the `base` scale is 512/8/6+6/2048, 56,436,544
+parameters — *exactly* the Vaswani base config the docs document and `config.py` defaults to. So
+for the first time there are measured numbers for the configuration the documentation describes,
+across all seven corpus sizes. Every figure published before this was the 11.7M course config.
 
 ### #129 Extract a shared `~/Projects/hpc`
 
@@ -654,6 +643,17 @@ A student reading `models.md` and then the A8 handout cannot reconcile them, and
 - **Every reported score names its config.** Belongs with #81's generated-numbers discipline.
 - Check that `related-work.md`'s Joey NMT comparison states scale *and* task: its 93.62 BLEU
   on a toy task currently sits near our ~11 with neither difference noted.
+
+**Unblocked 2026-09-27, and the shape of the work changed.** The cluster sweep's `base` scale is
+512/8/6+6/2048 — the documented default exactly — so there are now measured numbers for it at
+all seven corpus sizes. Also confirmed by reading rather than recalling: `config.py:862-866`
+carries those defaults, and `models.md` cites the paper at line 232 under the LSTM comparison
+rather than as a statement of what the model *is*.
+
+**So do this after #128's re-collect.** The task was written as "add a disclaimer saying the
+docs' config is not what ran"; it can now be "point at the row where the documented config was
+measured", which is a better answer and a shorter one. Doing it first would produce prose the
+finished report immediately supersedes.
 
 ### #124 Simplify Lecture 6's chrF and TER wrappers
 
