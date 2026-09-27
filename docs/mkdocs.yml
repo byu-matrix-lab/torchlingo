@@ -134,6 +134,7 @@ nav:
     - Inference and Beam Search: tutorials/03-inference-and-beamsearch.ipynb
     - Attention and Alignment: tutorials/04-attention-and-alignment.ipynb
     - Translating Unseen Sentences: tutorials/05-real-translations.ipynb
+    - Diagnosing Failures: tutorials/06-diagnosing-failures.ipynb
   # CS 479 in-class notebooks, archived here rather than in Google Drive so the
   # repository is the one copy a deck can link to. Numbered by lecture, which is
   # why they do not line up with the tutorial numbers above.
@@ -145,6 +146,7 @@ nav:
   - API Reference:
     - reference/index.md
     - Config: reference/config.md
+    - Diagnostics: reference/diagnostics.md
     - Training Checkpoints: reference/training_checkpoint.md
     - Data Processing:
       - reference/data_processing/index.md
@@ -164,6 +166,7 @@ nav:
       - SentencePiece: reference/preprocessing/sentencepiece.md
       - Multilingual: reference/preprocessing/multilingual.md
     - Visualization: reference/visualization.md
+  - Related Work: related-work.md
   - Contributing: contributing.md
 
 extra:
