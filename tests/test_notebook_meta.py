@@ -20,6 +20,14 @@ sys.path.insert(0, str(REPO / "scripts"))
 
 import notebook_meta as nm
 
+# nbformat is a docs extra, not a test dependency, so it is absent in CI's test job. The
+# round-trip test skips there rather than failing -- the same treatment the Git LFS artifacts
+# get. Everything else here is standard library, deliberately.
+try:
+    import nbformat
+except ImportError:
+    nbformat = None
+
 GOOD = {
     "family": "tutorial",
     "serves_lectures": [8],
@@ -234,11 +242,11 @@ class TestExecuteNotebooksReadsTheSameField(unittest.TestCase):
         )
 
 
+@unittest.skipIf(nbformat is None, "nbformat is a docs extra, absent in CI's test job")
 class TestMetadataSurvivesJupyter(unittest.TestCase):
     """A Jupyter save must not drop the block, or it would need re-adding constantly."""
 
     def test_round_trip_preserves_the_block(self):
-        nbformat = __import__("nbformat")
         for path in nm.notebooks():
             nb = nbformat.read(path, as_version=4)
             nbformat.validate(nb)
