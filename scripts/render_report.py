@@ -365,6 +365,51 @@ def render_a8_benchmark(doc: dict) -> str:
             f"{first['bleu']:.2f} to {last['bleu']:.2f} — **{last['bleu'] - first['bleu']:+.2f}**."
         )
 
+    # What capacity is worth at each corpus size, computed rather than typed. The findings
+    # below quote these numbers in prose, and prose is where a figure goes stale unnoticed --
+    # one claim in this report already said "three of six steps are negative" when two were.
+    # Putting the derived table next to the prose means a reader sees both, and a future
+    # mismatch is visible instead of needing to be remembered.
+    if len(scales) >= 2:
+        # Compare the largest scale against the one Assignment 8 actually uses, not against
+        # the smallest. The smallest exists to establish a capacity floor; nobody is choosing
+        # between it and anything. The decision in front of a reader is whether A8's own
+        # configuration is the right one, so that is the baseline the table has to use.
+        baseline = next(
+            (
+                r["d_model"]
+                for r in doc["runs"]
+                if r["split_family"] == "a8-baseline" and r["d_model"] in scales
+            ),
+            scales[0],
+        )
+        small, large = baseline, scales[-1]
+        if small == large:
+            small = scales[0]
+        pairs_both = sorted(
+            {r["pairs"] for r in curve if r["d_model"] == small}
+            & {r["pairs"] for r in curve if r["d_model"] == large}
+        )
+        if pairs_both:
+            out += [
+                "",
+                f"### What capacity buys: d_model {large} minus d_model {small}",
+                "",
+                f"| pairs | d_model {small} | d_model {large} | difference |",
+                "|---|---|---|---|",
+            ]
+            for pairs in pairs_both:
+                lo = next(
+                    r for r in curve if r["pairs"] == pairs and r["d_model"] == small
+                )
+                hi = next(
+                    r for r in curve if r["pairs"] == pairs and r["d_model"] == large
+                )
+                out.append(
+                    f"| {pairs:,} | {lo['bleu']:.2f} | {hi['bleu']:.2f} | "
+                    f"**{hi['bleu'] - lo['bleu']:+.2f}** |"
+                )
+
     out += ["", "## What it means", ""]
     for finding in doc["findings"]:
         out.append(f"- {finding.strip()}")
@@ -372,6 +417,16 @@ def render_a8_benchmark(doc: dict) -> str:
     out += ["", "## Caveats", ""]
     for caveat in doc["caveats"]:
         out.append(f"- {caveat.strip()}")
+
+    # Corrections are part of the report, not a changelog kept elsewhere. A result that was
+    # circulated and later turned out to be wrong has to be findable by whoever acted on it,
+    # and the place they will look is the report -- not a commit message. Optional, because a
+    # report with nothing to correct should not carry an empty heading.
+    if doc.get("corrections"):
+        out += ["", "## Corrections to earlier versions of this report", ""]
+        for correction in doc["corrections"]:
+            out.append(f"- {correction.strip()}")
+
     out.append("")
     return "\n".join(out)
 
