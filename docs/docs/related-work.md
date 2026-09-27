@@ -48,6 +48,13 @@ tokens/sec, and current learning rate — and it prints the full sacreBLEU signa
 That last habit is worth copying: it makes a BLEU number reproducible by someone who
 was not there.
 
+**That 93.62 is not a translation quality figure and must not be compared with one.** The
+`transformer_reverse` task asks a model to output its input reversed — a deterministic string
+operation with no ambiguity, no vocabulary mismatch and one correct answer per input. A high
+score there says the toolkit trains and decodes correctly, which is exactly what we ran it to
+find out. Our own BLEU figures, in the low tens, are German → English on real text. The two
+numbers measure different things and no ranking between them means anything.
+
 **Three things had to be fixed before it would start.** The shipped toy config sets
 `use_cuda: True` and `fp16: True`, so it fails immediately on a machine without a GPU.
 More seriously, `joeynmt/builders.py` passes `verbose=False` to

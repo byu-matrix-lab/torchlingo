@@ -234,6 +234,29 @@ having a model that is wrong often enough to be interesting. Tutorial 3's toy mo
 so decisive that every beam size returns the same translation, which is why the sweep
 there teaches nothing.
 
+!!! info "Which model these numbers are for"
+    Read from the shipped checkpoint rather than recalled, so it cannot drift from the
+    artifact:
+
+    | | |
+    |---|---|
+    | Architecture | `SimpleTransformer` — Vaswani et al. (2017), as [everywhere else](models.md#which-models-are-these-exactly) |
+    | Size | `d_model` 128, 4 heads, 3 + 3 layers, `d_ff` 512 — **2,544,056 parameters** |
+    | Vocabulary | SentencePiece, 3,000 tokens, shared |
+    | Training data | 64,311 pairs of TED-talk English, held out **by talk** |
+    | Decoding | greedy unless the row says otherwise |
+
+    **This is a small model, deliberately.** It is about a fifth of the size of the
+    configuration Assignment 8 uses and a twentieth of the library default, and it exists
+    so that the tutorials train in minutes on a laptop.
+
+    **So do not compare the BLEU on this page with the BLEU in
+    [the benchmark report](https://github.com/byu-matrix-lab/torchlingo/blob/main/notes/reports/a8-benchmark.md).**
+    Those figures run from 9.55 to 24.08 because they are larger models on a larger German
+    corpus. The single digits here are a property of a 2.5M-parameter model on 64,311
+    English pairs, not of the decoding strategies being measured. **What transfers between
+    the two pages is the shape of each effect, never the level.**
+
 --8<-- "docs/_generated/decoding_sweep.md"
 
 ### Why every table here ends with a signature
@@ -303,9 +326,10 @@ next section explains why.
     the greedy-versus-beam decision matters.
 
     That was an honest reading of the data at the time and it was wrong. Retraining on
-    ~19% more data lifted the model from BLEU 4.96 to 7.32, and at that quality the
-    beam-to-beam differences separate from the noise: what had been a flat line became a
-    peak with a measurable decline after it.
+    ~19% more data lifted the model from BLEU 4.96 to 7.32 — same architecture and same
+    size both times, so the corpus is what moved — and at that quality the beam-to-beam
+    differences separate from the noise: what had been a flat line became a peak with a
+    measurable decline after it.
 
     Nothing about the earlier table looked unreliable. It had five seeds, paired
     comparisons and error bars, and it still supported a conclusion the next model
