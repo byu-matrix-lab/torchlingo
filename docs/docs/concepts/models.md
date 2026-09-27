@@ -2,6 +2,44 @@
 
 TorchLingo provides two sequence-to-sequence architectures: a classic **LSTM** model and a modern **Transformer**. This page explains how each works and when to use them.
 
+## Which models are these, exactly?
+
+Worth knowing before anything else, because it means the paper you were assigned describes the code you are running.
+
+**`SimpleTransformer` is the Transformer of Vaswani et al. (2017)** — ["Attention Is All You Need"](https://arxiv.org/abs/1706.03762). Not a variant and not a cut-down teaching model: the same encoder–decoder shape, multi-head scaled dot-product attention, sinusoidal positional encoding, and embeddings scaled by √`d_model`. **"Simple" describes the implementation, not the architecture** — the code is written to be read, and the model it builds is the standard one. Every Marian, OpenNMT or Fairseq tutorial you find online is describing the same family.
+
+`SimpleLSTM` is the earlier encoder–decoder family that the Transformer replaced — Sutskever et al. (2014), with optional Bahdanau-style attention on top.
+
+### The two configurations you will meet
+
+The library's defaults are **Transformer-base**, the paper's own configuration, exactly:
+
+| | `d_model` | heads | layers | `d_ff` | parameters |
+|---|---|---|---|---|---|
+| **Library default** = Vaswani base | 512 | 8 | 6 + 6 | 2048 | 56,436,544 |
+| **CS 479 / Assignment 8** | 256 | 8 | 3 + 3 | 1024 | 11,682,624 |
+
+The course configuration is roughly half-scale in width and depth, which puts it at about a fifth of the parameters. That is not a compromise on principle — it is what fits comfortably in a Colab session alongside a corpus, and it trains in tens of minutes rather than hours.
+
+**Both are the same architecture.** Nothing in the model code changes between them.
+
+### Bigger is not simply better, and the numbers say so
+
+This is the part worth carrying away, and it is measured rather than asserted — see [the benchmark report](https://github.com/byu-matrix-lab/torchlingo/blob/main/notes/reports/a8-benchmark.md) for the full sweep, which trained both configurations on seven corpus sizes under one fixed step budget.
+
+| training pairs | 11.7M model | 56.4M model | difference |
+|---|---|---|---|
+| 25,000 | 9.55 | 9.24 | **−0.31** |
+| 50,000 | 13.68 | 13.62 | **−0.06** |
+| 100,000 | 15.95 | 17.79 | **+1.84** |
+| 800,000 | 17.15 | 24.00 | **+6.85** |
+
+BLEU, greedy decoding, German–English.
+
+**Below about 50,000 pairs the larger model is not better.** It has more capacity than the data can teach, and both models converged, so neither was short of training. From 100,000 pairs upward the larger model pulls away and keeps pulling away.
+
+So the honest answer to "which model should I use?" is *it depends on how much data you have*, and the two questions cannot be separated. The same 48× increase in corpus size is worth about **+1 BLEU** to a 1.8M-parameter model, **+7** at 11.7M, and **+15** at 56.4M.
+
 ## The Encoder-Decoder Framework
 
 Both models follow the same high-level pattern:
@@ -229,7 +267,7 @@ Sinusoidal encoding advantages:
 
 - No learned parameters — produces valid values for any position
 - For a fixed offset, encodings are related by a simple rotation, so the model can learn to attend by relative position
-- The classic, well-understood baseline from "Attention Is All You Need"
+- It is what the original Transformer used, so this implementation matches the paper here too
 
 ### Masking
 
@@ -284,9 +322,17 @@ flowchart TD
 | **Inference speed** | Fast | Medium |
 | **Memory usage** | O(n) | O(n²) |
 | **Long sequences** | Struggles | Handles well |
-| **Minimum data** | ~5K pairs | ~50K pairs |
+| **Minimum data** | ~5K pairs | ~50K pairs (measured — see below) |
+
+The Transformer figure is now backed by a measurement rather than folklore: at 25,000 pairs the
+course model reaches 9.55 BLEU, at 50,000 it reaches 13.68, and 50,000 is also the point below
+which extra model capacity stops helping at all. So "about 50,000" is where a Transformer starts
+repaying itself on this language pair.
 
 ### Configuration Examples
+
+The first two are illustrative. The third is the library default and, as noted above, Vaswani
+base exactly.
 
 #### Tiny Model (Demo/Testing)
 
@@ -302,20 +348,27 @@ config = Config(
 # ~1M parameters, trains in seconds
 ```
 
-#### Small Model (Learning)
+A model this small is for checking that your pipeline runs, not for translating. Measured at
+`d_model=64`: **48× more data moves BLEU by one point**, because the capacity, not the corpus,
+is the limit.
+
+#### Course Model (CS 479, Assignment 8)
 
 ```python
 config = Config(
     d_model=256,
     n_heads=8,
-    num_encoder_layers=4,
-    num_decoder_layers=4,
+    num_encoder_layers=3,
+    num_decoder_layers=3,
     d_ff=1024,
 )
-# ~10M parameters, trains in minutes
+# 11,682,624 parameters; about 40 minutes on an A100 for 100,000 pairs
 ```
 
-#### Medium Model (Good Quality)
+This is what Assignment 8 trains, and what the numbers in the benchmark report are for unless
+they say otherwise. It fits a Colab session.
+
+#### Transformer-base (the library default)
 
 ```python
 config = Config(
@@ -325,8 +378,11 @@ config = Config(
     num_decoder_layers=6,
     d_ff=2048,
 )
-# ~60M parameters, trains in hours
+# 56,436,544 parameters; about 2 hours on an A100 for 800,000 pairs
 ```
+
+Worth it once you have **100,000 pairs or more** — below that it buys nothing. Whether it fits a
+free Colab session has not been measured.
 
 ## Model Methods
 
