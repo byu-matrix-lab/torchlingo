@@ -16,7 +16,9 @@ notes/reports/
   README.md                 this file
   data/
     length-ladder.json      measured numbers, written by the experiment
+    a8-benchmark.json       the A8 baseline and the learning curve
   length-ladder.md          GENERATED -- do not edit
+  a8-benchmark.md           GENERATED -- do not edit
   training-budget.md        legacy finding, prose, NOT generated
 ```
 
