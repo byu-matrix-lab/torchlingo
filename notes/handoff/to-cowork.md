@@ -8,6 +8,230 @@ file every time.
 
 ---
 
+## 2026-09-26, seventh — the roadmap is now the shared source of truth
+
+**Eric's call: `notes/CS479_COURSE_ROADMAP.md` is the official CS 479 roadmap, and
+`CS479 Fall 2026 Roadmap_v3.md` in his course folder is retired.** The repository copy is no
+longer a mirror of it. It is the live document, handed back and forth by the baton.
+
+**What that changes for you, and it is the one thing that could destroy work:** until today
+your header said the body was "verbatim from" the course-folder file. **Never paste over this
+file wholesale again.** It now carries repository-side content that exists nowhere else, and a
+v4 paste would delete it. Edit in place; say in this log what you changed.
+
+Version numbers stop being useful once a document is live rather than reissued, so it carries
+dated entries instead of a v-number.
+
+### `notes/CURRICULUM.md` is gone, merged into it
+
+The repository's curriculum audit — sequencing, learning outcomes, gaps, redundancy — is now
+the final part of the roadmap, under "Repository side: what our material teaches". One
+document, so there is nowhere for two versions of the same fact to disagree. Course-side
+sections remain yours; that part is ours.
+
+**Dates and assignment deadlines appear once, in your schedule table.** The repository-side
+part joins to it on lecture number and deliberately repeats nothing else, so there is no second
+copy to drift.
+
+### The notebook map is in there, and it is the thing you asked for
+
+"Which notebook serves which lecture" is now a table in the roadmap covering all 23 lectures,
+both families — `docs/docs/tutorials/` numbered by library topic, `docs/docs/course/` numbered
+by lecture — because **nothing about which artifact belongs in which lecture is derivable from
+a filename.**
+
+It also marks the lectures that have **already run**, which is the part easy to skip: a student
+revisiting them needs to know what to open, later assignments refer back, and a Fall 2027
+offering should not rediscover the mapping. Where a tutorial *would have* improved a past
+lecture it says so rather than dropping it silently.
+
+What it says is missing: **Lecture 9 has no notebook** (that is the answer you wanted by Oct 3 —
+yes, it is ours, and #121 has the one-line version), and **Lecture 14 has none** while its
+handout is still the OpenNMT `.docx`. Eleven of twenty-three lectures pair with nothing, which
+is fine — inventing a notebook to fill a row is the redundancy the audit warns about.
+
+### Two smaller things
+
+**Tutorial 6 is reachable now.** It was the only tutorial of six with neither a nav entry nor a
+Colab badge, which mattered because your Lecture 8 deck assigns it as reading. Both fixed.
+
+**One framing worth having explicitly**, also Eric's: **TorchLingo exists first and foremost to
+support CS 479**, and third-party use is a later concern. That is a tie-breaker rather than a
+slogan — when a choice could serve a CS 479 student or a general newcomer, it serves the
+student. It is now first in the project's stated goals.
+
+---
+
+## 2026-09-26, sixth — READ THIS ONE FIRST
+
+**Nothing below has reached you yet.** Entries three through five were written across one
+afternoon while the baton was still on this side, so they are a working record rather than
+a sequence of instructions, and one claim in them is asserted, then retracted, then
+confirmed by measurement. Reading them in order would be actively misleading. This entry is
+the settled position on everything. The rest is kept because the protocol does not edit
+published entries, and because how a wrong number got caught is worth having.
+
+### Everything that is yours, consolidated
+
+1. **The Lecture 6 deck's notebook link can change now.** All four notebooks are on `main`
+   (PR #85) and their Colab badges resolve. Eric has said the deck can be updated
+   immediately rather than Monday — it has already been presented, and he is editing a
+   local copy he will push to OneDrive himself.
+2. **Delete only the desktop copies.** The folder on Eric's desktop is yours to clear. The
+   **Google Drive** copies are what students are working in for Assignment 6 and must stay
+   where they are. Your earlier entry said "the Drive copy is retired"; retired means the
+   deck stops linking to it and `docs/docs/course/` becomes the maintained copy, not that
+   the files go.
+3. **Filenames are final.** `lecture-03-word-embeddings`, `lecture-04-tmx-cleaning`,
+   `lecture-05-sentence-alignment`, `lecture-06-mt-evaluation`, under `docs/docs/course/`.
+   Cite them as they stand; any future rename gets an entry here first.
+4. **Task #42, Lecture 7's assignment, needs one answer from you, and Lecture 7 is
+   Monday.** Scope it, or say it needs nothing. Our read is that it needs nothing: the
+   in-class activity is tutorial 2 and is already merged, and a paper review needs no
+   repository material. Saying so closes the task; we would rather hear that than invent a
+   deliverable.
+5. **Lecture 8 is over-subscribed and only you can triage it.** Wed Sep 30 currently has to
+   carry the train/dev/test lesson, the A8 handout, and four of the five tutorial-6
+   debugging questions, in 75 minutes. The briefing proposes an order; the decision is
+   yours.
+6. **The Lecture 6 wrapper simplification happens from this side after Monday**, as you
+   asked, verified against **chrF 78.40** on its Part 1 example. The Part 4 `# TODO:` cell
+   is left exactly as it is.
+
+### One correction you should know about, because you cleared it
+
+**Lecture 4's inline TMX sample is real Church curriculum and scripture text** in
+English–Spanish — "Come, follow me", "2 Nephi 31:20", "Charity never faileth", `<ph>` tags —
+not the synthetic data it was described as. Your conclusion about the assignment stubs was
+right and stands; the data characterisation was not, and Eric's publish ruling had rested
+on it. Re-put to him with the correction and confirmed: it publishes as is, being short
+publicly available scripture rather than corpus material. Nothing for you to do.
+
+### The memory question, settled — this is what replaces the back-and-forth below
+
+Entry four told you the 100-token cap "keeps A8 inside a paid Colab session". Entry five
+retracted that as unsupported. **It has now been measured, and the cap does its job:**
+
+| | cap 100 | no cap |
+|---|---|---|
+| device memory held | **9.60 GiB** | 35.80 GiB |
+| seconds per epoch | 192.0 | 192.0 |
+| pairs truncated | 1.30% | 0% |
+
+**73% of the memory cost removed for 1.30% of the data, at identical wall clock.** Peak
+memory is set by the *longest* batch rather than the median one, so clipping the tail is
+cheap in data and large in memory. The full curve, its caveats and its corrections are in
+`notes/reports/length-ladder.md`.
+
+**What is still not established, and this is the part that matters for the handout:** those
+are Apple Metal unified-memory figures on a 64 GiB machine. They are not CUDA numbers.
+Coulson is measuring what a paid Colab session actually provides (Task #118). Until that
+exists, **no memory figure belongs in the A8 handout.**
+
+What *is* safe to tell students today, and is solid:
+
+> **Batch count sets how long an epoch takes. The length cap sets whether it fits at all.**
+
+If a session dies, the first thing to check is the length cap — not the epoch count, not
+the batch size. That ordering held across every rung.
+
+### Still not yours, still blocked
+
+**The A5 audit.** Neither of us can unblock it: you cannot reach the private repository and
+`audit_bitext.py` lives there. It needs Eric to run it or to stage it somewhere you can
+read. It now also prices every candidate length cap, which is what makes a student's cap
+choice a measured decision rather than a guess.
+
+---
+
+## 2026-09-26, fifth
+
+**Narrowing the previous entry: only the desktop copies are safe to delete. Do not touch
+the Google Drive copies.**
+
+The entry below said to check before removing a copy students might be using. Eric has since
+been specific, and the distinction matters enough to correct rather than leave to judgement:
+
+- **Safe to delete:** the copies in the folder on Eric's desktop. Those are yours.
+- **Do not delete:** the copies in **Google Drive**. That is what students are actually
+  working in.
+
+This is worth stating plainly because your own earlier entry said "the Drive copy is
+retired", and *retired* is not *deleted*. Retiring it means the deck stops linking to it and
+`docs/docs/course/` becomes the copy that gets maintained. The Drive files should stay where
+they are while students are in them.
+
+**Also note the previous entry over-claimed one thing, and it is being checked rather than
+asserted.** It said the 100-token cap "is what keeps A8 inside a paid Colab session." The
+ladder cannot support that yet. The measured curve so far, on this machine:
+
+      5 tokens    0.31 GB device memory    136.2 s/epoch
+     10 tokens    1.28 GB                  138.1 s/epoch
+
+4.1x memory for a 2x length, which is the quadratic signature. But it cannot keep
+compounding: the same run with no effective cap held 35.80 GB, so the curve has to flatten
+once the cap exceeds the corpus's real sentence lengths. **Where it flattens is what decides
+whether 100 tokens is comfortable or marginal**, and rungs 20 through 80 are being walked to
+find out.
+
+**Coulson is checking what Colab actually provides**, so the two halves meet in the middle:
+he supplies the ceiling, the ladder supplies the demand at each cap. Until both exist, do not
+put a memory claim in the A8 handout. The safe thing to tell students today is the *ordering*
+of the levers, which is solid: if a session dies, look at the length cap first, because batch
+count drives epoch time while sequence length drives whether the run fits at all.
+
+---
+
+## 2026-09-26, fourth
+
+**All four notebooks are on `main`. You have the baton; here is everything waiting on you.**
+
+**PR #85 merged**, so the precondition for everything below is met. The badges resolve off
+`main` now, verified against the real remote. Eric has also said the Lecture 6 deck can be
+updated **now** rather than Monday — it has already been presented, and he is editing a
+local copy that he will push to the OneDrive folder himself.
+
+**Eric's instruction: you may delete your extra copies of the notebooks outside the repo.**
+`docs/docs/course/` is canonical and the repository is the one copy a deck should link to.
+Removing the duplicates is the point of having moved them, since two copies of one notebook
+is the arrangement that drifts.
+
+One caution, and it is the only one: if any copy you are about to remove is the one
+**students are working in for Assignment 6**, which is due Monday morning, point them at the
+repository badge before it disappears rather than after. Nothing should vanish from under a
+live assignment. Your own working copies have no such constraint.
+
+### The baton, in the order it comes due
+
+1. **Lecture 6 deck** — switch the notebook link to the Colab badge off `main`. Unblocked
+   now, not Monday.
+2. **Task #42, Lecture 7's assignment** — scope it or tell us it needs nothing. Lecture 7
+   is **Monday**. Detail in the entry below; the likeliest right answer is "nothing to
+   build", and saying so closes it.
+3. **Lecture 8 is over-subscribed, and only you can triage it.** Wed Sep 30 currently has
+   to carry the train/dev/test lesson, the A8 handout, and four of the five tutorial-6
+   debugging questions, in 75 minutes. That does not fit. The briefing's table proposes an
+   order; the decision is yours.
+4. **After Monday**, the Lecture 6 wrapper simplification gets made from this side, as
+   already accepted.
+
+### One number changed since the last entry, and it affects what you tell students
+
+The memory ladder now runs correctly, and it says **sequence length, not epoch count, is
+what will break a student's Colab session.** A 5-token cap holds **0.31 GiB** of device
+memory where the same run uncapped holds **35.80 GiB** — 115x. Meanwhile wall clock barely
+moved, 136 s/epoch against 192, at the same batch count.
+
+So the two levers are separate: **batch count drives how long an epoch takes, sequence
+length drives whether it fits at all.** If a student's session dies, the first question is
+their length cap, not their epoch count or batch size. That is worth a sentence in the A8
+handout, and it is measured rather than inferred.
+
+It also means the 100-token cap Eric settled on is doing more work than it looked like it
+was doing — it is the thing keeping A8 inside a paid Colab session.
+
+---
+
 ## 2026-09-26, third
 
 **One request: scope Lecture 7's assignment, or tell us it needs nothing.**
