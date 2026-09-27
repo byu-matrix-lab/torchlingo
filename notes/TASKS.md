@@ -50,7 +50,14 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 
 | | Task | State |
 |---|---|---|
-| #95 | The data learning curve, whose 100K point is A8's number | **Curve published** — 16 of 21 points, 5 running |
+| #137 | A schedule row that does not parse vanishes from the notebook map | **Before Lecture 8 is split** — a split is what triggers it |
+| #138 | Renumbering lectures silently redirects every `serves_lectures` | **With the Lecture 8 split** — no check can catch this one |
+| #139 | Lecture 9 is claimed by tutorial 1 and not actually served | Open — the claim is wrong either way; ties to #121 |
+| #140 | Split tutorial 4 at Part 6 — Parts 6 to 8 are Lecture 8 material | Open — **a Lecture 8 split makes this land somewhere** |
+| #141 | Lecture 6's notebook is an activity with homework inside it | **After Mon Sep 28** — A6 is live until then |
+| #142 | Decide which notebook owns BLEU before splitting either | Open — tutorial 3 Part 5 versus the planned tutorial 7 |
+| #143 | Two merged branches are still on the remote | Open — **needs your permission**; the delete is blocked here |
+| #95 | The data learning curve, whose 100K point is A8's number | **Curve published** — 17 of 21 points, 4 running |
 | #49 | The shipped checkpoint predates the enlarged corpus | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | Open — point the course at it; decide on diagnostics |
 | #121 | A Lecture 9 subword notebook, and it is ours | **Answer to Cowork by Oct 3** |
@@ -71,7 +78,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
-| #113 | Land the PRs still open | #52 green; #54, #57, #59 need review; #103, #105 need Eric |
+| #113 | Land the PRs still open | Three: **PR #113** green and needs an approval on GitHub; **#103**, **#54** |
 | #118 | What does a paid Colab session actually provide? | **Coulson** — blocks any A8 memory claim |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
@@ -368,6 +375,122 @@ exactly the failure `training_checkpoint` exists for.
 
 Left separate deliberately: those five files sit outside the lint gate (#22), so a change there
 is unguarded, and a five-file mechanical diff would bury its own review.
+
+### #137 A schedule row that does not parse vanishes from the notebook map
+
+**Do this before Lecture 8 is split**, because a split is exactly what triggers it.
+
+The generated notebook map reads lecture numbers and titles out of the "Semester at a glance"
+table rather than restating them, which is what makes the two impossible to disagree. The
+parser accepts a bare number or a comma list. Tested against the forms a split could take:
+
+| lecture column | result |
+|---|---|
+| `8` | parsed |
+| `8, 9` | parsed |
+| `8a` | **skipped silently** |
+| `8-9` | **skipped silently** |
+| `8 (part 1)` | **skipped silently** |
+
+A skipped row does not error. The lecture simply is not in the map, and the map still looks
+complete. Writing `8a` and `8b` would drop both halves of the split lecture and report nothing.
+
+**Fix:** fail on a row inside the schedule section whose first column is neither `—` nor
+parseable. Widening the pattern to accept `8a` is the wrong fix on its own — the point is that
+an unrecognized form must be loud, whatever forms are eventually accepted.
+
+### #138 Renumbering lectures silently redirects every `serves_lectures`
+
+**Do this with the Lecture 8 split, and note that no check can catch it.**
+
+Every notebook declares lecture *numbers*. If splitting Lecture 8 renumbers what follows — 9
+becomes 10, and so on — then every `serves_lectures` still validates, because the numbers still
+exist in the schedule. They just mean different lectures. Tutorial 6 would claim the new
+Lecture 8, which may be the right half or the wrong one; tutorial 4 would claim whatever 19
+became.
+
+This is the one failure mode the generated map cannot detect, because both sides stay
+internally consistent. #137's guard does not help: it catches an unparseable row, not a correct
+row that now means something else.
+
+**So the renumber and the metadata sweep are one change, not two.** Ten notebooks, one field
+each. If Lecture 8 splits into `8a`/`8b` rather than renumbering, this collapses to deciding
+which half tutorial 6 serves — much cheaper, and worth weighing when choosing the scheme.
+
+### #139 Lecture 9 is claimed by tutorial 1 and not actually served
+
+The map says tutorial 1 serves Lectures 4 and 9. **For Lecture 9 that is an over-claim**,
+inherited from the hand-written table's "1, the vocabulary half" and now checkable for the first
+time.
+
+Read on 2026-09-27: tutorial 1's Part 2 is word-level `SimpleVocab` only. No SentencePiece, no
+subwords, no morphology. Its last cell encodes "Hello universe", prints `<unk>`, and stops.
+
+That makes it the **motivating example** for Lecture 9 rather than coverage of it — it ends
+precisely at the cliff edge where the lecture's subject begins.
+
+Two consequences:
+
+1. **Do not split tutorial 1 to serve Lecture 9.** Extracting Part 2 would register as coverage
+   in the map while teaching the prerequisite, which is worse than the visible gap it replaces.
+2. **#121's notebook should start where Part 2 stops** — same corpus, same `<unk>`, then
+   subwords. That is a stronger opening than starting cold, and it is free.
+
+Either correct tutorial 1's `serves_lectures` to `[4]`, or leave the 9 and add a `note` saying
+it motivates rather than covers. The first is honest; the second keeps the pointer a student
+revisiting Lecture 9 would benefit from. Pick one deliberately.
+
+### #140 Split tutorial 4 at Part 6 — Parts 6 to 8 are Lecture 8 material
+
+The only notebook whose content genuinely spans two lectures without saying so:
+
+| parts | subject | lecture |
+|---|---|---|
+| 1 to 5 — bottleneck, known-alignment task, ablation, alignment accuracy, the picture | measuring alignment | 19, as declared |
+| 6 to 8 — Bahdanau versus Luong, the Transformer's mechanism, cross-attention on the real model | architectures | 8, undeclared |
+
+It was previously held back because **Lecture 8 is over-subscribed** — tutorial 6 as reading and
+A8 both land there, and a fourth artifact would not have helped.
+
+**A Lecture 8 split changes that verdict.** Two sessions can absorb the architecture half where
+one could not, and this is the one split whose seam is in the content rather than in the
+paperwork. Sequence it after the split, not before, so it lands in a lecture that exists.
+
+Cost: a new nav entry and a new Colab badge. No rename of the existing file, so no link a
+student is holding gets broken — which is why this is separable from #101.
+
+### #141 Lecture 6's notebook is an activity with homework inside it
+
+`lecture-06-mt-evaluation` is 29 cells. Parts 1 to 3 are guided in-class work; **Part 4 "Your
+own data" requires uploads and is homework.** The metadata says `role: activity`, which is true
+of three quarters of it, and one notebook cannot carry two roles.
+
+**Blocked until Tue Sep 29.** A6 is due Mon Sep 28 and the rule is that nothing moves under a
+live assignment. Sequence it with #124, which is blocked on the same date and the same notebook.
+
+### #142 Decide which notebook owns BLEU before splitting either
+
+Tutorial 3's Parts 1 to 4 are decoding; **Part 5 "BLEU Score Evaluation" and "Understanding
+BLEU" are Lecture 6's ground**, not Lecture 22's.
+
+Do not split it yet. A "tutorial 7, evaluation" is planned for the same ground and is unmerged,
+so splitting first would produce two evaluation tutorials and a choice nobody made.
+
+**Also a numbering correction:** the hand-off entry that mentions this writes a bare `#88` for
+the task. PR #88 is the unrelated rung-5 ladder change, already merged. Task #88 is the
+evaluation tutorial. Exactly the collision the naming rule in `CLAUDE.md` exists to prevent.
+
+### #143 Two merged branches are still on the remote
+
+`test/version-consistency` (PR #105) and `notes/reconcile-after-105` (PR #114) were both merged
+without `--delete-branch`, which is the order `CLAUDE.md` now prefers — delete as a separate step
+so a dependent PR cannot be auto-closed by the deletion.
+
+**The separate step is blocked here.** `git push origin --delete <branch>` is refused by the
+permission classifier, which reads a remote-ref delete as a merge action. Not a workaround
+candidate; it needs either your hand or a Bash permission rule.
+
+Harmless while it waits. Worth clearing so the branch list stays a list of live work.
 
 ### #133 One metadata namespace for both notebook families
 
@@ -963,6 +1086,15 @@ causal mask becomes the boolean one training already used — and this test trai
 SGD and never decodes. What #57 adds is a 150-line test file, so more RNG is consumed before
 this test runs. That is exactly the failure mode predicted when this was filed: *a test that
 depends on whatever seeded the RNG before it will come back.*
+
+**Stronger than that, as of 2026-09-27: it fails on unmodified `main` with nothing added.**
+Stashing a branch's changes and running `python -m unittest discover tests` on `main` alone gave
+726 tests and the same single failure. So it does not need a PR to add test lines — the current
+`main` already sits on the wrong side of it under `unittest discover`, while `pytest` passes 737.
+
+That matters for two reasons. It is not a property of whichever branch happens to surface it, so
+no PR should be held for it. And **CI only runs `pytest`**, so the suite CLAUDE.md documents
+first is the one nobody is watching.
 
 **The assertion is the defect.** It checks `adam_improved or sgd_improved` — "at least one
 should show improvement" — on a tiny fixture over 5 epochs. With an unlucky starting state
