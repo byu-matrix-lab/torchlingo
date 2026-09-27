@@ -59,6 +59,10 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #124 | Simplify Lecture 6's chrF/TER wrappers | **After Mon Sep 28**, not before — A6 is live |
 | #126 | Tutorial 6 has no nav entry and no Colab badge | **Due Wed Sep 30** — Lecture 8 assigns it as reading |
 | #127 | Harmonize both notebook families against the roadmap | Open — Cowork cannot tell which notebook serves which lecture |
+| #128 | Run the learning curve on the cluster | **Canary passed** — splits building, then `--array=0-6` |
+| #129 | Extract a shared `~/Projects/hpc` | Open — after #128 gives a second implementation to diff |
+| #130 | `pyproject`, installed metadata and `__version__` must agree | In review — **PR #105** |
+| #131 | Name the model family, and which config the numbers used | Open — docs show a config nothing runs |
 | #97 | SentencePiece on versus off, controlled | **Due Mon Oct 12** |
 | #102 | Inference cannot resume a long decode | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
@@ -318,6 +322,86 @@ at all — and **cannot run it**, because there is no badge to open it in Colab.
   4 and 5 it genuinely works from a pip install. **#114** does not touch it.
 
 **Done when** tutorial 6 appears in the tutorials nav and opens in Colab from its own badge.
+
+### #128 Run the learning curve on the cluster
+
+**Canary passed 2026-09-26**: 40 s on an A100-SXM4-80GB, exit 0, torch 2.5.1+cu121 with CUDA
+visible, the supplied tokenizer used rather than refit, checkpoints and report on disk.
+Operational detail is in `hpc/README.md` in the private repository.
+
+**The canary earned itself on the first attempt**, failing in 22 s on a split-layout mismatch
+that would otherwise have failed in every element of a seven-point array at once, hours in.
+
+**Two caps had to be reconciled before submitting.** `Config.num_steps` defaults to 100,000
+and is an active hard cap, so an epoch count above it never runs:
+
+| pairs | steps/epoch | epochs to reach 100,000 steps |
+|---|---|---|
+| 25,000 | 390 | 257 |
+| 100,000 | 1,562 | 64 |
+| 1,200,000 | 18,750 | 5.3 |
+
+At `--epochs 200` the smallest point would have stopped at **78,000** steps while every other
+point reached 100,000 — undertraining exactly the low end, which is where the low-resource
+question lives, and reading as "small corpora do worse". The step budget is now explicit
+(`--step-budget`, recorded in the report) with the epoch ceiling at 400 so only the budget
+binds. **That makes the curve an equal-compute comparison by construction.**
+
+Remaining: stage the splits, `sbatch --array=0-6 --partition=cs --qos=cs --gpus=a100:1`,
+collect, render.
+
+### #129 Extract a shared `~/Projects/hpc`
+
+Two projects now want the same scaffolding, but torchlingo's cluster path is one day old and
+mtsurvey's `hpc/bin` is entangled with its own concepts. Extracting from one mature
+implementation and one newborn is designing for a shape nobody can see yet.
+
+**Trigger, so this is evidence-based rather than aesthetic:** if writing torchlingo's cluster
+scripts means copying more than a few lines out of mtsurvey, extract instead of copy. So far
+only conventions have been copied, not code.
+
+Candidates already identifiable: job waiting, array-manifest indexing, the login/venv
+environment guard, the no-internet-on-compute-nodes convention, and the babysitter pattern.
+
+### #130 `pyproject`, installed metadata and `__version__` must agree
+
+**In review, PR #105.** A working tree at 0.2.0 reported `0.0.8` for a whole session, because
+the editable install predated the version bump and nothing looks at installed metadata. No
+result changed; the *provenance* was wrong, and it was about to be recorded into the curve's
+report.
+
+Distinct from the release tag guard, which compares a `v*` tag against `pyproject` and catches
+a mistagged release. This catches a stale environment, which is the failure a developer
+actually hits and which no tag check can see.
+
+### #131 Name the model family, and say which config produced the numbers
+
+**Asked 2026-09-26: is the model family documented? Partially, and not where a reader would
+look.** `concepts/models.md` cites "Attention Is All You Need" only under *positional
+encoding*, as though the citation were about that sub-component. `related-work.md` compares
+us to Joey NMT and OpenNMT as *packaging* — a library you call versus a toolkit you configure
+— not as model families.
+
+**Worth stating plainly: `SimpleTransformer` is Vaswani et al. (2017) Transformer-base**, and
+the library defaults land on it exactly. That is pedagogically valuable rather than trivia:
+the paper a student is assigned *is* the architecture they are running, and every Marian,
+OpenNMT or Fairseq tutorial they find online describes the same family.
+
+**The defect this exposed: the config the docs show is not the config anything runs.**
+
+| | d_model | heads | layers | d_ff | params |
+|---|---|---|---|---|---|
+| Vaswani base = library default = `models.md` | 512 | 8 | 6+6 | 2048 | ~60M |
+| A8, and every number measured on 2026-09-26 | 256 | 8 | 3+3 | 1024 | 11,682,624 |
+
+A student reading `models.md` and then the A8 handout cannot reconcile them, and the BLEU
+11.46 going to Cowork is for the **small** model with nothing saying so.
+
+- State the lineage up front in `concepts/models.md`, and what it buys a reader.
+- Name the half-scale course config and why it exists — it fits a Colab session.
+- **Every reported score names its config.** Belongs with #81's generated-numbers discipline.
+- Check that `related-work.md`'s Joey NMT comparison states scale *and* task: its 93.62 BLEU
+  on a toy task currently sits near our ~11 with neither difference noted.
 
 ### #127 Harmonize both notebook families against the course roadmap
 
