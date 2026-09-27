@@ -8,6 +8,13 @@
     "convergence_window": 5,
     "convergence_threshold": 0.003
   },
+  "design": [
+    "**Every point gets the same 100,000 optimizer steps.** That is the control the sweep turns on. Without it a larger corpus would receive more compute as well as more data, and any gain would be unattributable between the two. At batch 64 that is 6.4M examples processed whatever the corpus holds, so corpus size does not change a run's duration and wall clock depends on model scale alone.",
+    "**The epoch ceiling is set far above what the budget allows**, at 400, so the budget is the only thing that binds. An earlier design used `--epochs 200`, under which the 25,000-pair point would have stopped at 78,000 steps while every other point reached 100,000 -- undertraining exactly the low end of the curve, which is where the low-resource question lives, and reading as 'small corpora do worse'.",
+    "**The corpora are nested: each size is a prefix of the next.** So adjacent points differ only in how much data the model saw, never in which examples it got.",
+    "**One tokenizer, fit on the largest split, shared by all of them.** Refitting SentencePiece per corpus size would change the vocabulary between points and confound tokenization with data volume.",
+    "**Validation and test sets are byte-identical across every point**, and share no source sentence with any training split."
+  ],
   "thresholds": [
     "BLEU >= 15 within about 3 hours: TorchLingo owns A8, no change needed",
     "BLEU 8 to 15: workable, but A8 must state expected quality explicitly",

@@ -57,13 +57,13 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #148 | Five assignments are missing from the schedule | Open — `leads_to` cannot name an assignment the SSOT omits |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | Open — it wrote a 2-run report over a 21-run source |
 | #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **Your call** — it holds the corpus prep and all the HPC tooling |
+| #151 | The LSTM asks for dropout it cannot apply | Open — nine tests warn; a student setting it gets nothing |
 | #138 | Renumbering lectures silently redirects every `serves_lectures` | **With the Lecture 8 split** — no check can catch this one |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | Open — the claim is wrong either way; ties to #121 |
 | #140 | Split tutorial 4 at Part 6 — Parts 6 to 8 are Lecture 8 material | Open — **a Lecture 8 split makes this land somewhere** |
 | #141 | Lecture 6's notebook is an activity with homework inside it | **After Mon Sep 28** — A6 is live until then |
 | #142 | Decide which notebook owns BLEU before splitting either | Open — tutorial 3 Part 5 versus the planned tutorial 7 |
 | #143 | Two merged branches are still on the remote | Open — **needs your permission**; the delete is blocked here |
-| #95 | The data learning curve, whose 100K point is A8's number | **All 21 points measured** — re-collect and regenerate |
 | #49 | The shipped checkpoint predates the enlarged corpus | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | Open — point the course at it; decide on diagnostics |
 | #121 | A Lecture 9 subword notebook, and it is ours | **Answer to Cowork by Oct 3** |
@@ -71,23 +71,21 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #123 | A14's two-directions case has never been run | Open — highest uncertainty, due Oct 28 |
 | #124 | Simplify Lecture 6's chrF/TER wrappers | **After Mon Sep 28**, not before — A6 is live |
 | #135 | `examples/*.py` still do not checkpoint | Open — the five a student is most likely to copy |
-| #128 | Run the learning curve on the cluster | **COMPLETE, 21 of 21** — two commands left to publish |
 | #129 | Extract a shared `~/Projects/hpc` | Open — after #128 gives a second implementation to diff |
-| #131 | Name the model family, and which config the numbers used | **Unblocked** — the sweep measured the documented default; do it after #128 |
+| #131 | Name the model family, and which config the numbers used | **Actionable now** — the report carries the documented config's numbers |
 | #97 | SentencePiece on versus off, controlled | **Due Mon Oct 12** |
 | #102 | Inference cannot resume a long decode | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
 | #101 | Give the tutorials stable unique names | Open — **a semester boundary**, not mid-course |
-| #103 | Extend the notebook gate to `docs/docs/course/` | **Unblocked and now live** — four are on `main`, ungated |
+| #103 | Extend the notebook gate to `docs/docs/course/` | Open — four course notebooks on `main`, still ungated |
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
-| #113 | Land the PRs still open | Two left: **#103** and **#54**, both awaiting review |
+| #113 | Land the PRs still open | **One left: PR #54** — refresh it *before* asking Coulson |
 | #118 | What does a paid Colab session actually provide? | **Coulson** — blocks any A8 memory claim |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
-| #7 | PyTorch deprecation warnings | In review — PR #57 |
 | #8 | Verify Eole claims before syllabus use | Open |
 | #9 | `pre-commit install` (still not installed) | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | Open |
@@ -100,23 +98,18 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #52 | Try Moore (2002) if more of the corpus is wanted | Open |
 | #53 | Notebook gate runs 2 of 6 tutorials in CI, and looks green | Open |
 | #60 | Nobody is told when main goes red | Open |
-| #63 | Add mkdocs nav entries for three pages | In review — PR #51 |
-| #65 | Make tutorial 6 import the checks instead of redefining them | In review — PR #52 |
 | #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | Open |
 | #68 | Cite `torcheck` as prior art in the diagnostics docs | Open |
 | #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
-| #74 | Fix the broken anchor and diagnose the 93 docs warnings | Anchor in PR #51; the 93 warnings still open |
-| #78 | Tutorial 5's committed outputs predate the retrained checkpoint | In review — PR #57 |
-| #79 | An order-dependent test | **Reproduced** — blocks clean verification of test-adding PRs |
+| #74 | Diagnose the 93 docs warnings | Open — **the anchor half shipped** in PR #51 |
+| #79 | An order-dependent test | **Fails on unmodified `main`** — so it blocks nothing; CI cannot see it |
 | #81 | Fail the build on hand-typed generated numbers | Open |
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | Open |
-| #83 | Show attention on the Transformer, not only the LSTM | In review — PR #59 |
-| #85 | Only BLEU carries a signature; chrF and TER do not | **Unblocked** — PR #55 merged |
+| #85 | Only BLEU carries a signature; chrF and TER do not | Open — nothing blocks it |
 | #86 | `evaluate_model` has no test, and it is what callers use | Open — after PR #58 |
-| #88 | Open the tutorial 7 PR | **Unblocked — PR #58 has merged** |
+| #88 | Open the tutorial 7 PR | Open — nothing blocks it; **see #142 first** |
 | #89 | Fail the docs build when a page is off-nav | Open |
-| #90 | `CLAUDE.md`'s numbering example is stale | In review — **PR #91**, folded in |
-| #91 | `metric_comparison.json` records no BLEU signature | **Unblocked** — PR #55 merged |
+| #91 | `metric_comparison.json` records no BLEU signature | Open — nothing blocks it |
 | #92 | Tutorials 3 and 5 bypass the library's own evaluation API | Open |
 
 ## The CS 479 pivot
@@ -137,119 +130,6 @@ session) and in **`notes/handoff/briefing.md`**. Both are kept current; restatin
 produced two copies that disagreed within days.
 
 What stays below are the dated tasks themselves.
-
-### #95 The data learning curve, whose 100K point is Assignment 8's number
-
-**RUNNING since 2026-09-26**: 36 epochs, 100-token cap, bucketing on, watchdog at 24 GiB,
-MPS. Absorbed #119 — the 100K run *is* the curve's anchor point, so they were one experiment
-tracked twice.
-
-**Two deliverables from one sweep.** The 100K point gives Assignment 8 its expected BLEU and
-wall clock, **needed by Oct 5** or the handout ships saying quality is unknown. The remaining
-points answer whether more data is worth having. Best controlled run on record to beat:
-64,311 pairs, 36 epochs, BLEU 7.32.
-
-**Done when** the report in `notes/reports/` carries BLEU, seconds per epoch and total wall
-clock at each corpus size, on a named device, generated from JSON.
-
-#### ANSWERED: 36 epochs is not enough
-
-Two runs on the same 100K corpus, same config, same machine. The only difference is how long
-they trained.
-
-| | 36 epochs | 65 epochs |
-|---|---|---|
-| BLEU | 11.46 | **14.48** |
-| chrF | 32.88 | **36.56** |
-| final val loss | 3.9392 | **3.6564** |
-| converged | **no** | **yes** |
-| wall clock | 64.7 min | 112.7 min |
-
-**Assignment 8's "30 to 36 epochs" leaves about three BLEU points on the table**, and the
-36-epoch run had not converged — its drift was −0.00332/epoch, marginally past the 0.003
-threshold, which is why it read as "nearly done" rather than "clearly short".
-
-**The recommendation should be a step budget, not an epoch count.** The 65-epoch run stopped
-because it hit `Config.num_steps`, which defaults to 100,000, and by then validation had
-flattened. So the honest instruction is "train until validation stops improving, which is about
-100,000 optimizer steps or 64 epochs at 100K pairs" — and that phrasing survives a student
-changing their corpus size, where a fixed epoch count does not.
-
-This also retires the OpenNMT question for good. Their students trained about 3.4x longer than
-36 epochs; the truth is in between, and it is measurable rather than arguable.
-
-**Still to confirm on CUDA.** Both numbers are MPS. The wall clock will not transfer to Colab;
-the BLEU and the epoch count should.
-
-#### First cluster results, 7 of 21 points
-
-Three model scales x seven corpus sizes, each to convergence capped at 100,000 steps, on A100s.
-
-| d_model | params | pairs | BLEU | chrF | min | epochs | converged |
-|---|---|---|---|---|---|---|---|
-| 64 | 1.8M | 25,000 | 4.16 | 21.49 | 28.1 | 260 | yes |
-| 64 | 1.8M | 50,000 | 4.70 | 22.35 | 31.2 | 129 | yes |
-| 64 | 1.8M | 100,000 | 4.52 | 22.56 | 30.6 | 65 | no |
-| 64 | 1.8M | 200,000 | 4.92 | 22.74 | 30.5 | 33 | no |
-| 64 | 1.8M | 1,200,000 | 5.16 | 22.88 | 29.1 | 6 | no |
-| 256 | 11.7M | 25,000 | 9.55 | 30.98 | 13.5 | 77 | yes |
-| 512 | 56.4M | 25,000 | 9.24 | 29.86 | 20.4 | 38 | yes |
-
-**The tiny row justifies itself.** 48x the data — 25,000 to 1.2M — buys the 1.8M-parameter model
-**+1.0 BLEU**, from 4.16 to 5.16. That is the capacity floor: beyond about 50,000 pairs this
-model cannot use what it is given, and without that row the curve could not tell "more data does
-not help" from "this model is too small to use more data".
-
-**At 25,000 pairs, more capacity does not help either.** The 56M model scores *below* the 11.7M
-one, 9.24 against 9.55 — within noise, but certainly not better. Both converged, so neither was
-short of compute. This is the other half of the same lesson and it lands on the course's own
-configuration: Assignment 8's model is not obviously too small.
-
-**Read #136 before drawing the curve**: these points do not all stop for the same reason, and
-the ones that hit the step budget are not measuring the same thing as the ones that converged.
-
-#### Acceptance criterion, inherited from the closed #110
-
-**ANSWERED — it is still falling at 36, and 65 epochs buys +3.02 BLEU. See above.** The
-original criterion was: report whether validation loss is still falling at epoch 36, and say so
-in the handout either way. The per-epoch curve is in the JSON for this. Converted to tokens, the OpenNMT
-students trained **3.4x longer** than 36 epochs gives — 328M target tokens against 97M — so
-the question is whether the model is still improving when the assignment tells eighteen
-students to stop.
-
-#### The confound, which must be designed out rather than noticed afterwards
-
-More data means more batches per epoch, so equal-epochs training hands the larger points more
-gradient steps *as well as* more data, and the curve then credits compute to data. **This
-repository has already published exactly that mistake** — see
-[`reports/training-budget.md`](reports/training-budget.md), which also sets the scale: 20%
-more data bought +0.29 ± 0.22 BLEU, an interval crossing zero.
-
-**Lead with equal optimizer steps**, because a student's constraint is a Colab session rather
-than an epoch count and every point then costs the same wall clock. Report epochs-completed
-alongside, so the equal-epochs reading falls out of the same runs.
-
-#### Controls
-
-- **Nested subsets** — 25K inside 50K, and so on. Independent draws can invert adjacent
-  points on sampling noise alone.
-- **One fixed dev and test set**, source groups excluded from every training set.
-  `split_bitext.py` already groups by source.
-- **One fixed tokenizer**, and say which split it was fit on. Refitting per point changes
-  vocabulary and data together, which is Assignment 9's control bug in another costume.
-- **The 100-token cap**, so memory stays at the measured 9.60 GiB whatever the corpus size:
-  data changes batch *count*, not batch shape.
-
-#### Judiciousness
-
-Ceiling is **1,319,631** distinct sources, about 13x the current point. Epoch time scales
-roughly linearly — 192 s at 100K, so ~25 min at 800K — making a seven-point sweep at 36
-epochs about **44 hours**. So walk upward cheapest-first and stop when it flattens, and
-**measure seed noise once at the cheapest point**, or a 0.4 BLEU gap will get read as real
-when it is not.
-
-Side benefit: it prices the low-resource case. A8's floor is settled, but a student with 40K
-would be losing a quantified amount rather than an unknown one.
 
 ### #97 SentencePiece on versus off, controlled
 
@@ -461,6 +341,26 @@ assignments. Worth establishing which, because it is no longer only a documentat
 assignment the schedule does not name. If A7 exists and is unlisted, the validator will reject a
 correct declaration.
 
+### #151 The LSTM asks for dropout it cannot apply
+
+Found 2026-09-27 while checking whether #7's deprecation warnings were really gone. They are —
+but the suite's ten remaining warnings are one numpy division and **nine instances of this**:
+
+> `UserWarning: dropout option adds dropout after all but last recurrent layer, so non-zero
+> dropout expects num_layers greater than 1, but got dropout=0.2 and num_layers=1`
+
+PyTorch applies recurrent dropout *between* layers, so with one layer there is nowhere to put it
+and the value is discarded. The model is built with `dropout=0.2` and one layer, so **the dropout
+does nothing and nothing says so** except a warning nobody reads.
+
+**Why this matters more here than in a normal library.** A student who sets `dropout` on an LSTM
+to reduce overfitting will see no change, conclude that dropout does not help, and be wrong. The
+library's job is to make the concept legible, and this quietly teaches the opposite of the truth.
+
+Worth deciding rather than patching: either pass `dropout=0.0` when `num_layers == 1` and say why
+in the docstring, or default the LSTM to two layers. The first is honest about the limitation; the
+second makes the knob work. Not the same choice, and the second changes a default.
+
 ### #149 `collect_benchmark.py` silently drops a run file it cannot find
 
 `rows = [run_record(p) for p in args.runs if p.exists()]`. A path that does not exist is
@@ -605,41 +505,6 @@ question is now purely about *links*, not about expressing the mapping.
 Decks cite filenames and Colab badges embed paths, so a rename mid-semester breaks a link a
 student is holding. Cowork asked to be told before any rename.
 
-### #128 Run the learning curve on the cluster
-
-**Canary passed 2026-09-26**: 40 s on an A100-SXM4-80GB, exit 0, torch 2.5.1+cu121 with CUDA
-visible, the supplied tokenizer used rather than refit, checkpoints and report on disk.
-Operational detail is in `hpc/README.md` in the private repository.
-
-**The canary earned itself on the first attempt**, failing in 22 s on a split-layout mismatch
-that would otherwise have failed in every element of a seven-point array at once, hours in.
-
-**Two caps had to be reconciled before submitting.** `Config.num_steps` defaults to 100,000
-and is an active hard cap, so an epoch count above it never runs:
-
-| pairs | steps/epoch | epochs to reach 100,000 steps |
-|---|---|---|
-| 25,000 | 390 | 257 |
-| 100,000 | 1,562 | 64 |
-| 1,200,000 | 18,750 | 5.3 |
-
-At `--epochs 200` the smallest point would have stopped at **78,000** steps while every other
-point reached 100,000 — undertraining exactly the low end, which is where the low-resource
-question lives, and reading as "small corpora do worse". The step budget is now explicit
-(`--step-budget`, recorded in the report) with the epoch ceiling at 400 so only the budget
-binds. **That makes the curve an equal-compute comparison by construction.**
-
-**Finished 2026-09-27. All 21 points measured** — `tiny` 7, `course` 7, `base` 7 — and the queue
-is empty. Results are at `~/torchlingo/data/curve/{size}/work-{scale}/*.json` on the cluster.
-
-Remaining, and it is two commands: pull the JSONs back, `collect_benchmark.py` over all 21, then
-`render_report.py`.
-
-**One consequence worth carrying to #131:** the `base` scale is 512/8/6+6/2048, 56,436,544
-parameters — *exactly* the Vaswani base config the docs document and `config.py` defaults to. So
-for the first time there are measured numbers for the configuration the documentation describes,
-across all seven corpus sizes. Every figure published before this was the 11.7M course config.
-
 ### #129 Extract a shared `~/Projects/hpc`
 
 Two projects now want the same scaffolding, but torchlingo's cluster path is one day old and
@@ -688,10 +553,14 @@ all seven corpus sizes. Also confirmed by reading rather than recalling: `config
 carries those defaults, and `models.md` cites the paper at line 232 under the LSTM comparison
 rather than as a statement of what the model *is*.
 
-**So do this after #128's re-collect.** The task was written as "add a disclaimer saying the
-docs' config is not what ran"; it can now be "point at the row where the documented config was
-measured", which is a better answer and a shorter one. Doing it first would produce prose the
-finished report immediately supersedes.
+**Actionable as of PR #122**, which published the complete curve. The task was written as "add a
+disclaimer saying the docs' config is not what ran"; it is now "point at the row where the
+documented config was measured", which is a better answer and a shorter one.
+
+The report also supplies the sentence worth putting in `models.md`: the documented default is
+**not** simply better — it is *worse* than the course config below 50,000 pairs and decisively
+better above 100,000. That is the pedagogical content, and it is a more interesting thing to
+teach than either config alone.
 
 ### #124 Simplify Lecture 6's chrF and TER wrappers
 

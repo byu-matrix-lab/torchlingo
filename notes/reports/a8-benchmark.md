@@ -30,6 +30,14 @@ The A8 baseline: German bitext, 100,000 train / 2,000 val / 2,000 test, SimpleTr
 
 **So the instruction should be a step budget rather than an epoch count**: train until validation stops improving, which is about 100,000 optimizer steps. That phrasing survives a student changing their corpus size, where a fixed epoch count does not.
 
+## How the comparison is controlled
+
+- **Every point gets the same 100,000 optimizer steps.** That is the control the sweep turns on. Without it a larger corpus would receive more compute as well as more data, and any gain would be unattributable between the two. At batch 64 that is 6.4M examples processed whatever the corpus holds, so corpus size does not change a run's duration and wall clock depends on model scale alone.
+- **The epoch ceiling is set far above what the budget allows**, at 400, so the budget is the only thing that binds. An earlier design used `--epochs 200`, under which the 25,000-pair point would have stopped at 78,000 steps while every other point reached 100,000 -- undertraining exactly the low end of the curve, which is where the low-resource question lives, and reading as 'small corpora do worse'.
+- **The corpora are nested: each size is a prefix of the next.** So adjacent points differ only in how much data the model saw, never in which examples it got.
+- **One tokenizer, fit on the largest split, shared by all of them.** Refitting SentencePiece per corpus size would change the vocabulary between points and confound tokenization with data volume.
+- **Validation and test sets are byte-identical across every point**, and share no source sentence with any training split.
+
 ## The learning curve
 
 | pairs | d_model 64 | d_model 256 | d_model 512 |

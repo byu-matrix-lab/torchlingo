@@ -335,6 +335,15 @@ def render_a8_benchmark(doc: dict) -> str:
             ),
         ]
 
+    # Before the numbers, not after. The design is what makes the curve worth reading at all,
+    # and the scripts that implement it are in the private repository -- so without this
+    # section the report asks to be trusted on exactly the point that decides whether a gain
+    # belongs to the data or to the compute that came with it.
+    if doc.get("design"):
+        out += ["", "## How the comparison is controlled", ""]
+        for item in doc["design"]:
+            out.append(f"- {item.strip()}")
+
     out += ["", "## The learning curve", ""]
     header = "| pairs | " + " | ".join(f"d_model {d}" for d in scales) + " |"
     out += [header, "|" + "---|" * (len(scales) + 1)]
