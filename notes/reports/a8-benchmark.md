@@ -36,28 +36,49 @@ The A8 baseline: German bitext, 100,000 train / 2,000 val / 2,000 test, SimpleTr
 |---|---|---|---|
 | 25,000 | 4.16 | 9.55 | 9.24 |
 | 50,000 | 4.70 | 13.68 | 13.62 |
-| 100,000 | 4.52\* | 15.95 | — |
-| 200,000 | 4.92\* | 16.14\* | — |
-| 400,000 | 5.32\* | 16.44\* | — |
-| 800,000 | 4.97\* | 17.15\* | — |
-| 1,200,000 | 5.16\* | 16.93\* | — |
+| 100,000 | 4.52\* | 15.95 | 17.79 |
+| 200,000 | 4.92\* | 16.14\* | 21.09 |
+| 400,000 | 5.32\* | 16.44\* | 22.78\* |
+| 800,000 | 4.97\* | 17.15\* | 24.00\* |
+| 1,200,000 | 5.16\* | 16.93\* | 24.08\* |
 
 An asterisk marks a budget-capped point: a floor, not a ceiling.
 
 - **d_model 64** (1,777,728 parameters): 48x the data, from 25,000 to 1,200,000, moves BLEU 4.16 to 5.16 — **+1.00**.
 - **d_model 256** (11,682,624 parameters): 48x the data, from 25,000 to 1,200,000, moves BLEU 9.55 to 16.93 — **+7.38**.
-- **d_model 512** (56,436,544 parameters): 2x the data, from 25,000 to 50,000, moves BLEU 9.24 to 13.62 — **+4.38**.
+- **d_model 512** (56,436,544 parameters): 48x the data, from 25,000 to 1,200,000, moves BLEU 9.24 to 24.08 — **+14.84**.
+
+### What capacity buys: d_model 512 minus d_model 256
+
+| pairs | d_model 256 | d_model 512 | difference |
+|---|---|---|---|
+| 25,000 | 9.55 | 9.24 | **-0.31** |
+| 50,000 | 13.68 | 13.62 | **-0.06** |
+| 100,000 | 15.95 | 17.79 | **+1.84** |
+| 200,000 | 16.14 | 21.09 | **+4.95** |
+| 400,000 | 16.44 | 22.78 | **+6.34** |
+| 800,000 | 17.15 | 24.00 | **+6.85** |
+| 1,200,000 | 16.93 | 24.08 | **+7.15** |
 
 ## What it means
 
-- **The steep part of the curve is below 100,000 pairs.** The largest single gain in the sweep is 25,000 to 50,000; the next is 50,000 to 100,000. After that the curve flattens hard. So Assignment 8's 100K floor sits roughly where the returns stop being dramatic, which is a better-chosen number than anyone had evidence for when it was written.
+- **There is a crossover, and it is the result.** Below about 50,000 pairs the 56M model is *no better* than the 11.7M one -- 9.24 against 9.55 at 25,000, 13.62 against 13.68 at 50,000, both converged, so neither was short of compute. From 100,000 pairs upward the bigger model pulls away and never stops: **+1.84, +4.95, +6.34, +6.85, +7.15 BLEU** as the corpus grows. Capacity is worthless at the small end and decisive at the large one.
+- **Data and capacity are complements, not alternatives.** The same 48x increase in data is worth **+1.00 BLEU at d_model 64, +7.38 at 256, and +14.84 at 512**. A corpus is worth roughly fifteen times more to the large model than to the small one. So 'does more data help?' has no answer that is not also an answer about model size, which is precisely why the sweep varies both.
+- **Where the curve flattens depends on the model, so the earlier claim that it flattens after 100,000 pairs was only true of the small ones.** At d_model 256 it does: +0.19, +0.30, +0.71, -0.22 across the four steps past 100,000. At 512 it does not: +3.30, +1.69, +1.22, +0.08. The 11.7M model stops using data at 100,000 pairs; the 56M model keeps using it to 800,000.
+- **The steep part is still below 100,000 pairs, at every scale.** The two largest gains for both usable models are 25,000 to 50,000 and 50,000 to 100,000. Assignment 8's 100K floor sits where the returns stop being dramatic for the model Assignment 8 uses, which is a better-chosen number than anyone had evidence for when it was written.
 - **That prices the low-resource case, which was the open question.** A student who can only reach 50,000 pairs loses a measurable amount rather than an unknown one, and a student at 25,000 loses considerably more. The floor's wording -- use all of it and say so -- is now backed by a number.
-- **Past 100,000 pairs, more data buys very little at this model size.** Twelve times the data moves BLEU by about one point, and the 1.2M point scores *below* the 800K one. Those large points are budget-capped, so they are floors rather than ceilings -- but nothing here suggests a student should chase more data before they have spent their compute.
-- **The smallest model cannot use data at all.** At d_model 64 the entire 48x range moves BLEU about a point. That is the capacity floor, and it is what lets the curve distinguish 'more data does not help' from 'this model is too small to use more data' -- which have opposite fixes.
-- **More capacity does not help at small data either.** At 25,000 and at 50,000 pairs the 56M-parameter model scores at or below the 11.7M one, and both converged, so neither was short of compute. Assignment 8's model is not obviously too small for the data it is given.
+- **The smallest model cannot use data at all.** At d_model 64 the entire 48x range moves BLEU one point, and two of its six steps are negative. That is the capacity floor, and it is what lets the curve distinguish 'more data does not help' from 'this model is too small to use more data' -- which have opposite fixes.
+- **Assignment 8's model is leaving something on the table at its own floor, and this is the one finding with a decision attached.** At 100,000 pairs the 56M configuration scores 17.79 against 15.95, and it *converged in 30 epochs where the 11.7M model needed 65*. Better and simpler to train. The reason not to change the handout today is memory, not quality: nobody has measured what a Colab session actually provides, which is the open task #118. Until that is measured this is an observation, not a recommendation.
 
 ## Caveats
 
 - **Two devices, and the wall clocks are not comparable.** The A8 baseline rows ran on Apple Metal on a 64 GiB machine; every curve row ran on an A100-80GB. BLEU and epoch counts transfer between them, wall clock does not, and neither device is what a student gets -- Colab assigns T4, L4 or A100-40GB. That last gap is Task #118.
 - **One seed.** Nothing here estimates run-to-run variance, so a BLEU difference smaller than roughly half a point between two of these rows should not be read as real.
 - **Greedy decoding.** No beam search, so the BLEU is a floor rather than the best this model can do.
+- **The one-seed caveat bites hardest on the crossover.** The 25,000 and 50,000 gaps between the 56M and 11.7M models are 0.31 and 0.06 BLEU, both inside the half-point band above. So 'capacity does not help below 50,000 pairs' is properly read as 'capacity does not measurably help', which is a weaker claim and the honest one. The large-corpus gaps of 6 to 7 points are far outside that band and are not in question.
+
+## Corrections to earlier versions of this report
+
+- **Corrected 2026-09-27: 'past 100,000 pairs more data buys very little' was written from an incomplete sweep and is true only of the smaller models.** The first version of this report had three of the seven 56M-parameter runs. At that scale 100,000 to 1,200,000 pairs is worth **+6.29 BLEU**, not the roughly one point seen at 11.7M. The original sentence did say 'at this model size', but it was the report's headline about data and it read as a general lesson.
+- **Corrected 2026-09-27: 'Assignment 8's model is not obviously too small for the data it is given' is wrong at A8's own floor.** That was inferred from the 25,000 and 50,000 points, where capacity does not help. At 100,000 pairs -- which is what A8 actually requires -- the 56M model scores 17.79 against 15.95 and converges in 30 epochs instead of 65. This matters because the earlier wording was passed to the Cowork session, and anyone who acted on it should see this line.
+- **Corrected 2026-09-26: the caveat said 'measured on Apple Metal' when 16 of 18 runs were CUDA on an A100.** Now stated per device group above.
