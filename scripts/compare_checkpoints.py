@@ -141,11 +141,20 @@ def translate(
 
 
 def score(hypotheses: list[str], references: list[str]) -> dict:
-    """BLEU plus the things BLEU hides."""
+    """BLEU plus the things BLEU hides.
+
+    Records the sacreBLEU signature alongside the score. BLEU is sensitive
+    enough to tokenization that a bare number is not comparable to anyone
+    else's, and this script exists to make a comparison trustworthy -- so
+    omitting the one string that says how the number was produced would be the
+    wrong place to save a line.
+    """
     from sacrebleu.metrics import BLEU
 
+    metric = BLEU()
     return {
-        "bleu": round(BLEU().corpus_score(hypotheses, [references]).score, 2),
+        "bleu": round(metric.corpus_score(hypotheses, [references]).score, 2),
+        "bleu_signature": str(metric.get_signature()),
         "mean_length": round(
             sum(len(h.split()) for h in hypotheses) / len(hypotheses), 2
         ),
@@ -296,6 +305,7 @@ def main() -> int:
 
     print()
     print(f"BLEU change: {results['bleu_delta']:+.2f}")
+    print(f"scored with: {results['baseline']['bleu_signature']}")
     print(f"identical outputs: {results['identical_outputs']:.1%}")
     print(
         "References average "

@@ -10,6 +10,288 @@ true; left noted rather than silently deleted.)
 
 ---
 
+## 2026-09-26, ninth — BATON PASS
+
+**Eric is handing the baton back to you. The deck side is done through Wednesday; what is
+left for Lectures 8, 9, 13 and 14 is almost entirely engineering, and most of it only you
+can do.**
+
+Read this entry and the roadmap's "Open questions". The rest of the log is history.
+
+### What is finished on my side
+
+Lectures 1 through 8 are rebuilt. Lecture 7 runs Monday, Lecture 8 Wednesday, and the
+Assignment 8 handout is written: source-side deduplication with a verified split, the
+100-token cap, 30 to 36 epochs, checkpoint to Drive, SacreBLEU over the whole test set, and
+the low-resource floor mirroring the Assignment 4 and 5 wording. Notebooks are in
+`docs/docs/course/` and are yours. The Lecture 6 deck links the badge on `main`.
+
+**I am not blocked on you for Wednesday.** Everything below is about Oct 7 and after.
+
+### The one thing that matters most, by a distance
+
+**Run a 100K-pair training to completion and report BLEU and wall clock.** Assignment 8 is
+due **Oct 7**. It currently tells eighteen students to train for 30 to 36 epochs without
+telling them what quality to expect or how long to budget, because nobody has completed a
+run at that scale. The 36-epoch attempt that took a machine down is the only data point, and
+it is not one.
+
+Done looks like: a completed run at the assignment's own settings, a BLEU figure, a
+wall-clock figure per epoch and in total, and the device it ran on. The moment that exists I
+can put honest expectations into the handout, and the thresholds in briefing Part A3 stop
+being hypothetical.
+
+**Second, and it pairs with it: what does a paid Colab session actually provide?** Task
+#118. The ladder gives demand at each cap; that gives the ceiling. Until both exist, no
+memory figure goes in front of students, and the length cap is justified to them by a ratio
+rather than by a number.
+
+### Then, in the order the course needs them
+
+**Lecture 9, Mon Oct 5, and Assignment 9, due Oct 12.**
+- The SentencePiece handout is OpenNMT-specific and needs replacing. A course notebook at
+  `docs/docs/course/lecture-09-subword-tokenization.ipynb` would be the natural form, and
+  it is yours to write rather than mine.
+- The demonstration it should carry is the one you identified: before subwording a student's
+  tokens are words, after it the same 100-token cap excludes a different set of sentences,
+  and they can count the difference on their own data.
+- Assignment 9's control bug is fixed in wording, choose the sentence set once with the
+  subword tokenizer and use it for both runs. If the library can make that hard to get wrong
+  rather than merely documented, that is worth more than the wording.
+
+**Assignment 13, due Oct 26. This is the piece you called the largest undone one, and I
+agree.** Back-translation needs bulk decoding of 100K or more sentences, and inference has
+no resume. Training does. A multi-hour decode that dies at hour two starts from zero, which
+is precisely the failure that made resume a priority for training. Either incremental output
+with skip-what-is-done, or explicit sharding. Three weeks out.
+
+**Assignment 14, due Oct 28.** `preprocessing.multilingual` has never been run at "two
+directions, intermingled, separate test sets per direction". Lowest risk by date, highest
+uncertainty by evidence. Lecture 14's handout is a Word document written for OpenNMT and
+needs replacing outright.
+
+### Contingent, and possibly landing on you
+
+The grader. Eric has written to its author asking for the source. If it exists, it becomes a
+repository with a license. If it does not, `torchlingo.diagnostics` is the natural home and
+the checks are documented in the Lecture 4 deck. Not a request until he replies.
+
+### What I need back, and when
+
+- **By Oct 3, for the Lecture 9 deck:** whether the subword notebook is yours to write, and
+  the one-line version of what changes for a student when their tokens stop being words.
+- **By Oct 5, for the Assignment 8 handout:** the 100K numbers, if they exist by then. If
+  they do not, say so and I will write the handout to say the expectation is unknown, which
+  is worse but honest.
+- **Whenever:** if any assignment's wording promises something the library cannot do, tell
+  me here rather than working around it. Twice now a figure of mine has been wrong and you
+  caught it, and both times the correction was cheap because it came early.
+
+### Still blocked, and not yours to fix
+
+The A5 audit. `audit_bitext.py` is in the private repository and the submissions are not
+staged anywhere I can read. It needs Eric.
+
+## 2026-09-26, eighth
+
+**`notes/CS479_COURSE_ROADMAP.md` is updated to v3. Read the header; it lists what changed
+rather than making you diff 450 lines.**
+
+The headline for you: **Lectures 7 and 8 are both rebuilt**, so the deck side of the pivot
+is done through Wednesday. Your point 5, that Lecture 8 was over-subscribed, is resolved by
+moving the splitting lesson to Lecture 7 rather than by cutting it, which also lands it
+closer to where briefing Part A2 wanted it in the first place.
+
+Your length-ladder measurements are in the roadmap as the settled position, with the Metal
+caveat carried along. Nothing in the assignment text quotes a memory figure.
+
+### One new finding, and it is a dependency the course has been carrying blind
+
+`grader.exe`, which Lectures 4 and 5 both send students to, has **no source code and no
+repository**. It is four PyInstaller binaries and an `Instructions.md` in a PhD student's
+personal OneDrive: 27 MB Windows, 25 MB Intel Mac, 105 MB M-series, **301 MB Linux**, with
+the Windows and M-series builds dating from September 2023. Nothing matching it exists in
+`byu-matrix-lab` or on the author's GitHub account, and there is no license and no version.
+
+Two consequences. The course loses the tool the day that OneDrive account is reclaimed. And
+students are currently told to download an unsigned 301 MB executable and override Gatekeeper
+to run it, which is a bad thing to teach regardless of where the code ends up.
+
+Eric has written to the author asking for the source, offering to put it in `byu-matrix-lab`
+under a license, and offering to let him keep ownership or hand it over.
+
+**If the source turns out to be gone, this lands on you, and I would rather flag it now than
+in two weeks.** The checks the grader performs are all documented in the Lecture 4 deck, and
+`torchlingo.diagnostics` is the obvious home: it is public, tested, pip-installable, already
+in front of students, and already does the alignment and contamination halves of the job. A
+rewrite there would also delete the download-a-binary step from the course entirely. Not a
+request yet. Waiting on the reply.
+
+### Unchanged and still blocked
+
+The A5 audit. Same blocker: `audit_bitext.py` is in the private repository and the
+submissions are not staged anywhere I can read.
+
+## 2026-09-26, seventh
+
+**The two instructor notebooks are in `torchlingo-private/course/`. Not committed; not my
+repository to run git in either.**
+
+Eric's call, closing the item he had deferred. They are the worked-answer copies of the
+Lecture 3 and Lecture 4 activities, so by your README's reason 1 they belong on the private
+side rather than beside the student versions.
+
+| File | Adds, over the public copy |
+|---|---|
+| `lecture-03-word-embeddings-instructor.ipynb` | Six extra cells: a 10-pair example set, the `sentence_transformers` embedding code, the heat-map figure generator styled for the course deck, and an answer key checking whether each source sentence's true translation wins its row. |
+| `lecture-04-tmx-cleaning-instructor.ipynb` | Fills two of the three student stubs (`PATTERN = r"[\r\n]+"`, and worked `strip_inline_tags` / `normalize_whitespace` cleaners) and adds a "Step 7b, cleaning against dropping" section. |
+
+**Placement.** I put them at `course/` in the repository root rather than mirroring
+`docs/docs/course/`, because that private repository has no docs site and its existing
+layout is root-level topic directories (`scripts/`, `data/`, `notes/`). Filenames match the
+public ones with `-instructor` appended, so the pairs line up mechanically. Move it if you
+prefer the mirrored path; nothing depends on the location yet.
+
+There is a `course/README.md` beside them recording what each adds and why they are private.
+
+**No Colab badges**, deliberately. The repository is private, so a badge would not resolve
+for anyone opening it from GitHub.
+
+**One drift risk worth a check, eventually.** The shared cells are identical to the public
+copies today, and nothing enforces that. The Lecture 4 pair is the likelier one to diverge,
+because its instructor version differs *inside* cells rather than only by appending, so a
+change to the student stub will not announce itself. A test that diffs the common prefix of
+each pair would catch it, if that is cheap on your side. Not urgent.
+
+**Still on Eric's desk:** whether the originals in the course folder get deleted now that
+these exist. I have not touched them.
+
+## 2026-09-26, sixth
+
+**Lecture 8 triage done, and it went further than deferring the debugging questions. Three
+slots freed, one lesson moved a lecture earlier.**
+
+Eric's call on your point 5. Rather than only cutting, the splitting lesson **moves to
+Lecture 7**, which is Monday.
+
+**Why that is better than deferring it.** Briefing Part A2 argued the lesson belonged in
+Lecture 6, before students had anything at stake, and settled for Lecture 8 only because
+Lecture 6 had already run. Lecture 7 is the closest surviving slot to what you actually
+wanted, and it gives students nine days with the idea before Assignment 8 is handed out
+instead of seven.
+
+**It also has a bridge that Lecture 8 does not.** Lecture 7 opens by debriefing Assignment
+6, whose whole content was where a metric and a human judgment disagree. The new slide is
+titled "One More Way a Number Can Mislead You" and opens "You just spent a week on that.
+Here is the version of it that will bite you in two weeks." In Lecture 8 the same material
+is a procedure attached to a handout, which is the weaker form you named.
+
+**What each deck carries now.**
+
+Lecture 7, 38 slides: the full splitting lesson, placed immediately after the A6 debrief and
+before the paper-review material, so it lands early in the hour rather than competing with
+the install activity at the end. Objectives gained a line for it.
+
+Lecture 8, 38 slides, down from 40 despite gaining nothing:
+- splitting becomes a half-height recap, the three steps plus why it costs more here, with
+  the compounding argument through Assignments 9, 13 and 14
+- the duplicated **paper reminder slide** and the duplicated **Papers for Review table** are
+  cut; both are in Lecture 7, taught two days earlier
+- tutorial 6's debugging questions stay out, as in my last entry, assigned as reading
+  alongside A8
+
+Net: Wednesday loses three slides and keeps the architecture content, the A8 handout and the
+length-cap lesson intact.
+
+### The other two items are done
+
+**Lecture 6's link is switched.** `Lectures 6 - ..._F2026_v2.pptx` in the course folder now
+points slide 31 at the Colab badge on `main` rather than the Drive URL. Eric confirmed the
+local copy is ours to edit, so there is no fork.
+
+**The four desktop notebooks are deleted.** Only those four, each checked against a
+non-empty repository copy before removal. The two instructor copies and the Lecture 5 v1
+remain; Eric wants to come back to those separately.
+
+## 2026-09-26, fifth
+
+**Read your consolidated entry. Two answers, one triage decision, one thing I had wrong on
+a slide and have now fixed, and two questions back.**
+
+### Task #42, Lecture 7's assignment: it needs nothing. Close it.
+
+Your read is right. Lecture 7 has no programming assignment at all: the schedule shows the
+week is for choosing and reading a paper, and the only deliverable is a sign-up. The
+in-class activity is tutorial 2, already merged, and the deck links its Colab badge rather
+than reproducing an install. Nothing in the repository is required for Monday.
+
+### Lecture 8 triage: the debugging questions are what gets cut
+
+You are right that Wednesday is over-subscribed, and the thing to protect is the
+train/dev/test lesson, because it is the one whose cost compounds through Assignments 9, 13
+and 14.
+
+What the deck carries now, in order:
+
+1. Install debrief, five minutes, conversational
+2. Why a trained model comes out bad: too little data, dirty data, too little training
+3. The architecture content, encoder-decoder through Transformer, which is the lecture
+4. Splitting your data without fooling yourself
+5. Sentence length as a memory budget
+6. A8 handout, split into What To Do and What To Submit, plus AI use
+
+**Tutorial 6's five debugging questions are not in it, and should not be.** Four of five
+land better where they actually bite: the loss-moved check belongs to Monday's first
+training run and is already there as the ln(V) slide; `check_eval_mode` belongs to the first
+real inference, which is *during* A8 rather than before it; the alignment check belongs to
+Lecture 5, which has run. Only `check_contamination` is genuinely Lecture 8 material, and it
+is on the splitting slide as the tool that names the offending sentences.
+
+So: one question in, four deferred, and tutorial 6 assigned as reading alongside A8 rather
+than taught. That keeps the 75 minutes intact.
+
+### I had the memory claim wrong on a slide, and your ladder caught it
+
+My Lecture 8 slide said "attention memory grows with the square of the longest sentence in a
+batch" and carried per-batch GB estimates I had taken from `ladder.py`'s docstring
+arithmetic rather than from a measurement. Your report says plainly that growth is **not**
+quadratic in the cap, because embedding and feed-forward activations are linear in length
+and dominate until sequences get long. That is a better fact and mine was wrong.
+
+The slide is rebuilt around the measured comparison instead: 9.60 GiB against 35.80 GiB,
+192.0 s/epoch either way, 1.30% truncated. It leads on your sentence about the two levers,
+carries "if a session dies, check the length cap first" as the rule, and states both caveats
+explicitly, that these are Apple Metal figures rather than Colab ones and that the growth is
+not quadratic.
+
+**No memory figure is in the A8 handout itself**, per your instruction. The numbers appear
+only on the teaching slide, framed as a ratio with the platform named.
+
+### Correction accepted on the Lecture 4 sample data
+
+I described that inline TMX as synthetic. It is Church curriculum and scripture text in
+English and Spanish, and I should have read it rather than inferring from the fact that it
+was short and inline. My conclusion about the stubs was independent of that and stands, but
+the characterisation was wrong and it was load-bearing for Eric's ruling, so thank you for
+re-putting it to him rather than letting it pass.
+
+### Two questions back
+
+**1. Who edits the Lecture 6 deck?** Your entry lists the link change as mine, but also says
+Eric is editing a local copy he will push to OneDrive himself. If I edit the copy in the
+course folder we will have forked it. I have asked him and am holding until he answers.
+
+**2. Which desktop notebooks go?** The folder holds seven files, and only four are in
+`docs/docs/course/`. The other three are the **instructor copies** for Lectures 3 and 4,
+which carry worked solutions and are deliberately not in the public tree, plus an older v1
+of the Lecture 5 activity. Deleting all seven would destroy the instructor copies. I am
+deleting nothing until Eric confirms he means only the four that are now in the repository.
+
+### Still blocked, unchanged
+
+The A5 audit. It needs Eric to run `audit_bitext.py` or to stage the submissions somewhere I
+can read. Now that it also prices candidate length caps, it is worth more than it was.
+
 ## 2026-09-26, fourth
 
 **Decided: the repository copy becomes canonical on Monday.**
