@@ -11,7 +11,9 @@ that only ever sees good input is not known to validate anything.
 """
 
 import json
+import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -256,6 +258,175 @@ class TestMetadataSurvivesJupyter(unittest.TestCase):
                 json.loads(json.dumps(dict(nb.metadata["torchlingo"]))),
                 f"{path.name} lost its block on a round trip",
             )
+
+
+class TestAssignmentsAreParsed(unittest.TestCase):
+    """Assignments come from the schedule's own column, like the lecture titles do."""
+
+    def setUp(self):
+        self.due = nm.assignments()
+
+    def test_assignments_were_found(self):
+        self.assertGreater(len(self.due), 5)
+
+    def test_every_id_looks_like_an_assignment(self):
+        for name in self.due:
+            self.assertRegex(name, r"^A\d+$")
+
+    def test_a_known_assignment_maps_to_its_due_lecture(self):
+        """A8 is the NMT model assignment, due the day Lecture 10 runs."""
+        self.assertEqual(self.due.get("A8"), 10)
+
+    def test_two_assignments_in_one_cell_are_both_found(self):
+        """Lecture 11's cell holds A9 and A10, separated by a middot."""
+        self.assertEqual(self.due.get("A9"), 11)
+        self.assertEqual(self.due.get("A10"), 11)
+
+    def test_leads_to_is_validated_against_them(self):
+        meta = {**GOOD, "leads_to": ["A8"]}
+        self.assertEqual(nm.problems(nm.TUTORIALS / "99-x.ipynb", meta), [])
+        bad = nm.problems(nm.TUTORIALS / "99-x.ipynb", {**GOOD, "leads_to": ["A99"]})
+        self.assertTrue(any("not an assignment" in c for c in bad), bad)
+
+    def test_leads_to_must_be_a_list_of_strings(self):
+        bad = nm.problems(nm.TUTORIALS / "99-x.ipynb", {**GOOD, "leads_to": "A8"})
+        self.assertTrue(any("leads_to must be a list" in c for c in bad), bad)
+
+
+class TestPurposeLine(unittest.TestCase):
+    """What a student reads at the top of the notebook, so it is asserted like output."""
+
+    def test_names_every_lecture_it_serves(self):
+        """Naming only the first was a real bug: tutorial 1 serves Lectures 4 and 9, and
+        printing Lecture 4's title alone read as a description of the notebook."""
+        line = nm.purpose_line(nm.read_meta(nm.TUTORIALS / "01-data-and-vocab.ipynb"))
+        self.assertIn("Lecture 4", line)
+        self.assertIn("Lecture 9", line)
+
+    def test_collection_and_role_are_both_stated(self):
+        line = nm.purpose_line(
+            nm.read_meta(nm.COURSE / "lecture-05-sentence-alignment.ipynb")
+        )
+        self.assertIn("CS 479 course notebook", line)
+        self.assertIn("in-class activity", line)
+
+    def test_the_two_collections_are_distinguishable(self):
+        """Eric's distinction: out-of-class tutorials versus in-class exercises. A reader who
+        cannot tell which they have opened is the thing this line exists to fix."""
+        tutorial = nm.purpose_line(
+            nm.read_meta(nm.TUTORIALS / "05-real-translations.ipynb")
+        )
+        course = nm.purpose_line(
+            nm.read_meta(nm.COURSE / "lecture-06-mt-evaluation.ipynb")
+        )
+        self.assertIn("TorchLingo tutorial", tutorial)
+        self.assertNotIn("TorchLingo tutorial", course)
+
+    def test_assignment_head_start_is_stated_with_its_deadline(self):
+        meta = {
+            **nm.read_meta(nm.TUTORIALS / "02-train-tiny-model.ipynb"),
+            "leads_to": ["A8"],
+        }
+        line = nm.purpose_line(meta)
+        self.assertIn("A8", line)
+        self.assertIn("Lecture 10", line)
+
+    def test_no_head_start_clause_when_leads_to_is_absent(self):
+        line = nm.purpose_line(
+            nm.read_meta(nm.TUTORIALS / "06-diagnosing-failures.ipynb")
+        )
+        self.assertNotIn("head start", line)
+
+    def test_every_role_renders(self):
+        """A role with no phrase would raise at generation time, on whichever notebook
+        happened to use it first."""
+        for role in nm.ROLES:
+            meta = {**GOOD, "role": role}
+            self.assertTrue(nm.purpose_line(meta).strip())
+
+
+class TestWritersAreIdempotent(unittest.TestCase):
+    """Both writers splice text, so running twice must not double anything."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+
+    def copy(self, source: Path) -> Path:
+        target = self.tmp / source.name
+        shutil.copy(source, target)
+        return target
+
+    def test_write_meta_replaces_rather_than_appends(self):
+        path = self.copy(nm.TUTORIALS / "06-diagnosing-failures.ipynb")
+        meta = nm.read_meta(path)
+        for _ in range(3):
+            nm.write_meta(path, {**meta, "role": "reference"})
+            text = path.read_text(encoding="utf-8")
+            self.assertEqual(text.count('"torchlingo"'), 1)
+        self.assertEqual(nm.read_meta(path)["role"], "reference")
+
+    def test_write_meta_refuses_a_file_with_no_metadata_object(self):
+        path = self.tmp / "broken.ipynb"
+        path.write_text('{"cells": []}', encoding="utf-8")
+        with self.assertRaises(ValueError):
+            nm.write_meta(path, GOOD)
+
+    def test_purpose_cell_is_written_once_however_often_it_runs(self):
+        """The bug this guards appeared only on the THIRD run: the replacement stripped the
+        cell's indentation, which stayed valid JSON but broke the next run's lookup."""
+        for source in (
+            nm.TUTORIALS / "06-diagnosing-failures.ipynb",
+            nm.COURSE / "lecture-03-word-embeddings.ipynb",
+        ):
+            path = self.copy(source)
+            meta = nm.read_meta(path)
+            before = len(json.loads(path.read_text(encoding="utf-8"))["cells"])
+            for run in range(1, 5):
+                path.write_text(nm.notebook_with_purpose(path, meta), encoding="utf-8")
+                cells = json.loads(path.read_text(encoding="utf-8"))["cells"]
+                self.assertEqual(len(cells), before + 1, f"{source.name}, run {run}")
+                self.assertEqual(
+                    path.read_text(encoding="utf-8").count(nm.PURPOSE_MARKER), 1
+                )
+
+    def test_the_marker_is_ascii(self):
+        """It is looked up in the raw JSON, which is written with ensure_ascii. A non-ASCII
+        character would be stored escaped, the lookup would miss, and every run would prepend
+        another banner."""
+        self.assertTrue(nm.PURPOSE_MARKER.isascii())
+
+    def test_an_updated_block_rewrites_the_cell_in_place(self):
+        path = self.copy(nm.TUTORIALS / "02-train-tiny-model.ipynb")
+        meta = nm.read_meta(path)
+        path.write_text(nm.notebook_with_purpose(path, meta), encoding="utf-8")
+        count = len(json.loads(path.read_text(encoding="utf-8"))["cells"])
+        path.write_text(
+            nm.notebook_with_purpose(path, {**meta, "leads_to": ["A8"]}),
+            encoding="utf-8",
+        )
+        cells = json.loads(path.read_text(encoding="utf-8"))["cells"]
+        self.assertEqual(len(cells), count)
+        self.assertIn("A8", "".join(cells[0]["source"]))
+
+    def test_cell_id_matches_the_notebook_format_version(self):
+        """4.5 requires a cell id and 4.0 rejects one. Both versions are live here: the
+        course notebooks arrive from Colab at minor 0, the tutorials are at minor 5."""
+        for source, wants_id in (
+            (nm.TUTORIALS / "06-diagnosing-failures.ipynb", True),
+            (nm.COURSE / "lecture-03-word-embeddings.ipynb", False),
+        ):
+            path = self.copy(source)
+            cell = json.loads(
+                nm.purpose_cell(path, nm.read_meta(path)).strip().rstrip(",")
+            )
+            self.assertEqual("id" in cell, wants_id, source.name)
+
+    def test_notebook_with_purpose_refuses_a_file_with_no_cells_array(self):
+        path = self.tmp / "nocells.ipynb"
+        path.write_text('{"metadata": {}}', encoding="utf-8")
+        with self.assertRaises(ValueError):
+            nm.notebook_with_purpose(path, GOOD)
 
 
 if __name__ == "__main__":
