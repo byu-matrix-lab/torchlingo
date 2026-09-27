@@ -89,8 +89,20 @@ ROLE_PHRASE = {
 SCHEDULE_ROW = re.compile(r"^\| (\d+(?:, ?\d+)*) \| [^|]+ \| ([^|]+) \|")
 SCHEDULE_HEADING = "## Semester at a glance"
 
-# What a readable lecture column looks like: one number, or several sharing a session.
-LECTURE_CELL = re.compile(r"^\d+(?:, ?\d+)*$")
+# What a readable lecture column looks like: one lecture, or several sharing a session.
+#
+# A lecture is digits with an optional single lowercase letter -- `8`, `8a`, `8b`. The letter
+# form was added on 2026-09-27, when Eric and the Cowork session split Lecture 8 into 8a
+# (Wed Sep 30) and 8b (Mon Oct 5) and wrote the schedule in the form students will see.
+#
+# This widening is deliberate and it is the whole of Task #138. The alternative was
+# renumbering 9 onward, which would have left every notebook's `serves_lectures` valid while
+# silently pointing at a different lecture -- the one failure mode nothing here can detect.
+# A suffix cannot collide with an existing number, so it costs one decision instead of ten.
+#
+# The consequence is that a lecture identifier is a STRING, not an int. `8a` has no integer
+# form, so there is no version of this that keeps numeric keys.
+LECTURE_CELL = re.compile(r"^\d+[a-z]?(?:, ?\d+[a-z]?)*$")
 
 # Cells that are legitimately not lectures, and are skipped rather than reported. An em dash
 # marks a row that is not a lecture at all -- no class, a project review, the final exam --
@@ -103,7 +115,29 @@ SKIPPABLE_CELLS = {"—", "–", "-", "#"}
 ASSIGNMENT = re.compile(r"\*\*(A\d+)\*\*")
 
 
-def lectures() -> tuple[dict[int, str], dict[int, int]]:
+def lecture_id(value: int | str) -> str:
+    """Normalize anything that names a lecture to the identifier the schedule uses.
+
+    Three spellings have to land on one key. A notebook written before Lecture 8 was split
+    holds the integer ``9``; the schedule writes ``9``; and a course filename pads it to
+    ``09``. Suffixed lectures add ``8a``, which is why the key is a string at all.
+
+    Leading zeros are stripped rather than preserved, because ``lecture-09-...`` and schedule
+    row ``9`` are the same lecture and a mismatch there would be a confusing way to learn it.
+
+    Args:
+        value (int | str): A lecture number, identifier, or filename fragment.
+
+    Returns:
+        str: The canonical identifier -- ``"9"``, ``"8a"``.
+    """
+    text = str(value).strip().lower()
+    digits = text.rstrip("abcdefghijklmnopqrstuvwxyz")
+    suffix = text[len(digits) :]
+    return f"{digits.lstrip('0') or '0'}{suffix}"
+
+
+def lectures() -> tuple[dict[str, str], dict[str, str]]:
     """Read the lecture numbers and titles out of the roadmap's own schedule table.
 
     Parsed rather than restated. The task that asked for this named the risk precisely:
@@ -113,15 +147,21 @@ def lectures() -> tuple[dict[int, str], dict[int, int]]:
     below is derived from it, which makes disagreement impossible rather than detectable.
 
     Returns:
-        tuple: Titles by lecture number, and an alias map folding a shared row's later
-        numbers onto its first -- Lectures 22 and 23 are one session in one row.
+        tuple: Titles by lecture identifier, in schedule order, and an alias map folding a
+        shared row's later identifiers onto its first -- Lectures 22 and 23 are one session
+        in one row.
+
+        Identifiers are **strings**, because a split lecture is `8a` and `8b` and neither has
+        an integer form. Schedule order is the dictionary's insertion order, which is why
+        nothing here sorts: `8b` after `8a` after `8` is only obvious to a reader, and any
+        numeric sort would have to be taught the same thing.
 
     Raises:
         ValueError: If the schedule cannot be found, or if a row in it has a lecture column
             this cannot read. Both are loud on purpose -- see below.
     """
-    titles: dict[int, str] = {}
-    aliases: dict[int, int] = {}
+    titles: dict[str, str] = {}
+    aliases: dict[str, str] = {}
     unreadable: list[str] = []
     # Only within the schedule's own section. Without this the generated map's rows match
     # the same shape and overwrite every title with a notebook filename -- which is exactly
@@ -158,10 +198,10 @@ def lectures() -> tuple[dict[int, str], dict[int, int]]:
             )
             continue
 
-        numbers = [int(n) for n in cell.replace(" ", "").split(",")]
-        titles[numbers[0]] = columns[3].strip()
-        for extra in numbers[1:]:
-            aliases[extra] = numbers[0]
+        ids = cell.replace(" ", "").split(",")
+        titles[ids[0]] = columns[3].strip()
+        for extra in ids[1:]:
+            aliases[extra] = ids[0]
 
     if unreadable:
         raise ValueError(
@@ -179,7 +219,7 @@ def lectures() -> tuple[dict[int, str], dict[int, int]]:
     return titles, aliases
 
 
-def assignments() -> dict[str, int | None]:
+def assignments() -> dict[str, str | None]:
     """Read the assignment identifiers out of the schedule, with the lecture each is due on.
 
     Parsed for the same reason the lectures are: the schedule already names every assignment,
@@ -195,7 +235,7 @@ def assignments() -> dict[str, int | None]:
         dict: Assignment id to the lecture number it is due on, or None when it falls on a
         row that is not a lecture, such as the last day of class.
     """
-    due: dict[str, int | None] = {}
+    due: dict[str, str | None] = {}
     inside = False
     for line in ROADMAP.read_text(encoding="utf-8").splitlines():
         if line.startswith("## "):
@@ -206,7 +246,10 @@ def assignments() -> dict[str, int | None]:
         if len(columns) < 5:
             continue
         match = SCHEDULE_ROW.match(line)
-        lecture = int(match.group(1).split(",")[0]) if match else None
+        # An identifier, not an int. `int("8a")` raises, and even for unsuffixed rows an int
+        # would not compare equal to the string keys `lectures()` returns -- which is how
+        # this was caught: every assignment resolved to a lecture that "did not exist".
+        lecture = lecture_id(match.group(1).split(",")[0]) if match else None
         for found in ASSIGNMENT.findall(columns[4]):
             due[found] = lecture
     return due
@@ -329,7 +372,12 @@ def problems(path: Path, meta: dict) -> list[str]:
         )
     else:
         for n in declared:
-            if n not in titles and n not in aliases:
+            if not isinstance(n, (int, str)):
+                found.append(
+                    f"{path}: serves_lectures has {n!r}; entries are a number or a string "
+                    "like '8a'"
+                )
+            elif lecture_id(n) not in titles and lecture_id(n) not in aliases:
                 found.append(
                     f"{path}: serves_lectures has {n!r}, which is not in "
                     f"{ROADMAP}'s schedule"
@@ -339,10 +387,15 @@ def problems(path: Path, meta: dict) -> list[str]:
         if family == "course":
             stem = path.stem
             if stem.startswith("lecture-"):
-                numbered = int(stem.split("-")[1])
-                if numbered not in declared:
+                # `lecture-08a-...` and `lecture-8a-...` both name lecture 8a, and
+                # `lecture-06-...` names lecture 6. Comparing identifiers rather than
+                # integers is what lets a suffixed lecture have a file at all.
+                named = lecture_id(stem.split("-")[1])
+                if named not in {
+                    lecture_id(n) for n in declared if isinstance(n, (int, str))
+                }:
                     found.append(
-                        f"{path}: filename says lecture {numbered} but serves_lectures "
+                        f"{path}: filename says lecture {named} but serves_lectures "
                         f"is {declared}"
                     )
 
@@ -408,11 +461,17 @@ def table() -> str:
                     f"- {marker} **`{path.stem}`** — {meta['note']}",
                     width=90,
                     subsequent_indent="  ",
+                    # Do not break at hyphens. The default split "Framework-independent"
+                    # across two lines, which reads as a different word and made a note
+                    # unsearchable in the file it was written into.
+                    break_on_hyphens=False,
                 )
             )
-        for n in meta.get("serves_lectures", []):
-            # A lecture that shares a row is folded onto that row's number, so declaring
-            # 23 lands in the "22, 23" row instead of vanishing.
+        for declared in meta.get("serves_lectures", []):
+            # Normalized first, so a notebook holding the integer 9 and a schedule row
+            # reading `9` meet on one key -- and a lecture that shares a row is folded onto
+            # that row, so declaring 23 lands in the "22, 23" row instead of vanishing.
+            n = lecture_id(declared)
             row = aliases.get(n, n)
             if row in serves:
                 entry = f"`{path.stem}` ({meta['role']}) {marker}".rstrip()
@@ -451,7 +510,11 @@ def purpose_line(meta: dict) -> str:
         str: One Markdown line.
     """
     titles, aliases = lectures()
-    numbers = list(dict.fromkeys(aliases.get(n, n) for n in meta["serves_lectures"]))
+    numbers = list(
+        dict.fromkeys(
+            aliases.get(lecture_id(n), lecture_id(n)) for n in meta["serves_lectures"]
+        )
+    )
 
     # Every lecture it serves, each with its own title. Naming only the first was wrong in a
     # way worth recording: for tutorial 1, which serves Lectures 4 and 9, it printed Lecture
@@ -590,10 +653,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--serves",
-        type=int,
         nargs="+",
-        metavar="N",
-        help="with --stamp: the lecture number(s) it serves",
+        metavar="LECTURE",
+        help="with --stamp: the lecture(s) it serves, e.g. 9 or 8a 8b",
     )
     parser.add_argument(
         "--role", choices=sorted(ROLES), help="with --stamp: how it is used"
@@ -638,9 +700,15 @@ def main(argv: list[str] | None = None) -> int:
         # that is never a judgement, and the validator rejects a mismatch anyway -- so asking
         # would only create a way to get it wrong.
         family = "course" if args.stamp.parent == COURSE else "tutorial"
+        # A plain lecture number is stored as an int and a suffixed one as a string, so the
+        # metadata reads the way the schedule does -- `9`, not `"9"` -- while `8a` keeps the
+        # only form it has. Both normalize to the same key on the way in, so nothing
+        # downstream cares which it got.
         meta = {
             "family": family,
-            "serves_lectures": args.serves,
+            "serves_lectures": [
+                int(s) if str(s).isdigit() else lecture_id(s) for s in args.serves
+            ],
             "role": args.role,
             "needs": list(args.needs),
         }
