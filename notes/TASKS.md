@@ -502,6 +502,39 @@ HuggingFace token, so they cannot all run in CI. The tractable version is to run
 are self-contained and skip the rest by their declared `needs`, which is the mechanism the
 tutorials already use.
 
+**Half done 2026-09-27, and the investigation split the task in two.**
+
+**What shipped: every notebook is now checked structurally**, in the lint job, at no CI cost.
+`notebook_meta.py --check` verifies valid JSON, a non-empty cell list, no token-shaped strings,
+no `INSTRUCTOR` marker, and — for course notebooks — no committed outputs, no execution counts
+and a Colab badge. These are exactly the checks that were run *by hand* when three notebooks
+arrived from Cowork, so the hand pass is now automated; it recurs on every baton and is the
+kind of thing skipped on a busy day.
+
+**One rule inverts between the families, and it nearly shipped wrong.** The first version
+flagged all six tutorials for committed outputs. `docs/mkdocs.yml` sets `execute: false`, so a
+tutorial's committed outputs *are* what the docs site renders — strip them and the published
+page shows code with no results. A course notebook is run from the top in Colab, so its outputs
+are dead weight. Scoped accordingly, with a test asserting the inversion in both directions.
+
+**What remains: actually executing them, which needs a dependency decision rather than code.**
+The blockers were measured rather than assumed:
+
+| notebook | blocker |
+|---|---|
+| `lecture-04-regex-refresher` | **none** — pure Python, could run today |
+| `lecture-04-tmx-cleaning` | `translate-toolkit`, small |
+| `lecture-05-sentence-alignment` | `nltk`, small, may want a corpus download |
+| `lecture-03-word-embeddings` | `sentence-transformers` + a model download |
+| `lecture-12-llm-context` | `transformers`, `datasets` + a model download |
+| `lecture-06-mt-evaluation` | Part 4 uploads through Drive |
+| `lecture-10-comet-install` | `unbabel-comet` **and a HuggingFace token** — can never run in CI |
+
+So the question is how much CI time and dependency surface to spend, and it is not one answer:
+two are free, two are cheap, two are heavy, and one is impossible. Worth noting that `needs`
+cannot express any of this — it holds repo-relative *paths*, and these are *capabilities*, so
+gating execution needs a new field rather than a longer list.
+
 ### #155 A8's "What To Do" overlaps the kickoff notebook's first four steps
 
 Cowork flagged this and deliberately did not act on it: if the kickoff notebook walks a student
