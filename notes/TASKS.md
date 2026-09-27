@@ -72,7 +72,6 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #124 | Simplify Lecture 6's chrF/TER wrappers | **After Mon Sep 28**, not before — A6 is live |
 | #135 | `examples/*.py` still do not checkpoint | Open — the five a student is most likely to copy |
 | #129 | Extract a shared `~/Projects/hpc` | Open — after #128 gives a second implementation to diff |
-| #131 | Name the model family, and which config the numbers used | **Actionable now** — the report carries the documented config's numbers |
 | #97 | SentencePiece on versus off, controlled | **Due Mon Oct 12** |
 | #102 | Inference cannot resume a long decode | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
@@ -263,7 +262,7 @@ is unguarded, and a five-file mechanical diff would bury its own review.
 
 ### #144 Tutorial 2 is a tutorial used as Lecture 7's in-class activity
 
-**Eric, 2026-09-27:** the tutorials are out-of-class and the course notebooks are in-class
+**Eric, 2026-09-26:** the tutorials are out-of-class and the course notebooks are in-class
 active learning. True of every notebook but one.
 
 `02-train-tiny-model` lives in `docs/docs/tutorials/` and its declared role is `activity` —
@@ -285,7 +284,7 @@ it than either in-class or out-of-class.
 
 ### #145 Say which assignment each notebook jump-starts
 
-**Eric, 2026-09-27:** in-class notebooks are often a jump start on the next assignment, and some
+**Eric, 2026-09-26:** in-class notebooks are often a jump start on the next assignment, and some
 tutorials should be pivoted to serve that purpose too.
 
 `leads_to` exists for this as of PR #117, validated against the eleven assignments parsed out of
@@ -333,7 +332,7 @@ So #121's value is higher than it looked. Build it once, declare `serves_lecture
 ### #148 Five assignments are missing from the schedule
 
 The schedule names A4, A5, A6, A8, A9, A10, A11, A12, A13, A14 and A16. **A1, A2, A3, A7 and
-A15 appear nowhere in the roadmap at all** — checked 2026-09-27, not inferred from the gaps.
+A15 appear nowhere in the roadmap at all** — checked 2026-09-26, not inferred from the gaps.
 
 Either the numbering genuinely skips them, or the single source of truth is missing five
 assignments. Worth establishing which, because it is no longer only a documentation question:
@@ -343,7 +342,7 @@ correct declaration.
 
 ### #151 The LSTM asks for dropout it cannot apply
 
-Found 2026-09-27 while checking whether #7's deprecation warnings were really gone. They are —
+Found 2026-09-26 while checking whether #7's deprecation warnings were really gone. They are —
 but the suite's ten remaining warnings are one numpy division and **nine instances of this**:
 
 > `UserWarning: dropout option adds dropout after all but last recurrent layer, so non-zero
@@ -367,7 +366,7 @@ second makes the knob work. Not the same choice, and the second changes a defaul
 filtered out without a word, and the script then reports how many runs it *did* write — which
 reads like success.
 
-**It happened on 2026-09-27 and wrote a two-run report over a twenty-one-run source.** The cause
+**It happened on 2026-09-26 and wrote a two-run report over a twenty-one-run source.** The cause
 was `zsh` not word-splitting an unquoted `$RUNS`, so all 21 paths arrived as one long
 nonexistent path. The report regenerated cleanly, with a correct-looking table, from two runs.
 
@@ -426,7 +425,7 @@ The map says tutorial 1 serves Lectures 4 and 9. **For Lecture 9 that is an over
 inherited from the hand-written table's "1, the vocabulary half" and now checkable for the first
 time.
 
-Read on 2026-09-27: tutorial 1's Part 2 is word-level `SimpleVocab` only. No SentencePiece, no
+Read on 2026-09-26: tutorial 1's Part 2 is word-level `SimpleVocab` only. No SentencePiece, no
 subwords, no morphology. Its last cell encodes "Hello universe", prints `<unk>`, and stops.
 
 That makes it the **motivating example** for Lecture 9 rather than coverage of it — it ends
@@ -517,50 +516,6 @@ only conventions have been copied, not code.
 
 Candidates already identifiable: job waiting, array-manifest indexing, the login/venv
 environment guard, the no-internet-on-compute-nodes convention, and the babysitter pattern.
-
-### #131 Name the model family, and say which config produced the numbers
-
-**Asked 2026-09-26: is the model family documented? Partially, and not where a reader would
-look.** `concepts/models.md` cites "Attention Is All You Need" only under *positional
-encoding*, as though the citation were about that sub-component. `related-work.md` compares
-us to Joey NMT and OpenNMT as *packaging* — a library you call versus a toolkit you configure
-— not as model families.
-
-**Worth stating plainly: `SimpleTransformer` is Vaswani et al. (2017) Transformer-base**, and
-the library defaults land on it exactly. That is pedagogically valuable rather than trivia:
-the paper a student is assigned *is* the architecture they are running, and every Marian,
-OpenNMT or Fairseq tutorial they find online describes the same family.
-
-**The defect this exposed: the config the docs show is not the config anything runs.**
-
-| | d_model | heads | layers | d_ff | params |
-|---|---|---|---|---|---|
-| Vaswani base = library default = `models.md` | 512 | 8 | 6+6 | 2048 | ~60M |
-| A8, and every number measured on 2026-09-26 | 256 | 8 | 3+3 | 1024 | 11,682,624 |
-
-A student reading `models.md` and then the A8 handout cannot reconcile them, and the BLEU
-11.46 going to Cowork is for the **small** model with nothing saying so.
-
-- State the lineage up front in `concepts/models.md`, and what it buys a reader.
-- Name the half-scale course config and why it exists — it fits a Colab session.
-- **Every reported score names its config.** Belongs with #81's generated-numbers discipline.
-- Check that `related-work.md`'s Joey NMT comparison states scale *and* task: its 93.62 BLEU
-  on a toy task currently sits near our ~11 with neither difference noted.
-
-**Unblocked 2026-09-27, and the shape of the work changed.** The cluster sweep's `base` scale is
-512/8/6+6/2048 — the documented default exactly — so there are now measured numbers for it at
-all seven corpus sizes. Also confirmed by reading rather than recalling: `config.py:862-866`
-carries those defaults, and `models.md` cites the paper at line 232 under the LSTM comparison
-rather than as a statement of what the model *is*.
-
-**Actionable as of PR #122**, which published the complete curve. The task was written as "add a
-disclaimer saying the docs' config is not what ran"; it is now "point at the row where the
-documented config was measured", which is a better answer and a shorter one.
-
-The report also supplies the sentence worth putting in `models.md`: the documented default is
-**not** simply better — it is *worse* than the course config below 50,000 pairs and decisively
-better above 100,000. That is the pedagogical content, and it is a more interesting thing to
-teach than either config alone.
 
 ### #124 Simplify Lecture 6's chrF and TER wrappers
 
@@ -1047,7 +1002,7 @@ SGD and never decodes. What #57 adds is a 150-line test file, so more RNG is con
 this test runs. That is exactly the failure mode predicted when this was filed: *a test that
 depends on whatever seeded the RNG before it will come back.*
 
-**Stronger than that, as of 2026-09-27: it fails on unmodified `main` with nothing added.**
+**Stronger than that, as of 2026-09-26: it fails on unmodified `main` with nothing added.**
 Stashing a branch's changes and running `python -m unittest discover tests` on `main` alone gave
 726 tests and the same single failure. So it does not need a PR to add test lines — the current
 `main` already sits on the wrong side of it under `unittest discover`, while `pytest` passes 737.

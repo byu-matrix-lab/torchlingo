@@ -8,7 +8,110 @@ file every time.
 
 ---
 
-## 2026-09-27, ninth — the baton, with eight questions that are yours
+## 2026-09-26, tenth — read this instead of the entry below, which one result has overturned
+
+The entry below still holds, with two exceptions that matter enough to put first. Eric had not
+handed the baton when it was written, so nothing in it has reached you yet and this replaces
+rather than amends it.
+
+### A correction you must have, because the earlier wording came to you
+
+**"Assignment 8's model is not obviously too small for the data it is given" was wrong**, and
+it was in what we sent. The cluster sweep has since finished — all 21 points instead of 16 —
+and at **100,000 pairs, which is what A8 actually requires**, the larger configuration scores
+**17.79 against 15.95** and converges in **30 epochs instead of 65**. Better *and* cheaper to
+train.
+
+The earlier claim came from the 25,000 and 50,000-pair points, where capacity genuinely does
+not help. It did not survive contact with the rest of the curve.
+
+The same sweep also overturned **"past 100,000 pairs more data buys very little"**. True at
+11.7M parameters; at 56.4M that range is worth **+6.29 BLEU**. Both corrections are recorded in
+the report itself under *Corrections to earlier versions of this report*, so anyone who acted on
+the old wording can find them.
+
+**What we are not saying:** change the handout. The reason to hold is memory, not quality —
+nobody has measured what a Colab session actually provides, which is still #118 and still
+Coulson's. Until that number exists this is an observation.
+
+### The result worth putting in your Lecture 8 deck
+
+Lecture 8 is *Neural MT Overview and Architectures*, and the sweep produced something better
+suited to it than any of the individual numbers:
+
+| training pairs | 11.7M model | 56.4M model | difference |
+|---|---|---|---|
+| 25,000 | 9.55 | 9.24 | **−0.31** |
+| 50,000 | 13.68 | 13.62 | **−0.06** |
+| 100,000 | 15.95 | 17.79 | **+1.84** |
+| 800,000 | 17.15 | 24.00 | **+6.85** |
+
+**Bigger is not simply better.** Below about 50,000 pairs the larger model is *worse*, and both
+converged, so neither was short of training — it has more capacity than the data can teach.
+Above 100,000 it wins and keeps winning.
+
+Put the other way: the same 48× more data is worth about **+1 BLEU** to a 1.8M-parameter model,
+**+7** at 11.7M and **+15** at 56.4M. "Does more data help?" has no answer that is not also an
+answer about model size. That is a more interesting thing to teach than either configuration on
+its own, and it is measured rather than asserted.
+
+Greedy decoding, one seed, German → English. The small-end gaps of 0.31 and 0.06 are inside the
+one-seed noise band, so read them as "capacity does not *measurably* help", not as a reversal.
+
+### Question 1 has become easier: just write the numbering you want
+
+The entry below asked you to tell us the scheme before writing it, because `8a` and `8-9` were
+skipped **silently** — the lecture vanished from the generated map and the map still looked
+complete.
+
+**That is fixed.** An unreadable lecture column is now an error naming the row, what it read,
+and which forms are accepted. So write `8a`/`8b` if that is the right pedagogy and CI will tell
+us what it needs; nothing will disappear quietly.
+
+The cost asymmetry from the entry below is unchanged and is still the only thing we would put on
+the scale: **`8a`/`8b` costs one decision on our side; renumbering 9 onward costs ten and has no
+detectable failure mode**, because every notebook would still validate while pointing at a
+different lecture. If the students are served equally well either way, the first is cheaper. If
+they are not, tell us and we will do the sweep.
+
+### Lecture 9: the answer stands, and the clock is now short
+
+Yes, the subword notebook is ours, and it should **also** start A9 — one notebook closes Lecture
+9 (Mon Oct 5) and Assignment 9 (Mon Oct 12) together. You wanted an answer by **Fri Oct 3**.
+
+**The part worth acting on:** Lecture 9 currently has *nothing*. The map pointed at tutorial 1,
+and tutorial 1 does not cover the ground — its vocabulary section is word-level only and stops
+by encoding "Hello universe" and printing `<unk>`. That is the motivating example for everything
+A9 asks a student to do, so the new notebook should start exactly there. But as coverage it was
+an over-claim, and we have said so rather than leaving the map flattering.
+
+### One thing you can use immediately
+
+`concepts/models.md` now states what the model *is*: `SimpleTransformer` is the Transformer of
+Vaswani et al. (2017), and the library defaults are Transformer-base exactly. Previously the
+paper was cited once, under *positional encoding*, as though the citation were about that
+sub-component.
+
+It also names both configurations — the 56.4M default and A8's 11.7M — because the documented
+config was not the one any published number came from. If your Lecture 8 deck cites the paper,
+the page a student opens now agrees with it.
+
+`related-work.md` also now says plainly that Joey NMT's 93.62 BLEU is a **reversal task**, not
+translation, and must not be compared with ours.
+
+### Housekeeping
+
+- **All pull requests are merged**; nothing is queued on our side.
+- The entry below was dated 2026-09-27 in error. **Today is Sat 2026-09-26.** We corrected the
+  heading rather than leaving two entries out of order, which is the one time we have edited a
+  past entry — flagging it because the protocol says not to.
+- Questions 2 through 8 below are unchanged and still yours: tutorial 2's family-versus-role
+  conflict, which assignment each notebook jump-starts, the five missing assignment numbers,
+  Lecture 6's embedded homework, who owns evaluation, and tutorial 4's Part 6 seam.
+
+---
+
+## 2026-09-26, ninth — the baton, with eight questions that are yours
 
 Eric is splitting Lecture 8 with you and adjusting the schedule. Most of this entry exists
 because of that, and because of three things he said about what the notebooks are *for*:
