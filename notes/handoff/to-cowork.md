@@ -8,6 +8,60 @@ file every time.
 
 ---
 
+## 2026-09-26, seventh — the roadmap is now the shared source of truth
+
+**Eric's call: `notes/CS479_COURSE_ROADMAP.md` is the official CS 479 roadmap, and
+`CS479 Fall 2026 Roadmap_v3.md` in his course folder is retired.** The repository copy is no
+longer a mirror of it. It is the live document, handed back and forth by the baton.
+
+**What that changes for you, and it is the one thing that could destroy work:** until today
+your header said the body was "verbatim from" the course-folder file. **Never paste over this
+file wholesale again.** It now carries repository-side content that exists nowhere else, and a
+v4 paste would delete it. Edit in place; say in this log what you changed.
+
+Version numbers stop being useful once a document is live rather than reissued, so it carries
+dated entries instead of a v-number.
+
+### `notes/CURRICULUM.md` is gone, merged into it
+
+The repository's curriculum audit — sequencing, learning outcomes, gaps, redundancy — is now
+the final part of the roadmap, under "Repository side: what our material teaches". One
+document, so there is nowhere for two versions of the same fact to disagree. Course-side
+sections remain yours; that part is ours.
+
+**Dates and assignment deadlines appear once, in your schedule table.** The repository-side
+part joins to it on lecture number and deliberately repeats nothing else, so there is no second
+copy to drift.
+
+### The notebook map is in there, and it is the thing you asked for
+
+"Which notebook serves which lecture" is now a table in the roadmap covering all 23 lectures,
+both families — `docs/docs/tutorials/` numbered by library topic, `docs/docs/course/` numbered
+by lecture — because **nothing about which artifact belongs in which lecture is derivable from
+a filename.**
+
+It also marks the lectures that have **already run**, which is the part easy to skip: a student
+revisiting them needs to know what to open, later assignments refer back, and a Fall 2027
+offering should not rediscover the mapping. Where a tutorial *would have* improved a past
+lecture it says so rather than dropping it silently.
+
+What it says is missing: **Lecture 9 has no notebook** (that is the answer you wanted by Oct 3 —
+yes, it is ours, and #121 has the one-line version), and **Lecture 14 has none** while its
+handout is still the OpenNMT `.docx`. Eleven of twenty-three lectures pair with nothing, which
+is fine — inventing a notebook to fill a row is the redundancy the audit warns about.
+
+### Two smaller things
+
+**Tutorial 6 is reachable now.** It was the only tutorial of six with neither a nav entry nor a
+Colab badge, which mattered because your Lecture 8 deck assigns it as reading. Both fixed.
+
+**One framing worth having explicitly**, also Eric's: **TorchLingo exists first and foremost to
+support CS 479**, and third-party use is a later concern. That is a tie-breaker rather than a
+slogan — when a choice could serve a CS 479 student or a general newcomer, it serves the
+student. It is now first in the project's stated goals.
+
+---
+
 ## 2026-09-26, sixth — READ THIS ONE FIRST
 
 **Nothing below has reached you yet.** Entries three through five were written across one

@@ -57,8 +57,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #122 | Make Assignment 9's control hard to get wrong in code | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | Open — highest uncertainty, due Oct 28 |
 | #124 | Simplify Lecture 6's chrF/TER wrappers | **After Mon Sep 28**, not before — A6 is live |
-| #126 | Tutorial 6 has no nav entry and no Colab badge | **Due Wed Sep 30** — Lecture 8 assigns it as reading |
-| #127 | Harmonize both notebook families against the roadmap | Open — Cowork cannot tell which notebook serves which lecture |
+| #133 | One metadata namespace for both notebook families | Open — generate the map rather than maintain it |
 | #128 | Run the learning curve on the cluster | **Canary passed** — splits building, then `--array=0-6` |
 | #129 | Extract a shared `~/Projects/hpc` | Open — after #128 gives a second implementation to diff |
 | #130 | `pyproject`, installed metadata and `__version__` must agree | In review — **PR #105** |
@@ -67,7 +66,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #102 | Inference cannot resume a long decode | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
-| #101 | Give the tutorials stable unique names | Open — after the tutorial PRs land |
+| #101 | Give the tutorials stable unique names | Open — **a semester boundary**, not mid-course |
 | #103 | Extend the notebook gate to `docs/docs/course/` | **Unblocked and now live** — four are on `main`, ungated |
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | **Half done** — experiments bucket now; library default unchanged |
@@ -84,7 +83,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #28 | Attention params skip `_init_weights` | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | Open |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
-| #48 | Audit pedagogical value; write down sequencing and outcomes | In progress — `notes/CURRICULUM.md` |
+| #48 | Audit pedagogical value; write down sequencing and outcomes | In progress — in the roadmap |
 | #51 | The docs gate reports but does not block | Open — repo settings |
 | #52 | Try Moore (2002) if more of the corpus is wanted | Open |
 | #53 | Notebook gate runs 2 of 6 tutorials in CI, and looks green | Open |
@@ -301,27 +300,45 @@ Knock-ons: **PR #51** fixes **Task #84**, now a live defect rather than a predic
 #55** is what **Task #85** and **Task #91** wait on. (Task, not PR: PRs #84 and #85 exist and
 are unrelated — the collision `CLAUDE.md`'s numbering rule describes.)
 
-### #126 Tutorial 6 has no nav entry and no Colab badge
+### #133 One metadata namespace for both notebook families
 
-**Due Wed Sep 30**, because Lecture 8 assigns tutorial 6 as reading alongside Assignment 8.
+**Eric, 2026-09-26.** Two families with incompatible numbering — `tutorials/` by library topic,
+`course/` by lecture — so which artifact serves which lecture is derivable from nothing. The
+roadmap's table is a hand-maintained workaround, in a document two sessions now edit.
 
-Measured 2026-09-26. It is the only tutorial of six that is missing both:
+**The namespace goes in notebook metadata, not in filenames.** `nbformat` permits arbitrary
+keys and neither Jupyter nor Colab minds:
 
-| | 01 | 02 | 03 | 04 | 05 | **06** |
-|---|---|---|---|---|---|---|
-| Colab badge | yes | yes | yes | yes | yes | **none** |
-| In nav | yes | yes | yes | yes | yes | **no** |
+```json
+"metadata": { "torchlingo": {
+    "family": "tutorial" | "course",
+    "serves_lectures": [8, 19],
+    "role": "activity" | "reading" | "homework" | "reference",
+    "needs": ["data/example.tsv"]
+}}
+```
 
-So a student told to read it **cannot browse to it** — it does not appear on the tutorials page
-at all — and **cannot run it**, because there is no badge to open it in Colab.
+Three things a filename scheme cannot do:
 
-- **The nav half is already in PR #51**, green and waiting on a reviewer. If that has not landed
-  by Wednesday, add the entry directly rather than waiting on review.
-- **The badge is two lines**, and tutorial 6 is the best candidate for one: it needs no LFS
-  artifact — it is one of only two tutorials that actually execute in CI — so unlike tutorials
-  4 and 5 it genuinely works from a pip install. **#114** does not touch it.
+1. **The roadmap's map becomes generated**, with `--check`, so it cannot drift from the
+   notebooks. That matters most now that the roadmap is the SSOT with two editors.
+2. **A notebook can serve two lectures.** Tutorial 4 serves Lecture 8 and Lecture 19; one
+   lecture number in a filename cannot say that.
+3. **`needs` replaces `execute_notebooks.py`'s own `REQUIREMENTS` dict** — one less pair of
+   things that must agree with nothing checking.
 
-**Done when** tutorial 6 appears in the tutorials nav and opens in Colab from its own badge.
+**Renames are deferred deliberately.** Decks cite filenames, Colab badges embed paths, and the
+Lecture 6 deck was just pointed at its badge — a rename now breaks a link students are
+clicking. Cowork asked to be told before any rename. That work is #101, at a semester boundary.
+
+**Done when** every notebook carries the block, the roadmap's table is generated from them, and
+Cowork has the schema so new course notebooks are born with it.
+
+**The check that matters**, because it is what keeps the SSOT true: the generated map's lecture
+numbers and topics must match the schedule table *in the same file*. Verified by hand on
+2026-09-26 — all 22 rows agree, no gaps either way — but they agree only because one was just
+written from the other. Two tables in one document that must agree, with nothing checking, is
+the pattern that has cost this repository three separate defects.
 
 ### #128 Run the learning curve on the cluster
 
@@ -402,37 +419,6 @@ A student reading `models.md` and then the A8 handout cannot reconcile them, and
 - **Every reported score names its config.** Belongs with #81's generated-numbers discipline.
 - Check that `related-work.md`'s Joey NMT comparison states scale *and* task: its 93.62 BLEU
   on a toy task currently sits near our ~11 with neither difference noted.
-
-### #127 Harmonize both notebook families against the course roadmap
-
-**Eric's ask, 2026-09-26.** There are now two families of notebooks and nothing that says which
-one serves which lecture, so Cowork cannot tell when a TorchLingo tutorial belongs in a deck —
-**including for lectures that have already run.**
-
-What exists:
-
-| Family | Files | Numbered by |
-|---|---|---|
-| `docs/docs/tutorials/` | 01–06, plus tutorial 7 pending on a local branch | library topic |
-| `docs/docs/course/` | `lecture-03` … `lecture-06` | lecture |
-
-The two numbering schemes do not line up and were never meant to, which is exactly why a
-mapping is needed rather than an inference. Tutorial 2 is the Lecture 7 activity; tutorial 6 is
-Lecture 8 reading; tutorial 7 is post-Lecture-8 homework. None of that is derivable from the
-filenames.
-
-**The deliverable is a reference document, not a task entry** — a lecture-by-lecture table
-giving, for each of Lectures 1 to 14: which notebooks serve it, from which family, whether the
-lecture has run, and whether the notebook exists yet. `notes/CURRICULUM.md` is the natural home,
-since it already holds sequencing and outcomes.
-
-**It must cover past lectures too**, which is the part that is easy to skip. Lectures 1 to 6 have
-run, but the mapping still matters: a student revisiting them, an assignment that refers back,
-and next year's offering all need it — and where a TorchLingo tutorial would have improved a
-past lecture, that is worth recording as a Fall 2027 note rather than losing.
-
-**Done when** Cowork can read one table and know which notebook to cite in any lecture, and the
-answer for "none yet" is explicit rather than absent.
 
 ### #124 Simplify Lecture 6's chrF and TER wrappers
 
@@ -1220,8 +1206,8 @@ Enough accumulated that nobody could say what a student is meant to learn, in wh
 where the gaps are. It was built task by task, each justified alone, never against a
 curriculum.
 
-**First pass is written: `notes/CURRICULUM.md`**, which now holds the sequencing, the outcomes,
-the gaps and the redundancy findings. The largest gap it found: everything teaches the
+**First pass is written**, and now lives in `CS479_COURSE_ROADMAP.md` under "Repository
+side": the sequencing, the outcomes, the gaps and the redundancy findings. The largest gap it found: everything teaches the
 machinery working, nothing teaches **why a model fails**, which is what a student actually
 hits.
 
@@ -1234,8 +1220,8 @@ comparison point — the same system as a configured toolkit rather than a libra
 rather than only in related work? Its toy config trains in 3m52s on CPU to 93.62 BLEU, cheap
 enough to run beside ours.
 
-**Done when** those questions are answered and `CURRICULUM.md` states outcomes the course
-wants rather than outcomes the code implies.
+**Done when** those questions are answered and the roadmap states outcomes the course wants
+rather than outcomes the code implies.
 
 **#28 Attention parameters skip `_init_weights`**
 `SimpleSeq2SeqLSTM._init_weights` matches on `weight_ih` / `weight_hh` / `bias`, so
