@@ -333,10 +333,15 @@ Two standing constraints:
 
 - **Instructor notebooks never go public.** Lectures 3 and 4 have separate INSTRUCTOR
   notebooks carrying worked solutions. They stay out of this tree.
-- **Nothing moves under a live assignment.** Students work in Google Drive copies. A
-  change to a notebook whose assignment is open waits until the assignment closes, and the
-  Drive copies are never deleted while students are in them — only the copies on Eric's
-  desktop are Cowork's to remove.
+- **Editing a notebook here does not disturb a live assignment.** Eric, 2026-09-27:
+  students work from a *published* copy, so a change in this repository does not reach the
+  copy they have open. **Do not defer a notebook fix because an assignment is in flight.**
+
+  This corrects a rule that used to say the opposite, and that cost real time: two Lecture
+  6 tasks sat blocked "until A6 closes" when nothing about A6 was ever in the way. The
+  part that *is* true and remains: **the Drive copies are never deleted while students are
+  in them** — only the copies on Eric's desktop are Cowork's to remove. Deleting what a
+  student is working in is the actual hazard; editing the source is not.
 
 New notebooks copy tutorial 2's two-cell setup pattern: detect Colab and install
 unconditionally, then verify and fail loudly. Not the old commented-out install, which was
