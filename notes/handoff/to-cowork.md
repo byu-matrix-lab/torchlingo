@@ -8,6 +8,190 @@ file every time.
 
 ---
 
+## 2026-09-27, ninth — the baton, with eight questions that are yours
+
+Eric is splitting Lecture 8 with you and adjusting the schedule. Most of this entry exists
+because of that, and because of three things he said about what the notebooks are *for*:
+
+- the tutorials are out-of-class, the course notebooks are in-class active learning;
+- an in-class notebook is often a jump start on the **next assignment**;
+- some tutorials should be pivoted to serve that purpose too.
+
+The schema could not say any of that. It can now. **The decisions, though, are yours and
+Eric's — you own the lectures, and I have deliberately not guessed.**
+
+### Read this first: the schedule table is now parsed, not just read
+
+`notes/CS479_COURSE_ROADMAP.md`'s "Semester at a glance" table is the **source** for the
+generated notebook map. Lecture numbers, lecture titles and now assignment identifiers are read
+out of it. Nothing restates them anywhere, which is what makes them impossible to contradict.
+
+The cost is that its **format now matters**. Tested rather than assumed:
+
+| lecture column | result |
+|---|---|
+| `8` | parsed |
+| `8, 9` | parsed |
+| `8a` | **skipped silently** |
+| `8-9` | **skipped silently** |
+| `8 (part 1)` | **skipped silently** |
+
+A skipped row does not error. The lecture is simply absent from the map and the map still looks
+complete. Task #137 is to make that loud; until it lands, **please tell me the numbering scheme
+before you write it**.
+
+### Question 1, and it is the one that matters most: how will Lecture 8 be numbered?
+
+Two schemes, and they cost very differently on this side:
+
+- **`8a` / `8b`** — one decision for me: which half does tutorial 6 serve as reading? Nothing
+  else moves. I would also need #137 first, or the rows vanish silently.
+- **Renumber 9 onwards** — every notebook declares lecture *numbers*, and all ten would still
+  validate while pointing at the wrong lectures. Numbers 9 to 23 all shift. That is Task #138,
+  and **no check can catch it**, because both sides stay internally consistent.
+
+I am not arguing for either on pedagogical grounds — that is your call. But if they are equally
+good for the students, `8a`/`8b` is an order of magnitude cheaper and carries no silent-failure
+mode. If you renumber, the renumber and the ten-notebook sweep must land in the same change.
+
+### Question 2: is tutorial 2 really Lecture 7's in-class activity?
+
+It is the **one** notebook where Eric's distinction breaks. `02-train-tiny-model` lives in the
+tutorials — out-of-class by collection — and its declared role is Lecture 7's in-class activity,
+which is what the roadmap said before any of this was checkable.
+
+Either that exception is deliberate and nothing changes, or **Lecture 7 wants a course notebook
+of its own** and tutorial 2 goes back to being reading. Task #144.
+
+Worth deciding alongside question 3, because tutorial 2 is also the clearest assignment jump
+start in the repository, and "what students work through before the big assignment" may describe
+it better than either in-class or out-of-class does.
+
+### Question 3: which assignment does each notebook jump-start?
+
+`leads_to` is a new optional field for exactly the thing you described. It is validated against
+the assignments **parsed from your schedule's own column**, so the deadline comes along for free
+and cannot go stale.
+
+Four proposals. **Arguments, not decisions** — which assignment a notebook prepares is
+pedagogy, and that is yours:
+
+| notebook | assignment | the argument |
+|---|---|---|
+| `02-train-tiny-model` | **A8**, due Lecture 10 | A8 is "create and run an NMT model". Tutorial 2 *is* that at small scale — prepare, build, train, test, save. |
+| `05-real-translations` | **A8** | The "now run it on unseen data" half. It already ships with the pretrained checkpoint. |
+| `01-data-and-vocab` | **A5**, due Lecture 6 | Its Part 1 is loading and cleaning a parallel corpus. Retrospective this year, real next. |
+| a Lecture 9 notebook | **A9**, due Lecture 11 | Does not exist yet — see question 5. |
+
+I deliberately did **not** propose one for `03-inference-and-beamsearch`: its BLEU half points at
+A6 or A11, and question 7 has to be settled first. Task #145.
+
+### Question 4: do A1, A2, A3, A7 and A15 exist?
+
+Your schedule names A4, A5, A6, A8, A9, A10, A11, A12, A13, A14 and A16. The other five appear
+**nowhere in the roadmap** — checked directly, not inferred from the gaps.
+
+Either the numbering skips them, or the single source of truth is missing five assignments. This
+stopped being a documentation question when `leads_to` started validating against that table: if
+A7 exists and is unlisted, a *correct* declaration will be rejected. Task #148.
+
+### Question 5: Lecture 9 and A9 are one notebook, and this is the efficient one
+
+You asked for an answer on the Lecture 9 subword notebook by **Oct 3**. Here it is, and it is
+better news than a plain yes.
+
+A9 is SentencePiece, due **Mon Oct 12** at Lecture 11. Lecture 9 is morphology and terminology
+and has no notebook. **One subword notebook serves the lecture and starts the assignment.**
+
+And its opening is already written, by accident. Tutorial 1's Part 2 is word-level vocabulary
+only — it ends by encoding "Hello universe", printing `<unk>`, and stopping. That is the
+motivating example for everything A9 asks a student to do. Start the new notebook exactly there.
+
+**A correction you should have**, because it affects what you tell students: the map previously
+claimed tutorial 1 serves Lecture 9. **It does not.** It teaches the prerequisite and stops at
+the cliff edge. The claim came from the old hand-written table and is an over-claim; splitting
+tutorial 1 to "cover" Lecture 9 would register as coverage in the map while teaching the
+prerequisite, which is worse than the visible gap. Tasks #139, #147 and #121.
+
+### Question 6: Lecture 6's notebook is an activity with homework inside it
+
+`lecture-06-mt-evaluation` is 29 cells. Parts 1 to 3 are guided in-class work; **Part 4 "Your own
+data" requires uploads and is homework.** One notebook cannot carry two roles honestly.
+
+Blocked until **Tue Sep 29** regardless — A6 is due Mon Sep 28 and nothing moves under a live
+assignment. Worth splitting after, and it pairs with #124 which is blocked on the same date and
+the same notebook. Task #141.
+
+### Question 7: which notebook owns evaluation?
+
+Tutorial 3's Parts 1 to 4 are decoding; its **Part 5 is BLEU**, which is Lecture 6's ground, not
+Lecture 22's. A "tutorial 7, evaluation" is also planned for the same ground and unmerged.
+
+Splitting either before deciding produces two evaluation tutorials and a choice nobody made.
+Task #142. Your call which artifact students should be sent to.
+
+### Question 8: tutorial 4 wants splitting, and your Lecture 8 split is what makes it worth it
+
+`04-attention-and-alignment` is the one notebook whose **content** genuinely spans two lectures:
+
+| parts | subject | lecture |
+|---|---|---|
+| 1 to 5 — bottleneck, known-alignment task, ablation, alignment accuracy, the picture | measuring alignment | 19, as declared |
+| 6 to 8 — Bahdanau versus Luong, the Transformer's mechanism, cross-attention on the real model | architectures | 8, undeclared |
+
+I held this back before because **Lecture 8 was over-subscribed** — tutorial 6 as reading and A8
+both land there, and a fourth artifact would not have helped. Two sessions changes that verdict.
+No rename is involved, so no link a student holds would break. Task #140.
+
+### What each notebook will tell its reader
+
+A student opening a notebook sees a title and nothing else — not which collection it belongs to,
+not whether it is for class or afterwards, not whether it is the head start on an assignment.
+Each notebook will now open with one generated line:
+
+> **CS 479 course notebook** — the in-class activity for Lecture 5 (*Data Preparation for MT
+> Training, Part 2*).
+
+> **TorchLingo tutorial** — assigned reading for Lecture 8 (*Neural MT Overview and
+> Architectures*).
+
+With a `leads_to`, it gains: *A head start on **A8** (due at Lecture 10).*
+
+Generated from the metadata and gated in CI, so it cannot drift from the map or from your
+schedule. **Not applied yet** (Task #146): the wording encodes the answers to questions 2 and 3,
+and those are yours. Tell me the answers and it is one command.
+
+Two smaller choices while you are there: the line currently sits **before** the notebook's title
+rather than after it, and the phrasing above is a proposal.
+
+### One thing that got easier for you
+
+You no longer need to hand-write the metadata block. In review as PR #117:
+
+    python scripts/notebook_meta.py --stamp docs/docs/course/lecture-09-subwords.ipynb \
+        --serves 9 --role activity --leads-to A9
+
+`family` is inferred from the directory. The block is validated *before* it is written, so a
+mistake leaves the notebook untouched rather than being reported later. This matters because
+**Colab has no editor for notebook-level metadata at all** — previously the only route was raw
+JSON, which is where a typo becomes a silently dropped field.
+
+### Tasks that moved, per the baton rule
+
+**Closed:** #130 (version consistency, shipped), #133 (the metadata namespace, shipped),
+#134, #136.
+
+**New, and six of them are questions above:** #137, #138, #139, #140, #141, #142, #143, #144,
+#145, #146, #147, #148.
+
+**Re-stated:** #121 is now worth more, not less — build it once and it closes A9 too. #79 is
+worse than recorded: it fails on unmodified `main`, so no PR should be held for it.
+
+**Still yours and still dated:** #121 (answer by Oct 3, answered above), #99 (Lecture 14,
+Oct 28), #123 (A14's two directions, Oct 28).
+
+---
+
 ## 2026-09-26, eighth — every notebook you write now declares itself
 
 **This changes one thing you do.** A new course notebook must carry a `torchlingo` block in
