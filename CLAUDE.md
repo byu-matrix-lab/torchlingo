@@ -342,6 +342,30 @@ New notebooks copy tutorial 2's two-cell setup pattern: detect Colab and install
 unconditionally, then verify and fail loudly. Not the old commented-out install, which was
 the bug.
 
+## Every training run checkpoints, and it is not a flag
+
+Any script that calls `train_model` passes a `TrainingCheckpointer`. Unconditionally — not
+behind `--resumable`, not "when the run is long enough to be worth it."
+
+**A flag makes it optional, and the run that skips it is always the one you could least
+afford to lose.** "Short enough not to bother" is a judgement made *before* the run, which
+is exactly when you do not yet know which run turns out to be expensive.
+
+Two separate needs, wanting the two separate mechanisms:
+
+| | what it buys |
+|---|---|
+| `save_dir` | keeps the best model, so the run leaves an artifact rather than only a number |
+| `checkpointer` | makes the run resumable, so dying at hour three does not cost hours one and two |
+
+Both, not either. A 36-epoch benchmark here once ran for 65 minutes and produced a BLEU
+figure and **no model**, so the longer run that should have continued from it had to start
+again from scratch.
+
+This is also the practice the library exists to demonstrate: `training_checkpoint` was built
+so a Colab disconnect costs minutes rather than a session. A script that teaches
+checkpointing while not doing it teaches the opposite.
+
 ## Where things belong
 
 Four files accumulate knowledge, and putting something in the wrong one is how it gets
