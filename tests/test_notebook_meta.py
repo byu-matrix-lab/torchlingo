@@ -10,6 +10,8 @@ The tests that matter here are the ones asserting a *bad* block is rejected. A v
 that only ever sees good input is not known to validate anything.
 """
 
+import contextlib
+import io
 import json
 import shutil
 import sys
@@ -258,6 +260,111 @@ class TestMetadataSurvivesJupyter(unittest.TestCase):
                 json.loads(json.dumps(dict(nb.metadata["torchlingo"]))),
                 f"{path.name} lost its block on a round trip",
             )
+
+
+class TestUnreadableScheduleRowsAreLoud(unittest.TestCase):
+    """A lecture must not be able to go missing from the map quietly.
+
+    The forms below were all skipped silently before Task #137: the lecture was absent from
+    the generated map, nothing reported anything, and the map still looked complete. Splitting
+    a lecture is exactly when an author reaches for one of them, so the failure was waiting
+    for the moment it would do most damage.
+    """
+
+    REAL_ROW = "| 8 | Wed Sep 30 | Neural MT Overview and Architectures | | **F2026** |"
+
+    def setUp(self):
+        self.original = nm.ROADMAP.read_text(encoding="utf-8")
+        self.assertIn(self.REAL_ROW, self.original, "the anchor row has changed")
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.addCleanup(setattr, nm, "ROADMAP", nm.ROADMAP)
+
+    def parse_with(self, replacement):
+        """Parse a roadmap whose Lecture 8 row has been replaced."""
+        target = self.tmp / "roadmap.md"
+        target.write_text(
+            self.original.replace(self.REAL_ROW, replacement), encoding="utf-8"
+        )
+        nm.ROADMAP = target
+        return nm.lectures()
+
+    def assertRejects(self, replacement):
+        with self.assertRaises(ValueError) as caught:
+            self.parse_with(replacement)
+        return str(caught.exception)
+
+    def test_letter_suffixes_are_rejected(self):
+        """The likely form for a split lecture, and the reason this check exists."""
+        message = self.assertRejects(
+            "| 8a | Wed Sep 30 | NMT Overview | | **F2026** |\n"
+            "| 8b | Mon Oct 5 | NMT Architectures | | **F2026** |"
+        )
+        self.assertIn("8a", message)
+        self.assertIn("8b", message)
+
+    def test_a_range_is_rejected(self):
+        self.assertRejects("| 8-9 | Wed Sep 30 | NMT Overview | | **F2026** |")
+
+    def test_a_parenthetical_is_rejected(self):
+        self.assertRejects("| 8 (part 1) | Wed Sep 30 | NMT Overview | | **F2026** |")
+
+    def test_a_typo_is_rejected(self):
+        """Not only new schemes: a stray character is caught for free."""
+        self.assertRejects("| 8. | Wed Sep 30 | NMT Overview | | **F2026** |")
+
+    def test_every_bad_row_is_reported_not_just_the_first(self):
+        message = self.assertRejects(
+            "| 8a | Wed Sep 30 | NMT Overview | | **F2026** |\n"
+            "| 8b | Mon Oct 5 | NMT Architectures | | **F2026** |"
+        )
+        self.assertIn("2 schedule row(s)", message)
+
+    def test_the_message_says_what_is_accepted(self):
+        """An error that does not say what to write instead just moves the confusion."""
+        message = self.assertRejects("| 8a | Wed Sep 30 | NMT Overview | | **F2026** |")
+        self.assertIn("Accepted", message)
+        self.assertIn("22, 23", message)
+        self.assertIn("#138", message)
+
+    def test_valid_forms_still_parse(self):
+        for replacement in (
+            self.REAL_ROW,
+            "| 8, 9 | Wed Sep 30 | NMT Overview | | **F2026** |",
+        ):
+            titles, _ = self.parse_with(replacement)
+            self.assertIn(8, titles)
+
+    def test_non_lecture_rows_are_still_skipped_silently(self):
+        """Em-dash rows are deliberate -- no class, project reviews, the final exam -- and
+        making them errors would make the check useless."""
+        titles, _ = self.parse_with(
+            "| — | Wed Sep 30 | **No class**, a made-up holiday | | |"
+        )
+        self.assertNotIn(8, titles)
+
+    def test_the_real_schedule_parses(self):
+        """The guard must not reject the file as it actually stands."""
+        titles, aliases = nm.lectures()
+        self.assertEqual(len(titles), 22)
+        self.assertEqual(aliases.get(23), 22)
+
+    def test_the_cli_reports_a_message_not_a_traceback(self):
+        """The message is the whole value of this check, and a traceback buries it."""
+        target = self.tmp / "roadmap.md"
+        target.write_text(
+            self.original.replace(
+                self.REAL_ROW, "| 8a | Wed Sep 30 | NMT Overview | | **F2026** |"
+            ),
+            encoding="utf-8",
+        )
+        nm.ROADMAP = target
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = nm.main(["--check"])
+        self.assertEqual(code, 1)
+        self.assertNotIn("Traceback", stderr.getvalue())
+        self.assertIn("cannot be read", stderr.getvalue())
 
 
 class TestAssignmentsAreParsed(unittest.TestCase):
