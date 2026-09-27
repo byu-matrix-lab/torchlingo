@@ -98,7 +98,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
 | #74 | Fix the broken anchor and diagnose the 93 docs warnings | Anchor in PR #51; the 93 warnings still open |
 | #78 | Tutorial 5's committed outputs predate the retrained checkpoint | In review — PR #57 |
-| #79 | An order-dependent test; does not reproduce on main today | Open |
+| #79 | An order-dependent test | **Reproduced** — blocks clean verification of test-adding PRs |
 | #81 | Fail the build on hand-typed generated numbers | Open |
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | Open |
 | #83 | Show attention on the Transformer, not only the LSTM | In review — PR #59 |
@@ -980,23 +980,30 @@ therefore cannot detect scrambled beam state or bad memory expansion.
   eventually migrate to the history-sensitive fixture rather than sitting alongside it.
 
 **#79 `test_different_optimizers_produce_different_results` is order-dependent**
-Filed after it failed under `python -m unittest discover tests`, the runner `CLAUDE.md`
-documents, while CI's `pytest tests/` was green. **Re-checked on main 2026-09-23: it now
-passes under `unittest discover`, 4 runs out of 4** (693 tests, 21 skipped), so the
-failure is intermittent rather than a standing red suite. That is worse to leave alone,
-not better — a test that depends on whatever seeded the RNG before it will come back.
-- The assertion is the weak part: it checks that Adam or SGD *improved* over 2 epochs on
-  a tiny fixture. When the two optimizers produced byte-identical curves
-  (`Epoch 1/2 | Train: 2.1852` / `Epoch 2/2 | Train: 2.1852`) the real claim — that the
-  two optimizers take *different* trajectories — was the thing that had failed.
-- Seed inside the test, and assert the difference rather than the improvement.
-- Worth sweeping for other order-dependent tests while in there: run the suite under
-  both runners and diff. The two documented ways to run the suite disagreeing, with
-  nothing checking that they agree, is the same shape as the tag-vs-`pyproject` defect.
 
----
+**Reproduced 2026-09-26, with a mechanism.** It failed on PR #57's branch under
+`python -m unittest discover tests` while `main` passed the same run, and it passes under
+`pytest` on both. So the two documented ways to run the suite disagree, which is the fourth
+instance this month of two things that must agree with nothing checking that they do.
 
-## Release
+**The trigger is test count, not PR #57's content.** #57 changes only the decode path — a float
+causal mask becomes the boolean one training already used — and this test trains Adam against
+SGD and never decodes. What #57 adds is a 150-line test file, so more RNG is consumed before
+this test runs. That is exactly the failure mode predicted when this was filed: *a test that
+depends on whatever seeded the RNG before it will come back.*
+
+**The assertion is the defect.** It checks `adam_improved or sgd_improved` — "at least one
+should show improvement" — on a tiny fixture over 5 epochs. With an unlucky starting state
+neither improves and the test fails, while the claim it is named for, that the two optimizers
+take *different trajectories*, is never checked at all.
+
+- Seed inside the test, and assert the **difference** between the two curves rather than
+  improvement in either.
+- **This now blocks clean verification of every PR that adds tests**, since adding tests is what
+  perturbs the ordering. That makes it worth fixing before #54, #59, #103 and #105 land rather
+  than after.
+- Worth sweeping for others while in there: run the suite under both runners and diff. CI uses
+  `pytest`; `CLAUDE.md` documents `unittest discover`. Nothing checks they agree.
 
 **#36 CI actions are pinned to a deprecated Node runtime**
 Every run now warns: `actions/checkout@v4`, `actions/setup-python@v5` and
