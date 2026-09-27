@@ -59,9 +59,8 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #124 | Simplify Lecture 6's chrF/TER wrappers | **After Mon Sep 28**, not before — A6 is live |
 | #133 | One metadata namespace for both notebook families | Open — generate the map rather than maintain it |
 | #135 | `examples/*.py` still do not checkpoint | Open — the five a student is most likely to copy |
-| #128 | Run the learning curve on the cluster | **RUNNING** — array 13900963, 7 of 21 done |
+| #128 | Run the learning curve on the cluster | **RUNNING** — array 13900963, 17 of 21 done |
 | #129 | Extract a shared `~/Projects/hpc` | Open — after #128 gives a second implementation to diff |
-| #130 | `pyproject`, installed metadata and `__version__` must agree | In review — **PR #105** |
 | #131 | Name the model family, and which config the numbers used | Open — docs show a config nothing runs |
 | #97 | SentencePiece on versus off, controlled | **Due Mon Oct 12** |
 | #102 | Inference cannot resume a long decode | **Needed by Mon Oct 19** — largest undone piece |
@@ -449,17 +448,6 @@ only conventions have been copied, not code.
 
 Candidates already identifiable: job waiting, array-manifest indexing, the login/venv
 environment guard, the no-internet-on-compute-nodes convention, and the babysitter pattern.
-
-### #130 `pyproject`, installed metadata and `__version__` must agree
-
-**In review, PR #105.** A working tree at 0.2.0 reported `0.0.8` for a whole session, because
-the editable install predated the version bump and nothing looks at installed metadata. No
-result changed; the *provenance* was wrong, and it was about to be recorded into the curve's
-report.
-
-Distinct from the release tag guard, which compares a `v*` tag against `pyproject` and catches
-a mistagged release. This catches a stale environment, which is the failure a developer
-actually hits and which no tag check can see.
 
 ### #131 Name the model family, and say which config produced the numbers
 
