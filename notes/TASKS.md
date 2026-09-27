@@ -100,7 +100,6 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #81 | Fail the build on hand-typed generated numbers | Open |
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | Open |
 | #83 | Show attention on the Transformer, not only the LSTM | In review — PR #59 |
-| #84 | The two evaluation pages ARE off-nav on main now | **Open — the prediction came true** |
 | #85 | Only BLEU carries a signature; chrF and TER do not | **Unblocked** — PR #55 merged |
 | #86 | `evaluate_model` has no test, and it is what callers use | Open — after PR #58 |
 | #88 | Open the tutorial 7 PR | **Unblocked — PR #58 has merged** |
@@ -297,8 +296,7 @@ missing a gate that `main` gained after their checks ran.
 
 **Done when** all six are merged. They need a reviewer, which is Coulson.
 
-Knock-ons: **PR #51** fixes **Task #84**, now a live defect rather than a prediction. **PR
-#55** is what **Task #85** and **Task #91** wait on. (Task, not PR: PRs #84 and #85 exist and
+Knock-on: **PR #55** is what **Task #85** and **Task #91** wait on. (Task, not PR: PRs #84 and #85 exist and
 are unrelated — the collision `CLAUDE.md`'s numbering rule describes.)
 
 ### #126 Tutorial 6 has no nav entry and no Colab badge
@@ -1009,21 +1007,6 @@ approximation, because the decoder is causally masked.
 - Costs CI nothing, but it does make tutorial 4 depend on `data/pretrained/model.pt`, so
   tutorial 4 joins the LFS skip list. See #53.
 
-**#84 The two evaluation pages ARE off-nav, as of 2026-09-26** — no longer a prediction
-PR #58 merged, and it did not touch `docs/mkdocs.yml`. So `concepts/evaluation.md` and
-`reference/evaluation.md` are now on `main` and unreachable from the site. The thing this
-task predicted has happened.
-
-`mkdocs build --strict` still exits 0, because a page missing from the nav is an INFO
-rather than a warning — which is exactly how the three pages in #63 went unreachable, and
-is the second time the same trap has closed.
-
-- **PR #51 is the fix**, since it is the one that edits the nav. Landing it closes this.
-- The nav entries also exist on the local `docs/evaluation-tutorial` branch, which had to
-  edit `mkdocs.yml` anyway to place tutorial 7. Either route works; #51 is nearer.
-- Two occurrences is the argument for #89, which makes the check explicit instead of
-  relying on someone noticing a third time.
-
 **#88 Open the tutorial 7 PR** — unblocked 2026-09-26, PR #58 merged
 
 Written, executed and verified on the **local** branch `docs/evaluation-tutorial` (commit
@@ -1042,7 +1025,11 @@ It needs no LFS artifact, so it takes the CI gate to 3 of 7.
 **#89 Fail the docs build when a page is off-nav**
 
 `mkdocs` reports off-nav pages at **INFO**, so `--strict` exits 0 while they sit unreachable.
-Measured: `--strict` EXIT=0 with **11** pages off-nav.
+
+**Measured 2026-09-26, after #84 was fixed: 53 pages, 8 off-nav**, and the split is the whole
+design of the check — 5 are `_generated/*.md` snippets pulled in with `--8<--` includes and are
+*supposed* to be off-nav, while 3 are genuine orphans: `MULTILINGUAL_ANALYSIS.md`,
+`MULTILINGUAL_QUICKSTART.md`, `TESTING_GUIDE.md`.
 
 The trap has caught five pages across two PRs, and the second was noticed only because someone
 was auditing the first. That does not catch the third.
