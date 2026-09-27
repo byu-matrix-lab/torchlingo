@@ -50,6 +50,11 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 
 | | Task | State |
 |---|---|---|
+| #144 | Tutorial 2 is a tutorial used as Lecture 7's in-class activity | **Your call** — the one notebook where family and role disagree |
+| #145 | Say which assignment each notebook jump-starts | **Your call** — four proposed; blocks #146 |
+| #146 | Stamp the purpose cell into all ten notebooks, and gate it | Open — mechanics done in PR #117; waits on #144 and #145 |
+| #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **Due Mon Oct 12** — raises #121's value; do them as one |
+| #148 | Five assignments are missing from the schedule | Open — `leads_to` cannot name an assignment the SSOT omits |
 | #137 | A schedule row that does not parse vanishes from the notebook map | **Before Lecture 8 is split** — a split is what triggers it |
 | #138 | Renumbering lectures silently redirects every `serves_lectures` | **With the Lecture 8 split** — no check can catch this one |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | Open — the claim is wrong either way; ties to #121 |
@@ -77,7 +82,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
-| #113 | Land the PRs still open | Three: **PR #113** green and needs an approval on GitHub; **#103**, **#54** |
+| #113 | Land the PRs still open | Three: **PR #117** new and green-pending; **#103**, **#54** |
 | #118 | What does a paid Colab session actually provide? | **Coulson** — blocks any A8 memory claim |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
@@ -374,6 +379,86 @@ exactly the failure `training_checkpoint` exists for.
 
 Left separate deliberately: those five files sit outside the lint gate (#22), so a change there
 is unguarded, and a five-file mechanical diff would bury its own review.
+
+### #144 Tutorial 2 is a tutorial used as Lecture 7's in-class activity
+
+**Eric, 2026-09-27:** the tutorials are out-of-class and the course notebooks are in-class
+active learning. True of every notebook but one.
+
+`02-train-tiny-model` lives in `docs/docs/tutorials/` and its declared role is `activity` —
+Lecture 7's in-class activity, which is what the roadmap's table said before the metadata
+existed. So for this notebook the collection and the use disagree.
+
+That was worth surfacing rather than smoothing over, and it corrected the tooling: `family`
+says where a notebook *lives*, `role` says how it is *used*, and a reader is told the role. The
+two are independent fields for exactly this case.
+
+**The remaining question is yours.** Either tutorial 2 really is Lecture 7's activity — in which
+case nothing changes and the exception is deliberate — or Lecture 7 should get a course notebook
+of its own and tutorial 2 reverts to out-of-class reading. The metadata will say whichever you
+decide; today it says the first.
+
+Worth weighing alongside #145: tutorial 2 is also the clearest A8 jump start in the repository,
+and "the thing students work through before the big assignment" may be a better description of
+it than either in-class or out-of-class.
+
+### #145 Say which assignment each notebook jump-starts
+
+**Eric, 2026-09-27:** in-class notebooks are often a jump start on the next assignment, and some
+tutorials should be pivoted to serve that purpose too.
+
+`leads_to` exists for this as of PR #117, validated against the eleven assignments parsed out of
+the schedule's own column, so a notebook states its deadline without repeating it.
+
+**Four proposals. Which assignment a notebook prepares is a pedagogical call, so these are
+arguments rather than decisions:**
+
+| notebook | assignment | why |
+|---|---|---|
+| `02-train-tiny-model` | **A8**, due Lecture 10 | A8 is "create and run an NMT model". Tutorial 2 *is* that at small scale — prepare, build, train, test, save. The clearest one in the repository. |
+| `05-real-translations` | **A8** | The "now run it on unseen data" half, and it already carries the pretrained checkpoint. |
+| `01-data-and-vocab` | **A5**, due Lecture 6 | Its Part 1 is loading and cleaning a parallel corpus. Retrospective this year, real next. |
+| a Lecture 9 notebook | **A9**, due Lecture 11 | Does not exist yet. See #147. |
+
+**Deliberately not proposed:** `03-inference-and-beamsearch`. Its BLEU half points at A6 or A11,
+but #142 has not settled which notebook owns evaluation, and pointing it at an assignment before
+that is decided would make the question harder to answer.
+
+### #146 Stamp the purpose cell into all ten notebooks, and gate it
+
+The mechanics landed in PR #117 and are idempotent — verified stable over four runs and an
+in-place update, on one notebook of each format version. What remains is applying them and
+adding the banner to `--check` so it cannot drift.
+
+**Held deliberately until #144 and #145 are answered**, because the cell is student-facing text
+and the wording encodes decisions that are not mine: whether tutorial 2 is an in-class activity,
+and which assignment each notebook starts.
+
+Two smaller choices to make at the same time: the cell currently sits **before** the title rather
+than after it, and the exact phrasing of the opening sentence.
+
+### #147 A9 has no notebook, and one notebook would serve it and Lecture 9
+
+A9 is SentencePiece, **due Mon Oct 12** at Lecture 11. Lecture 9 is morphology and terminology
+and has no notebook either (#121, answer owed to Cowork by Oct 3).
+
+These are one piece of work, not two. A subword notebook serves the lecture *and* starts the
+assignment, and #139 found the opening for free: tutorial 1's Part 2 ends on `<unk>` for "Hello
+universe", which is the motivating example for everything A9 asks a student to do.
+
+So #121's value is higher than it looked. Build it once, declare `serves_lectures: [9]` and
+`leads_to: ["A9"]`, and two gaps close together.
+
+### #148 Five assignments are missing from the schedule
+
+The schedule names A4, A5, A6, A8, A9, A10, A11, A12, A13, A14 and A16. **A1, A2, A3, A7 and
+A15 appear nowhere in the roadmap at all** — checked 2026-09-27, not inferred from the gaps.
+
+Either the numbering genuinely skips them, or the single source of truth is missing five
+assignments. Worth establishing which, because it is no longer only a documentation question:
+`leads_to` validates against this table, so a notebook cannot declare that it jump-starts an
+assignment the schedule does not name. If A7 exists and is unlisted, the validator will reject a
+correct declaration.
 
 ### #137 A schedule row that does not parse vanishes from the notebook map
 
