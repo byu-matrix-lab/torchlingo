@@ -126,6 +126,7 @@ nav:
     - Model Architectures: concepts/models.md
     - Training Loop: concepts/training.md
     - Decoding: concepts/decoding.md
+    - Evaluation: concepts/evaluation.md
     - When It Fails: concepts/when-it-fails.md
   - Tutorials:
     - tutorials/index.md
@@ -147,6 +148,7 @@ nav:
     - reference/index.md
     - Config: reference/config.md
     - Diagnostics: reference/diagnostics.md
+    - Evaluation: reference/evaluation.md
     - Training Checkpoints: reference/training_checkpoint.md
     - Data Processing:
       - reference/data_processing/index.md
