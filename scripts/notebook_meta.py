@@ -85,10 +85,18 @@ ROLE_PHRASE = {
     "reference": "offered alongside",
 }
 
-# Rows whose lecture column is a number, from the "Semester at a glance" table. Rows
-# numbered "—" are not lectures: no class, a project checkpoint, the final.
+# Rows whose lecture column is a number, from the "Semester at a glance" table.
 SCHEDULE_ROW = re.compile(r"^\| (\d+(?:, ?\d+)*) \| [^|]+ \| ([^|]+) \|")
 SCHEDULE_HEADING = "## Semester at a glance"
+
+# What a readable lecture column looks like: one number, or several sharing a session.
+LECTURE_CELL = re.compile(r"^\d+(?:, ?\d+)*$")
+
+# Cells that are legitimately not lectures, and are skipped rather than reported. An em dash
+# marks a row that is not a lecture at all -- no class, a project review, the final exam --
+# and `#` is the table's own header. Every *other* unreadable cell is an error, because the
+# whole point of parsing this table is that a lecture cannot quietly go missing from the map.
+SKIPPABLE_CELLS = {"—", "–", "-", "#"}
 
 # Assignments as the schedule writes them, in the "Assignment due that day" column:
 # `**A4** initial cleaning steps`, sometimes two in one cell separated by a middot.
@@ -109,10 +117,12 @@ def lectures() -> tuple[dict[int, str], dict[int, int]]:
         numbers onto its first -- Lectures 22 and 23 are one session in one row.
 
     Raises:
-        ValueError: If the schedule cannot be found, rather than generating an empty map.
+        ValueError: If the schedule cannot be found, or if a row in it has a lecture column
+            this cannot read. Both are loud on purpose -- see below.
     """
     titles: dict[int, str] = {}
     aliases: dict[int, int] = {}
+    unreadable: list[str] = []
     # Only within the schedule's own section. Without this the generated map's rows match
     # the same shape and overwrite every title with a notebook filename -- which is exactly
     # what happened the first time this ran, and is the kind of quiet wrongness that would
@@ -121,16 +131,49 @@ def lectures() -> tuple[dict[int, str], dict[int, int]]:
     for line in ROADMAP.read_text(encoding="utf-8").splitlines():
         if line.startswith("## "):
             inside = line.strip() == SCHEDULE_HEADING
-        if not inside:
+        if not inside or not line.startswith("|"):
             continue
-        match = SCHEDULE_ROW.match(line)
-        if not match:
+
+        columns = line.split("|")
+        if len(columns) < 5:
             continue
-        numbers = [int(n) for n in match.group(1).replace(" ", "").split(",")]
-        title = match.group(2).strip()
-        titles[numbers[0]] = title
+        cell = columns[1].strip()
+
+        # A row whose lecture column this cannot read is an error, not a row to skip.
+        #
+        # Skipping was the original behaviour and it was silently wrong in the worst way: the
+        # lecture simply was not in the generated map, nothing reported anything, and the map
+        # still looked complete. `8a`, `8-9` and `8 (part 1)` all fell through. Splitting a
+        # lecture is exactly when someone reaches for one of those forms, so the failure was
+        # waiting for the moment it would do most damage.
+        #
+        # Widening the accepted forms is a separate decision -- which scheme the course uses
+        # is the instructors' call, not this script's -- so the message names what is
+        # accepted today rather than guessing at what was meant.
+        if cell in SKIPPABLE_CELLS or set(cell) <= set("-: "):
+            continue
+        if not LECTURE_CELL.match(cell):
+            unreadable.append(
+                f"  {line.strip()[:100]}\n    lecture column reads {cell!r}"
+            )
+            continue
+
+        numbers = [int(n) for n in cell.replace(" ", "").split(",")]
+        titles[numbers[0]] = columns[3].strip()
         for extra in numbers[1:]:
             aliases[extra] = numbers[0]
+
+    if unreadable:
+        raise ValueError(
+            f"{ROADMAP}: {len(unreadable)} schedule row(s) have a lecture column that "
+            "cannot be read, so they would be missing from the generated map:\n"
+            + "\n".join(unreadable)
+            + "\n\n  Accepted: a number (`8`), several sharing one session (`22, 23`), "
+            "or `—` for a row that is not a lecture.\n"
+            "  To use another scheme, widen LECTURE_CELL in scripts/notebook_meta.py "
+            "deliberately -- and note that serves_lectures holds these same numbers, so "
+            "renumbering means re-checking every notebook (Task #138)."
+        )
     if not titles:
         raise ValueError(f"{ROADMAP} has no recognizable schedule table")
     return titles, aliases
@@ -523,8 +566,14 @@ def roadmap_with_table(current: str) -> str:
     return f"{head}\n\n{table()}\n\n{current[end:]}"
 
 
-def main() -> int:
-    """Validate the metadata, or print the generated table."""
+def main(argv: list[str] | None = None) -> int:
+    """Validate the metadata, or print the generated table.
+
+    Args:
+        argv (list | None): Arguments to parse. Defaults to the real command line; passed
+            explicitly by the tests, so the CLI's own behaviour -- an exit code and a message
+            rather than a traceback -- can be asserted instead of assumed.
+    """
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
         "--check", action="store_true", help="validate and exit 1 on problems"
@@ -557,12 +606,22 @@ def main() -> int:
         help="with --stamp: repo-relative files it cannot run without",
     )
     parser.add_argument("--note", help="with --stamp: prose for a non-obvious pairing")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     found = notebooks()
     if not found:
         print("no notebooks found; run from the repository root", file=sys.stderr)
         return 2
+
+    # Read the schedule first and report a problem with it as a message rather than a
+    # traceback. The message is the whole point of this check -- it tells an author which row
+    # is unreadable and what forms are accepted -- and in CI a traceback buries that under
+    # Python internals, which is where nobody reads.
+    try:
+        lectures()
+    except ValueError as error:
+        print(error, file=sys.stderr)
+        return 1
 
     if args.table:
         print(table())
