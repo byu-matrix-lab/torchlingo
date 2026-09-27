@@ -56,6 +56,7 @@ dates are not lecture-critical, and several with no date are.
 
 | label | means | date |
 |---|---|---|
+| **L6** | Human and Automatic MT Evaluation — **has already run** | Wed Sep 23 · A6 due Mon Sep 28 |
 | **L7** | Research Paper Reviews; Intro to Neural Networks | Mon Sep 28 · A6 due |
 | **L8a** | Neural MT: Encoder-Decoder, and Why Attention Was Invented | Wed Sep 30 · **A8 introduced** |
 | **L8b** | Neural MT: The Transformer | Mon Oct 5 |
@@ -63,6 +64,11 @@ dates are not lecture-critical, and several with no date are.
 | **L9** | Morphology and Terminology in NMT | Wed Oct 7 · **A8 due, A9 set** |
 | **10+** | Lecture 10 onward, or no lecture depends on it | |
 | **hyg** | roadmap and process integrity — **critical, but not to one lecture** | |
+
+**A lecture that has already run still owns its work.** `L6` means "this belongs to Lecture
+6", not "this is overdue" — the deadline pressure is gone, the subject matter is not, and a
+student revisiting the lecture or an instructor preparing Fall 2027 meets it there. Filing
+those as `10+` lost the one piece of information the label exists to carry.
 
 `hyg` is not a synonym for "later". It is the category that keeps the other labels true: a
 generated map that has drifted, a gate that reports without blocking, or a task list that
@@ -84,7 +90,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #151 | The LSTM asks for dropout it cannot apply | **10+** | Open — nine tests warn; a student setting it gets nothing |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
 | #140 | Split tutorial 4 at Part 6 — Parts 6 to 8 are Lecture 8 material | **L8a/8b** | Open — **a Lecture 8 split makes this land somewhere** |
-| #141 | Lecture 6's notebook is an activity with homework inside it | **10+** | **After Mon Sep 28** — A6 is live until then |
+| #141 | Lecture 6's notebook is an activity with homework inside it | **L6** | **After Mon Sep 28** — A6 is live until then |
 | #142 | Decide which notebook owns BLEU before splitting either | **10+** | Open — tutorial 3 Part 5 versus the planned tutorial 7 |
 | #143 | Two merged branches are still on the remote | **hyg** | Open — **needs your permission**; the delete is blocked here |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
@@ -92,7 +98,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Lecture 9 is Wed Oct 7; A9 Wed Oct 14** — the only notebook L9 has on its own subject |
 | #122 | Make Assignment 9's control hard to get wrong in code | **L9** | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | **10+** | Open — highest uncertainty, due Oct 28 |
-| #124 | Simplify Lecture 6's chrF/TER wrappers | **10+** | **After Mon Sep 28**, not before — A6 is live |
+| #124 | Simplify Lecture 6's chrF/TER wrappers | **L6** | **After Mon Sep 28**, not before — A6 is live |
 | #135 | `examples/*.py` still do not checkpoint | **L8a** | Open — the five a student is most likely to copy |
 | #129 | Extract a shared `~/Projects/hpc` | **10+** | Open — after #128 gives a second implementation to diff |
 | #97 | SentencePiece on versus off, controlled | **L9** | **Due Mon Oct 12** |
