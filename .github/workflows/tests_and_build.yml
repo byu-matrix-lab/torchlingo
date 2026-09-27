@@ -131,6 +131,24 @@ jobs:
         run: |
           python -m pytest tests/
 
+      # Both documented runners, because they disagreed for a month and only one was
+      # watched. `CLAUDE.md` names `python -m unittest discover tests` FIRST, and that is
+      # the command a contributor is most likely to type -- but CI ran pytest only, so a
+      # test that passed under one and failed under the other looked green here and red on
+      # a laptop. Task #79.
+      #
+      # The disagreement was never about the runners. Two tests in
+      # test_model_convergence.py built models without seeding, so their initial weights
+      # came from whatever RNG state the previously-run tests left behind, and `discover`
+      # and pytest order tests differently. Both are seeded now; this step is what stops
+      # the next one from going unnoticed for a month.
+      #
+      # It costs a second run of the suite. That is the price of the claim "the tests pass"
+      # meaning the same thing wherever it is made.
+      - name: Run test suite under unittest discover
+        run: |
+          python -m unittest discover tests
+
       # Docstring examples are the code students are most likely to copy, and
       # nothing executed them until now: 30 of the 48 in the package were
       # broken, including one that printed a BLEU score the code does not
