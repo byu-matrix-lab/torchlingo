@@ -85,6 +85,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #146 | Stamp the purpose cell into all ten notebooks, and gate it | **hyg** | Open — mechanics done in PR #117; waits on #144 and #145 |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
 | #148 | Five assignments are missing from the schedule | **hyg** | Open — `leads_to` cannot name an assignment the SSOT omits |
+| #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **10+** | Open — it wrote a 2-run report over a 21-run source |
 | #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **10+** | **Your call** — it holds the corpus prep and all the HPC tooling |
 | #151 | The LSTM asks for dropout it cannot apply | **10+** | Open — nine tests warn; a student setting it gets nothing |
@@ -387,6 +388,24 @@ library's job is to make the concept legible, and this quietly teaches the oppos
 Worth deciding rather than patching: either pass `dropout=0.0` when `num_layers == 1` and say why
 in the docstring, or default the LSTM to two layers. The first is honest about the limitation; the
 second makes the knob work. Not the same choice, and the second changes a default.
+
+### #132 Quick Start has no notebook, and its badge opens a different one
+
+`docs/docs/getting-started/quickstart.md` carries a Colab badge, and the badge opens
+`tutorials/02-train-tiny-model.ipynb` — a different document from the one the reader is on.
+
+So the page a newcomer is pointed at first has no runnable form of its own, and the button
+that looks like "run this" runs something else. Whichever way it is fixed — give Quick Start
+its own notebook, or change the badge to say what it opens — the present state is the one that
+misleads.
+
+**Recovered from the session task list on 2026-09-27**, where it had been living *only*. It was
+found by checking, before deleting the session's copy, that each task existed here too — and
+this one did not. Four of the five checked out; this is why the check was worth running.
+
+The general lesson is worth more than the task: the session list is a mirror, and a mirror that
+holds something the original does not is not a mirror. Anything created there has to be written
+here before the session ends.
 
 ### #149 `collect_benchmark.py` silently drops a run file it cannot find
 
