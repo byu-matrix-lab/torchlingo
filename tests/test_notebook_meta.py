@@ -573,5 +573,122 @@ class TestWritersAreIdempotent(unittest.TestCase):
             nm.notebook_with_purpose(path, GOOD)
 
 
+class TestNotebookHygiene(unittest.TestCase):
+    """The checks that were run by hand when course notebooks arrived, now automated.
+
+    Task #154. Every assertion here corresponds to something that has actually happened or
+    was actually checked for on 2026-09-27: a 675 KB training log committed in a Fall 2025
+    notebook, a HuggingFace token read from Colab Secrets, and a tutorial with no badge.
+    """
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.addCleanup(setattr, nm, "COURSE", nm.COURSE)
+        self.source = nm.COURSE / "lecture-03-word-embeddings.ipynb"
+        self.base = json.loads(self.source.read_text(encoding="utf-8"))
+
+    def check(self, nb=None, text=None):
+        """Write a notebook into a directory treated as `course/`, and check it."""
+        target = self.tmp / self.source.name
+        target.write_text(
+            text if text is not None else json.dumps(nb, indent=1), encoding="utf-8"
+        )
+        nm.COURSE = self.tmp
+        return nm.hygiene(target)
+
+    def with_code_line(self, line):
+        """Inject a line into a real code cell, keeping the notebook valid JSON.
+
+        Injecting into the raw text instead would break the JSON, and the checker would
+        then complain about *that* -- a pass for the wrong reason, which is how the first
+        version of this verification fooled itself.
+        """
+        nb = json.loads(json.dumps(self.base))
+        for cell in nb["cells"]:
+            if cell["cell_type"] == "code":
+                cell["source"] = [line + "\n"] + cell["source"]
+                return nb
+        raise AssertionError("fixture notebook has no code cell")
+
+    def test_the_real_course_notebooks_are_clean(self):
+        for path in sorted(nm.COURSE.glob("*.ipynb")):
+            self.assertEqual(nm.hygiene(path), [], path.name)
+
+    def test_the_real_tutorials_are_clean(self):
+        for path in sorted(nm.TUTORIALS.glob("*.ipynb")):
+            self.assertEqual(nm.hygiene(path), [], path.name)
+
+    def test_a_committed_output_is_caught_in_a_course_notebook(self):
+        nb = json.loads(json.dumps(self.base))
+        for cell in nb["cells"]:
+            if cell["cell_type"] == "code":
+                cell["outputs"] = [
+                    {"output_type": "stream", "name": "stdout", "text": "x"}
+                ]
+                break
+        self.assertTrue(any("committed output" in c for c in self.check(nb)))
+
+    def test_committed_outputs_are_REQUIRED_in_a_tutorial(self):
+        """The rule inverts between the two families, which is why it is not one rule.
+
+        `docs/mkdocs.yml` sets `execute: false`, so a tutorial's committed outputs are what
+        the docs site renders. The first version of this check flagged all six tutorials.
+        """
+        for path in sorted(nm.TUTORIALS.glob("*.ipynb")):
+            nb = json.loads(path.read_text(encoding="utf-8"))
+            if sum(len(c.get("outputs") or []) for c in nb["cells"]):
+                self.assertEqual(
+                    nm.hygiene(path), [], f"{path.name} was flagged for outputs"
+                )
+                return
+        self.skipTest("no tutorial currently commits outputs")
+
+    def test_an_execution_count_is_caught(self):
+        nb = json.loads(json.dumps(self.base))
+        for cell in nb["cells"]:
+            if cell["cell_type"] == "code":
+                cell["execution_count"] = 7
+                break
+        self.assertTrue(any("execution_count" in c for c in self.check(nb)))
+
+    def test_token_shapes_are_caught(self):
+        for line in (
+            "TOKEN = 'hf_" + "A" * 24 + "'",
+            "key = 'sk-" + "B" * 24 + "'",
+            "aws = 'AKIA" + "C" * 16 + "'",
+            "gh = 'ghp_" + "D" * 24 + "'",
+        ):
+            found = self.check(self.with_code_line(line))
+            self.assertTrue(
+                any("shaped like a token" in c for c in found), f"missed: {line[:14]}"
+            )
+
+    def test_the_whole_token_is_not_echoed(self):
+        """A complaint that prints the token publishes it more widely than the commit did."""
+        secret = "hf_" + "E" * 24
+        found = self.check(self.with_code_line(f"TOKEN = '{secret}'"))
+        self.assertTrue(found)
+        self.assertNotIn(secret, " ".join(found))
+
+    def test_an_instructor_marker_is_caught(self):
+        found = self.check(self.with_code_line("# INSTRUCTOR: the answer is 42"))
+        self.assertTrue(any("INSTRUCTOR" in c for c in found))
+
+    def test_a_missing_colab_badge_is_caught_for_course_notebooks(self):
+        text = self.source.read_text(encoding="utf-8").replace(
+            "colab.research.google.com", "example.invalid"
+        )
+        self.assertTrue(any("Colab badge" in c for c in self.check(text=text)))
+
+    def test_invalid_json_is_reported_once_and_clearly(self):
+        found = self.check(text="{ not json")
+        self.assertEqual(len(found), 1)
+        self.assertIn("not valid JSON", found[0])
+
+    def test_an_empty_notebook_is_caught(self):
+        self.assertTrue(any("no cells" in c for c in self.check({"cells": []})))
+
+
 if __name__ == "__main__":
     unittest.main()

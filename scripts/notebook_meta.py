@@ -335,6 +335,93 @@ def write_meta(path: Path, meta: dict) -> None:
     path.write_text(text.replace(anchor, anchor + block + ",\n"), encoding="utf-8")
 
 
+# Token shapes that must never reach a committed notebook. Not a general secret scanner --
+# it catches the four providers this course actually touches, which is what a course notebook
+# arriving from Colab plausibly carries.
+SECRET_SHAPES = re.compile(
+    r"\b(hf_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,})"
+)
+
+
+def hygiene(path: Path) -> list[str]:
+    """Check a notebook's file-level hygiene, separately from its metadata.
+
+    These are the checks that were run **by hand** on 2026-09-27 when three course notebooks
+    arrived from the Cowork session: no committed outputs, no execution counts, no tokens, a
+    Colab badge on anything a student is meant to open there, and no instructor solutions.
+
+    Productized because the hand check recurs on every baton and is exactly the kind of thing
+    that gets skipped on the busy pass. It also catches what actually breaks a course
+    notebook: one that has been round-tripped through Drive and brought back with a 675 KB
+    training log in it, or with a token pasted into a cell.
+
+    Costs nothing in CI -- it is a JSON read, and it runs in the lint job beside the metadata
+    check rather than needing the test environment.
+
+    Args:
+        path (Path): The notebook to inspect.
+
+    Returns:
+        list: Human-readable complaints; empty when the file is clean.
+    """
+    found = []
+    text = path.read_text(encoding="utf-8")
+    try:
+        nb = json.loads(text)
+    except json.JSONDecodeError as error:
+        return [f"{path}: is not valid JSON ({error})"]
+
+    cells = nb.get("cells", [])
+    if not cells:
+        found.append(f"{path}: has no cells")
+
+    # Committed outputs are a defect in a COURSE notebook and a requirement in a TUTORIAL,
+    # so this cannot be one rule.
+    #
+    # `docs/mkdocs.yml` configures mkdocs-jupyter with `execute: false`, so the outputs
+    # committed in a tutorial ARE what the documentation site renders -- strip them and the
+    # published page shows code with no results. A course notebook is opened in Colab and run
+    # from the top, so its outputs are dead weight: one arrived from Fall 2025 carrying a
+    # 675 KB training log.
+    #
+    # Nearly got this backwards. The first version of the check flagged all six tutorials.
+    if path.parent == COURSE:
+        outputs = sum(len(c.get("outputs") or []) for c in cells)
+        if outputs:
+            found.append(
+                f"{path}: {outputs} committed output(s). A course notebook is run from the "
+                "top in Colab, so strip them -- one arrived carrying a 675 KB training log."
+            )
+
+        counted = sum(1 for c in cells if c.get("execution_count"))
+        if counted:
+            found.append(
+                f"{path}: {counted} cell(s) carry an execution_count, so this was committed "
+                "from a run rather than cleaned"
+            )
+
+    for shape in SECRET_SHAPES.findall(text):
+        # Report the prefix only. Echoing a live token into CI logs would publish it more
+        # widely than the commit did.
+        found.append(f"{path}: contains something shaped like a token ({shape[:6]}...)")
+
+    if "INSTRUCTOR" in text.upper():
+        found.append(
+            f"{path}: mentions INSTRUCTOR. Instructor notebooks carry worked solutions and "
+            "must not be in this tree."
+        )
+
+    # A course notebook is opened in Colab by a student, from a badge. A tutorial is read on
+    # the docs site, where mkdocs-jupyter renders it, so the badge is a nicety there and a
+    # requirement here.
+    if path.parent == COURSE and "colab.research.google.com" not in text:
+        found.append(
+            f"{path}: no Colab badge, and students open course notebooks in Colab"
+        )
+
+    return found
+
+
 def problems(path: Path, meta: dict) -> list[str]:
     """Return every complaint about one notebook's metadata.
 
@@ -732,6 +819,7 @@ def main(argv: list[str] | None = None) -> int:
     complaints = []
     for path in found:
         complaints.extend(problems(path, read_meta(path)))
+        complaints.extend(hygiene(path))
     if complaints:
         print(f"{len(complaints)} problem(s):", file=sys.stderr)
         for c in complaints:
