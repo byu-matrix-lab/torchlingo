@@ -68,7 +68,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
-| #113 | Land the six PRs still open | All six refreshed and green against today's `main` |
+| #113 | Land the five PRs still open | #55 merged; #51, #52, #54, #57, #59 left |
 | #118 | What does a paid Colab session actually provide? | **Coulson** — blocks any A8 memory claim |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
@@ -89,7 +89,6 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #65 | Make tutorial 6 import the checks instead of redefining them | In review — PR #52 |
 | #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | Open |
 | #68 | Cite `torcheck` as prior art in the diagnostics docs | Open |
-| #70 | Print the sacreBLEU signature with every score | In review — PR #55 |
 | #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
 | #74 | Fix the broken anchor and diagnose the 93 docs warnings | Anchor in PR #51; the 93 warnings still open |
 | #78 | Tutorial 5's committed outputs predate the retrained checkpoint | In review — PR #57 |
@@ -98,12 +97,12 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | Open |
 | #83 | Show attention on the Transformer, not only the LSTM | In review — PR #59 |
 | #84 | The two evaluation pages ARE off-nav on main now | **Open — the prediction came true** |
-| #85 | Only BLEU carries a signature; chrF and TER do not | Open — after PRs #55 and #58 |
+| #85 | Only BLEU carries a signature; chrF and TER do not | **Unblocked** — PR #55 merged |
 | #86 | `evaluate_model` has no test, and it is what callers use | Open — after PR #58 |
 | #88 | Open the tutorial 7 PR | **Unblocked — PR #58 has merged** |
 | #89 | Fail the docs build when a page is off-nav | Open |
 | #90 | `CLAUDE.md`'s numbering example is stale | In review — **PR #91**, folded in |
-| #91 | `metric_comparison.json` records no BLEU signature | Open — after PRs #55 and #58 |
+| #91 | `metric_comparison.json` records no BLEU signature | **Unblocked** — PR #55 merged |
 | #92 | Tutorials 3 and 5 bypass the library's own evaluation API | Open |
 
 ## The CS 479 pivot
@@ -238,15 +237,6 @@ The Cowork session has been asked to write lecture notebooks into
 
 Blocked until the first course notebook exists; there is nothing to gate before that.
 
-### The machine crash of 2026-09-25
-
-Superseded by measurement. The cause was the **length cap**, not unreleased cache: see
-[`reports/length-ladder.md`](reports/length-ladder.md), which prices every cap and records
-what the crash diagnosis got wrong twice before landing. The guard that now prevents a
-repeat is `scripts/runtime_guard.py` in the private repository, shared by every experiment.
-
-The two tasks it generated follow.
-
 ### #107 The optimizations already exist and nothing uses them
 
 Measured on the 100K split, real tokenizer, batch 64:
@@ -258,9 +248,8 @@ length-bucketed, padded    2.90 M    1.00x waste   -> 74% saving
 ```
 
 `BucketBatchSampler`, `create_dataloaders(use_bucketing=...)`, `train_model(use_amp=...)`,
-`num_workers` and `pin_memory` all already exist and **all default off**. The crashed benchmark
-used none of them — a failure against the standing rule to check the inventory before
-hand-rolling.
+`num_workers` and `pin_memory` all already exist and **all default off**, so the saving is
+available and unclaimed by default.
 
 **Half done 2026-09-26:** the experiments bucket now (`ladder.py`, `benchmark_a8.py`). The
 library default is unchanged.
@@ -286,18 +275,21 @@ because the memory is the machine's, and a spike is held against everything else
   which bounds the worst case instead of releasing after it. Real MT toolkits do this, but
   it changes what `batch_size` means and a teaching library should not do that lightly.
 
-### #113 Land the six PRs still open
+### #113 Land the five PRs still open
 
 **Not blocking anything.** 0.2.0 is published and verified from PyPI, so what remains is
 improvement rather than repair.
 
 Open: **PR #51** nav entries, **PR #52** tutorial 6 imports, **PR #54** length normalization,
-**PR #55** the sacreBLEU signature, **PR #57** the causal-mask convention, **PR #59**
-Transformer attention.
+**PR #57** the causal-mask convention, **PR #59** Transformer attention.
 
-**All six are refreshed and green against today's `main`** as of 2026-09-26. They had each
-been 27 commits behind, and none had ever run the `Tag matches pyproject version` gate that
-PR #53 added — the PR #17 pattern, live. Refreshing was free because none carried an approval.
+**PR #55 merged 2026-09-26** and the signature is verified live:
+`nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0`. That closed #70 and unblocked
+#85 and #91.
+
+**All are refreshed and green against today's `main`.** Refresh again before merging any that
+sit: an old green tick was taken against an old base, and these have already been found
+missing a gate that `main` gained after their checks ran.
 
 **Done when** all six are merged. They need a reviewer, which is Coulson.
 
@@ -320,7 +312,7 @@ So a student told to read it **cannot browse to it** — it does not appear on t
 at all — and **cannot run it**, because there is no badge to open it in Colab.
 
 - **The nav half is already in PR #51**, green and waiting on a reviewer. If that has not landed
-  by Wednesday, add the entry directly rather than waiting.
+  by Wednesday, add the entry directly rather than waiting on review.
 - **The badge is two lines**, and tutorial 6 is the best candidate for one: it needs no LFS
   artifact — it is one of only two tutorials that actually execute in CI — so unlike tutorials
   4 and 5 it genuinely works from a pip install. **#114** does not touch it.
@@ -1077,20 +1069,6 @@ frozen/dead/live, naming the culprit.
 - Add a short prior-art note to `docs/docs/reference/diagnostics.md`: what it does, how it
   differs, when to reach for it instead.
 - Check its current maintenance status first. It was found, not evaluated.
-
-**#70 Print the sacreBLEU signature with every score** — in review as PR #55
-
-Adopted from the Joey NMT baseline run, which logs
-`nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0` next to every BLEU.
-
-We already use sacreBLEU, so the signature is available and we are throwing it away. A
-BLEU number without it is not reproducible by someone who was not there — which is
-precisely the discipline tutorial 6 and #59 are trying to teach. Currently we teach it
-and do not practise it.
-
-- `compute_bleu` returns a `sacrebleu.metrics.BLEU`; surface `.get_signature()`.
-- Print it wherever a score is reported: `scripts/compare_checkpoints.py`, tutorial 5,
-  `concepts/decoding.md`, and the generated `decoding_sweep.json`.
 
 **#71 Decide whether to report the Joey NMT breakage upstream**
 
