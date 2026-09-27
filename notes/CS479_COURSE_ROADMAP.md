@@ -1,20 +1,29 @@
-# CS 479 Fall 2026 course roadmap, and what it asks of TorchLingo
+# CS 479 Fall 2026 course roadmap
 
-Handed over 2026-09-24, corrected 2026-09-25, from the Cowork session where Eric's CS 479
-decks are being rebuilt.
+Course-side reference, maintained by the Cowork session. **v3, 2026-09-26.** Replaces the
+version you read on 2026-09-25 in place; git history has the previous one.
 
-**The correction matters, so it goes first.** An earlier version of this file assumed the
-course would stay on OpenNMT-py for Fall 2026 and that TorchLingo was a target for a later
-offering. That was wrong. OpenNMT-py is in maintenance mode, and **Eric is pivoting the
-course to TorchLingo this semester**. Lecture 7 is Monday, September 28. Plan against that.
+What changed since v2, in one list, so you do not have to diff it:
 
-Part 1 is the course map, verbatim from `CS479 Fall 2026 Roadmap_v2.md` in Eric's course
-folder, with all dates confirmed against the Learning Suite Schedule tab. Part 2 is what it
-asks of this repository.
+- **Lectures 7 and 8 are rebuilt** and their scope notes are real rather than descriptions
+  of last year's decks. Lecture 7 is Monday.
+- **The data-splitting lesson moved from Lecture 8 to Lecture 7**, which is closer to the
+  placement briefing Part A2 actually wanted. Lecture 8 keeps a recap.
+- **The pivot section is rewritten around your measurements.** Three risks v2 listed are
+  closed: the library ships complete at 0.2.0, Colab resume is verified, and the units
+  question is settled at 30 to 36 epochs. The length-cap table and the two-levers framing
+  are in, with the Metal caveat attached.
+- **New: what the pivot settled** — the low-resource floor wording for A8, the Assignment 9
+  control bug, and the BPE ordering wrinkle.
+- **New: the grader has no source and no home.** Traced today; details below. Eric has
+  written to its author.
+- **New: a section recording the handoff protocol** and where the notebooks now live, so the
+  arrangement is documented somewhere other than in this log.
+
+Everything below the line is the course map itself, verbatim from
+`CS479 Fall 2026 Roadmap_v3.md` in Eric's course folder.
 
 ---
-
-# Part 1: the course
 
 
 Introduction to Machine Translation, BYU. Monday and Wednesday, 11:00 to 12:15.
@@ -30,6 +39,11 @@ first, so its scope note describes what that deck does today.
 
 **Dates.** Confirmed against the Learning Suite Schedule tab on Sep 25.
 
+**This version.** v3, Sep 26. Lectures 7 and 8 are now rebuilt, the pivot's open
+engineering questions have started returning measurements rather than estimates, and the
+repository session and this one now exchange written handoffs. What changed is collected
+under “What the pivot has settled” below; the lecture scope notes for 9 onward are unchanged.
+
 ---
 
 ## Semester at a glance
@@ -42,8 +56,8 @@ first, so its scope note describes what that deck does today.
 | 4 | Wed Sep 16 | Data Preparation for MT Training | | F2026 |
 | 5 | Mon Sep 21 | Data Preparation for MT Training, Part 2 | **A4** initial cleaning steps | F2026 |
 | 6 | Wed Sep 23 | Human and Automatic MT Evaluation | **A5** complete cleaning pipeline | F2026 |
-| 7 | Mon Sep 28 | Research Paper Reviews; Intro to Neural Networks | **A6** human vs. automatic evaluation | F2025 |
-| 8 | Wed Sep 30 | Neural MT Overview and Architectures | | F2025 |
+| 7 | Mon Sep 28 | Research Paper Reviews; Intro to Neural Networks | **A6** human vs. automatic evaluation | **F2026** |
+| 8 | Wed Sep 30 | Neural MT Overview and Architectures | | **F2026** |
 | 9 | Mon Oct 5 | Morphology and Terminology in NMT | | F2025 |
 | 10 | Wed Oct 7 | Overview of MT Quality Estimation | **A8** create and run an NMT model | F2025 |
 | 11 | Mon Oct 12 | Neural Quality Estimation and Evaluation | **A9** SentencePiece · **A10** install COMET | F2025 |
@@ -143,26 +157,36 @@ student's own data and shows BLEU returning zero on ten short sentences.
 written analysis of where the metrics and the ranking diverge. Extra credit for writing
 your own BLEU script, explicitly without AI.
 
-### 7. Research Paper Reviews; Introduction to Neural Networks (F2025, 32 slides)
-Two halves. First, the paper-review assignment: 20 papers, each student picks one and
-gives a 5-minute presentation later in the semester. Second, neural network foundations
-from the AMTA 2018 tutorial: hidden layers, activation functions, cost functions, gradient
-descent.
-**In-class activity:** install OpenNMT-py and run the Quickstart toy English-German model,
-on Colab with a GPU.
-*This is the first lecture where the course depends on a training framework.*
+### 7. Research Paper Reviews; Introduction to Neural Networks (F2026, 38 slides)
+Rebuilt Sep 25. Two halves still, plus the pivot. The paper-review assignment is split into
+"What To Do" and "What Your Presentation Must Cover"; the neural-network foundations from
+the AMTA 2018 tutorial carry over untouched, with the instructor's own "describe ReLU"
+placeholder replaced by a real activation-functions slide.
 
-### 8. NMT Overview and Architectures (F2025, 36 slides)
-Encoder-decoder, the fixed-representation bottleneck, degradation with sentence length,
-RNN with attention, self-attention, softmax, the Transformer, multi-head attention, pros
-and cons of NMT. Includes a frank debrief of what went wrong for students in the install
-activity, including how badly dirty training data shows up in output.
-**Assignment:** train an English-to-X system on at least 100K cleaned pairs, with 2K test
-and 2K validation held out and no overlap, at least 20,000 training steps, BPE if the
-language is inflected. Deliver the three data splits, MT output on the test set, ten
-sample pairs with back-translations, a SacreBLEU score, and a write-up of the
-configuration. Re-cleaned data gets re-uploaded.
-*This is the heaviest assignment in the course.*
+New for F2026: an Objectives slide; an Assignment 6 debrief built around where a metric and
+a human ranking disagreed; **the data-splitting lesson, moved up from Lecture 8**; "A Change
+of Framework", explaining why the materials now say TorchLingo; a rewritten Colab slide
+carrying the paid-plan requirement; and "What Is That Loss Number?", giving `ln(V)` as the
+reference point for a student's first training loss and warning that label smoothing puts a
+floor under it.
+**In-class activity:** install TorchLingo and train a toy model, via tutorial 2's Colab
+badge. **Assignment:** none. The week is for choosing and reading a paper.
+
+### 8. NMT Overview and Architectures (F2026, 38 slides)
+Rebuilt Sep 26. The twenty architecture slides, encoder-decoder through multi-head
+attention, carry over untouched. The Fall 2025 debrief on why student models came out bad
+is kept and restyled, because it is still the sharpest illustration in the deck.
+
+New for F2026: Objectives; a TorchLingo install debrief; a short recap of the splitting
+lesson now taught in Lecture 7, carrying the argument that a contaminated split propagates
+through Assignments 9, 13 and 14; "Sentence Length Is a Memory Budget", built on measured
+figures rather than estimates; and the assignment split into What To Do, What To Submit and
+an AI-use slide. Two slides duplicated from Lecture 7, the paper reminder and the papers
+table, were cut.
+**Assignment (due Wed Oct 7):** train an English-to-X model on your own cleaned data. At
+least 100K training pairs, 2K validation, 2K test, or all of it if you have less; source-side
+deduplication and a verified split; 100-token cap; 30 to 36 epochs; checkpointing to Drive;
+SacreBLEU over the whole test set.
 
 ### 9. Handling Morphology and Terminology in NMT (F2025, 26 slides)
 Morphological preprocessing, byte-pair encoding, SentencePiece, and approaches to
@@ -257,10 +281,10 @@ close the semester.
 | Google Colab | Lecture 3 | every in-class activity and most assignments |
 | Python TMX libraries | Lecture 4 | extracting segment pairs |
 | TMX editors (Olifant, Heartsome) | Lecture 4 | inspection only, never in the pipeline |
-| grader.exe | Lecture 4 | checking cleaned output |
+| grader.exe | Lecture 4 | checking cleaned output. **Binaries only, no source, no repo.** See below |
 | MTEval (mteval.matrix.byu.edu) | Lecture 6 | human ranking; students self-register |
 | SacreBLEU, chrF | Lecture 6 | automatic scoring, and again in 8, 9, 13, 14 |
-| **TorchLingo** | **Lecture 7** | **every model the students train: 7, 8, 9, 13, 14** |
+| **TorchLingo** | **Lecture 7** | **every model the students train: 7, 8, 9, 13, 14.** 0.2.0 is on PyPI; `pip install torchlingo`, no pin |
 | SentencePiece | Lecture 9 | subword tokenization |
 | HuggingFace account | Lecture 10 | COMET model downloads; LLMs in Lecture 12 |
 | COMET / COMET-QE / xCOMET | Lecture 10 | neural evaluation, and again in 13 |
@@ -295,185 +319,139 @@ The schedule is kinder than it first looks. Assignment 8, the heavy one, is not 
 **October 7**, nine days after the first TorchLingo contact in class and a week after the
 lecture. That is the buffer the pivot has to work in.
 
-### Where TorchLingo stands today, against those dates
+### Where TorchLingo stands today
 
-Assessed from the repository on Sep 25.
+Rewritten Sep 26. The estimates in v2 have been replaced by measurements, and two of the
+three risks named there are closed.
 
-**Lecture 7 looks fine.** Six tutorials already carry Open-in-Colab badges, and tutorial 2,
-"Train a Tiny Model", is a direct replacement for the OpenNMT Quickstart activity. This is
-the lowest-risk part of the pivot, and it is the part that happens first.
+**Closed: the library ships complete.** TorchLingo **0.2.0** is on PyPI, verified by
+installing from PyPI into a clean environment. 0.0.8 had shipped 18 files and was missing
+seven modules, so several tutorials could not run from a pip install at all. The install
+instruction is now a plain `pip install torchlingo` with no version pin and no git URL.
 
-**Assignment 8 is the risk, and it is specific.** Three things:
+**Closed: Colab resume works.** Verified in Colab, not only in tests: a run mounts Drive,
+writes its checkpoints there, and continues rather than restarting from epoch zero. v2
+listed this as the highest risk on the strength of a task note saying the code had been
+written twice and run zero times. That note was out of date when I quoted it.
 
-1. *Scale is unproven.* The largest controlled training run recorded in the repository is
-   64,311 pairs for 36 epochs, reaching BLEU 7.32. The assignment asks for at least
-   100,000 pairs. No run at that scale has been done, so neither the wall-clock time nor
-   the achievable quality is known.
-2. *Units do not match.* The assignment specifies "20,000 training steps." TorchLingo is
-   configured in epochs. Students will set this wrong unless the assignment is restated in
-   the library's own terms.
-3. *Colab resume has never been run in Colab.* The repository's own task list records that
-   the Drive-backed checkpointing code has been written twice and executed zero times. A
-   100K-pair run will outlive a free Colab session. If resume silently restarts from epoch
-   zero, students lose the assignment, and they lose it late.
+**Closed: the units question.** Epochs, not steps. At 100K pairs and batch 64 an epoch is
+about 1,560 batches, so "20,000 steps" is roughly 12.8 epochs in TorchLingo and roughly 65
+to 165 in the OpenNMT configuration Fall 2025 students actually ran. The number does not
+survive the move, which is the argument for dropping it. The recommendation is **30 to 36
+epochs**, from measured convergence on this library.
 
-Item 3 is the one to fix first, and it is cheap to test: start a run, interrupt the
-runtime, re-run the cell, and check that it prints a resume line rather than starting over.
+**Still open: what a 100K run actually produces.** No BLEU figure and no wall-clock figure
+exist for a run at the assignment's scale. A 36-epoch attempt consumed all application
+memory and took a machine down, which is what produced the length-cap work below. Until a
+run completes, Assignment 8 asks for 30 to 36 epochs without telling students what quality
+to expect.
 
-**A useful precedent.** The Fall 2025 Lecture 10 deck opens with "For those who obtained
-reasonably intelligible output from your OpenNMT systems," which suggests some students did
-not clear that bar on the old stack either. Worth knowing before setting expectations for
-the new one.
+**Still open: what a paid Colab session provides.** The memory figures below are Apple Metal
+unified-memory numbers on a 64 GiB machine. They are not CUDA numbers, and no memory figure
+belongs in the assignment text until the Colab ceiling is known.
 
----
+### What the pivot has settled
+
+**A 100-token length cap, and why.** Drop any pair where either side exceeds 100 tokens.
+Measured on the German corpus, 100K pairs, batch 64, 3 layers, 8 heads:
+
+| | cap 100 | no cap |
+|---|---|---|
+| device memory held | 9.60 GiB | 35.80 GiB |
+| seconds per epoch | 192.0 | 192.0 |
+| pairs truncated | 1.30% | 0% |
+
+73% of the memory cost removed for 1.30% of the data, at identical wall clock, because peak
+memory is set by the longest batch rather than the median one. Across the measured range
+memory moves 28x while time moves 1.39x, which gives the line students need: **batch count
+sets how long an epoch takes; the length cap sets whether it fits at all.** Growth is not
+quadratic in the cap, because embedding and feed-forward activations are linear in length
+and dominate until sequences get long.
+
+**Assignment 8's floor, for low-resource languages.** The 100K floor now mirrors the wording
+of Assignments 4 and 5: at least 100K training pairs, and if your cleaned data has less than
+that, use all of it and say so in the write-up. Low-resource students are defined by the
+course as having under 200K available before cleaning, so the original floor had no variant
+for exactly the students most likely to miss it.
+
+**A bug in Assignment 9, fixed in the wording.** That assignment is a controlled comparison
+of the tokenizer, so the tokenizer must be the only thing that differs. Expressing the
+length cap in tokens breaks that, because changing the tokenizer changes which pairs the cap
+excludes. The fix: choose the sentence set once, using the subword tokenizer, and use that
+same set for both runs.
+
+**An ordering wrinkle still to resolve.** Assignment 8 says "BPE for inflected languages",
+but BPE is not taught until Lecture 9 on Oct 5, two days before A8 is due. Either drop the
+mention or mark it optional and covered next week.
+
+### The two sessions now hand off in writing
+
+The repository session and this one cannot message each other. They exchange files in the
+TorchLingo working tree instead, under `notes/handoff/`: `briefing.md` for standing context,
+`to-cowork.md` for messages in, `from-cowork.md` for messages out. Course notebooks live in
+that repository now and are changed by the repository session, so changes to them are
+requested through that file rather than made here.
+
+**Notebooks, as of Sep 26.** Four student notebooks are public in
+`torchlingo/docs/docs/course/`, named `lecture-NN-<slug>.ipynb`, each with an Open-in-Colab
+badge off `main`. The two instructor copies, which carry worked answers, are in
+`torchlingo-private/course/`. The Lecture 6 deck links the public badge rather than a Drive
+copy.
+
+### The grader has no source and no home
+
+`grader.exe`, which Lectures 4 and 5 both send students to, is four compiled binaries and an
+`Instructions.md` in a PhD student's personal OneDrive. Sizes from 27 MB to 301 MB indicate
+PyInstaller bundles. There is no source code, no repository in `byu-matrix-lab` or on the
+author's GitHub account, no license and no version. The Windows and M-series builds date
+from September 2023.
+
+Two problems follow. The course depends on an artifact that disappears when that OneDrive
+account does. And students are told to download an unsigned 301 MB executable and, on macOS,
+to override Gatekeeper to run it.
+
+The path forward is to ask the author for the source, put it in `byu-matrix-lab` with a
+license, and ship it as a script or a pip install. If the source is gone, the checks are all
+documented in the Lecture 4 deck and TorchLingo's `diagnostics` module is the natural home.
 
 ## What is already modernized, and what is not
 
-Lectures 1 through 6 have been rebuilt for F2026: an Objectives slide on each, assignment
-slides split into "What To Do" and "What To Submit", AI-use guidance tied to the
-department's levels, Colab activities ending in a Report Back, and Fall 2026 submission
-links. Lecture 5 gained Gale-Church. Lecture 6 gained a "Why Evaluate?" slide, editable
-formulas in place of bitmap images, and an MTSurvey demo.
+Lectures 1 through 8 are rebuilt for F2026: an Objectives slide on each, assignment slides
+split into "What To Do" and "What To Submit", AI-use guidance tied to the department's
+levels, Colab activities ending in a Report Back, and Fall 2026 submission links. Lecture 5
+gained Gale-Church. Lecture 6 gained "Why Evaluate?", editable formulas in place of bitmap
+images, and an MTSurvey demo. Lectures 7 and 8 carry the pivot.
 
-Lectures 7 onward are still last year's decks. The largest gaps, in the order they arrive:
+Lectures 9 through 23 are still last year's decks. In the order they arrive:
 
-1. **Every OpenNMT reference in Lectures 7, 8, 9, 13 and 14** has to become TorchLingo,
-   starting Monday. See the section above.
-2. **Lecture 7's install activity** is the course's first real infrastructure hurdle, and
-   the Lecture 8 debrief shows it went badly for several students last year, on a stack
-   that had been in use for years. A new framework raises that risk, not lowers it.
-3. **Lecture 19 overlaps Lecture 5** now that sentence alignment moved forward. Its word
-   alignment half stands on its own; the rest needs pruning.
-4. **Assignment due dates** after Lecture 6 still need confirming against the Schedule tab.
-5. **The Lecture 6 assignment's MTEval dependency** means students need accounts before
-   Sep 28. Self-registration works, but nobody has told them yet.
+1. **Lecture 9, Mon Oct 5.** Its SentencePiece handout is OpenNMT-specific. It also owns the
+   demonstration the length cap sets up: before subwording a student's tokens are words,
+   after it the same rule excludes a different set of sentences, and they can count the
+   difference on their own data.
+2. **Lecture 13, Mon Oct 19, and Lecture 14, Wed Oct 21.** Back-translation and multilingual
+   tagging, both written against OpenNMT. Lecture 14's handout is a Word document,
+   "MNMT Guide Using OpenNMT.docx", that needs replacing outright.
+3. **Lecture 19, Mon Nov 23.** Overlaps Lecture 5 now that sentence alignment moved forward.
+   Its word-alignment half stands on its own; the rest needs pruning.
+4. **Lectures 10, 11, 12, 15 to 18, 20 to 23.** No framework dependency, so they run as they
+   are until rebuilt for style.
+
+Two prerequisites still need to reach students: the paid Colab plan, which the syllabus
+already requires and which a reminder has been drafted for, and MTEval accounts, which
+students self-register for.
 
 ## Open questions
 
-- Can TorchLingo train a usable English-to-X model on 100K pairs inside a student's Colab
-  budget? Nothing in the repository answers this yet, and Assignment 8 is due Sep 30.
-- Does Assignment 8 keep the 100K-pair floor and the 20,000-step figure, or get restated
-  for the new stack? A number carried over from a framework nobody is using is worse than
-  no number.
-- Lecture 19 needs rescoping around the material now in Lecture 5.
-- Lecture 15's "assignment" is reading only. Whether that stays a free week is worth a look
-  given how heavy Lectures 13 and 14 are, and it is now the obvious place to absorb slippage
-  from the pivot.
-
----
-
-# Part 2: what this asks of TorchLingo
-
-## The shape of it
-
-Five assignments in this course train a model: Lectures 7, 8, 9, 13 and 14. All five are
-written against OpenNMT-py today. They are consecutive on the calendar and cumulative in
-the artifact, so this is one crossing rather than five. Assignment 9 retrains Assignment
-8's system, 13 reuses it, and 14 is built from "the system you created for Assignment 8/9".
-
-TorchLingo is now the course's training stack. That converts this repository from a
-teaching library with a hypothetical audience into the thing eighteen students have to get
-working, on their own data, on a deadline.
-
-## The dates, and the slack
-
-| Needed in class | Assignment due | What the course needs |
-|---|---|---|
-| **Mon Sep 28** | — | install, and a toy model, in twenty minutes of class |
-| **Wed Sep 30** | **Wed Oct 7** | a real English-to-X model, 100K pairs, scored with SacreBLEU |
-| **Mon Oct 5** | **Mon Oct 12** | SentencePiece on and off, everything else held fixed |
-| **Mon Oct 19** | **Mon Oct 26** | back-translation: reverse the direction, generate, retrain |
-| **Wed Oct 21** | **Wed Oct 28** | bidirectional two-language multilingual, with target-language tagging |
-
-The first date is three days out. The one that decides whether the pivot worked is
-**October 7**, which is nine days out.
-
-## What is already in good shape
-
-**Lecture 7 is close to solved.** Six tutorials carry Open-in-Colab badges, and tutorial 2,
-"Train a Tiny Model", maps directly onto the OpenNMT Quickstart activity it replaces. The
-work here is framing, not capability: the activity has to survive twenty minutes on
-eighteen student laptops, and it has to fail loudly rather than quietly.
-
-**Tutorial 6 is unexpectedly well aimed.** It checks corpus alignment with
-`diagnose_alignment` and makes the point that a misaligned corpus still loads, still
-batches, and still shows a falling loss. That is the most expensive mistake available in
-this course: Lectures 4 and 5 are entirely about producing an aligned corpus, and Lecture
-8 is where a bad one finally surfaces, three weeks later. Getting that check in front of
-students before they start Assignment 8 is high value for low effort.
-
-**The failure catalogue already exists.** The Fall 2025 Lecture 8 deck has a debrief slide
-listing exactly why student models produced bad output: 10K training pairs instead of 100K,
-dirty data with entities and mismatched segments, and 1K training iterations instead of
-20K. Those are the three failures the `diagnostics` module and the "when it fails" page
-are built around. A page that names them in the course's own terms would land.
-
-## The three risks on Assignment 8
-
-This is the assignment that decides the pivot. Its requirements, from the Fall 2025 slide:
-at least 100,000 training pairs, 2,000 test and 2,000 validation with no overlap, shuffled,
-at least 20,000 training steps, BPE for inflected languages, inference over the 2,000-line
-test set, a SacreBLEU score, and a write-up of the configuration.
-
-**1. Nothing here has been run at 100K pairs.** The largest controlled run in
-`notes/TASKS.md` is 64,311 pairs for 36 epochs, reaching BLEU 7.32. The course asks for
-100K and expects "reasonably intelligible output." Unknown: how long that takes on a free
-Colab T4, whether it fits in a student's compute budget, and what BLEU is actually
-reachable. One end-to-end run would answer all three, and the answer is needed before the
-assignment text can state honest expectations.
-
-**2. The assignment counts in steps; TorchLingo counts in epochs.** "20,000 training steps"
-does not translate without knowing the batch size and corpus size. Either the assignment
-gets restated in epochs, or the library reports both. Carrying over a number from a
-framework nobody is using is worse than having no number.
-
-**3. Colab resume has been written twice and run zero times.** Task #38 says this plainly:
-`training_checkpoint.py` has `is_colab()`, `mount_drive()` and a Drive-backed default
-directory, none of which has ever executed in Colab, and CI cannot cover it. A 100K-pair
-run will outlive a free Colab session. If resume restarts from epoch zero, students lose
-the assignment late, after they have spent the compute.
-
-Of the three, this is the one to do first. It is also the cheapest: start a run, interrupt
-the runtime, re-run the cell, confirm it prints a resume line and trains only the remaining
-epochs. Item 3 of that task is exactly the check, and it is still open.
-
-## What the course does not need from this library
-
-Worth stating, because it bounds the work:
-
-- **Evaluation beyond BLEU and chrF.** The course uses SacreBLEU directly and COMET
-  directly. TorchLingo's evaluation module has to be *correct*, because students read it
-  and compare systems with it, but it does not need to become a metrics suite. The chrF and
-  TER transpose bug fixed in PR #58 is exactly the correctness that matters: a student
-  comparing two systems on a silently wrong number learns the wrong lesson and cannot tell.
-- **LLM prompting** (Lecture 12), which runs on HuggingFace models directly.
-- **Quality estimation** (Lectures 10 and 11), which runs on COMET.
-- **Speech** (Lectures 15 and 16), which runs on Azure components.
-
-## Suggested order
-
-Straight down the calendar, because each capability is only useful once the previous one
-works:
-
-1. **Now.** Verify Colab resume actually resumes. Task #38, item 3.
-2. **Before Sep 28.** A single Colab link for the Lecture 7 activity that runs top to
-   bottom on a free GPU with no local install.
-3. **Before Oct 7.** One end-to-end 100K-pair run, to get a real wall-clock number and a
-   real BLEU. Everything about Assignment 8's wording depends on those two numbers.
-4. **Before Oct 12.** Tokenizer on versus off as a controlled comparison, with the rest
-   held fixed. Same concern as Task #59.
-5. **Before Oct 26.** Back-translation as a documented workflow, with reverse-direction
-   training as a configuration change rather than a second project.
-6. **Before Oct 28.** Multilingual tagging tutorial, replacing the OpenNMT Word document.
-
-Items 1 and 3 are the whole question. If a student cannot train a usable English-to-X model
-on their own cleaned data in a Colab session, and cannot recover when the session drops,
-nothing downstream matters. If they can, the rest is documentation.
-
-## Caveats
-
-Part 1 is assembled from the Fall 2026 Learning Suite schedule, the six rebuilt F2026
-decks, and the Fall 2025 decks for Lectures 7 onward. All dates are confirmed. Lectures 7
-through 23 have not been rebuilt for F2026, so their content may change before they run,
-and the assignment requirements quoted above are the Fall 2025 versions, which the pivot
-will itself change.
+- **What does a 100K-pair run produce, and how long does it take?** Assignment 8 is due Oct
+  7 and this is still unmeasured. Everything about how the assignment states expectations
+  depends on it.
+- **What memory does a paid Colab session actually provide?** Being measured separately. No
+  memory figure goes in the assignment text until it exists.
+- **Does the grader survive?** Depends on whether its source still exists.
+- **The A5 audit.** Clean pair count, duplicate-source rate and longest sentence per student,
+  from the Assignment 5 submissions. It tells you how many students cannot reach Assignment
+  8's floor and by how much. Still not run; it needs the submissions staged somewhere
+  readable.
+- **Lecture 19 needs rescoping** around the material now in Lecture 5.
+- **Lecture 15's assignment is reading only.** That free week is the obvious place to absorb
+  slippage from the pivot, and Lectures 13 and 14 are heavy.
