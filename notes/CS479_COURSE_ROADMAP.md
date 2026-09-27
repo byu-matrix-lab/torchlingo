@@ -1,7 +1,19 @@
 # CS 479 Fall 2026 course roadmap
 
-Course-side reference, maintained by the Cowork session. **v3, 2026-09-26.** Replaces the
-version you read on 2026-09-25 in place; git history has the previous one.
+**The official CS 479 roadmap, and the single source of truth for both sides of it.** Eric's
+call, 2026-09-26. The course map and the repository's curriculum audit are merged here, and
+`notes/CURRICULUM.md` is gone: one document, so there is nowhere for two versions of the same
+fact to disagree.
+
+**`CS479 Fall 2026 Roadmap_v3.md` in Eric's course folder is retired.** This file replaces it.
+Until today this was a mirror of that document, pasted in verbatim; it is now the live copy,
+carrying content that exists nowhere else. Nothing should ever be pasted over it wholesale
+again — edit it here.
+
+**It is a shared document, handed back and forth by the baton.** Course-side sections are the
+Cowork session's; the repository-side part at the end is the repository session's. Whoever
+holds the baton edits it, and says in `notes/handoff/` what they changed. Version numbers stop
+being useful once it is live rather than reissued, so it carries dated entries instead.
 
 What changed since v2, in one list, so you do not have to diff it:
 
@@ -455,3 +467,247 @@ students self-register for.
 - **Lecture 19 needs rescoping** around the material now in Lecture 5.
 - **Lecture 15's assignment is reading only.** That free week is the obvious place to absorb
   slippage from the pivot, and Lectures 13 and 14 are heavy.
+
+---
+
+# Repository side: what our material teaches
+
+Merged from `notes/CURRICULUM.md` on 2026-09-26. An instructor's audit rather than
+student-facing writing: naming gaps and redundancy honestly is the point of it.
+
+## Which notebook serves which lecture
+
+Two notebook families now exist and their
+numbering schemes do not line up, deliberately:
+
+| family | numbered by | who writes it |
+|---|---|---|
+| `docs/docs/tutorials/` | library topic | this repository |
+| `docs/docs/course/` | lecture | Cowork writes content, this repository commits it |
+
+So nothing about which artifact belongs in which lecture is derivable from a filename, and
+**this table is the only place it is written down.**
+
+Dates, topics and assignment deadlines are **in the schedule above** rather than repeated
+here. Lecture numbers are the join.
+
+| # | Lecture | Course notebook | TorchLingo tutorial |
+|---|---|---|---|
+| 1 | Course overview, history | — | — |
+| 2 | Translation challenges | — | — |
+| 3 | Word embeddings | `lecture-03-word-embeddings` | — |
+| 4 | Data preparation | `lecture-04-tmx-cleaning` | *1, data and vocab — see note* |
+| 5 | Data preparation, part 2 | `lecture-05-sentence-alignment` | — |
+| 6 | Human and automatic evaluation | `lecture-06-mt-evaluation` | *7, evaluation — see note* |
+| 7 | Paper reviews; intro to neural nets | — | **2, train a tiny model** — the in-class activity |
+| 8 | NMT overview and architectures | — | **6, diagnosing failures** — reading alongside A8 |
+| 9 | Morphology and terminology | **needed: `lecture-09-subword-tokenization`** (#121) | 1, the vocabulary half |
+| 10 | MT quality estimation | — | 5, real translations |
+| 11 | Neural QE and evaluation | — | — |
+| 12 | LLMs for MT; context | — | — |
+| 13 | Low-resource strategies | — | — |
+| 14 | Multilingual and zero-shot NMT | **needed**, replaces the OpenNMT `.docx` (#99) | — |
+| 15 | Speech-to-speech | — | — |
+| 16 | Dubbing and interpretation | — | — |
+| 17 | Multimodal NMT | — | — |
+| 18 | HAMT vs MAHT, productivity | — | — |
+| 19 | Word and sentence alignment | — | **4, attention and alignment** — see note |
+| 20 | Earlier MT methods | — | — |
+| 21 | Writing research articles | — | — |
+| 22, 23 | Applications and jobs | — | 3, inference and beam search |
+
+### Notes on the rows that are not simple
+
+**Lectures 1 to 6 have already run.** They are listed anyway, for three reasons: a student
+revisiting them needs to know what to open, assignments later in the course refer back to
+them, and a Fall 2027 offering should not have to rediscover the mapping. Where a tutorial
+*would have* improved a past lecture it is marked "see note" rather than silently dropped.
+
+- **Lecture 4** — tutorial 1 covers loading and cleaning a parallel corpus, which is Lecture
+  4's subject from the library side. Too late for this year; a genuine pairing for next.
+- **Lecture 6** — tutorial 7 was written for exactly this ground and is not merged yet (#88).
+  Retargeted as reading *after* Lecture 8, since Lecture 6 has run.
+- **Lecture 19 overlaps Lecture 5.** Sentence alignment moved forward into Lecture 5 this
+  year, so Lecture 19 now covers ground students have already met. Tutorial 4 is the natural
+  companion either way, because it measures alignment accuracy rather than describing it. The
+  roadmap flags the overlap as unresolved; this is not ours to settle.
+- **Lecture 22/23 and tutorial 3** — beam search and decoding cost fit an applications
+  lecture better than an architectures one. Weak pairing, offered rather than urged.
+
+### What this table says is missing
+
+- **Lecture 9 has no notebook and needs one.** That is #121, which carries the dates.
+- **Lecture 14 has no notebook**, and the current handout is a Word document written for
+  OpenNMT. That is #99, and #123 is the prior question of whether the code path even works.
+- **Eleven of the twenty-three lectures pair with nothing**, which is fine: not every lecture
+  wants a notebook, and inventing one to fill a row would be the redundancy this document
+  already warns about.
+
+## What exists
+
+### Tutorials
+
+| | Runs on | Depends on |
+|---|---|---|
+| 1. Data and Vocabulary | `data/sample_train.tsv` | nothing |
+| 2. Train a Tiny Model | `data/example.tsv` | 1 |
+| 3. Inference and Beam Search | tutorial 2's checkpoint | **2, at runtime** |
+| 4. Attention and Alignment | synthetic reversal task | 2 |
+| 5. Translating Unseen Sentences | `data/pretrained/` | 1-3 conceptually |
+
+### Concept pages
+
+`what-is-nmt.md`, `data-pipeline.md`, `vocabulary.md`, `models.md`, `training.md`,
+`decoding.md`, `when-it-fails.md`.
+
+### Measured artifacts
+
+Generated into `docs/docs/_generated/`, each from a script, none hand-typed:
+`decode_bench` (#12), `decoding_sweep` (#40), `alignment_diagnosis` (#46),
+`realign_report` (#29).
+
+---
+
+## Sequencing, including the parts nobody wrote down
+
+Two dependencies are load-bearing and were invisible until this audit.
+
+**Tutorial 3 cannot run without tutorial 2.** It loads the checkpoint tutorial 2 saves.
+`scripts/execute_notebooks.py` encodes this — it runs the notebooks in one shared working
+directory, in filename order, and lists tutorial 3 as needing the corpus even though it
+never names it. A student who opens tutorial 3 in Colab on its own gets a file-not-found
+error and no explanation.
+
+**Tutorial 3's model is too small to teach what tutorial 3 is about.** Its beam-size
+sweep prints five identical rows because the model is decisive. This is why #40's
+measurement had to be done on tutorial 5's checkpoint instead, and why #50 exists. The
+sequencing implication is real: *the lesson about beam search requires a model that is
+wrong often enough to be uncertain, and the tutorial that teaches beam search does not
+have one.*
+
+**Tutorial 4 is independent.** It trains a synthetic reversal task with known ground
+truth, which is what lets it measure alignment accuracy rather than assert it. It could
+be moved without breaking anything.
+
+---
+
+## Learning outcomes
+
+Stated as what a student can do afterwards. **These are proposed, not confirmed** — they
+are reverse-engineered from the material, and they need checking against the course this
+feeds.
+
+**Tutorial 1.** Load a parallel corpus; explain why a vocabulary needs `<pad>`, `<sos>`,
+`<eos>` and `<unk>`; predict what happens to an out-of-vocabulary word at inference.
+
+**Tutorial 2.** Train a Transformer end to end; read a loss curve well enough to tell
+"still learning" from "converged"; recognize that a loss near `ln(vocab_size)` means the
+model has learned nothing.
+
+**Tutorial 3.** Implement greedy and beam search from scratch; state what beam search
+buys and what it costs; explain why two implementations of the same algorithm can
+disagree on ties.
+
+**Tutorial 4.** Explain the encoder-decoder bottleneck as a concrete discarded variable;
+run an ablation; judge whether attention learned the *right* alignment rather than merely
+a confident one; connect cross-attention to self-attention.
+
+**Tutorial 5.** Distinguish a held-out set that is genuinely held out from one that
+leaks; interpret a BLEU score; compare decoding strategies on a model whose answers
+actually differ.
+
+**`concepts/decoding.md`.** Recognize beam search as best-first search with a fixed-width
+frontier (#41); read a table with error bars and tell a real difference from sampling
+noise (#40).
+
+**`concepts/data-pipeline.md`.** Check whether a parallel corpus is actually parallel
+(#46); repair one that has drifted, and verify the repair rather than trusting it (#29).
+
+---
+
+## Gaps
+
+Ordered by how much they would cost a student.
+
+**Why a model fails.** ~~Everything teaches how the machinery works when it works.
+Nothing teaches diagnosis.~~ **First pass written: `concepts/when-it-fails.md`.** A
+diagnostic order — data, then whether the model is learning at all, then whether it is
+learning the wrong thing, then whether the measurement is lying, then the environment —
+with each step's check drawn from a real incident in this repository's history rather
+than invented.
+
+The table at its head is the part worth keeping: six symptoms, the obvious explanation
+for each, and what it actually turned out to be. Every "looked like" column entry is a
+reasonable first guess and every one is wrong.
+
+Still missing, and harder: a *runnable* version. The alignment lesson in #46 works
+because `shuffle_target_side` lets a student break a corpus and watch the check fire.
+The equivalent here would be deliberately breaking a model — freezing a parameter,
+detaching a graph, training one epoch — and watching each diagnostic catch it. That is
+a tutorial, not a page.
+
+**Evaluation beyond BLEU.** BLEU is introduced and used. Its failure modes are not: it
+rewards length-matching, is unusable on single sentences, and is not comparable across
+tokenizations. #40 measured a BLEU difference smaller than its own noise and the docs now
+say so, which is the only place this idea appears.
+
+**Training dynamics.** `concepts/training.md` covers the loop, optimizers, schedulers and
+clipping. It does not cover what a student does when training goes wrong: batch size
+against learning rate, when to stop, what overfitting looks like on a small corpus.
+
+**Data quantity.** ~~#29 added 18% more data and nobody has checked whether it helps.~~
+**Checked, and the answer is no** — at this scale. With training budget held fixed, +20%
+data is worth +0.29 ± 0.22 BLEU, an interval crossing zero, while going from 20 to 36
+epochs on the same data is worth +2.05. See the training-budget section in `TASKS.md`.
+
+"How much data do I need" is still a gap, but the material now has a real answer to a
+better question: *how do you tell which lever you are actually pulling?* The episode is
+worth teaching directly, because the first attempt to answer it got the wrong answer with
+error bars and a paired bootstrap attached, and only a control run caught it.
+
+**Inference cost in practice.** `decoding.md` covers this well for beam search
+specifically. Nothing covers model size against latency, or CPU against GPU, which is
+what a student meets when their Colab session is slow.
+
+**Attention on the architecture students actually use.** Covered for the LSTM in three
+places, and not at all for the Transformer, which cannot return its attention weights.
+See the correction under Redundancy below, and #34.
+
+---
+
+## Redundancy
+
+Not necessarily wrong, but currently undeliberate.
+
+**Beam search appears four times**: explained in `concepts/decoding.md`, reimplemented
+from scratch in tutorial 3, visualized via `format_beam_search` (#39), and measured in
+#40. The reimplementation is defensible — writing it yourself is the lesson — and
+tutorial 3 explicitly reconciles its version against the library's. Worth deciding
+deliberately rather than by accumulation.
+
+**Attention appears three times**: `concepts/models.md`, tutorial 4, and
+`reference/visualization.md`.
+
+*Corrected 2026-09-18, and this is a gap rather than redundancy.* All three cover the
+**LSTM**. `SimpleTransformer` has no attention-returning path at all, so a student who
+follows the tutorials onto the Transformer — which is what tutorials 2 and 5 train, and
+what the pretrained checkpoint is — cannot inspect attention on the model they are
+actually using. Tutorial 4 teaches the concept honestly on an LSTM and a synthetic task;
+nothing carries it across. See #34, whose scope was recorded too small for the same
+reason.
+
+**The corpus repair story now appears twice**: `concepts/data-pipeline.md` (#46, #29) and
+`scripts/realign_corpus.py`'s docstring. These are aimed at different readers and the
+overlap is probably correct.
+
+---
+
+## Open questions for the instructor
+
+1. Are the outcomes above the right ones? They are inferred from the material, which
+   means they describe what exists rather than what the course needs.
+2. Should tutorial 3 keep its from-scratch implementations, or call the library and spend
+   the space on diagnosis instead?
+3. ~~Where does the lecture 7 assignment attach?~~ **Answered 2026-09-26: it needs nothing.**
+   Lecture 7 is a paper review, its activity is tutorial 2, and Task #42 is closed.
+4. Is "why models fail" in scope for this library, or is it lecture material?

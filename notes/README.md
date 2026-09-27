@@ -20,8 +20,7 @@ look for it.
 notes/
   README.md                        this file
   TASKS.md                         the authoritative task list
-  CURRICULUM.md                    pedagogical sequencing and outcomes
-  CS479_COURSE_ROADMAP.md          the CS 479 course map, per lecture
+  CS479_COURSE_ROADMAP.md          the official roadmap: the course AND our curriculum
   TORCHLINGO_VS_OPENNMT.md         competitive assessment
   EVAL_CHRF_TER_TRANSPOSE_BUG.md   a bug report; delete when PR #58 merges
   reports/
@@ -34,6 +33,17 @@ notes/
     from-cowork.md                 messages in, newest first
     ARCHIVE/                       entries that have been acted on
 ```
+
+### The roadmap is the shared single source of truth
+
+`CS479_COURSE_ROADMAP.md` is the **official** CS 479 roadmap as of 2026-09-26, holding both
+the course map and the repository's curriculum audit. `CURRICULUM.md` was merged into it and
+deleted; `CS479 Fall 2026 Roadmap_v3.md` in Eric's course folder is retired.
+
+It is **shared, not owned**. Course-side sections are the Cowork session's, the
+repository-side part is this session's, and whoever holds the baton edits it and says what
+changed in `handoff/`. It was previously a verbatim mirror, so the rule that matters is:
+**never paste over it wholesale** — that would delete the half the other session wrote.
 
 ## The handoff protocol, and why it exists
 

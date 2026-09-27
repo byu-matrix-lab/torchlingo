@@ -4,7 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TorchLingo is an educational PyTorch library for Neural Machine Translation (NMT), designed for students and instructors. It provides a clean, well-documented implementation of Transformer and LSTM architectures for learning and experimentation.
+**TorchLingo exists first and foremost to support CS 479.** Eric's framing, 2026-09-26.
+Third-party use of the library, independent of the course, is a later concern.
+
+That is a tie-breaker, not a slogan. When a choice could serve either a CS 479 student or a
+general newcomer, it serves the student: scope is judged against the course, the entry point
+that matters is the one an enrolled student opens, and a gap only matters if a lecture or an
+assignment walks into it. `notes/CS479_COURSE_ROADMAP.md` is the single source of truth for
+what the course needs, and it is where that judgement gets made.
+
+It is still a clean, documented PyTorch NMT library with Transformer and LSTM
+implementations — that is *how* it serves the course, and it keeps the general-audience option
+open for later without paying for it now.
 
 ## Environment Setup
 
@@ -385,8 +396,14 @@ reply which tasks moved.
 
 ## Project Goals
 
-This library prioritizes:
-- **Educational clarity**: Clean, readable code designed for learning
-- **Documentation**: Comprehensive docs with runnable examples
-- **Simplicity**: Avoid over-engineering; focus on core NMT concepts
-- **Accessibility**: Beginner-friendly with Google-style docstrings
+In priority order:
+
+1. **CS 479 works.** Eighteen students, on their own data, against dated assignments. A defect
+   on that path outranks anything else in this file.
+2. **Educational clarity**: clean, readable code designed for learning. This is the reason the
+   library exists rather than a configured toolkit, and it is what we decline to trade for
+   speed — see the descoping decision in `notes/TASKS.md`.
+3. **Documentation that executes**: runnable examples, and generated numbers rather than typed
+   ones.
+4. **Simplicity**: avoid over-engineering; focus on core NMT concepts.
+5. **Accessibility**: beginner-friendly, Google-style docstrings.
