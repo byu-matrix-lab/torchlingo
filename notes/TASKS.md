@@ -64,7 +64,6 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #122 | Make Assignment 9's control hard to get wrong in code | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | Open — highest uncertainty, due Oct 28 |
 | #124 | Simplify Lecture 6's chrF/TER wrappers | **After Mon Sep 28**, not before — A6 is live |
-| #133 | One metadata namespace for both notebook families | **In review, PR #113** — needs your approval |
 | #135 | `examples/*.py` still do not checkpoint | Open — the five a student is most likely to copy |
 | #128 | Run the learning curve on the cluster | **RUNNING** — array 13900963, 17 of 21 done |
 | #129 | Extract a shared `~/Projects/hpc` | Open — after #128 gives a second implementation to diff |
@@ -492,46 +491,15 @@ candidate; it needs either your hand or a Bash permission rule.
 
 Harmless while it waits. Worth clearing so the branch list stays a list of live work.
 
-### #133 One metadata namespace for both notebook families
+### #101 Give the tutorials stable unique names
 
-**Eric, 2026-09-26.** Two families with incompatible numbering — `tutorials/` by library topic,
-`course/` by lecture — so which artifact serves which lecture is derivable from nothing. The
-roadmap's table is a hand-maintained workaround, in a document two sessions now edit.
+**Still a semester boundary, and the metadata namespace (PR #113) is why it can wait rather than
+why it can be skipped.** `serves_lectures` already carries what a filename could not — tutorial 1
+naming two lectures, tutorial 4 naming one while containing another's material — so the renaming
+question is now purely about *links*, not about expressing the mapping.
 
-**The namespace goes in notebook metadata, not in filenames.** `nbformat` permits arbitrary
-keys and neither Jupyter nor Colab minds:
-
-```json
-"metadata": { "torchlingo": {
-    "family": "tutorial" | "course",
-    "serves_lectures": [8, 19],
-    "role": "activity" | "reading" | "homework" | "reference",
-    "needs": ["data/example.tsv"]
-}}
-```
-
-Three things a filename scheme cannot do:
-
-1. **The roadmap's map becomes generated**, with `--check`, so it cannot drift from the
-   notebooks. That matters most now that the roadmap is the SSOT with two editors.
-2. **A notebook can serve two lectures.** Tutorial 1 serves Lecture 4 and Lecture 9 — the
-   corpus half and the vocabulary half; one lecture number in a filename cannot say that.
-3. **`needs` replaces `execute_notebooks.py`'s own `REQUIREMENTS` dict** — one less pair of
-   things that must agree with nothing checking.
-
-**Renames are deferred deliberately.** Decks cite filenames, Colab badges embed paths, and the
-Lecture 6 deck was just pointed at its badge — a rename now breaks a link students are
-clicking. Cowork asked to be told before any rename. That work is #101, at a semester boundary.
-
-**Built in PR #113**, awaiting your approval. All ten notebooks carry the block, the roadmap's
-map is generated with `--check` in CI, and `REQUIREMENTS` is gone.
-
-**The check that matters** was resolved by not needing it: the generated map now *reads* its
-lecture numbers and titles out of the schedule table in the same file, rather than restating
-them in the script. Two tables that must agree cannot disagree if one is derived from the other.
-
-**Still to do after it merges:** Cowork needs the schema, so new course notebooks are born with
-the block instead of needing it added. That goes in the next hand-off.
+Decks cite filenames and Colab badges embed paths, so a rename mid-semester breaks a link a
+student is holding. Cowork asked to be told before any rename.
 
 ### #128 Run the learning curve on the cluster
 
