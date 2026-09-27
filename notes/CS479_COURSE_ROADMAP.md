@@ -400,7 +400,7 @@ mention or mark it optional and covered next week.
 
 The repository session and this one cannot message each other. They exchange files in the
 TorchLingo working tree instead, under `notes/handoff/`: `briefing.md` for standing context,
-`to-cowork.md` for messages in, `from-cowork.md` for messages out. Course notebooks live in
+`to-cowork/` for messages out, `from-cowork/` for messages in. Course notebooks live in
 that repository now and are changed by the repository session, so changes to them are
 requested through that file rather than made here.
 

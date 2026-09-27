@@ -326,7 +326,7 @@ read it.
 
 The CS 479 in-class notebooks live in `docs/docs/course/`. The Cowork session writes their
 content but does **not** run git: changes arrive as requests in
-`notes/handoff/from-cowork.md`, and committing, the nav entry and the pull request happen
+`notes/handoff/from-cowork/`, and committing, the nav entry and the pull request happen
 here.
 
 Two standing constraints:
