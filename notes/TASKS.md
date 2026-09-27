@@ -50,7 +50,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 
 | | Task | State |
 |---|---|---|
-| #95 | The data learning curve, whose 100K point is A8's number | **RUNNING** — 7 of 21 cluster points in |
+| #95 | The data learning curve, whose 100K point is A8's number | **36 epochs answered: not enough.** Curve 16 of 21 |
 | #49 | The shipped checkpoint predates the enlarged corpus | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | Open — point the course at it; decide on diagnostics |
 | #121 | A Lecture 9 subword notebook, and it is ours | **Answer to Cowork by Oct 3** |
@@ -143,6 +143,35 @@ points answer whether more data is worth having. Best controlled run on record t
 **Done when** the report in `notes/reports/` carries BLEU, seconds per epoch and total wall
 clock at each corpus size, on a named device, generated from JSON.
 
+#### ANSWERED: 36 epochs is not enough
+
+Two runs on the same 100K corpus, same config, same machine. The only difference is how long
+they trained.
+
+| | 36 epochs | 65 epochs |
+|---|---|---|
+| BLEU | 11.46 | **14.48** |
+| chrF | 32.88 | **36.56** |
+| final val loss | 3.9392 | **3.6564** |
+| converged | **no** | **yes** |
+| wall clock | 64.7 min | 112.7 min |
+
+**Assignment 8's "30 to 36 epochs" leaves about three BLEU points on the table**, and the
+36-epoch run had not converged — its drift was −0.00332/epoch, marginally past the 0.003
+threshold, which is why it read as "nearly done" rather than "clearly short".
+
+**The recommendation should be a step budget, not an epoch count.** The 65-epoch run stopped
+because it hit `Config.num_steps`, which defaults to 100,000, and by then validation had
+flattened. So the honest instruction is "train until validation stops improving, which is about
+100,000 optimizer steps or 64 epochs at 100K pairs" — and that phrasing survives a student
+changing their corpus size, where a fixed epoch count does not.
+
+This also retires the OpenNMT question for good. Their students trained about 3.4x longer than
+36 epochs; the truth is in between, and it is measurable rather than arguable.
+
+**Still to confirm on CUDA.** Both numbers are MPS. The wall clock will not transfer to Colab;
+the BLEU and the epoch count should.
+
 #### First cluster results, 7 of 21 points
 
 Three model scales x seven corpus sizes, each to convergence capped at 100,000 steps, on A100s.
@@ -172,8 +201,9 @@ the ones that hit the step budget are not measuring the same thing as the ones t
 
 #### Acceptance criterion, inherited from the closed #110
 
-**Report whether validation loss is still falling at epoch 36, and say so in the handout
-either way.** The per-epoch curve is in the JSON for this. Converted to tokens, the OpenNMT
+**ANSWERED — it is still falling at 36, and 65 epochs buys +3.02 BLEU. See above.** The
+original criterion was: report whether validation loss is still falling at epoch 36, and say so
+in the handout either way. The per-epoch curve is in the JSON for this. Converted to tokens, the OpenNMT
 students trained **3.4x longer** than 36 epochs gives — 328M target tokens against 97M — so
 the question is whether the model is still improving when the assignment tells eighteen
 students to stop.
