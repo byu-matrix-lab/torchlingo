@@ -1171,6 +1171,61 @@ take *different trajectories*, is never checked at all.
 
 - Seed inside the test, and assert the **difference** between the two curves rather than
   improvement in either.
+
+**Fixed 2026-09-27, and it was three defects rather than one.** Worth recording because each
+was hidden behind the previous, and only the first was the one filed:
+
+1. **The optimizer test was unseeded**, so its models' initial weights came from whatever RNG
+   state earlier tests left. Seeded identically for both optimizers, which also makes it the
+   controlled comparison its name claims. Its assertion now checks that the two curves
+   *differ*, which is the actual claim — and that they differ by epoch two, so an optimizer
+   ignored until epoch three would still fail.
+2. **A sibling had the same disease**, and fixing the first revealed it:
+   `test_learning_rate_affects_convergence_speed`, also unseeded, also asserting a stochastic
+   inequality.
+3. **That sibling was measuring the wrong quantity, and that is why it looked flaky.** It
+   compared `losses[0] - losses[1]` between two rates and called the larger drop faster. But
+   `train_losses[0]` is the *average over epoch one*, so a rate that learns quickly within
+   epoch one reports a lower first value and therefore a smaller later drop — the formula
+   inverts the thing it is measuring. It now asserts the loss *reached*, which is what
+   "converges faster" means.
+   **And its rates were wrong:** at lr 0.01 the "fast" model reaches a worse final loss than
+   the slow one at two of three seeds, because 0.01 overshoots on a 32-dimensional model over
+   twelve identical rows. Measured, not assumed. Changed to 0.001 — the library default —
+   against 1e-05, which holds at every seed with a wide margin.
+
+**CI now runs both documented runners.** `pytest` and `python -m unittest discover tests`. It
+costs a second pass over the suite, and it is the price of "the tests pass" meaning the same
+thing on a laptop and in CI.
+
+**Twelve more tests have the same shape**, found by walking the AST for tests that build a
+model, train it, and assert an inequality without seeding:
+
+```
+test_checkpoint.py            test_legacy_training_state_dict_extracts_weights
+test_integration_robust.py    test_full_pipeline_with_sentencepiece
+                              test_training_with_validation_and_early_stopping
+                              test_training_handles_gradient_explosion
+                              test_training_with_amp
+test_model_convergence.py     test_transformer_overfits_small_dataset
+                              test_transformer_loss_decreases_monotonically_on_simple_task
+                              test_lstm_overfits_small_dataset
+                              test_gradient_clipping_prevents_nan_loss
+                              test_early_stopping_triggers_on_no_improvement
+                              test_best_checkpoint_has_lowest_val_loss
+                              test_larger_model_achieves_lower_loss
+```
+
+**Deliberately not rewritten.** Most assert effects large enough to survive any starting
+point — a model *will* overfit ten identical rows — and rewriting twelve working tests to
+pre-empt a failure none of them is showing would be churn. The two that broke were the two
+whose claims were weak or inverted, which is the pattern worth watching rather than the
+absence of a seed.
+
+**`test_larger_model_achieves_lower_loss` is the one to look at first if another goes.** It is
+the same shape as the learning-rate test: a comparative claim between two configurations on a
+toy corpus, where the effect may be smaller than the noise. The both-runner gate will surface
+it rather than leaving it to a laptop.
 - **This now blocks clean verification of every PR that adds tests**, since adding tests is what
   perturbs the ordering. That makes it worth fixing before #54, #59, #103 and #105 land rather
   than after.
