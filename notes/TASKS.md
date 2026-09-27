@@ -48,68 +48,97 @@ eighteen students hit the library in class on **Mon Sep 28**. Those tasks are da
 are sequenced against a calendar nobody here controls, and they outrank everything else in
 this file until Oct 28. See "The CS 479 pivot" below for the schedule and the reasoning.
 
-| | Task | State |
+### Reading the "Critical for" column
+
+Eric, 2026-09-27: annotate every task with the lecture it is critical for. Assigned by what
+each task actually touches, **not** by how near its date is — several tasks with imminent
+dates are not lecture-critical, and several with no date are.
+
+| label | means | date |
 |---|---|---|
-| #144 | Tutorial 2 is a tutorial used as Lecture 7's in-class activity | **Your call** — the one notebook where family and role disagree |
-| #145 | Say which assignment each notebook jump-starts | **Your call** — four proposed; blocks #146 |
-| #146 | Stamp the purpose cell into all ten notebooks, and gate it | Open — mechanics done in PR #117; waits on #144 and #145 |
-| #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **Due Mon Oct 12** — raises #121's value; do them as one |
-| #148 | Five assignments are missing from the schedule | Open — `leads_to` cannot name an assignment the SSOT omits |
-| #149 | `collect_benchmark.py` silently drops a run file it cannot find | Open — it wrote a 2-run report over a 21-run source |
-| #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **Your call** — it holds the corpus prep and all the HPC tooling |
-| #151 | The LSTM asks for dropout it cannot apply | Open — nine tests warn; a student setting it gets nothing |
-| #138 | Renumbering lectures silently redirects every `serves_lectures` | **With the Lecture 8 split** — no check can catch this one |
-| #139 | Lecture 9 is claimed by tutorial 1 and not actually served | Open — the claim is wrong either way; ties to #121 |
-| #140 | Split tutorial 4 at Part 6 — Parts 6 to 8 are Lecture 8 material | Open — **a Lecture 8 split makes this land somewhere** |
-| #141 | Lecture 6's notebook is an activity with homework inside it | **After Mon Sep 28** — A6 is live until then |
-| #142 | Decide which notebook owns BLEU before splitting either | Open — tutorial 3 Part 5 versus the planned tutorial 7 |
-| #143 | Two merged branches are still on the remote | Open — **needs your permission**; the delete is blocked here |
-| #49 | The shipped checkpoint predates the enlarged corpus | Open — `train_pairs` 64,311 against a corpus of 86,430 |
-| #120 | The grader now has a source repository | Open — point the course at it; decide on diagnostics |
-| #121 | A Lecture 9 subword notebook, and it is ours | **Answer to Cowork by Oct 3** |
-| #122 | Make Assignment 9's control hard to get wrong in code | Open — worth more than the wording fix |
-| #123 | A14's two-directions case has never been run | Open — highest uncertainty, due Oct 28 |
-| #124 | Simplify Lecture 6's chrF/TER wrappers | **After Mon Sep 28**, not before — A6 is live |
-| #135 | `examples/*.py` still do not checkpoint | Open — the five a student is most likely to copy |
-| #129 | Extract a shared `~/Projects/hpc` | Open — after #128 gives a second implementation to diff |
-| #97 | SentencePiece on versus off, controlled | **Due Mon Oct 12** |
-| #102 | Inference cannot resume a long decode | **Needed by Mon Oct 19** — largest undone piece |
-| #98 | Back-translation as a documented workflow | **Due Mon Oct 26** |
-| #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **Due Wed Oct 28** |
-| #101 | Give the tutorials stable unique names | Open — **a semester boundary**, not mid-course |
-| #103 | Extend the notebook gate to `docs/docs/course/` | Open — four course notebooks on `main`, still ungated |
-| #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
-| #107 | The optimizations exist and nothing uses them | **Half done** — experiments bucket now; library default unchanged |
-| #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
-| #113 | Land the PRs still open | **One left: PR #54** — refresh it *before* asking Coulson |
-| #118 | What does a paid Colab session actually provide? | **Coulson** — blocks any A8 memory claim |
-| #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
-| #4 | Resolve length-normalization semantics | In review — PR #54 |
-| #8 | Verify Eole claims before syllabus use | Open |
-| #9 | `pre-commit install` (still not installed) | Open |
-| #15 | Migrate history-blind `DummyTransformer` tests | Open |
-| #22 | `examples/` and `scripts/` are outside the lint gate | Open |
-| #28 | Attention params skip `_init_weights` | Open |
-| #36 | CI actions pinned to a deprecated Node runtime | Open |
-| #44 | Gate the sdist on "no Git LFS pointer shipped" | Open |
-| #48 | Audit pedagogical value; write down sequencing and outcomes | In progress — in the roadmap |
-| #51 | The docs gate reports but does not block | Open — repo settings |
-| #52 | Try Moore (2002) if more of the corpus is wanted | Open |
-| #53 | Notebook gate runs 2 of 6 tutorials in CI, and looks green | Open |
-| #60 | Nobody is told when main goes red | Open |
-| #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | Open |
-| #68 | Cite `torcheck` as prior art in the diagnostics docs | Open |
-| #71 | Decide whether to report the Joey NMT breakage upstream | Open — Eric's call |
-| #74 | Diagnose the 93 docs warnings | Open — **the anchor half shipped** in PR #51 |
-| #79 | An order-dependent test | **Fails on unmodified `main`** — so it blocks nothing; CI cannot see it |
-| #81 | Fail the build on hand-typed generated numbers | Open |
-| #82 | Add an on-target language check to `torchlingo.diagnostics` | Open |
-| #85 | Only BLEU carries a signature; chrF and TER do not | Open — nothing blocks it |
-| #86 | `evaluate_model` has no test, and it is what callers use | Open — after PR #58 |
-| #88 | Open the tutorial 7 PR | Open — nothing blocks it; **see #142 first** |
-| #89 | Fail the docs build when a page is off-nav | Open |
-| #91 | `metric_comparison.json` records no BLEU signature | Open — nothing blocks it |
-| #92 | Tutorials 3 and 5 bypass the library's own evaluation API | Open |
+| **L6** | Human and Automatic MT Evaluation — **has already run** | Wed Sep 23 · A6 due Mon Sep 28 |
+| **L7** | Research Paper Reviews; Intro to Neural Networks | Mon Sep 28 · A6 due |
+| **L8a** | Neural MT: Encoder-Decoder, and Why Attention Was Invented | Wed Sep 30 · **A8 introduced** |
+| **L8b** | Neural MT: The Transformer | Mon Oct 5 |
+| **L8a/8b** | both halves of the split | |
+| **L9** | Morphology and Terminology in NMT | Wed Oct 7 · **A8 due, A9 set** |
+| **10+** | Lecture 10 onward, or no lecture depends on it | |
+| **hyg** | roadmap and process integrity — **critical, but not to one lecture** | |
+
+**A lecture that has already run still owns its work.** `L6` means "this belongs to Lecture
+6", not "this is overdue" — the deadline pressure is gone, the subject matter is not, and a
+student revisiting the lecture or an instructor preparing Fall 2027 meets it there. Filing
+those as `10+` lost the one piece of information the label exists to carry.
+
+`hyg` is not a synonym for "later". It is the category that keeps the other labels true: a
+generated map that has drifted, a gate that reports without blocking, or a task list that
+describes last week will mislead every lecture at once rather than one of them.
+
+| | Task | Critical for | State |
+|---|---|---|---|
+| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | **Wed Sep 30** — say by Tue Sep 29 if it will not be ready |
+| #153 | Pre-norm answered for Cowork: `SimpleTransformer` is post-norm | **L8b** | **Answered** — deliver in the next hand-off; both 8b slides stand |
+| #154 | The notebook gate still runs tutorials only, and course/ has seven | **hyg** | Open — three new ones arrived today, all ungated |
+| #155 | A8's "What To Do" overlaps the kickoff notebook's first four steps | **L8a** | **Your call** — Cowork flagged it and did not act |
+| #144 | Tutorial 2 is a tutorial used as Lecture 7's in-class activity | **L7** | **Your call** — the one notebook where family and role disagree |
+| #145 | Say which assignment each notebook jump-starts | **hyg** | **Your call** — four proposed; blocks #146 |
+| #146 | Stamp the purpose cell into all ten notebooks, and gate it | **hyg** | Open — mechanics done in PR #117; waits on #144 and #145 |
+| #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
+| #148 | Five assignments are missing from the schedule | **hyg** | Open — `leads_to` cannot name an assignment the SSOT omits |
+| #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
+| #149 | `collect_benchmark.py` silently drops a run file it cannot find | **10+** | Open — it wrote a 2-run report over a 21-run source |
+| #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **10+** | **Your call** — it holds the corpus prep and all the HPC tooling |
+| #151 | The LSTM asks for dropout it cannot apply | **10+** | Open — nine tests warn; a student setting it gets nothing |
+| #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
+| #140 | Split tutorial 4 at Part 6 — Parts 6 to 8 are Lecture 8 material | **L8a/8b** | Open — **a Lecture 8 split makes this land somewhere** |
+| #141 | Lecture 6's notebook is an activity with homework inside it | **L6** | **After Mon Sep 28** — A6 is live until then |
+| #142 | Decide which notebook owns BLEU before splitting either | **10+** | Open — tutorial 3 Part 5 versus the planned tutorial 7 |
+| #143 | Two merged branches are still on the remote | **hyg** | Open — **needs your permission**; the delete is blocked here |
+| #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
+| #120 | The grader now has a source repository | **10+** | Open — point the course at it; decide on diagnostics |
+| #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Lecture 9 is Wed Oct 7; A9 Wed Oct 14** — the only notebook L9 has on its own subject |
+| #122 | Make Assignment 9's control hard to get wrong in code | **L9** | Open — worth more than the wording fix |
+| #123 | A14's two-directions case has never been run | **10+** | Open — highest uncertainty, due Oct 28 |
+| #124 | Simplify Lecture 6's chrF/TER wrappers | **L6** | **After Mon Sep 28**, not before — A6 is live |
+| #135 | `examples/*.py` still do not checkpoint | **L8a** | Open — the five a student is most likely to copy |
+| #129 | Extract a shared `~/Projects/hpc` | **10+** | Open — after #128 gives a second implementation to diff |
+| #97 | SentencePiece on versus off, controlled | **L9** | **Due Mon Oct 12** |
+| #102 | Inference cannot resume a long decode | **10+** | **Needed by Mon Oct 19** — largest undone piece |
+| #98 | Back-translation as a documented workflow | **10+** | **Due Mon Oct 26** |
+| #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **10+** | **Due Wed Oct 28** |
+| #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
+| #103 | Extend the notebook gate to `docs/docs/course/` | **hyg** | Open — four course notebooks on `main`, still ungated |
+| #106 | A token cap breaks Assignment 9's control | **L9** | Open — one sentence in the assignment |
+| #107 | The optimizations exist and nothing uses them | **10+** | **Half done** — experiments bucket now; library default unchanged |
+| #108 | Nothing releases the device allocator's cache | **10+** | Open — **demoted**: length, not cache, is the driver |
+| #113 | Land the PRs still open | **hyg** | **PR #127** and **PR #128** — both need your merge |
+| #118 | What does a paid Colab session actually provide? | **L8a** | **Coulson** — now blocks a live decision, not a claim |
+| #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | **10+** | Open |
+| #8 | Verify Eole claims before syllabus use | **10+** | Open |
+| #9 | `pre-commit install` (still not installed) | **hyg** | Open |
+| #15 | Migrate history-blind `DummyTransformer` tests | **10+** | Open |
+| #22 | `examples/` and `scripts/` are outside the lint gate | **hyg** | Open |
+| #28 | Attention params skip `_init_weights` | **L8a/8b** | Open |
+| #36 | CI actions pinned to a deprecated Node runtime | **hyg** | Open |
+| #44 | Gate the sdist on "no Git LFS pointer shipped" | **hyg** | Open |
+| #48 | Audit pedagogical value; write down sequencing and outcomes | **hyg** | In progress — in the roadmap |
+| #51 | The docs gate reports but does not block | **hyg** | Open — repo settings |
+| #52 | Try Moore (2002) if more of the corpus is wanted | **10+** | Open |
+| #53 | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
+| #60 | Nobody is told when main goes red | **hyg** | Open |
+| #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | **10+** | Open |
+| #68 | Cite `torcheck` as prior art in the diagnostics docs | **10+** | Open |
+| #71 | Decide whether to report the Joey NMT breakage upstream | **10+** | Open — Eric's call |
+| #74 | Diagnose the 93 docs warnings | **hyg** | Open — **the anchor half shipped** in PR #51 |
+| #79 | An order-dependent test | **hyg** | **Fails on unmodified `main`** — so it blocks nothing; CI cannot see it |
+| #81 | Fail the build on hand-typed generated numbers | **hyg** | Open |
+| #82 | Add an on-target language check to `torchlingo.diagnostics` | **10+** | Open |
+| #85 | Only BLEU carries a signature; chrF and TER do not | **10+** | Open — nothing blocks it |
+| #86 | `evaluate_model` has no test, and it is what callers use | **10+** | Open — after PR #58 |
+| #88 | Open the tutorial 7 PR | **10+** | Open — nothing blocks it; **see #142 first** |
+| #89 | Fail the docs build when a page is off-nav | **hyg** | Open |
+| #91 | `metric_comparison.json` records no BLEU signature | **10+** | Open — nothing blocks it |
+| #92 | Tutorials 3 and 5 bypass the library's own evaluation API | **10+** | Open |
 
 ## The CS 479 pivot
 
@@ -360,6 +389,24 @@ Worth deciding rather than patching: either pass `dropout=0.0` when `num_layers 
 in the docstring, or default the LSTM to two layers. The first is honest about the limitation; the
 second makes the knob work. Not the same choice, and the second changes a default.
 
+### #132 Quick Start has no notebook, and its badge opens a different one
+
+`docs/docs/getting-started/quickstart.md` carries a Colab badge, and the badge opens
+`tutorials/02-train-tiny-model.ipynb` — a different document from the one the reader is on.
+
+So the page a newcomer is pointed at first has no runnable form of its own, and the button
+that looks like "run this" runs something else. Whichever way it is fixed — give Quick Start
+its own notebook, or change the badge to say what it opens — the present state is the one that
+misleads.
+
+**Recovered from the session task list on 2026-09-27**, where it had been living *only*. It was
+found by checking, before deleting the session's copy, that each task existed here too — and
+this one did not. Four of the five checked out; this is why the check was worth running.
+
+The general lesson is worth more than the task: the session list is a mirror, and a mirror that
+holds something the original does not is not a mirror. Anything created there has to be written
+here before the session ends.
+
 ### #149 `collect_benchmark.py` silently drops a run file it cannot find
 
 `rows = [run_record(p) for p in args.runs if p.exists()]`. A path that does not exist is
@@ -396,28 +443,74 @@ found: I reported "pushed private" after a push that had failed for want of a re
 private GitHub repository under the lab, or a different backup entirely. The `.gitignore` already
 keeps the corpus and checkpoints out, so a remote would carry scripts and notes only.
 
-### #138 Renumbering lectures silently redirects every `serves_lectures`
+### #152 A8 kickoff notebook for Lecture 8a
 
-**Do this with the Lecture 8 split, and note that no check can catch it.**
+**Cowork's request, and it has the nearest deadline on this list: Lecture 8a is Wed Sep 30.**
+They asked to be told by **Tue Sep 29** if it will not be ready, because a deck slide pointing at
+a notebook that does not exist is worse than no slide.
 
-Every notebook declares lecture *numbers*. If splitting Lecture 8 renumbers what follows — 9
-becomes 10, and so on — then every `serves_lectures` still validates, because the numbers still
-exist in the schedule. They just mean different lectures. Tutorial 6 would claim the new
-Lecture 8, which may be the right half or the wrong one; tutorial 4 would claim whatever 19
-became.
+**Why it exists, which is the strongest argument in the request.** Lectures 4, 5 and 6 each had
+an in-class activity that started the assignment. **The largest assignment in the course has
+none.** A student leaves Lecture 8a with a training run already going, on their own A5 corpus, or
+they leave with a handout.
 
-This is the one failure mode the generated map cannot detect, because both sides stay
-internally consistent. **The parser's own guard does not help here**, and the distinction is
-worth being precise about: it rejects a lecture column it cannot *read*, so `8a` or `8-9` now
-fail loudly rather than vanishing. A renumbered row reads perfectly — it simply means a
-different lecture than the notebooks think it does.
+Ten steps, twenty minutes, on the student's own data:
 
-So `8a`/`8b` is the scheme the tooling can protect and renumbering is the one it cannot, which
-is a reason to prefer the former if the students are served equally well either way.
+1. Install and verify — tutorial 2's two-cell pattern.
+2. Mount Drive, load their A5 corpus, report the pair count immediately.
+3. Deduplicate on the source side; report how many went, count and percentage.
+4. Split by source group into 100K / 2K / 2K.
+5. `check_contamination`, and make it **loud** — an empty intersection is the thing to see.
+6. Length histogram, then the 100-token cap, reporting the percentage dropped on *their* data.
+7. Write the six files back to Drive.
+8. Build config and model, print the parameter count — d_model 256, 8 heads, 3 + 3.
+9. Print ln(V) beside the first loss, so Lecture 7's reference point is on screen.
+10. Start training with `val_loader`, `save_dir` on Drive, and checkpointing.
 
-**So the renumber and the metadata sweep are one change, not two.** Ten notebooks, one field
-each. If Lecture 8 splits into `8a`/`8b` rather than renumbering, this collapses to deciding
-which half tutorial 6 serves — much cheaper, and worth weighing when choosing the scheme.
+**Cowork's design decision, which they invited pushback on:** the notebook supplies the dedupe
+and split code, and the student runs the verification and reads the numbers. That is the right
+split for twenty minutes — the judgement is in reading a contamination check and a length
+histogram, not in retyping a groupby.
+
+Step 10 is where #135 stops being abstract: this notebook is the one place a student's first real
+training run begins, and it must not be the place that teaches them to run without checkpoints.
+
+### #153 Pre-norm answered for Cowork: `SimpleTransformer` is post-norm
+
+**Answered 2026-09-27; deliver it in the next hand-off.** Two slides in the 8b deck depend on it
+and both are correct as written.
+
+`SimpleTransformer` constructs `nn.Transformer` without `norm_first`, so PyTorch's default of
+`False` applies — confirmed on the built module rather than inferred from the constructor:
+`encoder.layers[0].norm_first is False`. That is post-norm, the ordering of the 2017 paper, so
+the encoder-block anatomy slide and the residual-stream slide both stand.
+
+Worth keeping the method as much as the answer: the question was settled by building the model
+and reading the attribute, because the constructor does not mention the argument and a reader
+cannot tell from the call site which default is in force.
+
+### #154 The notebook gate still runs tutorials only, and `course/` has seven
+
+`scripts/execute_notebooks.py` defaults to `docs/docs/tutorials`. Seven notebooks now live in
+`docs/docs/course/` — three arrived today — and **none of them is executed by anything.**
+
+This is the older #103 with a sharper edge: the course notebooks are what students open *in the
+room*, on a clock, and a broken one costs twenty minutes of class rather than a confusing evening.
+
+The obstacle is real rather than neglect: several need Google Drive, a network download, or a
+HuggingFace token, so they cannot all run in CI. The tractable version is to run the ones that
+are self-contained and skip the rest by their declared `needs`, which is the mechanism the
+tutorials already use.
+
+### #155 A8's "What To Do" overlaps the kickoff notebook's first four steps
+
+Cowork flagged this and deliberately did not act on it: if the kickoff notebook walks a student
+through dedupe, split, contamination check and length cap, then A8's handout describing those
+same steps is either redundant or contradictory.
+
+**Eric's to settle**, because it changes an assignment students are about to start. The options
+are to trim the handout to what the notebook does not cover, or to leave it as the written record
+and accept the duplication.
 
 ### #139 Lecture 9 is claimed by tutorial 1 and not actually served
 
@@ -616,6 +709,33 @@ audit tool tell one story.
 The one-line version Cowork asked for: **their tokens stop being words, the same sentence
 gets roughly 1.8x longer, and every length-based rule they have written now selects a
 different set of sentences.**
+
+**Load-bearing as of 2026-09-27, and the dates moved.** Lecture 9 is **Wed Oct 7** and A9 is
+**Wed Oct 14**, both two lectures later than before the split. After tutorial 6 moved to Lecture
+9 and tutorial 3 to Lecture 10, **this is the only notebook Lecture 9 will have that is about
+Lecture 9's own subject.**
+
+**The scope is no longer guesswork.** Last year's predecessor is in `notes/legacy-f2025/` with a
+README. Nineteen cells, of which the reusable core is three: install SentencePiece, train it,
+look at the pieces. Everything else was OpenNMT plumbing this library replaces — including a
+`pip install "numpy<2.0"` carrying a comment that it works around OpenNMT being unmaintained,
+which Cowork fairly called the pivot's own epitaph.
+
+**Two things it did that the new one must not:**
+
+- **It fit the tokenizer on a toy corpus rather than the student's training split.** A9 is a
+  controlled comparison on their own data, so it must fit on **train only**. Fitting on the full
+  corpus leaks test material into the vocabulary, and nothing crashes when it does.
+- **It said nothing about the length cap.** Expressing the cap in tokens breaks A9's comparison,
+  because changing the tokenizer changes which pairs the cap excludes. The notebook is where
+  "choose the sentence set once, with the subword tokenizer, and use it for both runs" has to
+  become concrete — a student will not derive it from the handout. That is #106 and #122.
+
+**And the teaching now arrives after the constraint.** Lecture 10 is Mon Oct 12 and A9 is due Wed
+Oct 14, so decoding is taught two days before the assignment it protects and some students will
+already have run it. Cowork's fix is to state the rule on Lecture 9's own A9 slide and teach the
+reason at Lecture 10. Nothing for this repository to do, but worth knowing why the A9 wording
+carries a rule with no explanation attached.
 
 ### #122 Make Assignment 9's control hard to get wrong in code, not just in prose
 

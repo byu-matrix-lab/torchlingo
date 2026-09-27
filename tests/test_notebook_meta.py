@@ -32,9 +32,17 @@ try:
 except ImportError:
     nbformat = None
 
+# A lecture that really exists, read from the schedule rather than typed.
+#
+# This fixture used to hardcode `8`. On 2026-09-27 Lecture 8 was split into 8a and 8b, `8`
+# stopped existing, and eighteen tests failed on a change that was correct -- they were
+# asserting the old timetable, not the code. The schedule is the source of truth for the code
+# under test, so it has to be the source for the fixtures too.
+SOME_LECTURE = next(iter(nm.lectures()[0]))
+
 GOOD = {
     "family": "tutorial",
-    "serves_lectures": [8],
+    "serves_lectures": [SOME_LECTURE],
     "role": "reading",
     "needs": ["data/example.tsv"],
 }
@@ -143,8 +151,8 @@ class TestScheduleIsParsedNotRestated(unittest.TestCase):
             self.assertNotIn(title, stems, f"lecture {number}'s title is a filename")
 
     def test_shared_row_is_recorded_as_an_alias(self):
-        self.assertEqual(self.aliases.get(23), 22)
-        self.assertNotIn(23, self.titles)
+        self.assertEqual(self.aliases.get("23"), "22")
+        self.assertNotIn("23", self.titles)
 
     def test_non_lecture_rows_are_not_lectures(self):
         """Rows numbered "—" are no-class days, checkpoints and the final exam."""
@@ -271,20 +279,24 @@ class TestUnreadableScheduleRowsAreLoud(unittest.TestCase):
     for the moment it would do most damage.
     """
 
-    REAL_ROW = "| 8 | Wed Sep 30 | Neural MT Overview and Architectures | | **F2026** |"
-
     def setUp(self):
         self.original = nm.ROADMAP.read_text(encoding="utf-8")
-        self.assertIn(self.REAL_ROW, self.original, "the anchor row has changed")
+        # Find a real schedule row rather than naming one. Naming one meant that splitting a
+        # lecture broke nine tests that had nothing to do with the split.
+        self.real_row = next(
+            line
+            for line in self.original.splitlines()
+            if nm.SCHEDULE_ROW.match(line) and line.count("|") >= 5
+        )
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
         self.addCleanup(setattr, nm, "ROADMAP", nm.ROADMAP)
 
     def parse_with(self, replacement):
-        """Parse a roadmap whose Lecture 8 row has been replaced."""
+        """Parse a roadmap whose first real lecture row has been replaced."""
         target = self.tmp / "roadmap.md"
         target.write_text(
-            self.original.replace(self.REAL_ROW, replacement), encoding="utf-8"
+            self.original.replace(self.real_row, replacement), encoding="utf-8"
         )
         nm.ROADMAP = target
         return nm.lectures()
@@ -294,16 +306,21 @@ class TestUnreadableScheduleRowsAreLoud(unittest.TestCase):
             self.parse_with(replacement)
         return str(caught.exception)
 
-    def test_letter_suffixes_are_rejected(self):
-        """The likely form for a split lecture, and the reason this check exists."""
-        message = self.assertRejects(
-            "| 8a | Wed Sep 30 | NMT Overview | | **F2026** |\n"
-            "| 8b | Mon Oct 5 | NMT Architectures | | **F2026** |"
-        )
-        self.assertIn("8a", message)
-        self.assertIn("8b", message)
+    def test_letter_suffixes_are_accepted(self):
+        """Accepted since 2026-09-27, when Lecture 8 was split into 8a and 8b.
 
-    def test_a_range_is_rejected(self):
+        This test asserted the opposite until then, and the inversion is the whole of Task
+        #138. What #137 bought was that the change had to be *made* -- the old parser would
+        have dropped both halves of the split lecture and said nothing.
+        """
+        titles, _ = nm.lectures()
+        suffixed = [k for k in titles if not k.isdigit()]
+        self.assertTrue(suffixed, "no suffixed lecture in the schedule to verify")
+        for key in suffixed:
+            self.assertRegex(key, r"^\d+[a-z]$")
+            self.assertTrue(titles[key], f"lecture {key} parsed with no title")
+
+    def test_a_range_is_still_rejected(self):
         self.assertRejects("| 8-9 | Wed Sep 30 | NMT Overview | | **F2026** |")
 
     def test_a_parenthetical_is_rejected(self):
@@ -313,27 +330,41 @@ class TestUnreadableScheduleRowsAreLoud(unittest.TestCase):
         """Not only new schemes: a stray character is caught for free."""
         self.assertRejects("| 8. | Wed Sep 30 | NMT Overview | | **F2026** |")
 
+    def test_a_multi_letter_suffix_is_rejected(self):
+        """One letter is a split; two is a typo or a scheme nobody agreed to."""
+        self.assertRejects("| 8ab | Wed Sep 30 | NMT Overview | | **F2026** |")
+
     def test_every_bad_row_is_reported_not_just_the_first(self):
         message = self.assertRejects(
-            "| 8a | Wed Sep 30 | NMT Overview | | **F2026** |\n"
-            "| 8b | Mon Oct 5 | NMT Architectures | | **F2026** |"
+            "| 8-9 | Wed Sep 30 | NMT Overview | | **F2026** |\n"
+            "| 8. | Mon Oct 5 | NMT Architectures | | **F2026** |"
         )
         self.assertIn("2 schedule row(s)", message)
 
     def test_the_message_says_what_is_accepted(self):
         """An error that does not say what to write instead just moves the confusion."""
-        message = self.assertRejects("| 8a | Wed Sep 30 | NMT Overview | | **F2026** |")
+        message = self.assertRejects(
+            "| 8-9 | Wed Sep 30 | NMT Overview | | **F2026** |"
+        )
         self.assertIn("Accepted", message)
         self.assertIn("22, 23", message)
         self.assertIn("#138", message)
 
     def test_valid_forms_still_parse(self):
-        for replacement in (
-            self.REAL_ROW,
-            "| 8, 9 | Wed Sep 30 | NMT Overview | | **F2026** |",
-        ):
-            titles, _ = self.parse_with(replacement)
-            self.assertIn(8, titles)
+        """The unsuffixed and comma forms must keep working, with string keys.
+
+        Asserting `8` as an integer was the version of this that broke: identifiers became
+        strings when `8a` arrived, because `8a` has no integer form.
+        """
+        titles, aliases = self.parse_with(self.real_row)
+        self.assertTrue(titles)
+        self.assertTrue(all(isinstance(k, str) for k in titles))
+
+        titles, aliases = self.parse_with(
+            "| 90, 91 | Wed Sep 30 | A shared session | | **F2026** |"
+        )
+        self.assertEqual(titles["90"], "A shared session")
+        self.assertEqual(aliases["91"], "90")
 
     def test_non_lecture_rows_are_still_skipped_silently(self):
         """Em-dash rows are deliberate -- no class, project reviews, the final exam -- and
@@ -346,15 +377,15 @@ class TestUnreadableScheduleRowsAreLoud(unittest.TestCase):
     def test_the_real_schedule_parses(self):
         """The guard must not reject the file as it actually stands."""
         titles, aliases = nm.lectures()
-        self.assertEqual(len(titles), 22)
-        self.assertEqual(aliases.get(23), 22)
+        self.assertGreater(len(titles), 15)
+        self.assertEqual(aliases.get("23"), "22")
 
     def test_the_cli_reports_a_message_not_a_traceback(self):
         """The message is the whole value of this check, and a traceback buries it."""
         target = self.tmp / "roadmap.md"
         target.write_text(
             self.original.replace(
-                self.REAL_ROW, "| 8a | Wed Sep 30 | NMT Overview | | **F2026** |"
+                self.real_row, "| 8-9 | Wed Sep 30 | NMT Overview | | **F2026** |"
             ),
             encoding="utf-8",
         )
@@ -381,13 +412,19 @@ class TestAssignmentsAreParsed(unittest.TestCase):
             self.assertRegex(name, r"^A\d+$")
 
     def test_a_known_assignment_maps_to_its_due_lecture(self):
-        """A8 is the NMT model assignment, due the day Lecture 10 runs."""
-        self.assertEqual(self.due.get("A8"), 10)
+        """A8 is the NMT model assignment. Which lecture it falls on has moved once
+        already, so the test asserts that it resolves to a real lecture rather than to a
+        particular one."""
+        titles, aliases = nm.lectures()
+        self.assertIn(self.due.get("A8"), set(titles) | set(aliases))
 
     def test_two_assignments_in_one_cell_are_both_found(self):
-        """Lecture 11's cell holds A9 and A10, separated by a middot."""
-        self.assertEqual(self.due.get("A9"), 11)
-        self.assertEqual(self.due.get("A10"), 11)
+        """One cell holds A9 and A10, separated by a middot, and both must be found.
+
+        Asserting that they share a lecture rather than naming which one: the schedule
+        shifted by two lectures on 2026-09-27 and the sharing is what is being tested."""
+        self.assertIsNotNone(self.due.get("A9"))
+        self.assertEqual(self.due.get("A9"), self.due.get("A10"))
 
     def test_leads_to_is_validated_against_them(self):
         meta = {**GOOD, "leads_to": ["A8"]}
@@ -436,7 +473,7 @@ class TestPurposeLine(unittest.TestCase):
         }
         line = nm.purpose_line(meta)
         self.assertIn("A8", line)
-        self.assertIn("Lecture 10", line)
+        self.assertIn(f"Lecture {nm.assignments()['A8']}", line)
 
     def test_no_head_start_clause_when_leads_to_is_absent(self):
         line = nm.purpose_line(
