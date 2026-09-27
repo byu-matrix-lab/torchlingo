@@ -40,6 +40,7 @@ from torchlingo.data_processing.vocab import SentencePieceVocab
 from torchlingo.models import SimpleTransformer
 from torchlingo.preprocessing.sentencepiece import train_sentencepiece
 from torchlingo.training import train_model
+from torchlingo.training_checkpoint import TrainingCheckpointer
 
 CORPUS = Path("data/example.tsv")
 OUT_DIR = Path("data/pretrained")
@@ -225,6 +226,15 @@ def main() -> None:
 
         device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
         started = time.time()
+        # Checkpointed unconditionally, not behind a flag. A flag makes it optional, and
+        # the run that skips it is always the long one you could least afford to lose: a
+        # 36-epoch benchmark here once produced a BLEU number and no model at all, so a
+        # longer run could not start from it and had to begin again from scratch.
+        #
+        # It also means this script demonstrates the practice rather than only documenting
+        # it. `training_checkpoint` exists precisely so a Colab disconnect costs minutes
+        # instead of a session, and a student reading the script that trains the shipped
+        # checkpoint should see it in use.
         result = train_model(
             model,
             train_loader,
@@ -234,6 +244,11 @@ def main() -> None:
             device=device,
             config=cfg,
             gradient_clip=1.0,
+            checkpointer=TrainingCheckpointer(
+                experiment_name="example-model",
+                checkpoint_dir=args.out_dir / "checkpoints",
+                verbose=True,
+            ),
         )
         minutes = (time.time() - started) / 60
 
