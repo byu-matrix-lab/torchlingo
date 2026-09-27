@@ -50,7 +50,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 
 | | Task | State |
 |---|---|---|
-| #95 | The data learning curve, whose 100K point is A8's number | **RUNNING** — Cowork needs the 100K figures by Oct 5 |
+| #95 | The data learning curve, whose 100K point is A8's number | **RUNNING** — 7 of 21 cluster points in |
 | #49 | The shipped checkpoint predates the enlarged corpus | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | Open — point the course at it; decide on diagnostics |
 | #121 | A Lecture 9 subword notebook, and it is ours | **Answer to Cowork by Oct 3** |
@@ -58,7 +58,10 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #123 | A14's two-directions case has never been run | Open — highest uncertainty, due Oct 28 |
 | #124 | Simplify Lecture 6's chrF/TER wrappers | **After Mon Sep 28**, not before — A6 is live |
 | #133 | One metadata namespace for both notebook families | Open — generate the map rather than maintain it |
-| #128 | Run the learning curve on the cluster | **Canary passed** — splits building, then `--array=0-6` |
+| #134 | Publish the A8 and curve numbers as a generated report | **Cowork needs these by Oct 5** |
+| #135 | `examples/*.py` still do not checkpoint | Open — the five a student is most likely to copy |
+| #136 | The curve mixes converged and budget-limited points | Open — must be labelled, not averaged over |
+| #128 | Run the learning curve on the cluster | **RUNNING** — array 13900963, 7 of 21 done |
 | #129 | Extract a shared `~/Projects/hpc` | Open — after #128 gives a second implementation to diff |
 | #130 | `pyproject`, installed metadata and `__version__` must agree | In review — **PR #105** |
 | #131 | Name the model family, and which config the numbers used | Open — docs show a config nothing runs |
@@ -71,7 +74,7 @@ this file until Oct 28. See "The CS 479 pivot" below for the schedule and the re
 | #106 | A token cap breaks Assignment 9's control | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | Open — **demoted**: length, not cache, is the driver |
-| #113 | Land the five PRs still open | #55 merged; #51, #52, #54, #57, #59 left |
+| #113 | Land the PRs still open | #52 green; #54, #57, #59 need review; #103, #105 need Eric |
 | #118 | What does a paid Colab session actually provide? | **Coulson** — blocks any A8 memory claim |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | Open |
 | #4 | Resolve length-normalization semantics | In review — PR #54 |
@@ -139,6 +142,33 @@ points answer whether more data is worth having. Best controlled run on record t
 
 **Done when** the report in `notes/reports/` carries BLEU, seconds per epoch and total wall
 clock at each corpus size, on a named device, generated from JSON.
+
+#### First cluster results, 7 of 21 points
+
+Three model scales x seven corpus sizes, each to convergence capped at 100,000 steps, on A100s.
+
+| d_model | params | pairs | BLEU | chrF | min | epochs | converged |
+|---|---|---|---|---|---|---|---|
+| 64 | 1.8M | 25,000 | 4.16 | 21.49 | 28.1 | 260 | yes |
+| 64 | 1.8M | 50,000 | 4.70 | 22.35 | 31.2 | 129 | yes |
+| 64 | 1.8M | 100,000 | 4.52 | 22.56 | 30.6 | 65 | no |
+| 64 | 1.8M | 200,000 | 4.92 | 22.74 | 30.5 | 33 | no |
+| 64 | 1.8M | 1,200,000 | 5.16 | 22.88 | 29.1 | 6 | no |
+| 256 | 11.7M | 25,000 | 9.55 | 30.98 | 13.5 | 77 | yes |
+| 512 | 56.4M | 25,000 | 9.24 | 29.86 | 20.4 | 38 | yes |
+
+**The tiny row justifies itself.** 48x the data — 25,000 to 1.2M — buys the 1.8M-parameter model
+**+1.0 BLEU**, from 4.16 to 5.16. That is the capacity floor: beyond about 50,000 pairs this
+model cannot use what it is given, and without that row the curve could not tell "more data does
+not help" from "this model is too small to use more data".
+
+**At 25,000 pairs, more capacity does not help either.** The 56M model scores *below* the 11.7M
+one, 9.24 against 9.55 — within noise, but certainly not better. Both converged, so neither was
+short of compute. This is the other half of the same lesson and it lands on the course's own
+configuration: Assignment 8's model is not obviously too small.
+
+**Read #136 before drawing the curve**: these points do not all stop for the same reason, and
+the ones that hit the step budget are not measuring the same thing as the ones that converged.
 
 #### Acceptance criterion, inherited from the closed #110
 
@@ -297,6 +327,65 @@ missing a gate that `main` gained after their checks ran.
 
 Knock-on: **PR #55** is what **Task #85** and **Task #91** wait on. (Task, not PR: PRs #84 and #85 exist and
 are unrelated — the collision `CLAUDE.md`'s numbering rule describes.)
+
+### #134 Publish the A8 and curve numbers as a generated report
+
+**Cowork needs the 100K figures by Oct 5** or the Assignment 8 handout ships saying expected
+quality is unknown. The numbers exist; the report does not.
+
+Measured on MPS, 36 epochs at the 100-token cap: **BLEU 11.46, chrF 32.88, 64.7 min**, 10.00 GiB
+held, verdict *workable but A8 must state expected quality explicitly*.
+
+`collect_benchmark.py` is written and produces the consolidated JSON. What is missing is the
+renderer and the report, following `notes/reports/`: JSON is the source, Markdown is generated,
+`--check` keeps them honest.
+
+**Two things the report must say plainly**, because both change how a number is read:
+
+- **The config.** Every figure so far is the 11.7M-parameter course model, not the 56M
+  Transformer-base the docs show. See #131.
+- **MPS is not CUDA.** The wall clock does not transfer to a student on Colab. The cluster's
+  A100 numbers do, once they land.
+
+### #135 `examples/*.py` still do not checkpoint
+
+The #103 audit found that no `train_model` caller checkpointed. Three are fixed —
+`benchmark_a8.py`, `ladder.py`, `train_example_model.py` — and five are not:
+`examples/train.py`, `attention_alignment.py`, `multilingual_training_example.py`,
+`train_ceb_cmn_simple.py`, and the `TRAINING_GUIDE_CEB_CMN.md` walkthrough.
+
+**These matter most and were done last**, which is the wrong way round: `examples/` is the code
+a student is most likely to copy into their own Colab notebook, and a Colab disconnect is
+exactly the failure `training_checkpoint` exists for.
+
+Left separate deliberately: those five files sit outside the lint gate (#22), so a change there
+is unguarded, and a five-file mechanical diff would bury its own review.
+
+### #136 The curve mixes converged and budget-limited points
+
+**Found in the first cluster results and it changes how the curve must be read.** Points do not
+all stop for the same reason:
+
+| d_model | pairs | epochs | converged |
+|---|---|---|---|
+| 64 | 25,000 | 260 | yes |
+| 64 | 50,000 | 129 | yes |
+| 64 | 100,000 | 65 | **no — hit the step budget** |
+| 64 | 1,200,000 | 6 | **no** |
+| 256 | 25,000 | 77 | yes |
+
+Small corpora converge and stop early: *this is the best that much data can do.* Large corpora
+exhaust the 100,000-step budget while still improving: *this is what that much data gets in
+100,000 steps.* **Those are different measurements**, and a curve drawn through both without
+saying which is which understates the large end.
+
+- Every point already records `val_flattened`, epochs and the budget, so the distinction is in
+  the data rather than lost. The report has to **label it**, not average over it.
+- Do not describe the sweep as "equal compute". It is **each point to convergence, capped at
+  100,000 steps**, which is a different and more defensible claim.
+- If the large end matters enough, the fix is a bigger budget for those points only — which
+  breaks comparability in the other direction and should be a deliberate second sweep rather
+  than a quiet change to this one.
 
 ### #133 One metadata namespace for both notebook families
 
