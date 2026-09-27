@@ -485,63 +485,81 @@ numbering schemes do not line up, deliberately:
 | `docs/docs/tutorials/` | library topic | this repository |
 | `docs/docs/course/` | lecture | Cowork writes content, this repository commits it |
 
-So nothing about which artifact belongs in which lecture is derivable from a filename, and
-**this table is the only place it is written down.**
+So nothing about which artifact belongs in which lecture is derivable from a filename. It
+used to be written down only here, by hand. It is now **declared by each notebook** in its
+own `torchlingo` metadata and generated from them, because a hand-kept table next to the
+artifacts it describes is the redundancy this document warns about everywhere else — and it
+had already drifted twice.
 
 Dates, topics and assignment deadlines are **in the schedule above** rather than repeated
 here. Lecture numbers are the join.
 
+The table below is a build artifact. **Do not edit it**: change the notebook's metadata and
+run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
+
+<!-- BEGIN generated:notebook-map -->
+
 | # | Lecture | Course notebook | TorchLingo tutorial |
 |---|---|---|---|
-| 1 | Course overview, history | — | — |
-| 2 | Translation challenges | — | — |
-| 3 | Word embeddings | `lecture-03-word-embeddings` | — |
-| 4 | Data preparation | `lecture-04-tmx-cleaning` | *1, data and vocab — see note* |
-| 5 | Data preparation, part 2 | `lecture-05-sentence-alignment` | — |
-| 6 | Human and automatic evaluation | `lecture-06-mt-evaluation` | *7, evaluation — see note* |
-| 7 | Paper reviews; intro to neural nets | — | **2, train a tiny model** — the in-class activity |
-| 8 | NMT overview and architectures | — | **6, diagnosing failures** — reading alongside A8 |
-| 9 | Morphology and terminology | **needed: `lecture-09-subword-tokenization`** (#121) | 1, the vocabulary half |
-| 10 | MT quality estimation | — | 5, real translations |
-| 11 | Neural QE and evaluation | — | — |
-| 12 | LLMs for MT; context | — | — |
-| 13 | Low-resource strategies | — | — |
-| 14 | Multilingual and zero-shot NMT | **needed**, replaces the OpenNMT `.docx` (#99) | — |
-| 15 | Speech-to-speech | — | — |
-| 16 | Dubbing and interpretation | — | — |
+| 1 | Course Overview and History of MT | — | — |
+| 2 | Translation Challenges for MT | — | — |
+| 3 | Introduction to Word Embeddings | `lecture-03-word-embeddings` (activity) | — |
+| 4 | Data Preparation for MT Training | `lecture-04-tmx-cleaning` (activity) | `01-data-and-vocab` (reference) ¹ |
+| 5 | Data Preparation for MT Training, Part 2 | `lecture-05-sentence-alignment` (activity) | — |
+| 6 | Human and Automatic MT Evaluation | `lecture-06-mt-evaluation` (activity) | — |
+| 7 | Research Paper Reviews; Intro to Neural Networks | — | `02-train-tiny-model` (activity) |
+| 8 | Neural MT Overview and Architectures | — | `06-diagnosing-failures` (reading) |
+| 9 | Morphology and Terminology in NMT | — | `01-data-and-vocab` (reference) ¹ |
+| 10 | Overview of MT Quality Estimation | — | `05-real-translations` (reading) |
+| 11 | Neural Quality Estimation and Evaluation | — | — |
+| 12 | Using LLMs for MT; Expanding Context Awareness | — | — |
+| 13 | Strategies for NMT of Low-Resource Languages | — | — |
+| 14 | Multilingual NMT and "Zero-shot" NMT | — | — |
+| 15 | Overview of Speech-to-Speech MT | — | — |
+| 16 | Automatic Dubbing and Interpretation | — | — |
 | 17 | Multimodal NMT | — | — |
-| 18 | HAMT vs MAHT, productivity | — | — |
-| 19 | Word and sentence alignment | — | **4, attention and alignment** — see note |
-| 20 | Earlier MT methods | — | — |
-| 21 | Writing research articles | — | — |
-| 22, 23 | Applications and jobs | — | 3, inference and beam search |
+| 18 | HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation | — | — |
+| 19 | Word and Sentence Alignment | — | `04-attention-and-alignment` (reading) ³ |
+| 20 | What can we learn from previous MT methods: RBMT, KBMT, EBMT, PBSMT, SBSMT | — | — |
+| 21 | Writing Research Articles; MATRIX Lab research | — | — |
+| 22, 23 | MT Applications and Jobs; Opportunities for Further MT Research | — | `03-inference-and-beamsearch` (reference) ² |
 
-### Notes on the rows that are not simple
+Notes on the rows that are not simple:
+
+- ¹ **`01-data-and-vocab`** — covers loading and cleaning a parallel corpus, which is
+  Lecture 4's subject from the library side, and its vocabulary half belongs to Lecture 9.
+  Lecture 4 has already run this year, so the pairing is retrospective there and genuine
+  for a future offering.
+- ² **`03-inference-and-beamsearch`** — beam search and decoding cost fit an applications
+  lecture better than an architectures one. A weak pairing, offered rather than urged.
+- ³ **`04-attention-and-alignment`** — Lecture 19 overlaps Lecture 5, because sentence
+  alignment moved forward this year. This tutorial is the natural companion either way,
+  since it measures alignment accuracy rather than describing it. The overlap is
+  unresolved and is not this repository's to settle.
+
+<!-- END generated:notebook-map -->
+
+### Why lectures that have run are still listed
 
 **Lectures 1 to 6 have already run.** They are listed anyway, for three reasons: a student
 revisiting them needs to know what to open, assignments later in the course refer back to
 them, and a Fall 2027 offering should not have to rediscover the mapping. Where a tutorial
-*would have* improved a past lecture it is marked "see note" rather than silently dropped.
+*would have* improved a past lecture it is marked `reference` rather than silently dropped.
 
-- **Lecture 4** — tutorial 1 covers loading and cleaning a parallel corpus, which is Lecture
-  4's subject from the library side. Too late for this year; a genuine pairing for next.
-- **Lecture 6** — tutorial 7 was written for exactly this ground and is not merged yet (#88).
-  Retargeted as reading *after* Lecture 8, since Lecture 6 has run.
-- **Lecture 19 overlaps Lecture 5.** Sentence alignment moved forward into Lecture 5 this
-  year, so Lecture 19 now covers ground students have already met. Tutorial 4 is the natural
-  companion either way, because it measures alignment accuracy rather than describing it. The
-  roadmap flags the overlap as unresolved; this is not ours to settle.
-- **Lecture 22/23 and tutorial 3** — beam search and decoding cost fit an applications
-  lecture better than an architectures one. Weak pairing, offered rather than urged.
+### What this table cannot say, and so is written here
 
-### What this table says is missing
+The generated table lists notebooks that exist. Absence is the interesting part, and a
+notebook that has not been written cannot declare anything:
 
 - **Lecture 9 has no notebook and needs one.** That is #121, which carries the dates.
 - **Lecture 14 has no notebook**, and the current handout is a Word document written for
   OpenNMT. That is #99, and #123 is the prior question of whether the code path even works.
-- **Eleven of the twenty-three lectures pair with nothing**, which is fine: not every lecture
-  wants a notebook, and inventing one to fill a row would be the redundancy this document
-  already warns about.
+- **Lecture 6 will gain a tutorial it cannot show yet.** Tutorial 7 was written for exactly
+  this ground and is not merged (#88). Once it lands it will declare Lecture 6 itself, as
+  reading *after* Lecture 8, since Lecture 6 has run.
+- **Twelve of the twenty-three lectures pair with nothing** — 1, 2, 11 to 18, 20 and 21. Which
+  is fine: not every lecture wants a notebook, and inventing one to fill a row would be the
+  redundancy this document already warns about.
 
 ## What exists
 

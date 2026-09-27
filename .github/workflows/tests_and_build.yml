@@ -89,6 +89,15 @@ jobs:
       - name: Reports match their JSON
         run: python scripts/render_report.py --check
 
+      # Same argument, applied to the notebook map. Each notebook declares which
+      # lecture it serves and what it needs; the roadmap's table and
+      # execute_notebooks.py's skip logic both read those declarations. This is
+      # what stops the table from drifting back into being hand-maintained, and
+      # it also validates the metadata itself -- a typo'd key would otherwise
+      # silently drop a row. Standard library only, like the check above.
+      - name: Notebook metadata and the roadmap's map
+        run: python scripts/notebook_meta.py --check
+
   tests:
     name: Run tests
     runs-on: ubuntu-latest

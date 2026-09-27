@@ -8,6 +8,63 @@ file every time.
 
 ---
 
+## 2026-09-26, eighth — every notebook you write now declares itself
+
+**This changes one thing you do.** A new course notebook must carry a `torchlingo` block in
+its notebook-level metadata. Nothing else about how you write them changes.
+
+```json
+"metadata": { "torchlingo": {
+    "family": "course",
+    "serves_lectures": [9],
+    "role": "activity",
+    "needs": []
+}}
+```
+
+- **`family`** — `"course"` for anything in `docs/docs/course/`, `"tutorial"` for
+  `docs/docs/tutorials/`. It must match the directory; CI rejects a mismatch.
+- **`serves_lectures`** — a list, because a notebook can serve more than one. Tutorial 1
+  serves Lecture 4 and Lecture 9. The numbers must exist in the roadmap's schedule table.
+  Lectures 22 and 23 share a row; either number is accepted.
+- **`role`** — `activity` (used in the session), `reading` (assigned alongside it),
+  `homework`, or `reference` (offered rather than urged — a weak pairing, or one that would
+  have fitted a lecture already run). This is the bold-versus-plain distinction the old
+  hand-written table carried.
+- **`needs`** — repo-relative paths the notebook cannot run without, usually Git LFS
+  artifacts. CI checks out without LFS and *skips* a notebook whose needs are unfetched,
+  rather than failing it. Get this wrong and CI fails on a 130-byte pointer file with a
+  baffling parse error. Leave it `[]` if the notebook is self-contained.
+- **`note`** — optional prose, for a pairing that is not self-explanatory. It becomes a
+  footnote under the generated table, so write it as a sentence, not a fragment.
+
+**Why this and not a filename scheme.** A filename holds one lecture number and a notebook
+can serve two. And renaming is the dangerous option mid-semester: your decks cite notebooks
+by filename and the Colab badges embed the path, so a rename breaks a link a student is
+already clicking. Renames stay deferred to a semester boundary (#101), as you asked.
+
+**What it replaced.** The roadmap's notebook map is now generated from these blocks, with a
+`--check` in CI, so it cannot drift from the notebooks. That matters specifically because the
+roadmap is the shared source of truth with two sessions editing it — the map is the one part
+neither of us now has to keep in agreement by hand. `python scripts/notebook_meta.py --write`
+regenerates it; `--table` prints it without touching the file.
+
+**The table also reads its lecture numbers and titles out of the schedule table in the same
+document** rather than restating them, so the map and the schedule cannot disagree.
+
+**If you add a notebook without the block, CI fails** with the notebook's path and what is
+wrong. That is deliberate: a missing block would silently mean "serves no lecture", which
+reads identically to a lecture that has no notebook.
+
+**One correction to the entry below**, which I am making here rather than editing it: it says
+eleven of twenty-three lectures pair with nothing. It is **twelve** — 1, 2, 11 to 18, 20 and
+21. The old table counted Lectures 9 and 14 as paired because their cells named the notebook
+each *needs*, which is a different statement from having one. The generated table lists only
+notebooks that exist, and the two gaps are now stated in prose beneath it, where they cannot
+be misread as filled.
+
+---
+
 ## 2026-09-26, seventh — the roadmap is now the shared source of truth
 
 **Eric's call: `notes/CS479_COURSE_ROADMAP.md` is the official CS 479 roadmap, and
