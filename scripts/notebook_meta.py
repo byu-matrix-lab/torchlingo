@@ -1,0 +1,697 @@
+"""One metadata namespace for both notebook families, and the map generated from it.
+
+Two families of notebook exist and their numbering deliberately does not line up:
+``docs/docs/tutorials/`` is numbered by library topic, ``docs/docs/course/`` by lecture. So
+which artifact serves which lecture is derivable from nothing, and it used to be recorded in
+a hand-maintained table in the roadmap.
+
+This replaces the table with data the notebooks carry themselves:
+
+    "metadata": { "torchlingo": {
+        "family": "tutorial" | "course",
+        "serves_lectures": [8],
+        "role": "activity" | "reading" | "homework" | "reference",
+        "needs": ["data/example.tsv"],
+        "note": "optional prose, for a pairing that is not self-explanatory"
+    }}
+
+``nbformat`` permits arbitrary keys under ``metadata``, and neither Jupyter nor Colab minds
+them.
+
+``role`` also carries how strong the pairing is, which the hand-written table said with
+bold and italics: ``activity`` is used in the session itself, ``reading`` is assigned
+alongside it, and ``reference`` is offered rather than urged -- a weak pairing, or one that
+would have fitted a lecture that has already run. ``needs`` is repo-relative paths only,
+because ``execute_notebooks.py`` resolves them against the filesystem.
+
+Why metadata rather than renaming the files. A notebook can serve more than one lecture —
+tutorial 4 serves Lecture 19 and is also the natural companion to Lecture 8's attention
+material — and one lecture number in a filename cannot say that. Renaming is also actively
+dangerous mid-semester: decks cite notebooks by filename and Colab badges embed the path, so
+a rename breaks a link a student is already clicking. That work is deliberately deferred.
+
+The roadmap's lecture map is then generated from it, between markers, the same arrangement
+``scripts/render_report.py`` uses for the reports: the file holds the artifact, the script is
+the only thing that writes it, and ``--check`` in CI is what keeps "generated" from being an
+honour system.
+
+Usage:
+
+    python scripts/notebook_meta.py --check     validate, and verify the roadmap is current
+    python scripts/notebook_meta.py --write     rewrite the roadmap's map block
+    python scripts/notebook_meta.py --table     print the map without touching anything
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+import textwrap
+from pathlib import Path
+
+TUTORIALS = Path("docs/docs/tutorials")
+COURSE = Path("docs/docs/course")
+ROADMAP = Path("notes/CS479_COURSE_ROADMAP.md")
+
+BEGIN = "<!-- BEGIN generated:notebook-map -->"
+END = "<!-- END generated:notebook-map -->"
+
+# Superscripts rather than Markdown footnote syntax. `[^1]` needs the footnotes extension,
+# which docs/mkdocs.yml does not enable, and the roadmap is also read as plain text in a
+# terminal -- where a footnote reference that never resolves is just noise.
+MARKERS = "¹²³⁴⁵⁶⁷⁸⁹"
+
+FAMILIES = {"tutorial", "course"}
+ROLES = {"activity", "reading", "homework", "reference"}
+
+# Which collection a notebook belongs to. This says where it lives, not how it is used --
+# a distinction worth keeping separate, because they come apart: tutorial 2 lives in the
+# tutorials and is used as Lecture 7's in-class activity.
+FAMILY_COLLECTION = {
+    "tutorial": "TorchLingo tutorial",
+    "course": "CS 479 course notebook",
+}
+
+# How a notebook is used, which is where the in-class / out-of-class distinction actually
+# lives. Eric, 2026-09-27: the tutorials are out-of-class and the course notebooks are
+# in-class active learning. That is true of the collections as a rule and of `role` always,
+# so the role is what a reader is told.
+ROLE_PHRASE = {
+    "activity": "the in-class activity for",
+    "reading": "assigned reading for",
+    "homework": "homework for",
+    "reference": "offered alongside",
+}
+
+# Rows whose lecture column is a number, from the "Semester at a glance" table.
+SCHEDULE_ROW = re.compile(r"^\| (\d+(?:, ?\d+)*) \| [^|]+ \| ([^|]+) \|")
+SCHEDULE_HEADING = "## Semester at a glance"
+
+# What a readable lecture column looks like: one number, or several sharing a session.
+LECTURE_CELL = re.compile(r"^\d+(?:, ?\d+)*$")
+
+# Cells that are legitimately not lectures, and are skipped rather than reported. An em dash
+# marks a row that is not a lecture at all -- no class, a project review, the final exam --
+# and `#` is the table's own header. Every *other* unreadable cell is an error, because the
+# whole point of parsing this table is that a lecture cannot quietly go missing from the map.
+SKIPPABLE_CELLS = {"—", "–", "-", "#"}
+
+# Assignments as the schedule writes them, in the "Assignment due that day" column:
+# `**A4** initial cleaning steps`, sometimes two in one cell separated by a middot.
+ASSIGNMENT = re.compile(r"\*\*(A\d+)\*\*")
+
+
+def lectures() -> tuple[dict[int, str], dict[int, int]]:
+    """Read the lecture numbers and titles out of the roadmap's own schedule table.
+
+    Parsed rather than restated. The task that asked for this named the risk precisely:
+    two tables in one document that must agree, with nothing checking, is the pattern that
+    has already cost this repository three separate defects. A short hand-written copy of
+    the titles here would have been a fourth. So the schedule is the source and the map
+    below is derived from it, which makes disagreement impossible rather than detectable.
+
+    Returns:
+        tuple: Titles by lecture number, and an alias map folding a shared row's later
+        numbers onto its first -- Lectures 22 and 23 are one session in one row.
+
+    Raises:
+        ValueError: If the schedule cannot be found, or if a row in it has a lecture column
+            this cannot read. Both are loud on purpose -- see below.
+    """
+    titles: dict[int, str] = {}
+    aliases: dict[int, int] = {}
+    unreadable: list[str] = []
+    # Only within the schedule's own section. Without this the generated map's rows match
+    # the same shape and overwrite every title with a notebook filename -- which is exactly
+    # what happened the first time this ran, and is the kind of quiet wrongness that would
+    # have shipped had the output not been read.
+    inside = False
+    for line in ROADMAP.read_text(encoding="utf-8").splitlines():
+        if line.startswith("## "):
+            inside = line.strip() == SCHEDULE_HEADING
+        if not inside or not line.startswith("|"):
+            continue
+
+        columns = line.split("|")
+        if len(columns) < 5:
+            continue
+        cell = columns[1].strip()
+
+        # A row whose lecture column this cannot read is an error, not a row to skip.
+        #
+        # Skipping was the original behaviour and it was silently wrong in the worst way: the
+        # lecture simply was not in the generated map, nothing reported anything, and the map
+        # still looked complete. `8a`, `8-9` and `8 (part 1)` all fell through. Splitting a
+        # lecture is exactly when someone reaches for one of those forms, so the failure was
+        # waiting for the moment it would do most damage.
+        #
+        # Widening the accepted forms is a separate decision -- which scheme the course uses
+        # is the instructors' call, not this script's -- so the message names what is
+        # accepted today rather than guessing at what was meant.
+        if cell in SKIPPABLE_CELLS or set(cell) <= set("-: "):
+            continue
+        if not LECTURE_CELL.match(cell):
+            unreadable.append(
+                f"  {line.strip()[:100]}\n    lecture column reads {cell!r}"
+            )
+            continue
+
+        numbers = [int(n) for n in cell.replace(" ", "").split(",")]
+        titles[numbers[0]] = columns[3].strip()
+        for extra in numbers[1:]:
+            aliases[extra] = numbers[0]
+
+    if unreadable:
+        raise ValueError(
+            f"{ROADMAP}: {len(unreadable)} schedule row(s) have a lecture column that "
+            "cannot be read, so they would be missing from the generated map:\n"
+            + "\n".join(unreadable)
+            + "\n\n  Accepted: a number (`8`), several sharing one session (`22, 23`), "
+            "or `—` for a row that is not a lecture.\n"
+            "  To use another scheme, widen LECTURE_CELL in scripts/notebook_meta.py "
+            "deliberately -- and note that serves_lectures holds these same numbers, so "
+            "renumbering means re-checking every notebook (Task #138)."
+        )
+    if not titles:
+        raise ValueError(f"{ROADMAP} has no recognizable schedule table")
+    return titles, aliases
+
+
+def assignments() -> dict[str, int | None]:
+    """Read the assignment identifiers out of the schedule, with the lecture each is due on.
+
+    Parsed for the same reason the lectures are: the schedule already names every assignment,
+    and a second list here would be a second thing to keep in agreement.
+
+    Assignments matter to notebooks because of how the course actually uses them. Eric,
+    2026-09-27: an in-class notebook is often a jump start on the *next* assignment, and some
+    tutorials should be pivoted to serve that purpose too. So "which assignment does this
+    notebook start" is a real relation, distinct from "which lecture does it serve" -- the
+    lecture is where it is used, the assignment is what it is used *for*.
+
+    Returns:
+        dict: Assignment id to the lecture number it is due on, or None when it falls on a
+        row that is not a lecture, such as the last day of class.
+    """
+    due: dict[str, int | None] = {}
+    inside = False
+    for line in ROADMAP.read_text(encoding="utf-8").splitlines():
+        if line.startswith("## "):
+            inside = line.strip() == SCHEDULE_HEADING
+        if not inside or not line.startswith("|"):
+            continue
+        columns = line.split("|")
+        if len(columns) < 5:
+            continue
+        match = SCHEDULE_ROW.match(line)
+        lecture = int(match.group(1).split(",")[0]) if match else None
+        for found in ASSIGNMENT.findall(columns[4]):
+            due[found] = lecture
+    return due
+
+
+def notebooks() -> list[Path]:
+    """Return every notebook in both families, tutorials first.
+
+    Returns:
+        list: Paths, sorted within each family.
+    """
+    return sorted(TUTORIALS.glob("*.ipynb")) + sorted(COURSE.glob("*.ipynb"))
+
+
+def read_meta(path: Path) -> dict:
+    """Return a notebook's ``torchlingo`` metadata block.
+
+    Args:
+        path (Path): The notebook.
+
+    Returns:
+        dict: The block, or ``{}`` when absent.
+    """
+    nb = json.loads(path.read_text(encoding="utf-8"))
+    return nb.get("metadata", {}).get("torchlingo", {})
+
+
+def write_meta(path: Path, meta: dict) -> None:
+    """Write a notebook's ``torchlingo`` block, in place, changing nothing else.
+
+    A textual splice rather than an ``nbformat`` round trip. ``nbformat`` rewrites cell
+    sources from strings into line lists and reorders keys, so a round trip to add six lines
+    of metadata produces a diff of hundreds of lines across cells it did not touch -- which
+    is unreviewable, and in a notebook the cells are the part that matters.
+
+    The notebook set is open: Eric and the Cowork session add a lecture notebook whenever a
+    lecture needs one. So the block has to be addable without hand-editing JSON. Colab
+    exposes no editor for notebook-level metadata at all, and in Jupyter it is several clicks
+    into a raw-JSON panel, which is exactly where a typo becomes a silently dropped field.
+
+    Args:
+        path (Path): The notebook to modify.
+        meta (dict): The block to write. Replaces an existing one entirely.
+
+    Raises:
+        ValueError: If the notebook has no top-level ``metadata`` object to write into.
+    """
+    text = path.read_text(encoding="utf-8")
+    body = json.dumps({"torchlingo": meta}, indent=1)
+    # json.dumps(indent=1) indents the inner lines one space relative to the braces it
+    # writes; the notebook's own metadata members sit at two, so one more space aligns them.
+    block = "\n".join(" " + line for line in body.splitlines()[1:-1])
+
+    existing = text.find('\n  "torchlingo": {')
+    if existing != -1:
+        # Scan to the matching close brace rather than pattern-matching the end, because the
+        # block contains braces only at its own boundaries today and might not tomorrow.
+        depth, i = 0, text.index("{", existing)
+        while True:
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            i += 1
+        end = i + 1
+        if text[end : end + 1] == ",":
+            end += 1
+        path.write_text(
+            text[: existing + 1] + block + "," + text[end:], encoding="utf-8"
+        )
+        return
+
+    anchor = '\n "metadata": {\n'
+    # The leading newline matters: without it this also matches a cell's more deeply indented
+    # "metadata": { line, and the block would land inside a cell.
+    if text.count(anchor) != 1:
+        raise ValueError(
+            f"{path}: expected exactly one top-level metadata object, "
+            f"found {text.count(anchor)}"
+        )
+    path.write_text(text.replace(anchor, anchor + block + ",\n"), encoding="utf-8")
+
+
+def problems(path: Path, meta: dict) -> list[str]:
+    """Return every complaint about one notebook's metadata.
+
+    Returns all of them rather than the first, so a run says everything that is wrong
+    instead of one thing per invocation.
+
+    Args:
+        path (Path): The notebook, for the messages.
+        meta (dict): Its ``torchlingo`` block.
+
+    Returns:
+        list: Human-readable complaints; empty when the block is sound.
+    """
+    found = []
+    if not meta:
+        return [f"{path}: no torchlingo metadata block"]
+
+    family = meta.get("family")
+    if family not in FAMILIES:
+        found.append(f"{path}: family {family!r} is not one of {sorted(FAMILIES)}")
+    elif family == "course" and path.parent != COURSE:
+        found.append(f"{path}: family 'course' but it lives in {path.parent}")
+    elif family == "tutorial" and path.parent != TUTORIALS:
+        found.append(f"{path}: family 'tutorial' but it lives in {path.parent}")
+
+    role = meta.get("role")
+    if role not in ROLES:
+        found.append(f"{path}: role {role!r} is not one of {sorted(ROLES)}")
+
+    titles, aliases = lectures()
+    declared = meta.get("serves_lectures")
+    if not isinstance(declared, list):
+        found.append(
+            f"{path}: serves_lectures must be a list, got {type(declared).__name__}"
+        )
+    else:
+        for n in declared:
+            if n not in titles and n not in aliases:
+                found.append(
+                    f"{path}: serves_lectures has {n!r}, which is not in "
+                    f"{ROADMAP}'s schedule"
+                )
+        # A course notebook is named for its lecture, so the two must agree. This is the
+        # check that would have caught a lecture-06 notebook claiming to serve Lecture 5.
+        if family == "course":
+            stem = path.stem
+            if stem.startswith("lecture-"):
+                numbered = int(stem.split("-")[1])
+                if numbered not in declared:
+                    found.append(
+                        f"{path}: filename says lecture {numbered} but serves_lectures "
+                        f"is {declared}"
+                    )
+
+    needs = meta.get("needs")
+    if not isinstance(needs, list) or any(not isinstance(x, str) for x in needs):
+        found.append(f"{path}: needs must be a list of strings, got {needs!r}")
+
+    if "note" in meta and not isinstance(meta["note"], str):
+        found.append(f"{path}: note must be a string, got {meta['note']!r}")
+
+    leads_to = meta.get("leads_to", [])
+    if not isinstance(leads_to, list) or any(not isinstance(x, str) for x in leads_to):
+        found.append(f"{path}: leads_to must be a list of strings, got {leads_to!r}")
+    else:
+        known = assignments()
+        for assignment in leads_to:
+            if assignment not in known:
+                found.append(
+                    f"{path}: leads_to has {assignment!r}, which is not an assignment in "
+                    f"{ROADMAP}'s schedule"
+                )
+
+    # Reject unknown keys. A typo in an optional field is otherwise invisible: the block
+    # validates, the generated table silently omits what the typo was meant to say, and
+    # nothing anywhere reports a problem.
+    unknown = set(meta) - {
+        "family",
+        "serves_lectures",
+        "role",
+        "needs",
+        "note",
+        "leads_to",
+    }
+    if unknown:
+        found.append(f"{path}: unknown key(s) {sorted(unknown)}")
+    return found
+
+
+def table() -> str:
+    """Render the lecture-to-notebook map as Markdown.
+
+    Rows come from the roadmap's schedule and cells from the notebooks, so the map cannot
+    disagree with either. Lectures that no notebook serves are listed with an em dash rather
+    than omitted: "nothing yet" is information, and an absent row reads as an oversight.
+
+    Returns:
+        str: The Markdown table.
+    """
+    titles, aliases = lectures()
+    serves: dict[int, dict[str, list[str]]] = {
+        n: {"course": [], "tutorial": []} for n in titles
+    }
+    notes: list[str] = []
+    for path in notebooks():
+        meta = read_meta(path)
+        marker = ""
+        if meta.get("note"):
+            marker = MARKERS[len(notes)]
+            # Wrapped, because this document is read in a terminal as often as rendered,
+            # and the surrounding prose is hand-wrapped to the same width.
+            notes.append(
+                textwrap.fill(
+                    f"- {marker} **`{path.stem}`** — {meta['note']}",
+                    width=90,
+                    subsequent_indent="  ",
+                )
+            )
+        for n in meta.get("serves_lectures", []):
+            # A lecture that shares a row is folded onto that row's number, so declaring
+            # 23 lands in the "22, 23" row instead of vanishing.
+            row = aliases.get(n, n)
+            if row in serves:
+                entry = f"`{path.stem}` ({meta['role']}) {marker}".rstrip()
+                if entry not in serves[row][meta["family"]]:
+                    serves[row][meta["family"]].append(entry)
+
+    rows = [
+        "| # | Lecture | Course notebook | TorchLingo tutorial |",
+        "|---|---|---|---|",
+    ]
+    shared = {v: k for k, v in aliases.items()}
+    for n, title in titles.items():
+        label = f"{n}, {shared[n]}" if n in shared else str(n)
+        c = ", ".join(serves[n]["course"]) or "—"
+        t = ", ".join(serves[n]["tutorial"]) or "—"
+        rows.append(f"| {label} | {title} | {c} | {t} |")
+
+    if notes:
+        rows += ["", "Notes on the rows that are not simple:", ""] + notes
+    return "\n".join(rows)
+
+
+def purpose_line(meta: dict) -> str:
+    """Build the sentence a notebook opens with, saying what it is and where it fits.
+
+    Generated from the same block the map is, so a reader and the roadmap cannot be told
+    different things. Eric, 2026-09-27: each notebook should be clear about its purpose and
+    place. A student opening one in Colab sees a title and nothing else -- which of the two
+    families it belongs to, whether it is meant for class or for afterwards, and whether it
+    is the head start on an assignment are all invisible at exactly the moment they matter.
+
+    Args:
+        meta (dict): A validated ``torchlingo`` block.
+
+    Returns:
+        str: One Markdown line.
+    """
+    titles, aliases = lectures()
+    numbers = list(dict.fromkeys(aliases.get(n, n) for n in meta["serves_lectures"]))
+
+    # Every lecture it serves, each with its own title. Naming only the first was wrong in a
+    # way worth recording: for tutorial 1, which serves Lectures 4 and 9, it printed Lecture
+    # 4's title as though it described the notebook.
+    named = " and ".join(f"Lecture {n} (*{titles[n]}*)" for n in numbers)
+
+    collection = FAMILY_COLLECTION[meta["family"]]
+    parts = [f"**{collection}** — {ROLE_PHRASE[meta['role']]} {named}."]
+    if meta.get("leads_to"):
+        due = assignments()
+        starts = ", ".join(
+            f"**{a}** (due at Lecture {due[a]})" if due[a] else f"**{a}**"
+            for a in meta["leads_to"]
+        )
+        parts.append(f"A head start on {starts}.")
+    return " ".join(parts)
+
+
+# ASCII only, deliberately. Notebook JSON is written with ensure_ascii, so an em dash here
+# would be stored as — while the lookup searched for the literal character -- the find
+# would miss, and every run would prepend another banner. That is exactly what happened the
+# first time this ran, and the test for it is idempotence rather than correct output.
+PURPOSE_MARKER = (
+    "<!-- GENERATED:purpose - change the torchlingo metadata, not this cell -->"
+)
+
+
+def purpose_cell(path: Path, meta: dict) -> str:
+    """Render the opening cell as notebook JSON, indented to sit in the cells array.
+
+    Args:
+        path (Path): The notebook, read for its format version.
+        meta (dict): Its validated ``torchlingo`` block.
+
+    Returns:
+        str: One cell object, two-space indented, no trailing comma.
+    """
+    nb = json.loads(path.read_text(encoding="utf-8"))
+    cell = {"cell_type": "markdown", "metadata": {}}
+    # nbformat 4.5 requires a cell id; 4.0 rejects one. The course notebooks come from Colab
+    # at minor 0 and the tutorials are at minor 5, so both cases are live in this repository
+    # and a single shape would fail validation on half of them.
+    if nb.get("nbformat_minor", 0) >= 5:
+        cell["id"] = "torchlingo-purpose"
+    cell["source"] = [f"{PURPOSE_MARKER}\n", "\n", purpose_line(meta)]
+    body = json.dumps(cell, indent=1)
+    return "\n".join("  " + line for line in body.splitlines())
+
+
+def notebook_with_purpose(path: Path, meta: dict) -> str:
+    """Return the notebook's text with its generated opening cell inserted or refreshed.
+
+    Textual, for the same reason ``write_meta`` is: an ``nbformat`` round trip would rewrite
+    every cell's source from a string into a line list and bury a three-line addition.
+
+    Args:
+        path (Path): The notebook.
+        meta (dict): Its validated ``torchlingo`` block.
+
+    Returns:
+        str: The complete new file contents.
+
+    Raises:
+        ValueError: If the cells array cannot be found, rather than writing a cell into a
+            place where it would not be a cell.
+    """
+    text = path.read_text(encoding="utf-8")
+    cell = purpose_cell(path, meta)
+
+    marker = text.find(PURPOSE_MARKER)
+    if marker != -1:
+        # Walk back to the brace that opens the cell holding the marker, then forward to its
+        # match, so the whole object is replaced however its fields are ordered.
+        start = text.rindex("\n  {", 0, marker) + 1
+        depth, i = 0, start
+        while True:
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            i += 1
+        # Keep the cell's own indentation. Stripping it left valid JSON that nbformat
+        # accepted, but the next run's lookup walks back to "\n  {" and could no longer find
+        # the cell it had just written -- a bug that only appears on the third run.
+        return text[:start] + cell + text[i + 1 :]
+
+    anchor = ' "cells": [\n'
+    if anchor not in text:
+        raise ValueError(f"{path}: no cells array found")
+    return text.replace(anchor, f"{anchor}{cell},\n", 1)
+
+
+def roadmap_with_table(current: str) -> str:
+    """Return the roadmap text with the generated block replaced.
+
+    Args:
+        current (str): The roadmap's present contents.
+
+    Returns:
+        str: The same document with a freshly generated map between the markers.
+
+    Raises:
+        ValueError: If the markers are absent or out of order, rather than appending a
+            second table somewhere harmless-looking.
+    """
+    start, end = current.find(BEGIN), current.find(END)
+    if start == -1 or end == -1 or end < start:
+        raise ValueError(f"{ROADMAP} does not contain the map markers in order")
+    head = current[: start + len(BEGIN)]
+    return f"{head}\n\n{table()}\n\n{current[end:]}"
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Validate the metadata, or print the generated table.
+
+    Args:
+        argv (list | None): Arguments to parse. Defaults to the real command line; passed
+            explicitly by the tests, so the CLI's own behaviour -- an exit code and a message
+            rather than a traceback -- can be asserted instead of assumed.
+    """
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "--check", action="store_true", help="validate and exit 1 on problems"
+    )
+    parser.add_argument(
+        "--write", action="store_true", help="rewrite the roadmap's map"
+    )
+    parser.add_argument("--table", action="store_true", help="print the lecture map")
+    parser.add_argument(
+        "--stamp",
+        type=Path,
+        metavar="NOTEBOOK",
+        help="write this notebook's torchlingo block, then regenerate the map",
+    )
+    parser.add_argument(
+        "--serves",
+        type=int,
+        nargs="+",
+        metavar="N",
+        help="with --stamp: the lecture number(s) it serves",
+    )
+    parser.add_argument(
+        "--role", choices=sorted(ROLES), help="with --stamp: how it is used"
+    )
+    parser.add_argument(
+        "--needs",
+        nargs="*",
+        default=[],
+        metavar="PATH",
+        help="with --stamp: repo-relative files it cannot run without",
+    )
+    parser.add_argument("--note", help="with --stamp: prose for a non-obvious pairing")
+    args = parser.parse_args(argv)
+
+    found = notebooks()
+    if not found:
+        print("no notebooks found; run from the repository root", file=sys.stderr)
+        return 2
+
+    # Read the schedule first and report a problem with it as a message rather than a
+    # traceback. The message is the whole point of this check -- it tells an author which row
+    # is unreadable and what forms are accepted -- and in CI a traceback buries that under
+    # Python internals, which is where nobody reads.
+    try:
+        lectures()
+    except ValueError as error:
+        print(error, file=sys.stderr)
+        return 1
+
+    if args.table:
+        print(table())
+        return 0
+
+    if args.stamp:
+        if not args.serves or not args.role:
+            print("--stamp needs --serves and --role", file=sys.stderr)
+            return 2
+        if not args.stamp.exists():
+            print(f"{args.stamp} does not exist", file=sys.stderr)
+            return 2
+        # family is inferred from the directory rather than asked for. It is the one field
+        # that is never a judgement, and the validator rejects a mismatch anyway -- so asking
+        # would only create a way to get it wrong.
+        family = "course" if args.stamp.parent == COURSE else "tutorial"
+        meta = {
+            "family": family,
+            "serves_lectures": args.serves,
+            "role": args.role,
+            "needs": list(args.needs),
+        }
+        if args.note:
+            meta["note"] = args.note
+
+        # Validate before writing, not after. Stamping an invalid block and reporting it on
+        # the next run would leave the notebook worse than it was found.
+        bad = problems(args.stamp, meta)
+        if bad:
+            print("refusing to write:", file=sys.stderr)
+            for c in bad:
+                print(f"  {c}", file=sys.stderr)
+            return 1
+        write_meta(args.stamp, meta)
+        print(
+            f"  stamped    {args.stamp}  ({family}, L{','.join(map(str, args.serves))})"
+        )
+        args.write = True
+
+    complaints = []
+    for path in found:
+        complaints.extend(problems(path, read_meta(path)))
+    if complaints:
+        print(f"{len(complaints)} problem(s):", file=sys.stderr)
+        for c in complaints:
+            print(f"  {c}", file=sys.stderr)
+        return 1
+    print(f"  {len(found)} notebooks, metadata sound")
+
+    # Only reached when the metadata is sound, deliberately: regenerating the roadmap from
+    # a block that failed validation would write a table with holes in it.
+    current = ROADMAP.read_text(encoding="utf-8")
+    expected = roadmap_with_table(current)
+    if args.write:
+        if current == expected:
+            print(f"  unchanged  {ROADMAP}")
+        else:
+            ROADMAP.write_text(expected, encoding="utf-8")
+            print(f"  written    {ROADMAP}")
+    elif args.check and current != expected:
+        print(
+            f"\n{ROADMAP}'s notebook map is out of date with the notebooks.\n"
+            "Run: python scripts/notebook_meta.py --write",
+            file=sys.stderr,
+        )
+        return 1
+    elif args.check:
+        print(f"  current    {ROADMAP}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

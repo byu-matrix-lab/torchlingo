@@ -20,8 +20,9 @@ Two details this script exists to get right:
    directory.
 3. **Skip, do not fail, when the data is not there.** The corpus and the
    pretrained checkpoint live in Git LFS and CI checks out without it, so those
-   tutorials are skipped in CI and exercised in a normal clone. See
-   ``REQUIREMENTS``.
+   tutorials are skipped in CI and exercised in a normal clone. Each notebook
+   declares what it needs in its own ``torchlingo`` metadata -- see
+   ``scripts/notebook_meta.py``.
 
 Run:
     python scripts/execute_notebooks.py
@@ -36,23 +37,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+from notebook_meta import read_meta
+
 TUTORIALS = Path("docs/docs/tutorials")
 TIMEOUT_SECONDS = 900
-
-# Which notebooks cannot run without a Git LFS artifact.
-#
-# CI checks out without LFS on purpose, so these files are pointers there and
-# the notebooks that need them are skipped rather than failed. A developer with
-# a normal clone runs all of them.
-#
-# Tutorial 3 lists the corpus even though it never names it: it loads the
-# checkpoint tutorial 2 trains, so it inherits tutorial 2's inputs.
-REQUIREMENTS = {
-    "02-train-tiny-model.ipynb": ["data/example.tsv"],
-    "03-inference-and-beamsearch.ipynb": ["data/example.tsv"],
-    "04-attention-and-alignment.ipynb": ["data/example.tsv"],
-    "05-real-translations.ipynb": ["data/example.tsv", "data/pretrained/model.pt"],
-}
 
 
 def execute(notebook: Path, workdir: Path, timeout: int) -> tuple[bool, str]:
@@ -111,17 +99,21 @@ def is_available(path: Path) -> bool:
 def missing_requirements(notebook: Path) -> list[str]:
     """List the artifacts this notebook needs that have not been fetched.
 
+    Read from the notebook's own ``torchlingo.needs`` metadata rather than a table here.
+    A table in this file was a second place to declare the same fact, and it had already
+    drifted once: Part 8 of tutorial 4 started loading the pretrained checkpoint, and the
+    table had to be remembered separately or CI would fail on a missing LFS artifact
+    instead of skipping.
+
     Args:
-        notebook (Path): The notebook, identified by filename.
+        notebook (Path): The notebook to inspect. Must be the repository copy, not the
+            scratch copy, since only the former is the source of truth.
 
     Returns:
         list[str]: Repo-relative paths that are absent or still LFS pointers.
     """
-    return [
-        name
-        for name in REQUIREMENTS.get(notebook.name, [])
-        if not is_available(Path(name))
-    ]
+    needs = read_meta(notebook).get("needs", [])
+    return [name for name in needs if not is_available(Path(name))]
 
 
 def link_repo_data(workdir: Path) -> None:

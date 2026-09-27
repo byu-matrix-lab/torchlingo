@@ -4,7 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TorchLingo is an educational PyTorch library for Neural Machine Translation (NMT), designed for students and instructors. It provides a clean, well-documented implementation of Transformer and LSTM architectures for learning and experimentation.
+**TorchLingo exists first and foremost to support CS 479.** Eric's framing, 2026-09-26.
+Third-party use of the library, independent of the course, is a later concern.
+
+That is a tie-breaker, not a slogan. When a choice could serve either a CS 479 student or a
+general newcomer, it serves the student: scope is judged against the course, the entry point
+that matters is the one an enrolled student opens, and a gap only matters if a lecture or an
+assignment walks into it. `notes/CS479_COURSE_ROADMAP.md` is the single source of truth for
+what the course needs, and it is where that judgement gets made.
+
+It is still a clean, documented PyTorch NMT library with Transformer and LSTM
+implementations — that is *how* it serves the course, and it keeps the general-audience option
+open for later without paying for it now.
 
 ## Environment Setup
 
@@ -170,10 +181,14 @@ ALWAYS complete these steps after making code changes:
 
 ### Say "PR #X" and "Task #Y", never a bare `#N`
 
-The two numbering schemes overlap almost completely — tasks run to #62, pull
-requests to #42, so every number below 43 names one of each. Write **"PR #37"**
-for a pull request and **"Task #37"** for a task-list item, in prose, commit
-messages and GitHub comments alike.
+The two numbering schemes overlap almost completely — as of 2026-09-26 tasks run
+to #118 and pull requests to #91, so **every number below 92 names one of each**.
+Write **"PR #37"** for a pull request and **"Task #37"** for a task-list item, in
+prose, commit messages and GitHub comments alike.
+
+*These figures go stale by design; the overlap only ever grows, so the rule gets
+stronger rather than weaker as they age. Earlier text said tasks ran to #62 and
+PRs to #42.*
 
 This is not pedantry. Task #37 ("stacked PRs fight the stale-review rule") was
 retired in the same breath as PR #37 (the `val_losses` fix) was listed as open
@@ -195,14 +210,39 @@ distinct ways in this repository:
 
 | | |
 |---|---|
-| Auto-close | #11 and #12 closed when the base branch was deleted on merge |
-| Lost approvals | a rebase that changed no content dismissed the approval on #27 and #34 |
-| Silent close | #26 closed unmerged during an unrelated merge, cause never established |
+| Auto-close | PRs #11 and #12 closed when the base branch was deleted on merge |
+| Lost approvals | a rebase that changed no content dismissed the approval on PRs #27 and #34 |
+| Silent close | PR #26 closed unmerged during an unrelated merge, cause never established |
 
-Each cost real time to recover from, and every one of them is specific to a PR
-whose base is another PR. GitHub has no rebase exemption for
+Each cost real time to recover from. GitHub has no rebase exemption for
 `dismiss_stale_reviews_on_push`, so there is no configuration that makes the
 pattern safe here.
+
+**Corrected 2026-09-26.** This passage used to claim that every one of those
+failures "is specific to a PR whose base is another PR". That is no longer
+true, and the correction matters more than the original claim did.
+
+**PR #84 closed itself while based on `main`.** It went OPEN to CLOSED, never
+merged and with no merge commit, at 17:42:16Z — one second after the unrelated
+PR #86 was squash-merged at 17:42:15Z with `--admin --delete-branch`. The two
+touched different files. It was caught only by the open-set comparison below,
+and recovered in full with `gh pr reopen`.
+
+So the silent close is **not** stacking-specific, and PR #26 and PR #84 are two
+instances of one unexplained mechanism. Both closed within a second of an
+unrelated merge that passed `--delete-branch`. A later notes merge without that
+flag closed nothing, which is one data point each way rather than a finding.
+
+Two consequences:
+
+- **Do not read "my PR targets `main`" as "my PR is safe."** Compare the open set
+  after every merge regardless of what anything is based on.
+- Prefer merging **without** `--delete-branch`, deleting the branch as a separate
+  step afterwards, until the mechanism is understood. The cost is one command;
+  the failure it may avoid cost a day to notice the first time.
+
+The stacking argument still stands on its own two remaining legs — auto-close and
+lost approvals are both genuinely specific to stacked PRs.
 
 What to do instead:
 
@@ -226,10 +266,17 @@ Deleting first auto-closes the dependents, which is how #11 and #12 were lost.
 After a merge, the set of open PRs should be exactly what it was, minus the one
 merged. Compare it.
 
-This costs one command and catches a failure that took a day to notice: #26 was
+This costs one command and catches a failure that took a day to notice: PR #26 was
 closed unmerged one second after an unrelated merge, its base branch was never
 deleted, and the cause was never established. A check is worth more than a
 diagnosis when the mechanism is unknown.
+
+**It has now paid for itself.** On 2026-09-26 the same thing happened to PR #84,
+one second after PR #86's unrelated merge, and the comparison is the only reason
+anyone noticed: before was `#86 #85 #84 #59 #57 #55 #54 #52 #51`, after was the
+same set minus **both** #86 and #84. Reopening took one command because the loss
+was caught immediately. PR #84 was based on `main`, so do not skip this check on
+the grounds that nothing is stacked.
 
 ### Retargeting a PR dismisses its approvals
 
@@ -275,10 +322,112 @@ Nothing reached the remote, but it went unnoticed for several commands. Put
 `git branch --show-current` between the checkout and anything destructive, and
 read it.
 
+## `docs/docs/course/` belongs to this repository
+
+The CS 479 in-class notebooks live in `docs/docs/course/`. The Cowork session writes their
+content but does **not** run git: changes arrive as requests in
+`notes/handoff/from-cowork.md`, and committing, the nav entry and the pull request happen
+here.
+
+Two standing constraints:
+
+- **Instructor notebooks never go public.** Lectures 3 and 4 have separate INSTRUCTOR
+  notebooks carrying worked solutions. They stay out of this tree.
+- **Nothing moves under a live assignment.** Students work in Google Drive copies. A
+  change to a notebook whose assignment is open waits until the assignment closes, and the
+  Drive copies are never deleted while students are in them — only the copies on Eric's
+  desktop are Cowork's to remove.
+
+New notebooks copy tutorial 2's two-cell setup pattern: detect Colab and install
+unconditionally, then verify and fail loudly. Not the old commented-out install, which was
+the bug.
+
+## Every training run checkpoints, and it is not a flag
+
+Any script that calls `train_model` passes a `TrainingCheckpointer`. Unconditionally — not
+behind `--resumable`, not "when the run is long enough to be worth it."
+
+**A flag makes it optional, and the run that skips it is always the one you could least
+afford to lose.** "Short enough not to bother" is a judgement made *before* the run, which
+is exactly when you do not yet know which run turns out to be expensive.
+
+Two separate needs, wanting the two separate mechanisms:
+
+| | what it buys |
+|---|---|
+| `save_dir` | keeps the best model, so the run leaves an artifact rather than only a number |
+| `checkpointer` | makes the run resumable, so dying at hour three does not cost hours one and two |
+
+Both, not either. A 36-epoch benchmark here once ran for 65 minutes and produced a BLEU
+figure and **no model**, so the longer run that should have continued from it had to start
+again from scratch.
+
+This is also the practice the library exists to demonstrate: `training_checkpoint` was built
+so a Colab disconnect costs minutes rather than a session. A script that teaches
+checkpointing while not doing it teaches the opposite.
+
+## Where things belong
+
+Four files accumulate knowledge, and putting something in the wrong one is how it gets
+lost. Stated because it took three corrections in one sitting to get right.
+
+| | holds | test |
+|---|---|---|
+| `notes/TASKS.md` | **only tasks that can be finished and removed** | could this row ever disappear? |
+| `CLAUDE.md` | standing habits and practices | will this still be true next month? |
+| `notes/reports/` | experimental outcomes | is this a measurement? |
+| `notes/handoff/` | the conversation with the Cowork session | is this a message to someone? |
+
+**A finished task is deleted, not marked done.** Marking it "Done" in place leaves the file
+describing shipped work as pending, and the rows then outnumber the live work. If a finished
+task carries something durable, move that thing to the file above where it belongs *before*
+deleting the task — the git history keeps the rest.
+
+Three things that are **not** tasks and must not be filed as them: a standing habit, a watch
+item, and a finding. A watch item in particular looks like a task and never completes, which
+is exactly what the first column forbids.
+
+The cost of getting this wrong is not tidiness. A measurement of how training budget beat
+data by roughly 7x sat inside a task entry for days, where nobody would look for it — and it
+was the prior for the learning-curve experiment that was later designed without it. It is now
+in `notes/reports/training-budget.md`.
+
+## Handing the baton
+
+Two Claude sessions work on CS 479: this one, in the repository, and a Cowork session
+that owns the course decks. They cannot message each other, so `notes/handoff/` is the
+channel. The protocol itself — which file is the mailbox, how entries are appended, and
+why — is in `notes/README.md`.
+
+**One rule belongs here rather than there: a baton pass in either direction means
+reconciling `notes/TASKS.md` in the same sitting.**
+
+A handoff is precisely when the lists go stale, and the only moment when both sides know
+what actually changed. It typically closes some tasks, reopens others, and creates work
+that only the *receiving* side can see is now possible.
+
+The first pass under this rule is the evidence for it. One baton return closed Task #42
+outright ("it needs nothing"), settled Task #96, made Task #100 moot because its lecture
+slot had already passed, and created five tasks that were invisible from this side until
+Cowork wrote them down — including `grader.exe` having no source or license, a dependency
+the course had been carrying blind for a year.
+
+None of that is discoverable by reading the code. It arrives only in the handoff, and if
+the lists are not reconciled then, the next session inherits a list describing last week.
+
+So read the incoming entry, walk the status table **before** starting work, and say in the
+reply which tasks moved.
+
 ## Project Goals
 
-This library prioritizes:
-- **Educational clarity**: Clean, readable code designed for learning
-- **Documentation**: Comprehensive docs with runnable examples
-- **Simplicity**: Avoid over-engineering; focus on core NMT concepts
-- **Accessibility**: Beginner-friendly with Google-style docstrings
+In priority order:
+
+1. **CS 479 works.** Eighteen students, on their own data, against dated assignments. A defect
+   on that path outranks anything else in this file.
+2. **Educational clarity**: clean, readable code designed for learning. This is the reason the
+   library exists rather than a configured toolkit, and it is what we decline to trade for
+   speed — see the descoping decision in `notes/TASKS.md`.
+3. **Documentation that executes**: runnable examples, and generated numbers rather than typed
+   ones.
+4. **Simplicity**: avoid over-engineering; focus on core NMT concepts.
+5. **Accessibility**: beginner-friendly, Google-style docstrings.
