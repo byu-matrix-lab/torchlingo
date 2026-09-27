@@ -50,7 +50,9 @@ TIMEOUT_SECONDS = 900
 REQUIREMENTS = {
     "02-train-tiny-model.ipynb": ["data/example.tsv"],
     "03-inference-and-beamsearch.ipynb": ["data/example.tsv"],
-    "04-attention-and-alignment.ipynb": ["data/example.tsv"],
+    # Part 8 loads the pretrained checkpoint to show cross-attention on a
+    # Transformer, so this tutorial now needs the same artifacts tutorial 5 does.
+    "04-attention-and-alignment.ipynb": ["data/example.tsv", "data/pretrained/model.pt"],
     "05-real-translations.ipynb": ["data/example.tsv", "data/pretrained/model.pt"],
 }
 
