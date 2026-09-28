@@ -868,6 +868,90 @@ class TestRequiresDeclaresCapabilities(unittest.TestCase):
             self.assertLessEqual(declared, nm.CAPABILITIES, path.name)
 
 
+class TestStampingKeepsWhatItWasNotAskedToChange(unittest.TestCase):
+    """Restamping one field must not delete the others.
+
+    A stamp used to rebuild the block from its arguments alone. **That has cost three
+    notes**: tutorials 3 and 4 lost theirs when lecture ids became strings, and tutorial 1
+    lost a four-line note explaining a retrospective pairing while `requires` was being
+    added. Every loss was invisible -- the block still validated, and the generated table
+    does not render `note`.
+    """
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        source = nm.TUTORIALS / "01-data-and-vocab.ipynb"
+        self.path = self.tmp / source.name
+        shutil.copy(source, self.path)
+
+        # `--stamp` implies `--write`, so every stamp here REGENERATES THE ROADMAP. With
+        # TUTORIALS pointed at a directory holding one notebook, that wrote a map whose
+        # entire tutorials column was `—` -- into the real file, while the tests passed.
+        # Caught because the CLI's own --check disagreed with a green suite.
+        #
+        # So ROADMAP is redirected too, and `test_the_repository_roadmap_is_untouched`
+        # below asserts it, because the failure was invisible from inside the tests.
+        self.roadmap_copy = self.tmp / "ROADMAP.md"
+        shutil.copy(nm.ROADMAP, self.roadmap_copy)
+        self.real_roadmap = nm.ROADMAP
+        self.roadmap_before = nm.ROADMAP.read_text(encoding="utf-8")
+        self.addCleanup(setattr, nm, "TUTORIALS", nm.TUTORIALS)
+        self.addCleanup(setattr, nm, "ROADMAP", nm.ROADMAP)
+        nm.TUTORIALS = self.tmp
+        nm.ROADMAP = self.roadmap_copy
+
+    def tearDown(self):
+        """Fail loudly if a stamp reached the repository's roadmap."""
+        self.assertEqual(
+            self.real_roadmap.read_text(encoding="utf-8"),
+            self.roadmap_before,
+            "a --stamp in this test class rewrote the repository's roadmap",
+        )
+
+    def stamp(self, *extra):
+        """Run --stamp on the fixture, suppressing its output.
+
+        Args:
+            *extra: Additional command-line arguments.
+
+        Returns:
+            dict: The resulting metadata block.
+        """
+        with contextlib.redirect_stdout(io.StringIO()):
+            nm.main(
+                [
+                    "--stamp",
+                    str(self.path),
+                    "--serves",
+                    "4",
+                    "--role",
+                    "reference",
+                    *extra,
+                ]
+            )
+        return nm.read_meta(self.path)
+
+    def test_a_note_survives_a_restamp_that_did_not_mention_it(self):
+        original = nm.read_meta(self.path)["note"]
+        self.assertEqual(self.stamp("--leads-to", "A5")["note"], original)
+
+    def test_leads_to_survives_a_restamp_that_did_not_mention_it(self):
+        self.stamp("--leads-to", "A5")
+        self.assertEqual(self.stamp()["leads_to"], ["A5"])
+
+    def test_requires_survives_a_restamp_that_did_not_mention_it(self):
+        self.stamp("--requires", "pip")
+        self.assertEqual(self.stamp()["requires"], ["pip"])
+
+    def test_an_explicit_value_still_overrides(self):
+        self.assertEqual(self.stamp("--note", "replaced")["note"], "replaced")
+
+    def test_an_empty_note_clears_the_field(self):
+        """Preserving by default must not make clearing impossible."""
+        self.assertNotIn("note", self.stamp("--note", ""))
+
+
 class TestTheExecutorSkipsOnCapabilities(unittest.TestCase):
     """Task #154's second half: the gate that decides what CI runs."""
 

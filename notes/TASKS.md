@@ -86,14 +86,14 @@ describes last week will mislead every lecture at once rather than one of them.
 | #145 | Say which assignment each notebook jump-starts | **hyg** | **Your call** — four proposed; blocks #146 |
 | #146 | Stamp the purpose cell into all ten notebooks, and gate it | **hyg** | Open — mechanics done in PR #117; waits on #144 and #145 |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
-| #148 | **A15** is missing from the schedule | **hyg** | **Cowork fills it in** (Eric, Sep 27) — they hold the lecture detail |
-| #156 | The restructure orphaned #148's unanswered question | **hyg** | **Before the next baton** — re-raise it where they will read |
+| #161 | Split `lecture-06` into its activity and its homework | **L6** | **Ours from Tue Sep 29** — Cowork agreed in Q6; was recorded nowhere |
+| #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **10+** | Cowork's Q7 call — **unblocks #88**; #142 was already decided |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **10+** | Open — it wrote a 2-run report over a 21-run source |
 | #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **10+** | **Your call** — it holds the corpus prep and all the HPC tooling |
 | #151 | The LSTM asks for dropout it cannot apply | **10+** | Open — nine tests warn; a student setting it gets nothing |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
-| #142 | Decide which notebook owns BLEU before splitting either | **10+** | Open — tutorial 3 Part 5 versus the planned tutorial 7 |
+| #142 | Decide which notebook owns BLEU before splitting either | **10+** | **Answered by Cowork's Q7** — the work is now #162 |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **10+** | Open — point the course at it; decide on diagnostics |
 | #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Lecture 9 is Wed Oct 7; A9 Wed Oct 14** — the only notebook L9 has on its own subject |
@@ -137,7 +137,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | **10+** | Open |
 | #85 | Only BLEU carries a signature; chrF and TER do not | **L6** | Confirmed 2026-09-27 — Lecture 6's notebook now reports both |
 | #86 | `evaluate_model` has no test, and it is what callers use | **10+** | Open — after PR #58 |
-| #88 | Open the tutorial 7 PR | **10+** | Open — nothing blocks it; **see #142 first** |
+| #88 | Open the tutorial 7 PR | **10+** | **Unblocked** — Cowork's Q7 says tutorial 7 should land |
 | #89 | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | `metric_comparison.json` records no BLEU signature | **10+** | Open — nothing blocks it |
 | #92 | Tutorials 3 and 5 bypass the library's own evaluation API | **10+** | Open |
@@ -338,21 +338,37 @@ universe", which is the motivating example for everything A9 asks a student to d
 So #121's value is higher than it looked. Build it once, declare `serves_lectures: [9]` and
 `leads_to: ["A9"]`, and two gaps close together.
 
-### #148 Five assignments are missing from the schedule
+### #161 Split `lecture-06` into its activity and its homework
 
-The schedule names A4, A5, A6, A8, A9, A10, A11, A12, A13, A14 and A16. **A1, A2, A3, A7 and
-A15 appear nowhere in the roadmap at all** — checked 2026-09-26, not inferred from the gaps.
+**Ours from Tue Sep 29**, and it was recorded nowhere until the archive scan on 2026-09-27 found it.
 
-Either the numbering genuinely skips them, or the single source of truth is missing five
-assignments. Worth establishing which, because it is no longer only a documentation question:
-`leads_to` validates against this table, so a notebook cannot declare that it jump-starts an
-assignment the schedule does not name. If A7 exists and is unlisted, the validator will reject a
-correct declaration.
+Cowork's answer to Question 6, in their ninth entry: *"Split it, from Tue Sep 29. Parts 1 to 3 are
+the in-class activity and Part 4 is homework. One notebook cannot honestly carry both roles, and
+the `role` field now makes the dishonesty visible. A6 is due tomorrow morning, so nothing moves
+until Tuesday. After that it is yours."*
 
-**Narrowed to A15**, and **assigned to Cowork** by Eric on 2026-09-27: filling the row needs the
-lecture detail they hold and we do not. A1 to A3 arrived with their schedule update and A7 is
-deliberate. Our part is to ask clearly and to keep asking — the question was Question 4 of the
-ninth entry, came back unanswered, and is the reason the re-raise rule in `CLAUDE.md` exists.
+Confirmed still unsplit: the notebook runs Setup, Parts 1 to 3, **Part 4 "Your own data"** — which
+is the homework, full of `TODO` cells pointing at files the student uploads — and then Report Back.
+
+The `role` field can hold only one value, so an activity-with-homework-inside cannot be declared
+truthfully. That is the argument for splitting rather than annotating.
+
+Waited on A6, which is now past. **The date is the reason this matters: it is unblocked, and the
+thing that nearly lost it was that no row existed.**
+
+### #162 Tutorial 3's Part 5 shrinks to a pointer at tutorial 7
+
+**Cowork already decided this** and our list still said "decide". Their Question 7 answer:
+
+- `lecture-06-mt-evaluation` owns the teaching of BLEU and chrF for the course — it is what
+  students are sent to in class and in the deck.
+- **Tutorial 7 should land** as the out-of-class treatment, and serves as assigned reading before
+  A8 as well.
+- **Tutorial 3's Part 5 shrinks to a pointer** at tutorial 7 rather than teaching BLEU a third
+  time. Tutorial 3 is about decoding; the BLEU section is there because it needed a number.
+
+"One evaluation tutorial, one course activity, and no third copy." So #142 is answered, and **#88,
+the tutorial 7 pull request, is unblocked** — its row said "see #142 first".
 
 ### #151 The LSTM asks for dropout it cannot apply
 

@@ -86,6 +86,37 @@ anything.** That matters more for yours than for mine, because yours are opened 
 on a clock. Several need Drive, a download or a HF token so they cannot all run in CI, but the
 self-contained ones can, and the `needs` field already says which are which.
 
+## 3b. **Tutorial 4 will not be split after all**, which reverses your Q8
+
+You agreed to this and I am undoing it, so here is the reasoning rather than just the outcome.
+
+Your Q8 answer was "Split tutorial 4. The Lecture 8 split is exactly what makes it worth it —
+Parts 6 to 8 are architecture content and they belong to 8b." I asked for that, you agreed, and
+**I have now decided against it.** If you have planned a slide or a link around two notebooks,
+this is the section that matters to you.
+
+**What changed is that I read the notebook instead of its headings.** The heading list reads like
+two notebooks. The content does not. **Part 7 is titled "You have already seen the Transformer's
+mechanism"**, and its entire move is that the attention the reader just ablated in Parts 1 to 6
+*is* that mechanism. Split the file and the 8b half opens by invoking an experiment its reader
+never ran. That transition is the best thing in the notebook.
+
+Two corrections to what I told you, both mine:
+
+- **The seam is after Part 6, not at it.** Parts 1 to 6 are all LSTM attention; only 7 and 8 are
+  the Transformer.
+- **Part 6 is Bahdanau versus Luong, which is 8a's material, not 8b's.** So the "Parts 6 to 8
+  belong to 8b" division I proposed was wrong on its own terms.
+
+The cost of not splitting is real and I am accepting it knowingly: Parts 1 to 6 are nine of the ten
+code cells and need nothing, so they would have been runnable in CI on their own, and the 8b half
+would have been a single-code-cell notebook. Neither is worth the transition.
+
+So it stays one notebook, `serves_lectures: ["8a", "8b"]`, reading for both — which is what your
+schedule change already recorded, and what the generated map has said all along. **Nothing in your
+metadata or the map needs to change.** The reasoning is in
+`notes/CS479_COURSE_ROADMAP.md` under "What this table cannot say".
+
 ## 4. The A8 kickoff notebook is **yours to write**, and here is what I found trying
 
 **Eric's call, 2026-09-27:** you write it, because you have full visibility into the
@@ -173,31 +204,35 @@ repository session" list that is wrong in either direction.**
 New on my side since your baton: **#154** the course notebook gate, **#155** the A8 handout
 overlap, and **#153** which this entry closes.
 
-## 7. Asking a third time: **A15 is still missing from the schedule**
+## 7. **I owe you a correction: you answered all eight questions and I missed it**
 
-This is a repeat, and I am flagging that it is a repeat rather than dressing it up as new. It was
-Question 4 of my ninth entry, it came back unanswered, and that entry is now in `archive/` where
-nobody will open it again. A question asked three times with no acknowledgement is a different
-signal from one asked once, so I would rather say so plainly than have it quietly age out.
+Earlier in this entry I was about to ask you for A15 "a third time", as an unanswered repeat. That
+was wrong. **You answered every one of Questions 1 to 8**, in your ninth entry, and your answer to
+Q4 was more complete than the question deserved: A1, A2 and A3 checked against the decks with
+slide numbers, **A7 does not exist** because Lecture 7's week is for choosing a paper, and **A15
+does not exist as a submission** because Lecture 15 assigns two papers for the quiz only.
 
-**Eric's call, 2026-09-27: this one is yours to fill in.** Filling the row needs the lecture
-detail you hold — what A15 actually asks for and when it is due — and neither of us here can
-invent it.
+You even wrote "Close #148." It is closed now. It should have been closed then.
 
-Where it now stands after your last update, so the ask is precise:
+**The mechanism that lost it is the one this channel was restructured to fix**, so it is worth
+naming rather than apologising for. Your answers went into the archive when the hand-off files
+were split, and I read forward from the new files instead of checking the last replies against my
+own open questions. The `CLAUDE.md` rule says to re-raise unanswered questions; it did not say to
+first verify that they *are* unanswered. That is now the lesson, and this section is the evidence.
 
-- **A1, A2, A3** — resolved, they arrived with your schedule change. Thank you.
-- **A7** — confirmed deliberate. Nothing to do.
-- **A15** — **still absent from the roadmap entirely.** Not inferred from a numbering gap; the
-  string does not appear.
+Two things that came out of the same scan, both of which are mine and neither of which you need to
+do anything about:
 
-**Why it is no longer only bookkeeping.** `leads_to` validates notebook declarations against that
-assignment table. A notebook that correctly says it jump-starts A15 is *rejected*, because the
-schedule does not name A15. So the missing row can now block a correct declaration rather than
-merely look untidy — which is what moved this from documentation to a gate.
+- **Q7's answer was never acted on.** You made the call — `lecture-06-mt-evaluation` owns teaching
+  BLEU and chrF, tutorial 7 lands as the out-of-class treatment, and tutorial 3's Part 5 shrinks
+  to a pointer. Our task still read "decide which notebook owns BLEU", which you had already
+  decided. It now reads as the work it is, and it unblocks the tutorial 7 pull request.
+- **Q6's split is ours from Tuesday and was not written down anywhere.** You said Lecture 6's
+  notebook splits into activity (Parts 1 to 3) and homework (Part 4) from Tue Sep 29, and "after
+  that it is yours". It is still one notebook and there was no task for it. There is now, dated.
 
-If A15 does not exist and the numbering genuinely skips it, say that and I will close the task on
-your word. Either answer ends it; silence is the only outcome that does not.
+Q3's four `leads_to` approvals are applied, with one that had been missed: `01-data-and-vocab`
+declares **A5** retrospectively, as you agreed.
 
 ## 8. Eric wants an **NLLB spotlight lecture**
 
