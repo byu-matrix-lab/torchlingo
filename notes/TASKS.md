@@ -82,7 +82,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | **Cowork writes it** (Eric, Sep 27) — eleven suggestions delivered from here |
-| #154 | Execute only the zero-dependency notebooks | **hyg** | **Decided: keep CI lightweight** — structural half merged |
 | #155 | A8's "What To Do" overlaps the kickoff notebook's first four steps | **L8a** | **Your call** — Cowork flagged it and did not act |
 | #145 | Say which assignment each notebook jump-starts | **hyg** | **Your call** — four proposed; blocks #146 |
 | #146 | Stamp the purpose cell into all ten notebooks, and gate it | **hyg** | Open — mechanics done in PR #117; waits on #144 and #145 |
@@ -469,52 +468,6 @@ histogram, not in retyping a groupby.
 
 Step 10 is where #135 stops being abstract: this notebook is the one place a student's first real
 training run begins, and it must not be the place that teaches them to run without checkpoints.
-
-### #154 The notebook gate still runs tutorials only, and `course/` has seven
-
-`scripts/execute_notebooks.py` defaults to `docs/docs/tutorials`. Seven notebooks now live in
-`docs/docs/course/` — three arrived today — and **none of them is executed by anything.**
-
-This is the older #103 with a sharper edge: the course notebooks are what students open *in the
-room*, on a clock, and a broken one costs twenty minutes of class rather than a confusing evening.
-
-The obstacle is real rather than neglect: several need Google Drive, a network download, or a
-HuggingFace token, so they cannot all run in CI. The tractable version is to run the ones that
-are self-contained and skip the rest by their declared `needs`, which is the mechanism the
-tutorials already use.
-
-**Half done 2026-09-27, and the investigation split the task in two.**
-
-**What shipped: every notebook is now checked structurally**, in the lint job, at no CI cost.
-`notebook_meta.py --check` verifies valid JSON, a non-empty cell list, no token-shaped strings,
-no `INSTRUCTOR` marker, and — for course notebooks — no committed outputs, no execution counts
-and a Colab badge. These are exactly the checks that were run *by hand* when three notebooks
-arrived from Cowork, so the hand pass is now automated; it recurs on every baton and is the
-kind of thing skipped on a busy day.
-
-**One rule inverts between the families, and it nearly shipped wrong.** The first version
-flagged all six tutorials for committed outputs. `docs/mkdocs.yml` sets `execute: false`, so a
-tutorial's committed outputs *are* what the docs site renders — strip them and the published
-page shows code with no results. A course notebook is run from the top in Colab, so its outputs
-are dead weight. Scoped accordingly, with a test asserting the inversion in both directions.
-
-**What remains: actually executing them, which needs a dependency decision rather than code.**
-The blockers were measured rather than assumed:
-
-| notebook | blocker |
-|---|---|
-| `lecture-04-regex-refresher` | **none** — pure Python, could run today |
-| `lecture-04-tmx-cleaning` | `translate-toolkit`, small |
-| `lecture-05-sentence-alignment` | `nltk`, small, may want a corpus download |
-| `lecture-03-word-embeddings` | `sentence-transformers` + a model download |
-| `lecture-12-llm-context` | `transformers`, `datasets` + a model download |
-| `lecture-06-mt-evaluation` | Part 4 uploads through Drive |
-| `lecture-10-comet-install` | `unbabel-comet` **and a HuggingFace token** — can never run in CI |
-
-So the question is how much CI time and dependency surface to spend, and it is not one answer:
-two are free, two are cheap, two are heavy, and one is impossible. Worth noting that `needs`
-cannot express any of this — it holds repo-relative *paths*, and these are *capabilities*, so
-gating execution needs a new field rather than a longer list.
 
 ### #155 A8's "What To Do" overlaps the kickoff notebook's first four steps
 

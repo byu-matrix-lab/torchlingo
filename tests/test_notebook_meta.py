@@ -747,6 +747,153 @@ class TestNotebookHygiene(unittest.TestCase):
     def test_an_empty_notebook_is_caught(self):
         self.assertTrue(any("no cells" in c for c in self.check({"cells": []})))
 
+    def test_a_syntax_error_in_a_course_notebook_is_caught(self):
+        """The defect this rule exists for, reproduced.
+
+        `lecture-10-comet-install` shipped `else:` followed by an unindented `drive` -- a
+        bare SyntaxError in Lecture 10's own assignment notebook, committed and unnoticed
+        because nothing executed course notebooks.
+        """
+        nb = json.loads(json.dumps(self.base))
+        for cell in nb["cells"]:
+            if cell["cell_type"] == "code":
+                cell["source"] = ["if True:\n", "  pass\n", "else:\n", "drive"]
+                break
+        complaints = self.check(nb)
+        self.assertTrue(any("do not parse" in c for c in complaints), complaints)
+
+    def test_a_worksheet_may_declare_blanks_instead(self):
+        """A deliberately incomplete cell is fine once declared."""
+        nb = json.loads(json.dumps(self.base))
+        nb["metadata"]["torchlingo"]["requires"] = ["blanks"]
+        for cell in nb["cells"]:
+            if cell["cell_type"] == "code":
+                cell["source"] = ["pattern = # fill this in"]
+                break
+        self.assertEqual(self.check(nb), [])
+
+    def test_a_stale_blanks_declaration_is_caught(self):
+        """The rule runs both ways, or the marker rots into a licence to ship breakage."""
+        nb = json.loads(json.dumps(self.base))
+        nb["metadata"]["torchlingo"]["requires"] = ["blanks"]
+        complaints = self.check(nb)
+        self.assertTrue(any("stale" in c for c in complaints), complaints)
+
+    def test_an_inline_magic_is_not_a_syntax_error(self):
+        """The false positive that the first version of this check produced.
+
+        `!pip install` inside a `try` block is not Python and is perfectly fine in Jupyter.
+        Tutorial 3 does exactly this and passes CI, so flagging it would have been wrong --
+        and skipping only cells that *begin* with `!` would not have caught the case.
+        """
+        nb = json.loads(json.dumps(self.base))
+        for cell in nb["cells"]:
+            if cell["cell_type"] == "code":
+                cell["source"] = [
+                    "try:\n",
+                    "    import sacrebleu\n",
+                    "except ImportError:\n",
+                    "    !pip install sacrebleu\n",
+                ]
+                break
+        self.assertEqual(self.check(nb), [])
+
+    def test_a_magic_as_the_only_body_of_a_block_still_parses(self):
+        """Stripping a magic must not leave an empty block behind."""
+        nb = json.loads(json.dumps(self.base))
+        for cell in nb["cells"]:
+            if cell["cell_type"] == "code":
+                cell["source"] = ["if True:\n", "    %pip install torchlingo\n"]
+                break
+        self.assertEqual(self.check(nb), [])
+
+
+class TestRequiresDeclaresCapabilities(unittest.TestCase):
+    """`requires` is capabilities; `needs` is repo-relative paths.
+
+    The distinction is what blocked the second half of Task #154: a notebook can be missing
+    no file and still be unrunnable in CI because it installs a package, downloads a model,
+    mounts Drive or wants a token. None of those is a path.
+    """
+
+    def sound(self, **overrides):
+        """Build a metadata block that validates, with fields overridden.
+
+        Args:
+            **overrides: Keys to replace in the block.
+
+        Returns:
+            dict: The block.
+        """
+        meta = {
+            "family": "course",
+            "serves_lectures": [SOME_LECTURE],
+            "role": "activity",
+            "needs": [],
+        }
+        meta.update(overrides)
+        return meta
+
+    def test_requires_is_optional(self):
+        path = nm.COURSE / "x.ipynb"
+        self.assertEqual(nm.problems(path, self.sound()), [])
+
+    def test_every_known_capability_is_accepted(self):
+        path = nm.COURSE / "x.ipynb"
+        for capability in sorted(nm.CAPABILITIES):
+            self.assertEqual(
+                nm.problems(path, self.sound(requires=[capability])),
+                [],
+                capability,
+            )
+
+    def test_an_unknown_capability_is_rejected(self):
+        """A typo must not read as a capability that gates nothing.
+
+        `requires: ["nltk"]` would otherwise silently mean "runnable in CI", which is the
+        opposite of what whoever wrote it intended.
+        """
+        found = nm.problems(nm.COURSE / "x.ipynb", self.sound(requires=["nltk"]))
+        self.assertTrue(any("unknown capability" in c for c in found), found)
+
+    def test_requires_must_be_a_list_of_strings(self):
+        found = nm.problems(nm.COURSE / "x.ipynb", self.sound(requires="pip"))
+        self.assertTrue(any("must be a list of strings" in c for c in found), found)
+
+    def test_the_real_notebooks_declare_only_known_capabilities(self):
+        for path in sorted(nm.COURSE.glob("*.ipynb")) + sorted(
+            nm.TUTORIALS.glob("*.ipynb")
+        ):
+            declared = set(nm.read_meta(path).get("requires", []))
+            self.assertLessEqual(declared, nm.CAPABILITIES, path.name)
+
+
+class TestTheExecutorSkipsOnCapabilities(unittest.TestCase):
+    """Task #154's second half: the gate that decides what CI runs."""
+
+    def setUp(self):
+        sys.path.insert(0, str(REPO / "scripts"))
+        import execute_notebooks
+
+        self.en = execute_notebooks
+
+    def test_a_declared_capability_is_reported_as_missing(self):
+        """Every declared capability counts as absent: CI has none of them, by decision."""
+        path = nm.COURSE / "lecture-10-comet-install.ipynb"
+        self.assertEqual(
+            self.en.missing_capabilities(path), ["colab", "hf-token", "pip"]
+        )
+
+    def test_a_notebook_declaring_nothing_is_runnable(self):
+        for path in sorted(nm.TUTORIALS.glob("*.ipynb")):
+            self.assertEqual(self.en.missing_capabilities(path), [], path.name)
+
+    def test_the_executor_looks_at_both_families(self):
+        """Course notebooks were executed by nothing at all until this was widened."""
+        source = (REPO / "scripts" / "execute_notebooks.py").read_text(encoding="utf-8")
+        self.assertIn("COURSE", source)
+        self.assertIn("args.course", source)
+
 
 if __name__ == "__main__":
     unittest.main()

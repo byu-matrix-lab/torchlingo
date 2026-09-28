@@ -77,6 +77,21 @@ MARKERS = "¹²³⁴⁵⁶⁷⁸⁹"
 FAMILIES = {"tutorial", "course"}
 ROLES = {"activity", "reading", "homework", "reference"}
 
+# What a notebook needs from its ENVIRONMENT, as opposed to `needs`, which lists files in
+# this repository. A closed set on purpose: `requires: ["nltk "]` with a stray space would
+# otherwise read as an unknown capability that happens to gate nothing, and the notebook
+# would be executed in CI when it was meant to be skipped.
+#
+# The four that matter here, each read off the notebooks rather than guessed:
+#   pip        installs a package the CI environment does not have
+#   download   fetches a model or corpus at runtime, needing network and cache
+#   colab      needs the Colab runtime itself -- `files.upload()` or a Drive mount, neither
+#              of which has a headless equivalent
+#   hf-token   a HuggingFace token, which CI does not have and should not be given
+#   blanks     a worksheet whose code cells are deliberately incomplete, so they do not
+#              parse until a student fills them in. What CI lacks is the student.
+CAPABILITIES = {"pip", "download", "colab", "hf-token", "blanks"}
+
 # Which collection a notebook belongs to. This says where it lives, not how it is used --
 # a distinction worth keeping separate, because they come apart: tutorial 2 lives in the
 # tutorials and is used as Lecture 7's in-class activity.
@@ -364,6 +379,45 @@ SECRET_SHAPES = re.compile(
 )
 
 
+def _cell_parses(cell: dict) -> bool:
+    """Report whether one code cell is syntactically valid Python.
+
+    IPython line magics are stripped first, per line rather than per cell. A naive
+    ``compile()`` flagged two notebooks that run perfectly well, because ``!pip install``
+    appears *inside* a ``try`` block in tutorial 3 and mid-cell in lecture-12 -- neither is
+    Python, both are fine in Jupyter. Skipping only cells that *begin* with ``!`` or ``%``
+    misses exactly those cases, which is the version that produced the false positives.
+
+    A stripped magic leaves a blank line, so indentation-sensitive constructs still parse:
+    ``try:`` followed only by a magic would otherwise become an empty block. A ``pass`` is
+    substituted to keep that honest.
+
+    Args:
+        cell (dict): An nbformat code cell.
+
+    Returns:
+        bool: True when the cell parses, or is empty once magics are removed.
+    """
+    source = "".join(cell.get("source") or [])
+    kept = []
+    for line in source.split("\n"):
+        stripped = line.lstrip()
+        if stripped.startswith(("!", "%")):
+            # Preserve the indentation so a magic that is the sole body of a block still
+            # leaves that block non-empty.
+            kept.append(" " * (len(line) - len(stripped)) + "pass")
+        else:
+            kept.append(line)
+    body = "\n".join(kept)
+    if not body.strip():
+        return True
+    try:
+        compile(body, "<cell>", "exec")
+    except SyntaxError:
+        return False
+    return True
+
+
 def hygiene(path: Path) -> list[str]:
     """Check a notebook's file-level hygiene, separately from its metadata.
 
@@ -419,6 +473,41 @@ def hygiene(path: Path) -> list[str]:
             found.append(
                 f"{path}: {counted} cell(s) carry an execution_count, so this was committed "
                 "from a run rather than cleaned"
+            )
+
+    # A notebook whose code does not parse cannot be executed by anything, and the reason
+    # is never a capability you could install. Two kinds exist and they need opposite
+    # treatment: a worksheet with `pattern = # fill this in` is *meant* not to parse, and a
+    # truncated edit is a defect.
+    #
+    # Found the hard way. `lecture-10-comet-install` shipped with `else:` followed by an
+    # unindented `drive` -- a bare SyntaxError in Lecture 10's own assignment notebook,
+    # committed and unnoticed, which a student would have hit in the room. Nothing was
+    # checking, because nothing executed course notebooks.
+    #
+    # So the rule runs both ways: code that does not parse must be declared, and a `blanks`
+    # declaration must correspond to real blanks, or the marker rots into a licence to ship
+    # broken cells.
+    if path.parent == COURSE:
+        declared_blanks = "blanks" in (
+            (nb.get("metadata", {}).get("torchlingo", {}) or {}).get("requires", [])
+            or []
+        )
+        broken = [
+            index
+            for index, cell in enumerate(cells)
+            if cell.get("cell_type") == "code" and not _cell_parses(cell)
+        ]
+        if broken and not declared_blanks:
+            found.append(
+                f"{path}: code cell(s) {broken} do not parse, and the notebook does not "
+                "declare requires: ['blanks']. Either it is a worksheet -- declare it -- or "
+                "a cell is broken, which is how lecture-10 shipped a SyntaxError."
+            )
+        if declared_blanks and not broken:
+            found.append(
+                f"{path}: declares requires: ['blanks'] but every code cell parses, so the "
+                "declaration is stale and is now only keeping the notebook out of CI"
             )
 
     for shape in SECRET_SHAPES.findall(text):
@@ -511,6 +600,22 @@ def problems(path: Path, meta: dict) -> list[str]:
     if not isinstance(needs, list) or any(not isinstance(x, str) for x in needs):
         found.append(f"{path}: needs must be a list of strings, got {needs!r}")
 
+    # `requires` is capabilities, where `needs` is repo-relative paths. The distinction is
+    # what blocked the second half of #154: a notebook can be missing nothing from the
+    # repository and still be unrunnable in CI because it wants a pip package, a model
+    # download or a HuggingFace token. Those are not paths, so no amount of `needs` says it.
+    requires = meta.get("requires", [])
+    if not isinstance(requires, list) or any(not isinstance(x, str) for x in requires):
+        found.append(f"{path}: requires must be a list of strings, got {requires!r}")
+    else:
+        unknown_caps = sorted(set(requires) - CAPABILITIES)
+        if unknown_caps:
+            found.append(
+                f"{path}: requires has unknown capability {unknown_caps}; known ones are "
+                f"{sorted(CAPABILITIES)}. Add a new one to CAPABILITIES deliberately -- a "
+                "typo here would silently make a notebook look runnable."
+            )
+
     if "note" in meta and not isinstance(meta["note"], str):
         found.append(f"{path}: note must be a string, got {meta['note']!r}")
 
@@ -534,6 +639,7 @@ def problems(path: Path, meta: dict) -> list[str]:
         "serves_lectures",
         "role",
         "needs",
+        "requires",
         "note",
         "leads_to",
     }
@@ -813,6 +919,17 @@ def main(argv: list[str] | None = None) -> int:
         metavar="PATH",
         help="with --stamp: repo-relative files it cannot run without",
     )
+    parser.add_argument(
+        "--requires",
+        nargs="*",
+        default=[],
+        metavar="CAPABILITY",
+        choices=sorted(CAPABILITIES),
+        help=(
+            "with --stamp: environment capabilities it cannot run without, which keeps it "
+            f"out of CI. One or more of {sorted(CAPABILITIES)}"
+        ),
+    )
     parser.add_argument("--note", help="with --stamp: prose for a non-obvious pairing")
     parser.add_argument(
         "--leads-to",
@@ -865,6 +982,8 @@ def main(argv: list[str] | None = None) -> int:
             "role": args.role,
             "needs": list(args.needs),
         }
+        if args.requires:
+            meta["requires"] = list(args.requires)
         if args.note:
             meta["note"] = args.note
         if args.leads_to:
