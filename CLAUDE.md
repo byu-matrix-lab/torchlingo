@@ -177,6 +177,26 @@ ALWAYS complete these steps after making code changes:
    - Update or add documentation as needed
    - Docs should be tailored to beginners with clear explanations and code examples
 
+4. **Run `scripts/preflight.sh` before pushing.** It runs exactly what CI runs, cheapest
+   gate first, and stops at the first failure.
+
+   ```bash
+   scripts/preflight.sh            # ~50s: static gates, both test runners, doctests, docs
+   scripts/preflight.sh --quick    # ~1s:  the four static gates only
+   scripts/preflight.sh --all      # also executes the runnable notebooks (minutes)
+   ```
+
+   **CI gates seven things across four jobs, and running them from memory means running
+   most of them.** The one that gets forgotten is the one that fails. On 2026-09-28 a pull
+   request burned a full CI cycle on `render_report.py --check` — 0.4 seconds locally —
+   because a generated report had been hand-edited. A GitHub round trip is four to six
+   minutes; `--quick` would have caught it before the push.
+
+   The gates it covers, in order: `ruff check`, `ruff format --check`,
+   `render_report.py --check`, `notebook_meta.py --check`, the suite under **both** pytest
+   and `unittest discover`, `--doctest-modules`, `mkdocs build --strict`, and optionally
+   `execute_notebooks.py`.
+
 ## Pull Requests
 
 ### Say "PR #X" and "Task #Y", never a bare `#N`
