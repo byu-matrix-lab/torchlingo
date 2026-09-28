@@ -86,7 +86,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #145 | Say which assignment each notebook jump-starts | **hyg** | **Your call** — four proposed; blocks #146 |
 | #146 | Stamp the purpose cell into all ten notebooks, and gate it | **hyg** | Open — mechanics done in PR #117; waits on #144 and #145 |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
-| #161 | Split `lecture-06` into its activity and its homework | **L6** | **Ours from Tue Sep 29** — Cowork agreed in Q6; was recorded nowhere |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **10+** | Cowork's Q7 call — **unblocks #88**; #142 was already decided |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **10+** | Open — it wrote a 2-run report over a 21-run source |
@@ -337,24 +336,6 @@ universe", which is the motivating example for everything A9 asks a student to d
 
 So #121's value is higher than it looked. Build it once, declare `serves_lectures: [9]` and
 `leads_to: ["A9"]`, and two gaps close together.
-
-### #161 Split `lecture-06` into its activity and its homework
-
-**Ours from Tue Sep 29**, and it was recorded nowhere until the archive scan on 2026-09-27 found it.
-
-Cowork's answer to Question 6, in their ninth entry: *"Split it, from Tue Sep 29. Parts 1 to 3 are
-the in-class activity and Part 4 is homework. One notebook cannot honestly carry both roles, and
-the `role` field now makes the dishonesty visible. A6 is due tomorrow morning, so nothing moves
-until Tuesday. After that it is yours."*
-
-Confirmed still unsplit: the notebook runs Setup, Parts 1 to 3, **Part 4 "Your own data"** — which
-is the homework, full of `TODO` cells pointing at files the student uploads — and then Report Back.
-
-The `role` field can hold only one value, so an activity-with-homework-inside cannot be declared
-truthfully. That is the argument for splitting rather than annotating.
-
-Waited on A6, which is now past. **The date is the reason this matters: it is unblocked, and the
-thing that nearly lost it was that no row existed.**
 
 ### #162 Tutorial 3's Part 5 shrinks to a pointer at tutorial 7
 
