@@ -2,7 +2,7 @@
 
 # What Assignment 8 actually costs, and whether 36 epochs is enough
 
-Assignment 8 tells eighteen students to train on at least 100,000 pairs for 30 to 36 epochs, and until now nobody had completed a run at that scale. So the handout could state neither the quality to expect nor the time to budget.
+Assignment 8 tells twenty-four students to train on at least 100,000 pairs for 30 to 36 epochs, and until now nobody had completed a run at that scale. So the handout could state neither the quality to expect nor the time to budget.
 
 This is that run.
 

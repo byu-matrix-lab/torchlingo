@@ -95,7 +95,14 @@ jobs:
       # what stops the table from drifting back into being hand-maintained, and
       # it also validates the metadata itself -- a typo'd key would otherwise
       # silently drop a row. Standard library only, like the check above.
-      - name: Notebook metadata and the roadmap's map
+      #
+      # It also gates the generated purpose cell each notebook opens with (#146).
+      # That cell is what a STUDENT reads, and it is rendered from the same
+      # metadata as the map, so the two cannot disagree -- they did for a week,
+      # with the map calling tutorial 2 an activity while the notebook called
+      # itself a tutorial. Failing here is right: a stale student-facing label is
+      # a defect on the course path, and the fix is one command.
+      - name: Notebook metadata, purpose cells and the roadmap's map
         run: python scripts/notebook_meta.py --check
 
   tests:

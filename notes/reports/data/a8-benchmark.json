@@ -1,6 +1,6 @@
 {
   "title": "What Assignment 8 actually costs, and whether 36 epochs is enough",
-  "summary": "Assignment 8 tells eighteen students to train on at least 100,000 pairs for 30 to 36 epochs, and until now nobody had completed a run at that scale. So the handout could state neither the quality to expect nor the time to budget.\n\nThis is that run.",
+  "summary": "Assignment 8 tells twenty-four students to train on at least 100,000 pairs for 30 to 36 epochs, and until now nobody had completed a run at that scale. So the handout could state neither the quality to expect nor the time to budget.\n\nThis is that run.",
   "config": {
     "corpus": "German bitext, 100,000 train / 2,000 val / 2,000 test",
     "tokenizer": "SentencePiece, 8,000 vocab, fit on the training split only",

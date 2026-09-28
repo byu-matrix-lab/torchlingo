@@ -27,7 +27,7 @@ Put them in `docs/docs/course/`, keyed to lecture number.
 
 `docs/docs/tutorials/` is the library's own series, ordered by topic and numbered
 01 to 07, wired into the docs nav, and aimed at anyone who finds the project.
-Lecture activities are keyed to a calendar, aimed at eighteen enrolled students,
+Lecture activities are keyed to a calendar, aimed at twenty-four enrolled students,
 and have a different lifecycle: they get rewritten each offering. Mixing the two
 collides the numbering and makes both harder to maintain.
 
@@ -100,7 +100,7 @@ Until today that cell read:
 
 Commented out. A student runs it, it *succeeds* by doing nothing, the next cell
 raises `ModuleNotFoundError`, and they cannot tell whether the library is broken or
-they missed a step. In a twenty-minute activity on eighteen laptops that is the most
+they missed a step. In a twenty-minute activity on twenty-four laptops that is the most
 expensive possible failure.
 
 What replaced it, and why each choice is the way it is:

@@ -778,6 +778,76 @@ def purpose_cell(path: Path, meta: dict) -> str:
     return "\n".join("  " + line for line in body.splitlines())
 
 
+def _cell_spans(text: str) -> list[tuple[int, int]]:
+    """Return the character span of every top-level object in the cells array.
+
+    Textual rather than parsed, for the same reason the rest of this module is: an
+    ``nbformat`` round trip rewrites every cell's source from a string into a line list and
+    buries a three-line change in hundreds of untouched lines.
+
+    Args:
+        text (str): The notebook file's contents.
+
+    Returns:
+        list: ``(start, end)`` pairs, end exclusive, in document order.
+
+    Raises:
+        ValueError: If the cells array cannot be found.
+    """
+    anchor = ' "cells": [\n'
+    if anchor not in text:
+        raise ValueError("no cells array found")
+    i = text.index(anchor) + len(anchor)
+    spans, depth, start, in_string, escaped = [], 0, None, False, False
+    while i < len(text):
+        char = text[i]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+        elif char == '"':
+            in_string = True
+        elif char == "{":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                spans.append((start, i + 1))
+        elif char == "]" and depth == 0:
+            break
+        i += 1
+    return spans
+
+
+def _purpose_insert_after(text: str) -> int:
+    """Choose which cell the generated purpose cell should follow.
+
+    **After the notebook's H1 title**, when there is one in the opening cells. The two
+    families lay their openings out differently and a single "insert at the top" rule reads
+    wrongly in one of them: a tutorial carries its title and its Colab badge in one cell,
+    while a course notebook has the badge alone and the title after it. Inserting at the top
+    would give a course notebook badge, purpose, *then* title.
+
+    Args:
+        text (str): The notebook file's contents.
+
+    Returns:
+        int: Index of the cell to insert after, or -1 to insert at the very top.
+    """
+    spans = _cell_spans(text)
+    for index, (start, end) in enumerate(spans[:3]):
+        body = text[start:end]
+        # The H1 as JSON-escaped source: either its own line, or the start of one.
+        if '"# ' in body or "\\n# " in body:
+            return index
+    return 0 if spans else -1
+
+
 def notebook_with_purpose(path: Path, meta: dict) -> str:
     """Return the notebook's text with its generated opening cell inserted or refreshed.
 
@@ -820,7 +890,12 @@ def notebook_with_purpose(path: Path, meta: dict) -> str:
     anchor = ' "cells": [\n'
     if anchor not in text:
         raise ValueError(f"{path}: no cells array found")
-    return text.replace(anchor, f"{anchor}{cell},\n", 1)
+
+    after = _purpose_insert_after(text)
+    if after < 0:
+        return text.replace(anchor, f"{anchor}{cell},\n", 1)
+    end = _cell_spans(text)[after][1]
+    return text[:end] + ",\n" + cell + text[end:]
 
 
 def late_head_starts() -> list[str]:
@@ -918,6 +993,14 @@ def main(argv: list[str] | None = None) -> int:
         default=[],
         metavar="PATH",
         help="with --stamp: repo-relative files it cannot run without",
+    )
+    parser.add_argument(
+        "--purpose",
+        action="store_true",
+        help=(
+            "insert or refresh the generated purpose cell in every notebook, so each one "
+            "says on its face what it is for"
+        ),
     )
     parser.add_argument(
         "--requires",
@@ -1031,6 +1114,31 @@ def main(argv: list[str] | None = None) -> int:
     for path in found:
         complaints.extend(problems(path, read_meta(path)))
         complaints.extend(hygiene(path))
+
+    # The purpose cell, applied or checked.
+    #
+    # Eric, 2026-09-27: each notebook should say on its face what it is for. The text is
+    # GENERATED from the metadata rather than written, so the one that students read and the
+    # one the roadmap's map reads cannot disagree -- which they did for a week, with the map
+    # calling tutorial 2 an activity while the notebook called itself a tutorial.
+    #
+    # Held until #144 and #145 were settled, because the wording encodes both: whether a
+    # tutorial can be an in-class activity, and which assignment each notebook starts.
+    if not complaints:
+        for path in found:
+            meta = read_meta(path)
+            wanted = notebook_with_purpose(path, meta)
+            if path.read_text(encoding="utf-8") == wanted:
+                continue
+            if args.purpose:
+                path.write_text(wanted, encoding="utf-8")
+                print(f"  purpose    {path}")
+            else:
+                complaints.append(
+                    f"{path}: the generated purpose cell is missing or stale. Run: "
+                    "python scripts/notebook_meta.py --purpose"
+                )
+
     if complaints:
         print(f"{len(complaints)} problem(s):", file=sys.stderr)
         for c in complaints:
