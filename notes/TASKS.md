@@ -19,9 +19,10 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-What passes the filter as of 2026-09-28: **#152**, the A8 kickoff notebook, because Lecture 8a
-is Wed Sep 30; **#163**, because 8a's contamination step prints a mislabel in the room; and **#121**,
-because Lecture 9 has nothing else on its own subject.
+**As of 2026-09-28, midday, the in-session list is empty, at Eric's request**: everything open is
+here. The only Lecture 8 item left is **#152**, and its last step is Eric's own Colab run, not
+session work. Next in line when a session picks something up: **#121**, because Lecture 9 has
+nothing else on its own subject.
 
 **Read the "Critical for" column rather than the dates.** Labelling every task by lecture showed
 that only fifteen of sixty-two are critical to a lecture in the next ten days — and that two of
@@ -99,12 +100,12 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only **Eric's Colab run** on a real A5 corpus remains, before Wed |
-| #163 | `check_contamination` calls every held-out set "test" | **L8a** | Library half in **0.2.1** (PR #146) — left: the 8a notebook passes `name="val"` |
 | #165 | Show resume on the Lecture 7 toy model before 8a needs it | **L7** | Open — 8a introduces `TrainingCheckpointer` cold, on a two-hour run |
-| #166 | Tutorials 1 and 3 still have the commented-out install | **L9** | Open — same bug PR #149 fixed in tutorials 4 and 5 |
+| #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162** |
+| #167 | Prune merged branches and stale worktrees | **hyg** | Open — kept on purpose while PR self-closing is unexplained; **ask before deleting** |
 | #164 | Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9 | **L9** | Open — **ours**, per Cowork's Sep 28 baton; `--check` warns on every run |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
-| #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144 |
+| #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
 | #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **hyg** | **Your call** — it holds the corpus prep and all the HPC tooling |
@@ -125,7 +126,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #106 | A token cap breaks Assignment 9's control | **L9** | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | **L8a** | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
-| #113 | Land the PRs still open | **hyg** | **PR #127** and **PR #128** — both need your merge |
 | #118 | What does a paid Colab session actually provide? | **L8a** | **Coulson** — now blocks a live decision, not a claim |
 | #157 | Resume restores no AMP scaler and no RNG state | **lib** | Open — the scheduler half is tested and a mid-epoch bug fixed (PR #145, in 0.2.1) |
 | #158 | Our own `num_workers=4` default costs ~23s and never won | **L8a** | Open — **needs your call**; measured on macOS only |
@@ -249,23 +249,16 @@ because the memory is the machine's, and a spike is held against everything else
   which bounds the worst case instead of releasing after it. Real MT toolkits do this, but
   it changes what `batch_size` means and a teaching library should not do that lightly.
 
-### #113 Land the five PRs still open
+### #167 Prune merged branches and stale worktrees
 
-**Not blocking anything.** 0.2.0 is published and verified from PyPI, so what remains is
-improvement rather than repair.
+Merged PRs keep their branches, deliberately: `CLAUDE.md` prefers merging without
+`--delete-branch` while the PR self-closing mechanism is unexplained. So they accumulate — 2026-09-28
+alone left fifteen on `origin` — along with scratch `git worktree`s pointing at merged branches
+(`git worktree list` shows them; three were made that day for parallel PRs).
 
-Open: **PR #51** nav entries, **PR #52** tutorial 6 imports, **PR #54** length normalization,
-**PR #57** the causal-mask convention, **PR #59** Transformer attention.
-
-**PR #55 merged 2026-09-26** and the signature is verified live:
-`nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0`. That closed #70 and unblocked
-#85 and #91.
-
-**All are refreshed and green against today's `main`.** Refresh again before merging any that
-sit: an old green tick was taken against an old base, and these have already been found
-missing a gate that `main` gained after their checks ran.
-
-**Done when** all six are merged. They need a reviewer, which is Coulson.
+Both are deletions, so **ask Eric first**. Worktrees: `git worktree remove`. Branches: only those
+whose PR is MERGED, checked per branch, never by pattern. **Done when** `git worktree list` shows
+only the main checkout and no merged PR's branch remains on `origin`.
 
 Knock-on: **PR #55** is what **Task #85** and **Task #91** wait on. (Task, not PR: PRs #84 and #85 exist and
 are unrelated — the collision `CLAUDE.md`'s numbering rule describes.)
@@ -391,20 +384,6 @@ cell no longer needs `result`, which only exists in the session that trained.
 **Done when Eric has run it once in Colab against a real A5 corpus before Wed Sep 30.** Nothing here can execute a Drive mount on a GPU; that run is the only end-to-end
 test this notebook will get before twenty-four students do.
 
-### #163 `check_contamination` calls every held-out set "test"
-
-Its detail string is hard-coded: `f"{n}/{m} test sources also appear in training"`. The 8a
-notebook checks val as well as test, so in the room it prints `val: 0/200 test sources also
-appear in training`. Harmless but wrong, and on the first screen of the largest assignment.
-
-Add a `name: str = "test"` parameter that the detail uses, and pass `"val"` from the notebook.
-**The catch:** the notebook installs torchlingo from PyPI, so the library half reaches students
-only with a release, and a notebook passing `name=` before that release will raise `TypeError`.
-Land both together, or the notebook half after the release.
-
-**Library half shipped in 0.2.1** (PR #146, released 2026-09-28). What remains is the notebook's
-one-word change, safe now that `pip install torchlingo` resolves to 0.2.1.
-
 ### #165 Show resume on the Lecture 7 toy model before 8a needs it
 
 The 8a notebook introduces `TrainingCheckpointer` cold, on a run of hours, where the first real
@@ -416,13 +395,21 @@ checkpoints — which its two calls currently do not.
 Add it to Part B, not Part A: Part A is timed for the room. **Done when** the notebook
 demonstrates an interrupted-and-resumed run and both calls pass a checkpointer.
 
-### #166 Tutorials 1 and 3 still have the commented-out install
+### #166 Tutorial 3 cannot run from its Colab badge
 
-Found 2026-09-28 while fixing the same bug in tutorials 4 and 5 (PR #149): both still open with
-"uncomment in Google Colab", so a student running straight through hits `ModuleNotFoundError`.
-Tutorial 1 is Lecture 9's `reference` (and Lecture 4's); tutorial 3 is Lecture 10's reading.
-Copy tutorial 2's two-cell setup, add a Colab download for any `data/` file they read, re-execute,
-and check the outputs are unchanged — the PR #149 procedure.
+Found 2026-09-28 while fixing the commented-out install in tutorials 4 and 5 (PR #149).
+**Tutorial 1 is done** (PR #154). Tutorial 3, Lecture 10's reading, fails twice from Colab:
+
+1. **The same commented-out install**, "uncomment in Google Colab", so running straight through
+   hits `ModuleNotFoundError`. The one-cell fix from tutorial 2.
+2. **It loads `checkpoints/tiny_model.pt`, which tutorial 2 saved.** In Colab each notebook gets
+   its own runtime, so that file is never there, and its "run Tutorial 2 first" error sends the
+   student somewhere that cannot help. Fixing (1) alone trades one failure for a misleading one.
+   Options: train the tiny model inline when the checkpoint is missing (it takes seconds), or
+   ship a checkpoint and download it as tutorials 4 and 5 do.
+
+**Do it in one PR with Task #162**, which reshapes the same notebook's Part 5. Re-execute and
+check every output against the committed one: the PR #149 procedure.
 
 ### #164 Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9
 
