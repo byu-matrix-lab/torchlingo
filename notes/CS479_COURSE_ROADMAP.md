@@ -696,12 +696,12 @@ Notes on the rows that are not simple:
   Suite posts it on the Lecture 3 tab as well, so it is offered ahead of Lecture 4 rather
   than used inside it.
 - ³ **`lecture-10-comet-install`** — Fall 2025 material, brought into the repository on
-  2026-09-27. Installs unbabel-comet, scores a worked example, and sets up the HuggingFace
+  2026-09-26. Installs unbabel-comet, scores a worked example, and sets up the HuggingFace
   token through Colab Secrets, which the reference-free models require. It is Lecture 10's
   assignment and the setup for Lecture 11's. Framework-independent: nothing in it touched
   OpenNMT.
 - ⁴ **`lecture-12-llm-context`** — Fall 2025 material, brought into the repository on
-  2026-09-27. The Assignment 12 scaffold: pick a non-MT HuggingFace model, translate a
+  2026-09-26. The Assignment 12 scaffold: pick a non-MT HuggingFace model, translate a
   low-resource test set with growing numbers of in-context examples, chart BLEU against
   context size. Every code cell is a TODO, so it contains no answers.
   Framework-independent.

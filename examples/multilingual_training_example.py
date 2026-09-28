@@ -15,6 +15,7 @@ from torchlingo.data_processing.vocab import SimpleVocab
 from torchlingo.data_processing.batching import collate_fn
 from torchlingo.models import SimpleTransformer
 from torchlingo.training import train_model
+from torchlingo.training_checkpoint import TrainingCheckpointer
 from torchlingo.inference import translate_batch
 from torchlingo.preprocessing.multilingual_helpers import (
     create_multilingual_dataset,
@@ -181,6 +182,15 @@ def main():
         gradient_clip=1.0,
         device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
         config=cfg,
+        # This one had NEITHER mechanism: no save_dir, so ten epochs produced a
+        # number and no model, and no checkpointer, so a death at epoch nine cost
+        # all nine. Both now.
+        save_dir=cfg.checkpoint_dir,
+        checkpointer=TrainingCheckpointer(
+            experiment_name='multilingual-example',
+            checkpoint_dir=cfg.checkpoint_dir / 'resumable',
+            verbose=True,
+        ),
     )
 
     print(f"\nTraining complete!")

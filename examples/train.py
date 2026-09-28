@@ -26,6 +26,7 @@ from torchlingo.data_processing.dataset import NMTDataset
 from torchlingo.data_processing.batching import collate_fn
 from torchlingo.models import SimpleTransformer
 from torchlingo.training import train_model
+from torchlingo.training_checkpoint import TrainingCheckpointer
 from torchlingo.inference import translate_batch
 from torchlingo.evaluation import evaluate_model
 import os
@@ -430,6 +431,19 @@ def train(
         save_dir=cfg.checkpoint_dir,
         use_amp=True if device.type == 'cuda' else False,  # Mixed precision on GPU
         log_every=100,  # Log every 100 steps
+        # `save_dir` keeps the best model; this makes the run RESUMABLE. Both, not
+        # either: without the checkpointer, a session that dies at hour three has
+        # lost hours one and two, and the only run that skips it is always the one
+        # you could least afford to lose.
+        #
+        # Not behind a flag, deliberately. "Short enough not to bother" is a
+        # judgement made before the run, which is exactly when you do not yet know
+        # which run turns out to be expensive.
+        checkpointer=TrainingCheckpointer(
+            experiment_name=cfg.experiment_name,
+            checkpoint_dir=cfg.checkpoint_dir / "resumable",
+            verbose=True,
+        ),
     )
 
     elapsed = time.time() - start_time
