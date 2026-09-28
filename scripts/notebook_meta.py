@@ -69,10 +69,15 @@ ROADMAP = Path("notes/CS479_COURSE_ROADMAP.md")
 BEGIN = "<!-- BEGIN generated:notebook-map -->"
 END = "<!-- END generated:notebook-map -->"
 
-# Superscripts rather than Markdown footnote syntax. `[^1]` needs the footnotes extension,
+# Plain "[N]" rather than Markdown footnote syntax. `[^1]` needs the footnotes extension,
 # which docs/mkdocs.yml does not enable, and the roadmap is also read as plain text in a
-# terminal -- where a footnote reference that never resolves is just noise.
-MARKERS = "¹²³⁴⁵⁶⁷⁸⁹"
+# terminal -- where a footnote reference that never resolves is just noise. Superscripts
+# were used first, from a fixed nine-character string, and raised IndexError the day the
+# tenth notebook gained a note.
+def footnote_marker(n: int) -> str:
+    """Return the marker for the n-th note, 1-based: 1 -> "[1]", 12 -> "[12]"."""
+    return f"[{n}]"
+
 
 FAMILIES = {"tutorial", "course"}
 ROLES = {"activity", "reading", "homework", "reference"}
@@ -667,7 +672,7 @@ def table() -> str:
         meta = read_meta(path)
         marker = ""
         if meta.get("note"):
-            marker = MARKERS[len(notes)]
+            marker = footnote_marker(len(notes) + 1)
             # Wrapped, because this document is read in a terminal as often as rendered,
             # and the surrounding prose is hand-wrapped to the same width.
             notes.append(
