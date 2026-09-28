@@ -126,7 +126,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #106 | A token cap breaks Assignment 9's control | **L9** | Open — one sentence in the assignment |
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
-| #118 | What does a paid Colab session actually provide? | **L8a** | **Coulson** — now blocks a live decision, not a claim |
+| #118 | What does a paid Colab session actually provide? | **L8a** | **Sent to Coulson 2026-09-28** — `scripts/colab_memory_probe.py`; waiting on his output |
 | #157 | Resume restores no AMP scaler and no RNG state | **lib** | Open — the scheduler half is tested and a mid-epoch bug fixed (PR #145, in 0.2.1) |
 | #8 | Verify Eole claims before syllabus use | **lib** | Open |
 | #9 | `pre-commit install` (still not installed) | **hyg** | Open |
@@ -682,6 +682,15 @@ Distinct from **#99**, which is the tutorial. This is the question of whether th
 works at all, and it should be answered before a notebook is written on top of it.
 
 ### #118 What does a paid Colab session actually provide?
+
+**Sent 2026-09-28: Eric posted a one-cell probe to Coulson on Discord**, kept verbatim as
+`scripts/colab_memory_probe.py` so his output can be read against the code that produced it. It
+prints the GPU and its free memory, then peak memory and ms/batch for both A8 candidates (11.7M and
+56.4M, batch 64, three AdamW steps) at vocabulary 8,000 and 50,000 and length 102 and 180: the
+worst case for A8's word-level vocabulary and for A9's subwords. It also asked him to repeat it in a
+fresh session, to see whether the GPU varies. **When the output arrives:** record it in
+`notes/reports/` (generated from JSON, per the rule there), decide whether the 56.4M model fits,
+and tell Cowork, whose deck quotes Mac wall clocks the ms/batch column can replace.
 
 **Coulson measures it, Eric's call.** The other half of the A8 memory question: the ladder in
 [`reports/length-ladder.md`](reports/length-ladder.md) gives demand at each length cap, this
