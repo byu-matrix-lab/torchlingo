@@ -127,7 +127,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #106 | A token cap breaks Assignment 9's control | **L9** | Open — one sentence in the assignment |
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
-| #118 | What does a paid Colab session actually provide? | **L8a** | **Measured** — A100, everything fits (`reports/colab-memory.md`); **Eric's call**: switch A8 to 56.4M? |
+| #118 | What does a paid Colab session actually provide? | **L8a** | **Decided: A8 uses 56.4M**, 35 epochs — left: the handout's epoch range, Eric's |
 | #157 | Resume restores no AMP scaler and no RNG state | **lib** | Open — the scheduler half is tested and a mid-epoch bug fixed (PR #145, in 0.2.1) |
 | #8 | Verify Eole claims before syllabus use | **lib** | Open |
 | #9 | `pre-commit install` (still not installed) | **hyg** | Open |
@@ -734,11 +734,13 @@ fresh session, to see whether the GPU varies.
 and at A8's own settings it would fit a free-tier T4's nominal capacity too; the one T4 miss is
 50K vocabulary at length 180, a combination A9's 8K subwords never produce.
 
-**What is left is a decision, Eric's:** switch A8 to the 56.4M model, which the a8-benchmark
-report shows is better at A8's floor and converges in fewer epochs. If yes, it changes the A8
-notebook's Step 6, the handout, and Cowork's deck. **Done when** that decision is made and
-recorded. Tell Cowork either way: the report's ms/batch column replaces the Mac wall clocks their
-deck quotes.
+**Decided 2026-09-28, Eric: A8 uses the 56.4M model.** 8a's Step 6 now builds it (`d_model` 512,
+6 + 6 layers, feed-forward 2048) and runs 35 epochs, since the benchmark had it converging in
+about 30 where the 11.7M model needed 65. Two caveats recorded in the notebook: its size is 56.4M
+only at an 8,000-piece vocabulary (about 109M at a word vocabulary), and the 30-epoch figure was
+measured with subwords. The live hand-off tells Cowork. **Done when the handout's epoch range
+reads 30 to 40**; it says 60 to 70, and the notebook says the handout governs. That document is
+Eric's.
 
 **Coulson measures it, Eric's call.** The other half of the A8 memory question: the ladder in
 [`reports/length-ladder.md`](reports/length-ladder.md) gives demand at each length cap, this

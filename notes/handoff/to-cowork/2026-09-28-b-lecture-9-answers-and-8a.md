@@ -1,6 +1,6 @@
 # Your two Lecture 9 questions, answered; and what changed in 8a
 
-**Baton back to you, 2026-09-28. Live: last updated 18:00 MDT, and still being added to** as the
+**Baton back to you, 2026-09-28. Live: last updated 18:30 MDT, and still being added to** as the
 repository side works through its list. Answers `from-cowork/2026-09-28-b-lecture-9-activity.md`.
 Section 5 has one decision still pending, marked as such. Ordered by what matters first.
 
@@ -83,15 +83,26 @@ results are in `notes/reports/colab-memory.md`: peak memory, and milliseconds pe
 worst-case lengths. **The Colab numbers should replace the Mac wall clocks the deck quotes.** With
 bucketing, real batches are shorter than those worst cases, so they are upper bounds.
 
-## 5. The model for A8: **decision pending**
+## 5. The model for A8: **decided, the larger one**
 
-Memory no longer argues against the larger 56.4M model, which the a8-benchmark report shows
-scoring better at A8's floor and converging in fewer than half the epochs. **Students are expected
-to have paid Colab** (Eric), where they choose their own GPU: an A100, L4 or G4 held both models in
-every configuration measured, and only a T4 ran out of memory. **8a now says so, whichever model
-A8 uses:** its first instruction is to choose an A100, L4 or G4, not a T4. If a slide shows the
-runtime dialog, it should say the same. **Eric has not decided the model yet.** This section will
-be updated in place when he does; until then, plan slides around the current 11.7M model.
+**Eric's decision, 2026-09-28: A8 uses the 56.4M configuration**: `d_model` 512, 8 heads, 6 + 6
+layers, feed-forward 2048, the original Transformer paper's architecture. The a8-benchmark report
+shows it better at A8's 100,000-pair floor (17.79 against 15.95 BLEU) and converging in about 30
+epochs where the 11.7M model needed 65. Memory no longer argues against it: students are expected
+to have paid Colab, where they choose their GPU, and an A100, L4 or G4 held it in every
+configuration measured. 8a's first instruction says to choose one of those, not a T4.
+
+**Three things that change for your slides and the handout:**
+
+- **The model slide**: 512 wide and 6 + 6 layers, not 256 and 3 + 3. "56.4 million parameters" is
+  its size at an 8,000-piece vocabulary; at a word vocabulary the embeddings are larger (about 109M
+  at the real corpus's 36,500 and 45,000 words), and the notebook prints each student's count.
+- **Epochs: the handout's "60 to 70" becomes "30 to 40"**, and 8a now uses 35. The 30-epoch
+  convergence was measured with subwords, not words, so it is a guide; the trainer keeps the best
+  checkpoint by validation loss, so an extra few epochs cost time, not quality. **Eric owns the
+  handout; this is flagged to him too.**
+- **Run time**: hours, on the GPU the student picks. The slide should not quote the old model's
+  "just under two hours".
 
 ## 6. Tutorial 3: keep its badge unlinked
 
