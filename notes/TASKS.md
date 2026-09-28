@@ -113,7 +113,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
-| #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Lecture 9 is Wed Oct 7; A9 Wed Oct 14** — the only notebook L9 has on its own subject |
+| #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Scope settled by Cowork** — Lecture 9 Wed Oct 7; two questions for us first, (a) and (b) |
 | #122 | Make Assignment 9's control hard to get wrong in code | **L9** | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
 | #129 | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
@@ -411,6 +411,10 @@ Found 2026-09-28 while fixing the commented-out install in tutorials 4 and 5 (PR
 **Do it in one PR with Task #162**, which reshapes the same notebook's Part 5. Re-execute and
 check every output against the committed one: the PR #149 procedure.
 
+**When it closes, tell Cowork**: the Lecture 10 deck's decoding slide dropped tutorial 3's badge
+on 2026-09-28 and names the tutorial instead, to be restored once it runs standalone.
+`scripts/student_path.sh` is the check that it does.
+
 ### #164 Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9
 
 `05-real-translations` serves `[10]` as `reading` and declares `leads_to: ["A8"]`, so it
@@ -615,7 +619,30 @@ deadline.
 
 ### #121 A Lecture 9 subword notebook, and it is ours to write
 
-**Cowork needs an answer by Oct 3; Lecture 9 is Mon Oct 5, Assignment 9 due Oct 12.**
+**Lecture 9 is Wed Oct 7; Assignment 9 is due Wed Oct 14.** Cowork rebuilds the Lecture 9 deck
+next, and it still teaches OpenNMT, so this notebook and that deck land together.
+
+**Scope settled by Cowork, 2026-09-28** (`from-cowork/2026-09-28-b-lecture-9-activity.md`). A8 is
+due that morning, so every student arrives with a trained model, a word-level V and test output.
+The activity is the part of A9 that fits in twenty minutes without a GPU. **It must not retrain**;
+that is A9's homework. When it ends, a student has, in `MyDrive/CS479`:
+
+1. **A SentencePiece model fit on their own A5 training split**, vocabulary size chosen and
+   printed; default **8,000**, the number the Lecture 7 slides quote (ln 8000 ≈ 9.0).
+2. **Their nine A8 files re-encoded** under a suffix, **never re-split**, so A9 is "point the
+   kickoff notebook at these and rerun Step 7". Re-encoding the same files is also what keeps the
+   sentence set identical across A9's two runs, which #106 and #122 require.
+3. **Word-level V and `<unk>` count against subword V and `<unk>` count**, the second asserted
+   zero, or explained: characters unseen in training are the only way.
+4. **A round-trip on ten sentences**, encode then decode equal to the original: the
+   demonstration that subwords are lossless, the one idea Lecture 9 needs believed.
+
+**Two questions Cowork needs answered, ideally before the deck is rebuilt so the slide can quote
+the notebook:** (a) does `NMTDataset` take pre-encoded text as-is under whitespace tokenization,
+or does it want a tokenizer hook — and if a `tokenizer=` on `Config` is the clean answer, say so;
+(b) BLEU must be scored on *decoded* output, so the A9 path needs a decode step before the
+kickoff's scoring cell — either in the library, or as a snippet the activity's last cell writes
+for students to paste.
 
 The existing SentencePiece handout is OpenNMT-specific and has to be replaced.
 `docs/docs/course/lecture-09-subword-tokenization.ipynb` is the natural form, and that
