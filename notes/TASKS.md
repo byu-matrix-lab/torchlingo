@@ -104,6 +104,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162** |
 | #167 | Prune merged branches and stale worktrees | **hyg** | Open — kept on purpose while PR self-closing is unexplained; **ask before deleting** |
 | #168 | Make the student-path run part of shipping a notebook | **hyg** | Open — `scripts/student_path.sh` exists and works; fold into the executor, schedule it |
+| #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
 | #164 | Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9 | **L9** | Open — **ours**, per Cowork's Sep 28 baton; `--check` warns on every run |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
@@ -147,7 +148,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #79 | An order-dependent test | **hyg** | **Fails on unmodified `main`** — so it blocks nothing; CI cannot see it |
 | #81 | Fail the build on hand-typed generated numbers | **hyg** | Open |
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
-| #86 | `evaluate_model` has no test, and it is what callers use | **lib** | Open — after PR #58 |
 | #89 | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
 | #92 | Tutorials 3 and 5 bypass the library's own evaluation API | **L10** | Open |
@@ -253,6 +253,27 @@ What is left is making it harder to forget:
 
 **Done when** the executor has the mode and a scheduled job runs it on every course notebook
 and tutorial.
+
+### #169 Wrap the plumbing, keep the lesson inline, in every notebook
+
+Eric, 2026-09-28: large code cells lose a new student. The rule is in `CLAUDE.md`: code a student
+learns nothing from reading belongs in the library; code that *is* the lesson stays written out.
+
+**Done 2026-09-28:** `torchlingo.colab.setup` and `fetch_data`, `preprocessing.split_exact` and
+`diagnostics.padding_report`, released in 0.2.2 (PR #163, with `evaluate_model` finally tested,
+closing #86). The A8 kickoff moved onto them, verified byte-identical in its split files. Lecture
+7 and tutorials 1, 2, 4 and 5 now open with the four-line install and `setup()`.
+
+**Left:**
+
+- **Tutorial 3**, in the one PR with #166 and #162: all three reshape the same notebook.
+- **Tutorials 6 and 7**: check their opening cells against the rule.
+- **Cowork's course notebooks** (Lectures 3, 4, 5, 6, 10, 12) install other packages, not
+  TorchLingo, so `setup()` does not replace their installs; check each for plumbing that a
+  helper does cover, and ask Cowork before changing their cells.
+- **Every new notebook, starting with #121's**, is written this way from the first draft.
+
+**Done when** no notebook carries plumbing a library helper covers.
 
 ### #147 A9 has no notebook, and one notebook would serve it and Lecture 9
 
@@ -889,20 +910,6 @@ right.
   regenerate both the JSON and the markdown.
 - Related to #85: chrF and TER have no signature to record yet, so this lands properly
   only after that one.
-
-**#86 `evaluate_model` has no test, and it is the function callers use**
-
-PR #58 tests the three metric wrappers well and leaves `evaluate_model` and
-`save_translations` untested. But `evaluate_model` is what `examples/evaluate.py`,
-`examples/train.py` and any student actually call, and it is **where the transpose bug did its
-damage**: `compute_chrf_score` defaults True, so every call reported a wrong chrF.
-
-Fixing the wrappers without testing the aggregator leaves the same hole one level up, where the
-thing under test is not the thing being used.
-
-**Done when** `evaluate_model` runs end to end on a tiny fixture and its returned bleu/chrf/ter
-match the three wrappers called directly — under default flags and with
-`compute_ter_score=True` — and `save_translations` is covered too.
 
 **#82 Add an on-target language check to `torchlingo.diagnostics`**
 Borrowed from mtsurvey, which reports an on-target rate using GlotLID: the share of
