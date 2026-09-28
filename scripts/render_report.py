@@ -25,6 +25,7 @@ import argparse
 import itertools
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -440,9 +441,192 @@ def render_a8_benchmark(doc: dict) -> str:
     return "\n".join(out)
 
 
+_PROBE_HEADER = re.compile(
+    r"^(?P<gpu>.+): (?P<total>[\d.]+) GiB, (?P<free>[\d.]+) free$"
+)
+_PROBE_ROW = re.compile(
+    r"^(?P<model>\S+)\s+vocab\s+(?P<vocab>[\d,]+)\s+len\s+(?P<length>\d+)\s+"
+    r"(?:peak\s+(?P<peak>[\d.]+) GiB, (?P<ms>\d+) ms/batch|OUT OF MEMORY)$"
+)
+
+
+def parse_probe_output(lines: list[str]) -> tuple[dict, list[dict]]:
+    """Parse ``scripts/colab_memory_probe.py`` output, kept verbatim in the JSON.
+
+    The raw lines are the source of truth rather than numbers retyped from them, so a
+    transcription error cannot enter between the measurement and the report.
+
+    Args:
+        lines (list[str]): The probe's printed lines, header first.
+
+    Returns:
+        tuple: ``(header, rows)``. ``header`` has ``gpu``, ``total`` and ``free``; each row
+            has ``model``, ``vocab``, ``length``, and ``peak`` and ``ms`` (None when the
+            configuration ran out of memory).
+
+    Raises:
+        ValueError: If a line matches neither the header nor a row.
+    """
+    head = _PROBE_HEADER.match(lines[0].strip())
+    if head is None:
+        raise ValueError(f"unrecognised probe header: {lines[0]!r}")
+    header = {
+        "gpu": head["gpu"],
+        "total": float(head["total"]),
+        "free": float(head["free"]),
+    }
+    rows = []
+    for line in lines[1:]:
+        m = _PROBE_ROW.match(line.strip())
+        if m is None:
+            raise ValueError(f"unrecognised probe row: {line!r}")
+        rows.append(
+            {
+                "model": m["model"],
+                "vocab": int(m["vocab"].replace(",", "")),
+                "length": int(m["length"]),
+                "peak": float(m["peak"]) if m["peak"] else None,
+                "ms": int(m["ms"]) if m["ms"] else None,
+            }
+        )
+    return header, rows
+
+
+def render_colab_memory(doc: dict) -> str:
+    """Build the Colab GPU memory report for A8's two candidate models (Task #118).
+
+    Peak memory is shown once, from the first session, only after checking every session
+    agrees on it exactly; a disagreement is an error rather than an average, because the
+    probe is deterministic and a difference would mean something changed. Times are shown
+    per session, since they legitimately vary.
+
+    Args:
+        doc (dict): Parsed ``colab-memory.json``.
+
+    Returns:
+        str: The complete Markdown document.
+
+    Raises:
+        ValueError: If the sessions disagree on configuration or peak memory.
+    """
+    sessions = [
+        (s["label"], *parse_probe_output(s["raw_output"])) for s in doc["sessions"]
+    ]
+    first_label, first_header, first_rows = sessions[0]
+    for label, _, rows in sessions[1:]:
+        for a, b in zip(first_rows, rows, strict=True):
+            if (a["model"], a["vocab"], a["length"], a["peak"]) != (
+                b["model"],
+                b["vocab"],
+                b["length"],
+                b["peak"],
+            ):
+                raise ValueError(f"{label} disagrees with {first_label}: {a} vs {b}")
+    capacities = doc["nominal_capacity_gib"]
+    cfg = doc["config"]
+
+    out = [
+        GENERATED_WARNING.replace("length-ladder.json", "colab-memory.json"),
+        "",
+        f"# {doc['title']}",
+        "",
+        doc["summary"].strip(),
+        "",
+        "## Where it was measured",
+        "",
+    ]
+    for label, header, _ in sessions:
+        out.append(
+            f"- **{label}:** {header['gpu']}, {header['total']} GiB, "
+            f"{header['free']} GiB free to the process"
+        )
+    out += [
+        "",
+        (
+            f"Probe: `{cfg['probe']}`. Batch {cfg['batch_size']}, {cfg['optimizer']}; "
+            f"worst case, {cfg['worst_case']}. Measured by {cfg['measured_by']}."
+        ),
+        "",
+        "## Peak memory, and where it fits",
+        "",
+        (
+            "Peak memory was identical in every session. The fit columns compare it with "
+            "each GPU's **nominal** capacity; only the A100's was measured."
+        ),
+        "",
+    ]
+    fit_names = list(capacities)
+    time_names = [f"ms/batch, {label}" for label, _, _ in sessions]
+    out.append(
+        "| model | vocab | length | peak GiB | "
+        + " | ".join(f"fits {n}" for n in fit_names)
+        + " | "
+        + " | ".join(time_names)
+        + " |"
+    )
+    out.append("|" + "---|" * (4 + len(fit_names) + len(time_names)))
+    for i, row in enumerate(first_rows):
+        peak = row["peak"]
+        fits = [
+            "no" if peak is None or peak > capacities[n] else "yes" for n in fit_names
+        ]
+        times = [
+            str(rows[i]["ms"]) if rows[i]["ms"] is not None else "OOM"
+            for _, _, rows in sessions
+        ]
+        out.append(
+            f"| {row['model']} | {row['vocab']:,} | {row['length']} | "
+            f"{'OOM' if peak is None else f'{peak:.2f}'} | "
+            + " | ".join(fits)
+            + " | "
+            + " | ".join(times)
+            + " |"
+        )
+
+    out += ["", "What the lengths and vocabularies stand for:", ""]
+    for length, meaning in cfg["lengths"].items():
+        out.append(f"- **length {length}:** {meaning}")
+    for vocab, meaning in cfg["vocabularies"].items():
+        out.append(f"- **vocab {int(vocab):,}:** {meaning}")
+
+    largest = max(
+        (r for r in first_rows if r["peak"] is not None), key=lambda r: r["peak"]
+    )
+    out += [
+        "",
+        "## What it settles",
+        "",
+        (
+            f"- **The largest peak is {largest['peak']:.2f} GiB** ({largest['model']}, vocab "
+            f"{largest['vocab']:,}, length {largest['length']}), "
+            f"{largest['peak'] / first_header['free']:.0%} of the {first_header['free']} GiB "
+            f"free on the {first_header['gpu']} the first session drew."
+        ),
+    ]
+    for name, capacity in capacities.items():
+        over = [
+            f"{r['model']} at vocab {r['vocab']:,}, length {r['length']}"
+            for r in first_rows
+            if r["peak"] is None or r["peak"] > capacity
+        ]
+        verdict = (
+            "every configuration fits"
+            if not over
+            else "does not fit: " + "; ".join(over)
+        )
+        out.append(f"- **{name}** ({capacity} GiB nominal): {verdict}.")
+
+    out += ["", "## Caveats", ""]
+    for caveat in doc["caveats"]:
+        out.append(f"- {caveat.strip()}")
+    out.append("")
+    return "\n".join(out)
+
+
 RENDERERS = {
     "length-ladder": render_length_ladder,
     "a8-benchmark": render_a8_benchmark,
+    "colab-memory": render_colab_memory,
 }
 
 

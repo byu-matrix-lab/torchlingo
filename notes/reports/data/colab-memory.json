@@ -1,0 +1,54 @@
+{
+  "title": "What a Colab GPU holds for A8's two candidate models",
+  "summary": "Peak GPU memory and time per batch for the 11.7M and 56.4M Transformers, measured by Coulson in Colab on 2026-09-28 with scripts/colab_memory_probe.py, in two separate sessions. Task #118. The question it answers: whether memory, the one objection left, rules out the larger model for A8.",
+  "config": {
+    "probe": "scripts/colab_memory_probe.py",
+    "measured_by": "Coulson, in Colab, 2026-09-28",
+    "batch_size": 64,
+    "optimizer": "AdamW, three full training steps (forward, backward, step)",
+    "worst_case": "every sentence in the batch at the stated length",
+    "lengths": {"102": "A8's 100-word cap plus <sos> and <eos>", "180": "roughly the same sentences as SentencePiece pieces in A9, about 1.8x longer"},
+    "vocabularies": {"8000": "SentencePiece, as the benchmark and A9 use", "50000": "a large word-level vocabulary, as the A8 notebook's NMTDataset builds"}
+  },
+  "nominal_capacity_gib": {
+    "T4 (free Colab)": 15.0,
+    "L4": 22.5,
+    "A100 40GB": 39.5
+  },
+  "sessions": [
+    {
+      "label": "first session",
+      "raw_output": [
+        "NVIDIA A100-SXM4-40GB: 39.5 GiB, 39.1 free",
+        "11.7M  vocab  8,000  len 102  peak  1.87 GiB, 334 ms/batch",
+        "11.7M  vocab  8,000  len 180  peak  3.25 GiB, 63 ms/batch",
+        "11.7M  vocab 50,000  len 102  peak  6.27 GiB, 72 ms/batch",
+        "11.7M  vocab 50,000  len 180  peak 10.79 GiB, 120 ms/batch",
+        "56.4M  vocab  8,000  len 102  peak  4.99 GiB, 151 ms/batch",
+        "56.4M  vocab  8,000  len 180  peak  8.46 GiB, 262 ms/batch",
+        "56.4M  vocab 50,000  len 102  peak  9.75 GiB, 208 ms/batch",
+        "56.4M  vocab 50,000  len 180  peak 16.35 GiB, 360 ms/batch"
+      ]
+    },
+    {
+      "label": "second session",
+      "raw_output": [
+        "NVIDIA A100-SXM4-40GB: 39.5 GiB, 39.1 free",
+        "11.7M  vocab  8,000  len 102  peak  1.87 GiB, 325 ms/batch",
+        "11.7M  vocab  8,000  len 180  peak  3.25 GiB, 63 ms/batch",
+        "11.7M  vocab 50,000  len 102  peak  6.27 GiB, 73 ms/batch",
+        "11.7M  vocab 50,000  len 180  peak 10.79 GiB, 120 ms/batch",
+        "56.4M  vocab  8,000  len 102  peak  4.99 GiB, 152 ms/batch",
+        "56.4M  vocab  8,000  len 180  peak  8.46 GiB, 263 ms/batch",
+        "56.4M  vocab 50,000  len 102  peak  9.75 GiB, 209 ms/batch",
+        "56.4M  vocab 50,000  len 180  peak 16.35 GiB, 362 ms/batch"
+      ]
+    }
+  ],
+  "caveats": [
+    "The first row's time in each session is the GPU's first call, not a cost of that configuration: the same model at the longer length runs far faster in the next row.",
+    "Both sessions drew the same A100. Whether a student's session can draw a smaller GPU is not measured here; the T4 and L4 columns use nominal capacities, not measurements.",
+    "Every sentence at the cap is the worst case. Real batches are shorter, and the A8 notebook's length bucketing makes most of them much shorter.",
+    "Memory only. Whether the 56.4M model is worth its time is the question the a8-benchmark report answers, in its capacity table."
+  ]
+}
