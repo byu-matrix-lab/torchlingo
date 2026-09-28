@@ -49,7 +49,7 @@ is not finished until that PR merges, and only then does the row disappear.
 
 **Tasks #93 to #100 have external deadlines.** They come from
 `notes/CS479_COURSE_ROADMAP.md`: CS 479 is pivoting to TorchLingo *this* semester, and
-eighteen students hit the library in class on **Mon Sep 28**. Those tasks are dated, they
+twenty-four students hit the library in class on **Mon Sep 28**. Those tasks are dated, they
 are sequenced against a calendar nobody here controls, and they outrank everything else in
 this file until Oct 28. See "The CS 479 pivot" below for the schedule and the reasoning.
 
@@ -82,9 +82,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | **Cowork writes it** (Eric, Sep 27) — eleven suggestions delivered from here |
-| #155 | A8's "What To Do" overlaps the kickoff notebook's first four steps | **L8a** | **Your call** — Cowork flagged it and did not act |
-| #145 | Say which assignment each notebook jump-starts | **hyg** | **Your call** — four proposed; blocks #146 |
-| #146 | Stamp the purpose cell into all ten notebooks, and gate it | **hyg** | Open — mechanics done in PR #117; waits on #144 and #145 |
+| #146 | Stamp the purpose cell into all fourteen notebooks, and gate it | **hyg** | **Unblocked** — #144 and #145 both answered; mechanics done in PR #117 |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **10+** | Cowork's Q7 call — **unblocks #88**; #142 was already decided |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
@@ -149,7 +147,7 @@ mode and CS 479 is moving to TorchLingo **this** semester. Five assignments trai
 consecutive and cumulative, so it is one crossing rather than five.
 
 This converts the repository from a teaching library with a hypothetical audience into the
-thing eighteen students have to get working, on their own data, on a deadline.
+thing twenty-four students have to get working, on their own data, on a deadline.
 
 ### Context lives in the roadmap, not here
 
@@ -290,37 +288,24 @@ exactly the failure `training_checkpoint` exists for.
 Left separate deliberately: those five files sit outside the lint gate (#22), so a change there
 is unguarded, and a five-file mechanical diff would bury its own review.
 
-### #145 Say which assignment each notebook jump-starts
-
-**Eric, 2026-09-26:** in-class notebooks are often a jump start on the next assignment, and some
-tutorials should be pivoted to serve that purpose too.
-
-`leads_to` exists for this as of PR #117, validated against the eleven assignments parsed out of
-the schedule's own column, so a notebook states its deadline without repeating it.
-
-**Four proposals. Which assignment a notebook prepares is a pedagogical call, so these are
-arguments rather than decisions:**
-
-| notebook | assignment | why |
-|---|---|---|
-| `02-train-tiny-model` | **A8**, due Lecture 10 | A8 is "create and run an NMT model". Tutorial 2 *is* that at small scale — prepare, build, train, test, save. The clearest one in the repository. |
-| `05-real-translations` | **A8** | The "now run it on unseen data" half, and it already carries the pretrained checkpoint. |
-| `01-data-and-vocab` | **A5**, due Lecture 6 | Its Part 1 is loading and cleaning a parallel corpus. Retrospective this year, real next. |
-| a Lecture 9 notebook | **A9**, due Lecture 11 | Does not exist yet. See #147. |
-
-**Deliberately not proposed:** `03-inference-and-beamsearch`. Its BLEU half points at A6 or A11,
-but #142 has not settled which notebook owns evaluation, and pointing it at an assignment before
-that is decided would make the question harder to answer.
-
 ### #146 Stamp the purpose cell into all ten notebooks, and gate it
 
 The mechanics landed in PR #117 and are idempotent — verified stable over four runs and an
 in-place update, on one notebook of each format version. What remains is applying them and
 adding the banner to `--check` so it cannot drift.
 
-**Held deliberately until #144 and #145 are answered**, because the cell is student-facing text
-and the wording encodes decisions that are not mine: whether tutorial 2 is an in-class activity,
-and which assignment each notebook starts.
+**No longer held. Both blockers were answered on 2026-09-27 and 2026-09-28**, and they were
+blockers because the cell is student-facing text whose wording encodes decisions that were not
+mine. Both are now settled and the wording follows from them:
+
+- **#144:** tutorial 2 is `reading` for Lecture 7, not an in-class activity. Every activity is a
+  course notebook and no tutorial is one.
+- **#145:** every notebook names the assignment it starts, except `04-attention-and-alignment` and
+  `lecture-04-regex-refresher`, which declare nothing **deliberately** — the reasoning is in the
+  roadmap, and the purpose cell must render that blank as a blank rather than inventing a link.
+
+Fourteen notebooks now, not ten — the four Cowork sent plus the Lecture 6 split. The A8 kickoff
+notebook will make fifteen when Cowork writes it, so stamp from a glob rather than a list.
 
 Two smaller choices to make at the same time: the cell currently sits **before** the title rather
 than after it, and the exact phrasing of the opening sentence.
@@ -438,7 +423,7 @@ settles it.
 
 **The gap that still needs Eric:** the notebook mounts Drive, so neither session can execute it —
 the executor only runs `docs/docs/tutorials/`. One Colab run against a real A5 corpus before
-Wednesday closes it. Without that it meets eighteen students having never run end to end.
+Wednesday closes it. Without that it meets twenty-four students having never run end to end.
 
 **Why it exists, which is the strongest argument in the request.** Lectures 4, 5 and 6 each had
 an in-class activity that started the assignment. **The largest assignment in the course has
@@ -465,16 +450,6 @@ histogram, not in retyping a groupby.
 
 Step 10 is where #135 stops being abstract: this notebook is the one place a student's first real
 training run begins, and it must not be the place that teaches them to run without checkpoints.
-
-### #155 A8's "What To Do" overlaps the kickoff notebook's first four steps
-
-Cowork flagged this and deliberately did not act on it: if the kickoff notebook walks a student
-through dedupe, split, contamination check and length cap, then A8's handout describing those
-same steps is either redundant or contradictory.
-
-**Eric's to settle**, because it changes an assignment students are about to start. The options
-are to trim the handout to what the notebook does not cover, or to leave it as the written record
-and accept the duplication.
 
 ### #139 Lecture 9 is claimed by tutorial 1 and not actually served
 
@@ -656,7 +631,7 @@ entirely**, on all three platforms, which was the part that actually bit student
 
 **Two blockers, both Eric's, before the decks can point at it:**
 
-1. **It is `PRIVATE`.** Eighteen students cannot clone a private repository in the lab org.
+1. **It is `PRIVATE`.** Twenty-four students cannot clone a private repository in the lab org.
 2. **It has no license** — `licenseInfo` is null, so strictly nobody has been granted the
    right to use or redistribute it. That is also what made the OneDrive arrangement fragile.
    A permissive license additionally settles whether TorchLingo could ever absorb the checks.

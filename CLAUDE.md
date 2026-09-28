@@ -463,7 +463,7 @@ no acknowledgement is a different signal from a question asked once.
 
 In priority order:
 
-1. **CS 479 works.** Eighteen students, on their own data, against dated assignments. A defect
+1. **CS 479 works.** Twenty-four students, on their own data, against dated assignments. A defect
    on that path outranks anything else in this file.
 2. **Educational clarity**: clean, readable code designed for learning. This is the reason the
    library exists rather than a configured toolkit, and it is what we decline to trade for

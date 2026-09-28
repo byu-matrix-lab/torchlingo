@@ -236,6 +236,33 @@ least 100K training pairs, 2K validation, 2K test, or all of it if you have less
 deduplication and a verified split; 100-token cap; **60 to 70 epochs**; checkpointing to Drive;
 SacreBLEU over the whole test set.
 
+**The handout keeps its full "What To Do", and the kickoff notebook does not replace it.**
+Decided 2026-09-28 on Eric's authorization, settling #155. Cowork raised the overlap and was
+right to: the notebook's first four steps and the handout's first four instructions describe the
+same dedupe, split, contamination check and length cap.
+
+**The argument is attendance.** Twenty-four students, one class meeting. Someone will miss Lecture
+8a, or leave early, or come to the notebook a week later with a dead Colab runtime. A handout
+trimmed to "the parts the notebook does not cover" leaves that student with no statement of what
+the assignment requires — and A8 is the largest piece of work in the course. The duplication costs
+a paragraph; the alternative costs a student the requirements.
+
+So the two artifacts get different jobs, and the notebook's job is the narrower one:
+
+| | job |
+|---|---|
+| the handout | **the authority.** Every requirement and threshold, in full, readable without Colab |
+| the kickoff notebook | **the executable path** through those requirements, on the student's own corpus |
+
+Two consequences for whoever writes the notebook:
+
+- **It cites the handout rather than restating it.** Where it must print a threshold — the 100,000
+  floor, the 100-token cap, 60 to 70 epochs — it names the handout as the source, so a student who
+  sees two numbers knows which one governs.
+- **Thresholds live in one place.** If a number changes, it changes in the handout and the notebook
+  follows. The failure this avoids is the notebook drifting to 50 epochs while the handout says 60
+  and the grader uses neither.
+
 ### 8b. Neural MT: The Transformer (F2026, 26 slides)
 Split out on Sep 27. Opens with its own quiz and a **placeholder for the discussion question**,
 which still needs writing, then Objectives and a "Where We Left Off" recap that restates the
@@ -736,6 +763,19 @@ notebook that has not been written cannot declare anything:
 - **Twelve of the twenty-three lectures pair with nothing** — 1, 2, 11 to 18, 20 and 21. Which
   is fine: not every lecture wants a notebook, and inventing one to fill a row would be the
   redundancy this document already warns about.
+
+**Two notebooks declare no `leads_to`, deliberately**, and it is recorded here so nobody reads the
+blank as an oversight and fills it in. Settled 2026-09-28, closing #145.
+
+- **`04-attention-and-alignment`** explains attention and the Transformer. It gives a student no
+  head start on A8's deliverable, which is a trained model on their own corpus — it makes the
+  training make sense, which is a different thing.
+- **`lecture-04-regex-refresher`** teaches regular expressions, which A4's cleaning is *written
+  in*. A prerequisite skill is not a head start either.
+
+The rule both follow is the one #139 established against tutorial 1's Lecture 9 claim: **a notebook
+that teaches the prerequisite should not be recorded as covering the thing.** A visible blank is
+better than a flattering map. Every other notebook now names an assignment.
 
 One row appears twice on purpose. **Tutorial 4 serves Lectures 8a and 8b and will not be
 split**, which reverses #140 **and an agreement with Cowork**.

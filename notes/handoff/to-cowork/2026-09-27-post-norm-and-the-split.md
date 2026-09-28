@@ -181,8 +181,41 @@ hours, and a student who misses that line loses the week.
 and write to it, so **this notebook cannot be executed here or in CI** — the executor only runs
 `docs/docs/tutorials/`. Every other notebook in this repository is verified by running it. The
 cheapest fix is that **Eric runs it once in Colab against a real A5 corpus before Wednesday**.
-Without that it reaches eighteen students, in a room, on a twenty-minute clock, having never
+Without that it reaches twenty-four students, in a room, on a twenty-minute clock, having never
 run end to end.
+
+## 4b. **#155 is settled: the handout keeps its full "What To Do"**
+
+You flagged the overlap and deliberately did not act on it, correctly, because it changes an
+assignment students are about to start. Eric authorized a decision on 2026-09-28 and here it is,
+with the reasoning so you can overrule it if you know something I do not.
+
+**The handout stays complete. The notebook does not replace any of it.**
+
+The argument is attendance, and it is the only one that mattered once stated. Twenty-four
+students, one class meeting. Someone will miss Lecture 8a, or leave early, or open the notebook a week later
+with a dead runtime. A handout trimmed to "the parts the notebook does not cover" leaves that
+student with no statement of what the largest assignment in the course requires. The duplication
+costs a paragraph. The alternative costs a student the requirements.
+
+So the two get different jobs, and the notebook's is the narrower one:
+
+| | job |
+|---|---|
+| the handout | **the authority** — every requirement and threshold, in full, readable without Colab |
+| the kickoff notebook | **the executable path** through them, on the student's own corpus |
+
+**Two things this asks of the notebook you are writing**, and they are cheap:
+
+- **Cite the handout rather than restating it.** Where the notebook must print a threshold — the
+  100,000 floor, the 100-token cap, 60 to 70 epochs — have it name the handout as the source. Then
+  a student looking at two numbers knows which governs.
+- **Keep thresholds in one place.** If a number changes it changes in the handout, and the notebook
+  follows. The failure this avoids is the notebook drifting to 50 epochs while the handout says 60
+  and the grader uses neither.
+
+That also disposes of the "redundant or contradictory" worry in your framing: redundancy is
+accepted deliberately, and contradiction is what the citation rule prevents.
 
 ## 5. Two answers to things you flagged
 
