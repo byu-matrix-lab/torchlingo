@@ -21,20 +21,27 @@ handoff/
 
 ```
 YYYY-MM-DD-slug.md            2026-09-27-post-norm-and-the-split.md
-YYYY-MM-DD-b-slug.md          a second hand-off the same day
+YYYY-MM-DD-b-slug.md          a second baton pass the same day
 ```
 
 ISO dates first, so the directory listing *is* the index in chronological order and nothing
-has to maintain one. A second hand-off on the same date takes `-b`, a third `-c`. The slug
+has to maintain one. A second baton pass on the same date takes `-b`, a third `-c` — a new
+*pass*, after the other side has replied, not a new file for the same pass. The slug
 says what the hand-off is *about*, not that it is a hand-off — the directory already says
 that.
 
 ## Rules
 
-**A file is finished when it is written.** Do not edit a hand-off after the fact; if
-something in it turns out to be wrong, say so in the next one. This is why the files are
-small and dated: a correction is cheap when it is a new file, and dishonest when it is a
-silent edit.
+**One file per baton pass, live until the other side picks it up.** Eric, 2026-09-28: *"the
+current hand-off is live and can be updated. there should only be one file."* So while the
+baton is still on this side, new findings and corrections go *into* the current file, and it
+says when it was last updated. A second file for the same pass splits one message across
+several, which the reader then has to reassemble, and that is how three files for one pass
+accumulated on 2026-09-28 before this rule was written down.
+
+**Once the other side has picked it up, the file is frozen.** Do not edit it after that; if
+something in it turns out to be wrong, say so in the next one. A correction to something the
+reader has already acted on is dishonest as a silent edit.
 
 *One exception has been used, and it is recorded so the bar stays visible:* on 2026-09-26 a
 past entry's date was corrected, because leaving two entries dated out of order was worse
