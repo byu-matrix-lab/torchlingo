@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-09-28
+
+### Added
+- `torchlingo.colab.setup(gpu=, drive=, data=)` prepares a notebook in one call: the device,
+  the Google Drive mount, and downloads of repository files a pip install does not ship. It
+  behaves the same in Colab and in a clone.
+- `torchlingo.colab.fetch_data(paths)` downloads missing repository files, fetching Git LFS
+  files from the LFS host by itself; it also replaces LFS pointer files a clone left behind.
+- `preprocessing.split_exact(df, n_val, n_test, seed)` splits by exact counts, which
+  `split_data`'s ratios cannot express.
+- `diagnostics.padding_report(loader)` measures a loader's padded tokens against a plain
+  shuffle, and the examples its batches drop.
+
+### Fixed
+- `evaluate_model` and `save_translations` are tested against the metric wrappers they
+  aggregate; no behaviour changed.
+
 ## [0.2.1] - 2026-09-28
 
 ### Fixed
