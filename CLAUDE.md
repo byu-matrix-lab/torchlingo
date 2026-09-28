@@ -93,6 +93,18 @@ for private. Annotate public functions and methods. Google-style docstrings with
 Raises and Examples, kept runnable. Prefer relative imports inside the package
 (`from ..config import Config`).
 
+**Pass `num_workers` explicitly wherever it matters; do not rely on the default.** The library
+default stays 4 (Eric, 2026-09-28: fine as-is, as long as each invocation passes what it needs).
+It matters because workers cost ~23 s of fixed start-up under macOS's `spawn` at every corpus size
+measured (8 to 20,000 rows) and never won there, and `create_dataloaders` hands the value to all
+three loaders. Course notebooks and anything a student runs pass `num_workers=0`.
+
+**Length bucketing is the same kind of choice: off by default, on where training time is
+spent.** It changes batch composition and therefore results, so the default does not flip
+silently; but on a 100,000-pair corpus it removed 74% of padded tokens, and on 2026-09-28 it
+trained 1.86x faster per batch (on an Apple GPU, synthetic text). The A8 kickoff notebook opts in
+with `BucketBatchSampler`, seeding Python's `random`, which that sampler shuffles with.
+
 ## Workflow after code changes
 
 1. **Format and lint**: `ruff check --fix src tests && ruff format src tests`
