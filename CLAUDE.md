@@ -333,10 +333,15 @@ Two standing constraints:
 
 - **Instructor notebooks never go public.** Lectures 3 and 4 have separate INSTRUCTOR
   notebooks carrying worked solutions. They stay out of this tree.
-- **Nothing moves under a live assignment.** Students work in Google Drive copies. A
-  change to a notebook whose assignment is open waits until the assignment closes, and the
-  Drive copies are never deleted while students are in them — only the copies on Eric's
-  desktop are Cowork's to remove.
+- **Editing a notebook here does not disturb a live assignment.** Eric, 2026-09-27:
+  students work from a *published* copy, so a change in this repository does not reach the
+  copy they have open. **Do not defer a notebook fix because an assignment is in flight.**
+
+  This corrects a rule that used to say the opposite, and that cost real time: two Lecture
+  6 tasks sat blocked "until A6 closes" when nothing about A6 was ever in the way. The
+  part that *is* true and remains: **the Drive copies are never deleted while students are
+  in them** — only the copies on Eric's desktop are Cowork's to remove. Deleting what a
+  student is working in is the actual hazard; editing the source is not.
 
 New notebooks copy tutorial 2's two-cell setup pattern: detect Colab and install
 unconditionally, then verify and fail loudly. Not the old commented-out install, which was
@@ -399,7 +404,7 @@ that owns the course decks. They cannot message each other, so `notes/handoff/` 
 channel. The protocol itself — which file is the mailbox, how entries are appended, and
 why — is in `notes/README.md`.
 
-**One rule belongs here rather than there: a baton pass in either direction means
+**Two rules belong here rather than there. First: a baton pass in either direction means
 reconciling `notes/TASKS.md` in the same sitting.**
 
 A handoff is precisely when the lists go stale, and the only moment when both sides know
@@ -417,6 +422,24 @@ the lists are not reconciled then, the next session inherits a list describing l
 
 So read the incoming entry, walk the status table **before** starting work, and say in the
 reply which tasks moved.
+
+**Second: an unanswered question gets re-raised in the next hand-off, not left in the old
+one.** Eric, 2026-09-27, agreeing with the case below.
+
+A hand-off asks questions the other side alone can answer. Some come back answered, and the
+rest are silently inherited by a file nobody will open again — because each hand-off is read
+once, when it arrives.
+
+This is not hypothetical, and the one-file-per-hand-off layout made it worse before it made
+it better. Five assignments missing from the schedule (#148) were Question 4 of the ninth
+entry to Cowork. They received it, did not answer it, and that entry is now in `archive/`.
+The current hand-off does not mention it, so the next baton would not have surfaced it at
+all — and it is no longer bookkeeping, because `leads_to` validates against that table and a
+correct declaration for an unlisted assignment is rejected.
+
+So before writing a hand-off, **check the previous one for questions that came back
+unanswered, and carry them forward.** Say that they are repeats; a question asked twice with
+no acknowledgement is a different signal from a question asked once.
 
 ## Project Goals
 

@@ -755,6 +755,13 @@ def main(argv: list[str] | None = None) -> int:
         help="with --stamp: repo-relative files it cannot run without",
     )
     parser.add_argument("--note", help="with --stamp: prose for a non-obvious pairing")
+    parser.add_argument(
+        "--leads-to",
+        nargs="*",
+        default=[],
+        metavar="ASSIGNMENT",
+        help="with --stamp: assignment(s) this notebook gives a head start on, e.g. A6",
+    )
     args = parser.parse_args(argv)
 
     found = notebooks()
@@ -801,6 +808,8 @@ def main(argv: list[str] | None = None) -> int:
         }
         if args.note:
             meta["note"] = args.note
+        if args.leads_to:
+            meta["leads_to"] = list(args.leads_to)
 
         # Validate before writing, not after. Stamping an invalid block and reporting it on
         # the next run would leave the notebook worse than it was found.
