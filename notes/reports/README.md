@@ -17,8 +17,10 @@ notes/reports/
   data/
     length-ladder.json      measured numbers, written by the experiment
     a8-benchmark.json       the A8 baseline and the learning curve
+    colab-memory.json       Colab GPU memory for A8's two models; the probe's raw output
   length-ladder.md          GENERATED -- do not edit
   a8-benchmark.md           GENERATED -- do not edit
+  colab-memory.md           GENERATED -- do not edit
   training-budget.md        legacy finding, prose, NOT generated
 ```
 

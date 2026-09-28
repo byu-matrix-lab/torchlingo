@@ -126,7 +126,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #106 | A token cap breaks Assignment 9's control | **L9** | Open — one sentence in the assignment |
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
-| #118 | What does a paid Colab session actually provide? | **L8a** | **Sent to Coulson 2026-09-28** — `scripts/colab_memory_probe.py`; waiting on his output |
+| #118 | What does a paid Colab session actually provide? | **L8a** | **Measured** — A100, everything fits (`reports/colab-memory.md`); **Eric's call**: switch A8 to 56.4M? |
 | #157 | Resume restores no AMP scaler and no RNG state | **lib** | Open — the scheduler half is tested and a mid-epoch bug fixed (PR #145, in 0.2.1) |
 | #8 | Verify Eole claims before syllabus use | **lib** | Open |
 | #9 | `pre-commit install` (still not installed) | **hyg** | Open |
@@ -688,9 +688,18 @@ works at all, and it should be answered before a notebook is written on top of i
 prints the GPU and its free memory, then peak memory and ms/batch for both A8 candidates (11.7M and
 56.4M, batch 64, three AdamW steps) at vocabulary 8,000 and 50,000 and length 102 and 180: the
 worst case for A8's word-level vocabulary and for A9's subwords. It also asked him to repeat it in a
-fresh session, to see whether the GPU varies. **When the output arrives:** record it in
-`notes/reports/` (generated from JSON, per the rule there), decide whether the 56.4M model fits,
-and tell Cowork, whose deck quotes Mac wall clocks the ms/batch column can replace.
+fresh session, to see whether the GPU varies.
+
+**Measured the same day, in two sessions: `reports/colab-memory.md`.** Both drew the same A100
+(39.1 GiB free), with identical peak memory. **The 56.4M model fits every configuration there**,
+and at A8's own settings it would fit a free-tier T4's nominal capacity too; the one T4 miss is
+50K vocabulary at length 180, a combination A9's 8K subwords never produce.
+
+**What is left is a decision, Eric's:** switch A8 to the 56.4M model, which the a8-benchmark
+report shows is better at A8's floor and converges in fewer epochs. If yes, it changes the A8
+notebook's Step 6, the handout, and Cowork's deck. **Done when** that decision is made and
+recorded. Tell Cowork either way: the report's ms/batch column replaces the Mac wall clocks their
+deck quotes.
 
 **Coulson measures it, Eric's call.** The other half of the A8 memory question: the ladder in
 [`reports/length-ladder.md`](reports/length-ladder.md) gives demand at each length cap, this
