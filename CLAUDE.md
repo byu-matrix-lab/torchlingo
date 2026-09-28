@@ -468,16 +468,30 @@ A hand-off asks questions the other side alone can answer. Some come back answer
 rest are silently inherited by a file nobody will open again — because each hand-off is read
 once, when it arrives.
 
-This is not hypothetical, and the one-file-per-hand-off layout made it worse before it made
-it better. Five assignments missing from the schedule (#148) were Question 4 of the ninth
-entry to Cowork. They received it, did not answer it, and that entry is now in `archive/`.
-The current hand-off does not mention it, so the next baton would not have surfaced it at
-all — and it is no longer bookkeeping, because `leads_to` validates against that table and a
-correct declaration for an unlisted assignment is rejected.
-
 So before writing a hand-off, **check the previous one for questions that came back
 unanswered, and carry them forward.** Say that they are repeats; a question asked twice with
 no acknowledgement is a different signal from a question asked once.
+
+**And first verify that the question really is unanswered — in the archive, not just in the
+newest file.** This half was added 2026-09-28, and it is the more important half, because the
+original worked example for this rule turned out to be wrong.
+
+The example used to be #148, five assignments missing from the schedule, asked as Question 4
+of the ninth entry to Cowork and described here as received-and-not-answered. **They answered
+it**, with slide numbers, establishing that A1 to A3 exist and that A7 and A15 do not — and
+they wrote "Close #148." The answer had gone into `archive/` when the hand-off files were
+split, and reading forward from the new files missed it. The rule as first written then
+pointed the wrong way: it had a third ask drafted and ready to send for a question already
+closed, which would have cost them time and credibility.
+
+So the sequence is: **read the last replies against your own open questions, close what was
+answered, and only then carry forward what genuinely was not.** Three of Cowork's eight
+answers had gone unacted on for a week by this route, including a Lecture 6 notebook split
+that was ours to do and had no task row at all.
+
+The original concern is still real — each hand-off is read once, on arrival, so an unanswered
+question inherited by an archived file is invisible thereafter. The fix is both halves
+together, not either alone.
 
 ## Project Goals
 
