@@ -731,7 +731,8 @@ notebook that has not been written cannot declare anything:
   redundancy this document already warns about.
 
 One row appears twice on purpose. **Tutorial 4 serves Lectures 8a and 8b and will not be
-split**, which reverses #140 and the recommendation sent to Cowork on 2026-09-27.
+split**, which reverses #140. It reverses nothing sent to Cowork: the 2026-09-27 hand-off
+recorded this notebook as `["8a", "8b"]`, reading — already the arrangement kept here.
 
 Splitting it was argued from the heading list, which reads like two notebooks: Parts 1 to 6 are
 LSTM attention, Parts 7 and 8 are the Transformer. Reading it settles the question the other
