@@ -982,12 +982,34 @@ def main(argv: list[str] | None = None) -> int:
             "role": args.role,
             "needs": list(args.needs),
         }
-        if args.requires:
-            meta["requires"] = list(args.requires)
-        if args.note:
-            meta["note"] = args.note
-        if args.leads_to:
-            meta["leads_to"] = list(args.leads_to)
+        # Carry forward the optional fields the caller did not mention, rather than
+        # dropping them.
+        #
+        # A stamp used to rebuild the block from the arguments alone, so restamping a
+        # notebook to change one field silently deleted every other optional one. That has
+        # now cost three notes: tutorials 3 and 4 lost theirs when lecture ids became
+        # strings, and tutorial 1 lost a four-line note explaining a retrospective pairing
+        # while this very field was being added. Each loss was invisible -- the block still
+        # validated, and the generated table does not show `note`.
+        #
+        # Passing the field explicitly still overrides it, and `--note ''` still clears it,
+        # so nothing becomes unreachable. Preserved fields are reported, because silently
+        # keeping data is its own small surprise.
+        previous = read_meta(args.stamp)
+        carried = []
+        for field, supplied in (
+            ("requires", list(args.requires) if args.requires else None),
+            ("note", args.note),
+            ("leads_to", list(args.leads_to) if args.leads_to else None),
+        ):
+            if supplied == "":
+                # An explicit empty value clears the field rather than storing a blank.
+                continue
+            if supplied is not None:
+                meta[field] = supplied
+            elif field in previous:
+                meta[field] = previous[field]
+                carried.append(field)
 
         # Validate before writing, not after. Stamping an invalid block and reporting it on
         # the next run would leave the notebook worse than it was found.
@@ -1001,6 +1023,8 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"  stamped    {args.stamp}  ({family}, L{','.join(map(str, args.serves))})"
         )
+        if carried:
+            print(f"  kept       {', '.join(sorted(carried))} from the existing block")
         args.write = True
 
     complaints = []

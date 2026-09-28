@@ -731,8 +731,14 @@ notebook that has not been written cannot declare anything:
   redundancy this document already warns about.
 
 One row appears twice on purpose. **Tutorial 4 serves Lectures 8a and 8b and will not be
-split**, which reverses #140. It reverses nothing sent to Cowork: the 2026-09-27 hand-off
-recorded this notebook as `["8a", "8b"]`, reading — already the arrangement kept here.
+split**, which reverses #140 **and an agreement with Cowork**.
+
+That second half was stated wrongly here first, and the correction is the useful part. The claim
+was that nothing sent to Cowork needed reversing, on the grounds that the 2026-09-27 hand-off
+records this notebook as `["8a", "8b"]`, reading. True of that file, and irrelevant: the split was
+Question 8 of the *previous* entry, and their reply agreed to it in terms — *"Split tutorial 4.
+Parts 6 to 8 are architecture content and they belong to 8b."* Checking only the newest hand-off
+missed an agreement that was two files back, in the archive.
 
 Splitting it was argued from the heading list, which reads like two notebooks: Parts 1 to 6 are
 LSTM attention, Parts 7 and 8 are the Transformer. Reading it settles the question the other
