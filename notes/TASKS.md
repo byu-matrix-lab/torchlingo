@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-09-26. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-09-28. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
@@ -19,17 +19,18 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-What passes the filter as of 2026-09-27: **#152**, the A8 kickoff notebook, because Lecture 8a
-is Wed Sep 30; **#121**, because Lecture 9 has nothing else on its own subject; and **#135**,
-because the kickoff notebook has a student start a real training run and the examples they copy
-from still do not checkpoint.
+What passes the filter as of 2026-09-28: **#152**, the A8 kickoff notebook, because Lecture 8a
+is Wed Sep 30; **#163**, because 8a's contamination step prints a mislabel in the room; and **#121**,
+because Lecture 9 has nothing else on its own subject.
 
 **Read the "Critical for" column rather than the dates.** Labelling every task by lecture showed
 that only fifteen of sixty-two are critical to a lecture in the next ten days — and that two of
 the nearest-looking dates, both on Lecture 6's notebook, belonged to a lecture that had already
 run.
 
-Lecture 7 runs Monday with tutorial 2 as its activity. Lecture 8 is split into 8a and 8b, both
+Lecture 7 runs Mon Sep 28 with `lecture-07-toy-model` as its activity, adapted from tutorial 2,
+which stays `reading`. That notebook's Part C is **A7, the toy-model report, due Wed Sep 30 10:00**,
+completion-graded; Coulson creates it in Learning Suite. Lecture 8 is split into 8a and 8b, both
 decks built, and Task #42 closed on Cowork's word that it needs nothing.
 
 The test to apply is *"must this be done for Lecture 7 or Lecture 8 to happen
@@ -81,7 +82,9 @@ describes last week will mislead every lecture at once rather than one of them.
 
 | | Task | Critical for | State |
 |---|---|---|---|
-| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | **Cowork writes it** (Eric, Sep 27) — eleven suggestions delivered from here |
+| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | **In review, PR #140** — then **Eric's Colab run** on a real A5 corpus before Wed |
+| #163 | `check_contamination` calls every held-out set "test" | **L8a** | Open — 8a prints `val: 0/200 test sources`; reaches Colab only with a PyPI release |
+| #164 | Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9 | **L9** | Open — **ours**, per Cowork's Sep 28 baton; `--check` warns on every run |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **10+** | Cowork's Q7 call — **unblocks #88**; #142 was already decided |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
@@ -89,13 +92,11 @@ describes last week will mislead every lecture at once rather than one of them.
 | #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **10+** | **Your call** — it holds the corpus prep and all the HPC tooling |
 | #151 | The LSTM asks for dropout it cannot apply | **10+** | Open — nine tests warn; a student setting it gets nothing |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
-| #142 | Decide which notebook owns BLEU before splitting either | **10+** | **Answered by Cowork's Q7** — the work is now #162 |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **10+** | Open — point the course at it; decide on diagnostics |
 | #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Lecture 9 is Wed Oct 7; A9 Wed Oct 14** — the only notebook L9 has on its own subject |
 | #122 | Make Assignment 9's control hard to get wrong in code | **L9** | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | **10+** | Open — highest uncertainty, due Oct 28 |
-| #135 | `examples/*.py` still do not checkpoint | **L8a** | Open — the five a student is most likely to copy |
 | #129 | Extract a shared `~/Projects/hpc` | **10+** | Open — after #128 gives a second implementation to diff |
 | #97 | SentencePiece on versus off, controlled | **L9** | **Due Mon Oct 12** |
 | #102 | Inference cannot resume a long decode | **10+** | **Needed by Mon Oct 19** — largest undone piece |
@@ -103,7 +104,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **10+** | **Due Wed Oct 28** |
 | #160 | An NLLB spotlight lecture — data, architecture **and** curriculum | **10+** | **Cowork designs it** (Eric, Sep 27); our part is verifying the paper's numbers |
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
-| #103 | Extend the notebook gate to `docs/docs/course/` | **hyg** | Open — four course notebooks on `main`, still ungated |
 | #106 | A token cap breaks Assignment 9's control | **L9** | Open — one sentence in the assignment |
 | #107 | The optimizations exist and nothing uses them | **10+** | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | **10+** | Open — **demoted**: length, not cache, is the driver |
@@ -131,7 +131,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #79 | An order-dependent test | **hyg** | **Fails on unmodified `main`** — so it blocks nothing; CI cannot see it |
 | #81 | Fail the build on hand-typed generated numbers | **hyg** | Open |
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | **10+** | Open |
-| #85 | Only BLEU carries a signature; chrF and TER do not | **L6** | Confirmed 2026-09-27 — Lecture 6's notebook now reports both |
 | #86 | `evaluate_model` has no test, and it is what callers use | **10+** | Open — after PR #58 |
 | #88 | Open the tutorial 7 PR | **10+** | **Unblocked** — Cowork's Q7 says tutorial 7 should land |
 | #89 | Fail the docs build when a page is off-nav | **hyg** | Open |
@@ -196,24 +195,6 @@ on the student following the workflow.
 **Done when** an interrupted bulk decode can be restarted without redoing finished work.
 Needed for Assignment 13's material, due in class **Mon Oct 19**.
 
-### #103 Extend the notebook gate to `docs/docs/course/`
-
-`scripts/execute_notebooks.py` globs **only** `docs/docs/tutorials/*.ipynb`, and
-mkdocs-jupyter runs with `execute: false` and `allow_errors: true`. So a notebook anywhere
-else can rot completely and neither the docs build nor a reader surfaces it.
-
-The Cowork session has been asked to write lecture notebooks into
-`docs/docs/course/lecture-NN-<slug>.ipynb`. The moment the first one lands it is ungated.
-
-- Extend the glob, and add `REQUIREMENTS` entries so anything needing LFS data or a GPU
-  **skips** rather than fails.
-- Decide whether a GPU-dependent course notebook can be gated at all, or should be declared
-  exempt explicitly rather than silently.
-- Makes #53 worse until #53 is fixed: a second directory widens the gap between what the
-  green check proves and what it appears to prove.
-
-Blocked until the first course notebook exists; there is nothing to gate before that.
-
 ### #107 The optimizations already exist and nothing uses them
 
 Measured on the 100K split, real tokenizer, batch 64:
@@ -272,20 +253,6 @@ missing a gate that `main` gained after their checks ran.
 
 Knock-on: **PR #55** is what **Task #85** and **Task #91** wait on. (Task, not PR: PRs #84 and #85 exist and
 are unrelated — the collision `CLAUDE.md`'s numbering rule describes.)
-
-### #135 `examples/*.py` still do not checkpoint
-
-The #103 audit found that no `train_model` caller checkpointed. Three are fixed —
-`benchmark_a8.py`, `ladder.py`, `train_example_model.py` — and five are not:
-`examples/train.py`, `attention_alignment.py`, `multilingual_training_example.py`,
-`train_ceb_cmn_simple.py`, and the `TRAINING_GUIDE_CEB_CMN.md` walkthrough.
-
-**These matter most and were done last**, which is the wrong way round: `examples/` is the code
-a student is most likely to copy into their own Colab notebook, and a Colab disconnect is
-exactly the failure `training_checkpoint` exists for.
-
-Left separate deliberately: those five files sit outside the lint gate (#22), so a change there
-is unguarded, and a five-file mechanical diff would bury its own review.
 
 ### #147 A9 has no notebook, and one notebook would serve it and Lecture 9
 
@@ -389,44 +356,42 @@ keeps the corpus and checkpoints out, so a remote would carry scripts and notes 
 
 ### #152 A8 kickoff notebook for Lecture 8a
 
-**Cowork writes this, not us.** Eric, 2026-09-27: they have full visibility into the assignment
-details and we do not, so our part is suggestions. Eleven of them are in the 2026-09-27 outgoing
-hand-off, section 4, found by drafting far enough to hit them. The three that change the design:
-**cap length before splitting** (capping after it puts the student below A8's own 100,000 floor),
-**make the contamination check raise rather than print** (dedupe-first makes failure impossible,
-so a printed warning is the only way a contaminated split survives), and **"write the six files"
-is ambiguous** — TorchLingo reads TSV, six implies `.src`/`.tgt` per split, and only the handout
-settles it.
+**Written by Cowork, 2026-09-28, and in review as PR #140** as
+`docs/docs/course/lecture-08a-a8-kickoff.ipynb`. All eleven suggestions from here are in it.
 
-**The gap that still needs Eric:** the notebook mounts Drive, so neither session can execute it —
-the executor only runs `docs/docs/tutorials/`. One Colab run against a real A5 corpus before
-Wednesday closes it. Without that it meets twenty-four students having never run end to end.
+**Checked here as far as anything here can check it.** A CPU copy ran end to end against a
+synthetic corpus — cap, dedupe, seeded split, contamination check, nine files, training with the
+checkpointer and `save_dir`, reload, greedy decode, BLEU — and a fresh kernel scoring from the
+Drive checkpoint reproduced the in-session BLEU exactly. Every API it calls exists in PyPI 0.2.0,
+which is what its Colab cell installs. Two fixes were made in the PR: the first-loss wording
+(`log_every` is a mean over N steps, and the first line sits *above* `ln(V)`), and the scoring
+cell no longer needs `result`, which only exists in the session that trained.
 
-**Why it exists, which is the strongest argument in the request.** Lectures 4, 5 and 6 each had
-an in-class activity that started the assignment. **The largest assignment in the course has
-none.** A student leaves Lecture 8a with a training run already going, on their own A5 corpus, or
-they leave with a handout.
+**Done when PR #140 merges and Eric has run it once in Colab against a real A5 corpus before
+Wed Sep 30.** Nothing here can execute a Drive mount on a GPU; that run is the only end-to-end
+test this notebook will get before twenty-four students do.
 
-Ten steps, twenty minutes, on the student's own data:
+### #163 `check_contamination` calls every held-out set "test"
 
-1. Install and verify — tutorial 2's two-cell pattern.
-2. Mount Drive, load their A5 corpus, report the pair count immediately.
-3. Deduplicate on the source side; report how many went, count and percentage.
-4. Split by source group into 100K / 2K / 2K.
-5. `check_contamination`, and make it **loud** — an empty intersection is the thing to see.
-6. Length histogram, then the 100-token cap, reporting the percentage dropped on *their* data.
-7. Write the six files back to Drive.
-8. Build config and model, print the parameter count — d_model 256, 8 heads, 3 + 3.
-9. Print ln(V) beside the first loss, so Lecture 7's reference point is on screen.
-10. Start training with `val_loader`, `save_dir` on Drive, and checkpointing.
+Its detail string is hard-coded: `f"{n}/{m} test sources also appear in training"`. The 8a
+notebook checks val as well as test, so in the room it prints `val: 0/200 test sources also
+appear in training`. Harmless but wrong, and on the first screen of the largest assignment.
 
-**Cowork's design decision, which they invited pushback on:** the notebook supplies the dedupe
-and split code, and the student runs the verification and reads the numbers. That is the right
-split for twenty minutes — the judgement is in reading a contamination check and a length
-histogram, not in retyping a groupby.
+Add a `name: str = "test"` parameter that the detail uses, and pass `"val"` from the notebook.
+**The catch:** the notebook installs torchlingo from PyPI, so the library half reaches students
+only with a release, and a notebook passing `name=` before that release will raise `TypeError`.
+Land both together, or the notebook half after the release.
 
-Step 10 is where #135 stops being abstract: this notebook is the one place a student's first real
-training run begins, and it must not be the place that teaches them to run without checkpoints.
+### #164 Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9
+
+`05-real-translations` serves `[10]` as `reading` and declares `leads_to: ["A8"]`, so it
+"prepares" an assignment that is due before a student is pointed at it. `notebook_meta.py`
+flags it on every run as not-an-error, and Cowork's 2026-09-28 baton records it as ours.
+
+Two honest fixes, and choosing one is the task: move the reading earlier, to 8b or 9, where it
+can still help A8; or keep it at 10 and replace `leads_to` with whatever it genuinely prepares,
+likely A10 (decoding and quality), with a `note` saying so. Read the notebook before choosing;
+the second is right if its substance is decoding rather than training.
 
 ### #139 Lecture 9 is claimed by tutorial 1 and not actually served
 
@@ -450,18 +415,6 @@ Two consequences:
 Either correct tutorial 1's `serves_lectures` to `[4]`, or leave the 9 and add a `note` saying
 it motivates rather than covers. The first is honest; the second keeps the pointer a student
 revisiting Lecture 9 would benefit from. Pick one deliberately.
-
-### #142 Decide which notebook owns BLEU before splitting either
-
-Tutorial 3's Parts 1 to 4 are decoding; **Part 5 "BLEU Score Evaluation" and "Understanding
-BLEU" are Lecture 6's ground**, not Lecture 22's.
-
-Do not split it yet. A "tutorial 7, evaluation" is planned for the same ground and is unmerged,
-so splitting first would produce two evaluation tutorials and a choice nobody made.
-
-**Also a numbering correction:** the hand-off entry that mentions this writes a bare `#88` for
-the task. PR #88 is the unrelated rung-5 ladder change, already merged. Task #88 is the
-evaluation tutorial. Exactly the collision the naming rule in `CLAUDE.md` exists to prevent.
 
 ### #157 Resume restores no scheduler, no AMP scaler, no RNG state
 
@@ -947,27 +900,6 @@ teaches the convention.
   PR. Fold it into the next change that touches `CLAUDE.md` for another reason.
 - Consider dropping the specific numbers instead. They were never the point, and they
   will be stale again within a week.
-
-**#85 Only BLEU carries a signature; chrF and TER do not**
-
-Task #70's subject says "with every score", but PR #55 attaches `.signature` to `compute_bleu`
-alone:
-
-```
-BLEU  nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0
-chrF  MISSING
-TER   MISSING
-```
-
-**chrF is the case that proves this is not cosmetic.** `compute_chrf` defaults to
-`word_order=2` (chrF++) while sacreBLEU's `corpus_chrf` defaults to `0`. That one undeclared
-parameter caused two separate confusions here: a correct implementation judged broken by 0.45
-points against the wrong baseline, and a bug note stating the right value beside a snippet
-returning the wrong one. A chrF signature declares `nw:2` and prevents both — so chrF needs one
-*more* than BLEU does.
-
-**Done when** `get_signature()` is called on CHRF and TER as it is on BLEU, and
-`tests/test_bleu_signature.py` covers all three. Cheap once PR #55 is in.
 
 **#86 `evaluate_model` has no test, and it is the function callers use**
 
