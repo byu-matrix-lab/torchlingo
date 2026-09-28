@@ -82,7 +82,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | **Cowork writes it** (Eric, Sep 27) — eleven suggestions delivered from here |
-| #146 | Stamp the purpose cell into all fourteen notebooks, and gate it | **hyg** | **Unblocked** — #144 and #145 both answered; mechanics done in PR #117 |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **10+** | Cowork's Q7 call — **unblocks #88**; #142 was already decided |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
@@ -287,28 +286,6 @@ exactly the failure `training_checkpoint` exists for.
 
 Left separate deliberately: those five files sit outside the lint gate (#22), so a change there
 is unguarded, and a five-file mechanical diff would bury its own review.
-
-### #146 Stamp the purpose cell into all ten notebooks, and gate it
-
-The mechanics landed in PR #117 and are idempotent — verified stable over four runs and an
-in-place update, on one notebook of each format version. What remains is applying them and
-adding the banner to `--check` so it cannot drift.
-
-**No longer held. Both blockers were answered on 2026-09-27 and 2026-09-28**, and they were
-blockers because the cell is student-facing text whose wording encodes decisions that were not
-mine. Both are now settled and the wording follows from them:
-
-- **#144:** tutorial 2 is `reading` for Lecture 7, not an in-class activity. Every activity is a
-  course notebook and no tutorial is one.
-- **#145:** every notebook names the assignment it starts, except `04-attention-and-alignment` and
-  `lecture-04-regex-refresher`, which declare nothing **deliberately** — the reasoning is in the
-  roadmap, and the purpose cell must render that blank as a blank rather than inventing a link.
-
-Fourteen notebooks now, not ten — the four Cowork sent plus the Lecture 6 split. The A8 kickoff
-notebook will make fifteen when Cowork writes it, so stamp from a glob rather than a list.
-
-Two smaller choices to make at the same time: the cell currently sits **before** the title rather
-than after it, and the exact phrasing of the opening sentence.
 
 ### #147 A9 has no notebook, and one notebook would serve it and Lecture 9
 

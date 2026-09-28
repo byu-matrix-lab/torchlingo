@@ -545,20 +545,30 @@ class TestWritersAreIdempotent(unittest.TestCase):
 
     def test_purpose_cell_is_written_once_however_often_it_runs(self):
         """The bug this guards appeared only on the THIRD run: the replacement stripped the
-        cell's indentation, which stayed valid JSON but broke the next run's lookup."""
+        cell's indentation, which stayed valid JSON but broke the next run's lookup.
+
+        The cell count is compared against the count after the FIRST run rather than against
+        the fixture's original count. The original version asserted ``before + 1``, which
+        held only while no notebook had the cell yet; once #146 stamped all fourteen, the
+        first run became a refresh and the assertion failed on a correct refresh.
+        """
         for source in (
             nm.TUTORIALS / "06-diagnosing-failures.ipynb",
             nm.COURSE / "lecture-03-word-embeddings.ipynb",
         ):
             path = self.copy(source)
             meta = nm.read_meta(path)
-            before = len(json.loads(path.read_text(encoding="utf-8"))["cells"])
+            settled = None
             for run in range(1, 5):
                 path.write_text(nm.notebook_with_purpose(path, meta), encoding="utf-8")
                 cells = json.loads(path.read_text(encoding="utf-8"))["cells"]
-                self.assertEqual(len(cells), before + 1, f"{source.name}, run {run}")
+                if settled is None:
+                    settled = len(cells)
+                self.assertEqual(len(cells), settled, f"{source.name}, run {run}")
                 self.assertEqual(
-                    path.read_text(encoding="utf-8").count(nm.PURPOSE_MARKER), 1
+                    path.read_text(encoding="utf-8").count(nm.PURPOSE_MARKER),
+                    1,
+                    f"{source.name}, run {run}",
                 )
 
     def test_the_marker_is_ascii(self):
@@ -578,7 +588,11 @@ class TestWritersAreIdempotent(unittest.TestCase):
         )
         cells = json.loads(path.read_text(encoding="utf-8"))["cells"]
         self.assertEqual(len(cells), count)
-        self.assertIn("A8", "".join(cells[0]["source"]))
+        # Found by its marker, not by index. The cell used to be written at the top; #146
+        # moved it below the H1, because a course notebook's badge sits above its title and
+        # inserting at the top gave badge, purpose, then title.
+        purpose = next(c for c in cells if nm.PURPOSE_MARKER in "".join(c["source"]))
+        self.assertIn("A8", "".join(purpose["source"]))
 
     def test_cell_id_matches_the_notebook_format_version(self):
         """4.5 requires a cell id and 4.0 rejects one. Both versions are live here: the
@@ -806,6 +820,120 @@ class TestNotebookHygiene(unittest.TestCase):
                 cell["source"] = ["if True:\n", "    %pip install torchlingo\n"]
                 break
         self.assertEqual(self.check(nb), [])
+
+
+class TestThePurposeCellIsGeneratedAndGated(unittest.TestCase):
+    """Every notebook opens with a generated line saying what it is for (#146).
+
+    The point of generating it is that the sentence a **student** reads and the row the
+    roadmap's map shows come from one source. They disagreed for a week: the map called
+    tutorial 2 an activity while the notebook called itself a tutorial.
+    """
+
+    def test_every_real_notebook_carries_one(self):
+        for path in sorted(nm.TUTORIALS.glob("*.ipynb")) + sorted(
+            nm.COURSE.glob("*.ipynb")
+        ):
+            self.assertIn(
+                nm.PURPOSE_MARKER, path.read_text(encoding="utf-8"), path.name
+            )
+
+    def test_every_real_notebook_is_current(self):
+        """What is committed must equal what the generator would write."""
+        for path in sorted(nm.TUTORIALS.glob("*.ipynb")) + sorted(
+            nm.COURSE.glob("*.ipynb")
+        ):
+            self.assertEqual(
+                path.read_text(encoding="utf-8"),
+                nm.notebook_with_purpose(path, nm.read_meta(path)),
+                f"{path.name} is stale; run notebook_meta.py --purpose",
+            )
+
+    def test_applying_it_twice_changes_nothing(self):
+        """Idempotence, which a marker-based splice does not get for free.
+
+        An earlier version prepended a fresh banner on every run, because the marker held
+        an em dash that was stored escaped and so never matched on lookup.
+        """
+        path = nm.COURSE / "lecture-06-mt-evaluation.ipynb"
+        meta = nm.read_meta(path)
+        once = nm.notebook_with_purpose(path, meta)
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        copy = tmp / path.name
+        copy.write_text(once, encoding="utf-8")
+        twice = nm.notebook_with_purpose(copy, meta)
+        self.assertEqual(once, twice)
+        self.assertEqual(once.count(nm.PURPOSE_MARKER), 1)
+
+    def test_it_lands_after_the_title_not_above_it(self):
+        """A course notebook has its badge alone and its title after it.
+
+        Inserting at the top would give badge, purpose, *then* title. The tutorials put
+        title and badge in one cell, so a single "insert first" rule reads wrongly in one
+        family or the other.
+        """
+        for name, expected in (
+            ("lecture-06-mt-evaluation.ipynb", 2),  # badge, title, purpose
+            ("lecture-03-word-embeddings.ipynb", 2),
+        ):
+            nb = json.loads((nm.COURSE / name).read_text(encoding="utf-8"))
+            index = next(
+                i
+                for i, c in enumerate(nb["cells"])
+                if nm.PURPOSE_MARKER in "".join(c["source"])
+            )
+            self.assertEqual(index, expected, name)
+
+        # A tutorial carries its H1 and badge together, so the cell after it is index 1.
+        nb = json.loads(
+            (nm.TUTORIALS / "02-train-tiny-model.ipynb").read_text(encoding="utf-8")
+        )
+        index = next(
+            i
+            for i, c in enumerate(nb["cells"])
+            if nm.PURPOSE_MARKER in "".join(c["source"])
+        )
+        self.assertEqual(index, 1)
+
+    def test_the_cell_id_follows_the_format_version(self):
+        """nbformat 4.5 requires a cell id and 4.0 rejects one; both live here."""
+        for directory in (nm.TUTORIALS, nm.COURSE):
+            for path in sorted(directory.glob("*.ipynb")):
+                nb = json.loads(path.read_text(encoding="utf-8"))
+                cell = next(
+                    c for c in nb["cells"] if nm.PURPOSE_MARKER in "".join(c["source"])
+                )
+                if nb.get("nbformat_minor", 0) >= 5:
+                    self.assertEqual(cell.get("id"), "torchlingo-purpose", path.name)
+                else:
+                    self.assertNotIn("id", cell, path.name)
+
+    def test_a_stale_cell_is_reported_by_check(self):
+        """The gate must fail on drift, since the cell is student-facing text."""
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        self.addCleanup(setattr, nm, "COURSE", nm.COURSE)
+        source = nm.COURSE / "lecture-06-mt-evaluation.ipynb"
+        target = tmp / source.name
+        target.write_text(
+            source.read_text(encoding="utf-8").replace(
+                "the in-class activity for Lecture 6", "something else entirely"
+            ),
+            encoding="utf-8",
+        )
+        nm.COURSE = tmp
+        wanted = nm.notebook_with_purpose(target, nm.read_meta(target))
+        self.assertNotEqual(target.read_text(encoding="utf-8"), wanted)
+
+    def test_a_notebook_with_no_head_start_says_nothing_about_one(self):
+        """The two deliberate `leads_to` blanks must not grow an invented clause."""
+        for path in (
+            nm.TUTORIALS / "04-attention-and-alignment.ipynb",
+            nm.COURSE / "lecture-04-regex-refresher.ipynb",
+        ):
+            line = nm.purpose_line(nm.read_meta(path))
+            self.assertNotIn("head start", line, path.name)
 
 
 class TestRequiresDeclaresCapabilities(unittest.TestCase):
