@@ -432,6 +432,25 @@ class TestAssignmentsAreParsed(unittest.TestCase):
         bad = nm.problems(nm.TUTORIALS / "99-x.ipynb", {**GOOD, "leads_to": ["A99"]})
         self.assertTrue(any("not an assignment" in c for c in bad), bad)
 
+    def test_suffixed_assignments_are_accepted(self):
+        """Eric, 2026-09-27: one assignment per lecture, so a split Lecture 8 implies an A8a
+        and an A8b. Widened BEFORE the schedule gained those rows -- `**A8a**` did not match
+        the old pattern, so it would have been skipped in silence while the schedule plainly
+        showed it, and every `leads_to: ["A8a"]` rejected as naming something that does not
+        exist. The lecture version of this bug was found after the fact."""
+        self.assertEqual(nm.ASSIGNMENT.findall("**A8a**"), ["A8a"])
+        self.assertEqual(
+            nm.ASSIGNMENT.findall("**A8a** \u00b7 **A8b**"), ["A8a", "A8b"]
+        )
+
+    def test_a_two_letter_suffix_is_still_rejected(self):
+        """One letter is a split; two is a typo or a scheme nobody agreed to."""
+        self.assertEqual(nm.ASSIGNMENT.findall("**A8ab**"), [])
+
+    def test_unsuffixed_assignments_still_parse(self):
+        self.assertEqual(nm.ASSIGNMENT.findall("**A8**"), ["A8"])
+        self.assertEqual(nm.ASSIGNMENT.findall("**A10**"), ["A10"])
+
     def test_leads_to_must_be_a_list_of_strings(self):
         bad = nm.problems(nm.TUTORIALS / "99-x.ipynb", {**GOOD, "leads_to": "A8"})
         self.assertTrue(any("leads_to must be a list" in c for c in bad), bad)

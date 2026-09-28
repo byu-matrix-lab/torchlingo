@@ -12,8 +12,19 @@ This replaces the table with data the notebooks carry themselves:
         "serves_lectures": [8],
         "role": "activity" | "reading" | "homework" | "reference",
         "needs": ["data/example.tsv"],
+        "leads_to": ["A8"],
         "note": "optional prose, for a pairing that is not self-explanatory"
     }}
+
+``leads_to`` means **read this before attempting that assignment**, not only "this advances a
+step of it". Eric settled the reading on 2026-09-27, and it is the wider of the two: a
+notebook that explains the machinery an assignment uses qualifies, even when it completes none
+of the assignment's steps, provided it carries a small deliverable of its own.
+
+The narrow reading was tempting because it keeps the field crisp, but it would have made
+``leads_to`` mean "does part of the work" -- and the notebook that sent the question up was
+tutorial 4, which explains what attention learns without advancing any step of A8. Under the
+wider reading it qualifies, which matches how a student actually uses it.
 
 ``nbformat`` permits arbitrary keys under ``metadata``, and neither Jupyter nor Colab minds
 them.
@@ -112,7 +123,17 @@ SKIPPABLE_CELLS = {"—", "–", "-", "#"}
 
 # Assignments as the schedule writes them, in the "Assignment due that day" column:
 # `**A4** initial cleaning steps`, sometimes two in one cell separated by a middot.
-ASSIGNMENT = re.compile(r"\*\*(A\d+)\*\*")
+#
+# A letter suffix is accepted for the same reason lecture identifiers take one: Eric,
+# 2026-09-27, wants one assignment per lecture even when it is a stepping stone to an
+# existing one, so splitting Lecture 8 into 8a and 8b implies an A8a and an A8b.
+#
+# Widened BEFORE the schedule gained those rows, which is the difference from the morning.
+# `**A8a**` did not match this pattern, so it would have been skipped in silence and every
+# notebook declaring `leads_to: ["A8a"]` rejected as naming an assignment that does not
+# exist -- while the schedule plainly showed it. The lecture version of this bug was found
+# after the fact; this one was found by asking the question first.
+ASSIGNMENT = re.compile(r"\*\*(A\d+[a-z]?)\*\*")
 
 
 def lecture_id(value: int | str) -> str:
