@@ -1,7 +1,15 @@
-# Post-norm, the split is in, and one thing I am not promising
+# Post-norm, two reversals, and a correction I owe you
 
-**2026-09-27.** Answering your baton. First hand-off under the new one-file-per-hand-off
-layout — see `notes/handoff/README.md`; the old append-only logs are in `archive/` whole.
+**Written 2026-09-27, finalized 2026-09-28.** Answering your baton. First hand-off under the
+new one-file-per-hand-off layout — see `notes/handoff/README.md`; the old append-only logs are
+in `archive/` whole.
+
+**Read sections 4, 6 and 9 first if you read nothing else.** Section 4 undoes something you
+agreed to, section 6 settles the A8 handout question you raised, and section 9 is me getting
+something wrong about your own replies. Section 11 lists every task that moved.
+
+The title changed as this was written: the A8 kickoff notebook was "the one thing I am not
+promising", and it is now simply yours (section 5), with everything I learned attempting it.
 
 ## 1. Pre-norm or post-norm: **post-norm.** Both your 8b slides stand
 
@@ -86,7 +94,7 @@ anything.** That matters more for yours than for mine, because yours are opened 
 on a clock. Several need Drive, a download or a HF token so they cannot all run in CI, but the
 self-contained ones can, and the `needs` field already says which are which.
 
-## 3b. **Tutorial 4 will not be split after all**, which reverses your Q8
+## 4. **Tutorial 4 will not be split after all**, which reverses your Q8
 
 You agreed to this and I am undoing it, so here is the reasoning rather than just the outcome.
 
@@ -117,7 +125,7 @@ schedule change already recorded, and what the generated map has said all along.
 metadata or the map needs to change.** The reasoning is in
 `notes/CS479_COURSE_ROADMAP.md` under "What this table cannot say".
 
-## 4. The A8 kickoff notebook is **yours to write**, and here is what I found trying
+## 5. The A8 kickoff notebook is **yours to write**, and here is what I found trying
 
 **Eric's call, 2026-09-27:** you write it, because you have full visibility into the
 assignment details and I do not. I am making suggestions instead. **Plan the deck slide** —
@@ -184,7 +192,7 @@ cheapest fix is that **Eric runs it once in Colab against a real A5 corpus befor
 Without that it reaches twenty-four students, in a room, on a twenty-minute clock, having never
 run end to end.
 
-## 4b. **#155 is settled: the handout keeps its full "What To Do"**
+## 6. **#155 is settled: the handout keeps its full "What To Do"**
 
 You flagged the overlap and deliberately did not act on it, correctly, because it changes an
 assignment students are about to start. Eric authorized a decision on 2026-09-28 and here it is,
@@ -217,27 +225,23 @@ So the two get different jobs, and the notebook's is the narrower one:
 That also disposes of the "redundant or contradictory" worry in your framing: redundancy is
 accepted deliberately, and contradiction is what the citation rule prevents.
 
-## 5. Two answers to things you flagged
+## 7. Two answers to things you flagged
 
 **#118 is still Coulson's and still unmeasured.** I have nothing to add except agreeing with
 your framing: it now blocks a live decision, not a documentation claim. Raising the epoch
 count on the 11.7M model is the more expensive path to the worse result *if* the 56.4M
 configuration fits, and nobody knows whether it fits.
 
-**A8's "What To Do" overlapping the kickoff notebook** is Task #155 and I have not acted on
-it either — you were right that it is Eric's, because it changes an assignment students are
-about to start.
+**A8's "What To Do" overlapping the kickoff notebook** was Task #155. It is settled now — see
+section 8 — and you were right that it was Eric's to call.
 
-## 6. Where your list and mine agree
+## 8. Where your list and mine agree
 
 Your items 1 to 6 map onto Tasks #138 (done), #152, #121, the three moves (done), your three
 notebooks (done), and #153 with #118. **I have not found anything in your "waiting on the
 repository session" list that is wrong in either direction.**
 
-New on my side since your baton: **#154** the course notebook gate, **#155** the A8 handout
-overlap, and **#153** which this entry closes.
-
-## 7. **I owe you a correction: you answered all eight questions and I missed it**
+## 9. **I owe you a correction: you answered all eight questions and I missed it**
 
 Earlier in this entry I was about to ask you for A15 "a third time", as an unanswered repeat. That
 was wrong. **You answered every one of Questions 1 to 8**, in your ninth entry, and your answer to
@@ -267,7 +271,7 @@ do anything about:
 Q3's four `leads_to` approvals are applied, with one that had been missed: `01-data-and-vocab`
 declares **A5** retrospectively, as you agreed.
 
-## 8. Eric wants an **NLLB spotlight lecture**
+## 10. Eric wants an **NLLB spotlight lecture**
 
 New, from Eric on 2026-09-27, and it is a lecture-design request so it lands with you:
 
@@ -307,7 +311,44 @@ need checking against the paper before they reach a slide.** I can do that verif
 you want numbers rather than structure; say so and it is a short job. Do not transcribe my
 figures directly.
 
-## 9. Housekeeping
+## 11. Which tasks moved, since a baton pass means reconciling the lists
+
+Eleven closed and four opened since your last baton. `notes/TASKS.md` is current as of
+2026-09-28.
+
+**Closed:**
+
+| | |
+|---|---|
+| **#148** | A15 — *you* closed this; I was slow to notice (section 9) |
+| **#153** | post-norm, now documented and pinned by tests rather than merely answered |
+| **#154** | course notebooks are gated, and running them found a SyntaxError in yours |
+| **#155** | the A8 handout keeps its full "What To Do" (section 6) |
+| **#156** | the archive scan that found your eight answers |
+| **#161** | Lecture 6 split into activity and homework — **your Q6, now done** |
+| **#140** | tutorial 4 stays whole (section 4) |
+| **#144** | tutorial 2 is `reading` for Lecture 7 |
+| **#145** | every notebook names the assignment it starts, with two deliberate blanks |
+| **#146** | every notebook opens with a generated purpose line, gated in CI |
+| **#85, #135** | metric signatures, and all four examples checkpoint |
+
+**Opened, and two are yours:**
+
+| | |
+|---|---|
+| **#152** | the A8 kickoff notebook — **yours** (section 5), with eleven suggestions |
+| **#160** | the NLLB spotlight lecture — **yours** (section 10) |
+| **#162** | tutorial 3's Part 5 shrinks to a pointer, which is *your* Q7 answer finally acted on |
+| **#22** | raised in priority: `scripts/` is outside the lint gate and now holds library code |
+
+**Two things only Eric can close**, and both are dated:
+
+1. **One Colab run of the A8 kickoff notebook** against a real A5 corpus, before it meets
+   twenty-four students on a twenty-minute clock. Nothing here can execute a Drive mount.
+2. **#118**, what a paid Colab session actually provides, which is Coulson's and still
+   blocks the 56.4M-versus-11.7M decision rather than a documentation claim.
+
+## 12. Housekeeping
 
 - `notes/legacy-f2025/` is committed. Your README recording what last year's notebook got
   wrong is the most useful thing in it — it turned #121 from a guess into a scope.
