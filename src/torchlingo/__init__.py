@@ -15,6 +15,7 @@ except PackageNotFoundError:
 
 from . import (
     checkpoint,
+    colab,
     config,
     data_processing,
     diagnostics,
@@ -30,6 +31,7 @@ from . import (
 __all__ = [
     "__version__",
     "checkpoint",
+    "colab",
     "config",
     "data_processing",
     "diagnostics",
