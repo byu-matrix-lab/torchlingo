@@ -103,7 +103,8 @@ three loaders. Course notebooks and anything a student runs pass `num_workers=0`
 spent.** It changes batch composition and therefore results, so the default does not flip
 silently; but on a 100,000-pair corpus it removed 74% of padded tokens, and on 2026-09-28 it
 trained 1.86x faster per batch (on an Apple GPU, synthetic text). The A8 kickoff notebook opts in
-with `BucketBatchSampler`, seeding Python's `random`, which that sampler shuffles with.
+with `create_dataloaders(..., use_bucketing=True)`, seeding Python's `random`, which the bucketing
+sampler shuffles with.
 
 ## Workflow after code changes
 
@@ -211,8 +212,20 @@ and the pull request happen here.
   **Drive copies are never deleted while students are in them**; only the copies on Eric's desktop
   are Cowork's to remove. Deleting what a student is working in is the hazard; editing the source
   is not.
-- **New notebooks copy tutorial 2's two-cell setup**: detect Colab and install unconditionally,
-  then verify and fail loudly. Not the old commented-out install, which was the bug.
+- **New notebooks open with the four-line install, then `torchlingo.colab.setup`.** The install
+  runs `%pip` only in Colab and ends with `import torchlingo`, so a failed install stops in that
+  cell rather than one later; `setup(gpu=, drive=, data=)` does the device, the Drive mount and
+  the downloads. Copy tutorial 2's first two code cells. Not the old commented-out install,
+  which was the bug, nor the 20-to-60-line cells that replaced it.
+
+**Wrap the plumbing; keep the lesson inline.** Eric, 2026-09-28: large code cells lose a new
+student. So code a student learns nothing from reading (installs, downloads, Drive, file
+loading, exact splits, loader construction, padding arithmetic) belongs in the library, and a
+notebook calls it. Code that *is* the lesson stays written out: tutorial 3's beam search, tutorial
+6's `Vocab`, 8a's length cap, dedupe and contamination check. Data fixtures stay visible too.
+Before writing a helper, check the library has not got one already: on the day this rule was
+written, `create_dataloaders`, `parallel_txt_to_dataframe` and `evaluate_model` all existed and
+no course notebook used them.
 
 **Every notebook declares what it needs from its environment, in `requires`:** one of `pip`,
 `download`, `colab`, `hf-token`, `blanks`. A closed set, because a typo would otherwise read as
