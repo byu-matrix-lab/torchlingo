@@ -102,7 +102,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only **Eric's Colab run** on a real A5 corpus remains, before Wed |
 | #165 | Show resume on the Lecture 7 toy model before 8a needs it | **L7** | Open — 8a introduces `TrainingCheckpointer` cold, on a two-hour run |
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162** |
-| #167 | Prune merged branches and stale worktrees | **hyg** | Open — kept on purpose while PR self-closing is unexplained; **ask before deleting** |
+| #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
 | #168 | Make the student-path run part of shipping a notebook | **hyg** | Open — `scripts/student_path.sh` exists and works; fold into the executor, schedule it |
 | #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
 | #164 | Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9 | **L9** | Open — **ours**, per Cowork's Sep 28 baton; `--check` warns on every run |
@@ -234,6 +234,15 @@ alone left fifteen on `origin` — along with scratch `git worktree`s pointing a
 Both are deletions, so **ask Eric first**. Worktrees: `git worktree remove`. Branches: only those
 whose PR is MERGED, checked per branch, never by pattern. **Done when** `git worktree list` shows
 only the main checkout and no merged PR's branch remains on `origin`.
+
+**Done 2026-09-28, with Eric's permission:** four scratch worktrees removed (each clean, each PR
+merged), and 31 branches deleted from `origin` and locally, each checked individually: PR MERGED
+*and* branch tip equal to the commit that PR merged, so nothing pushed after a merge was lost.
+**Left, deliberately:** `myles_testing` passes both checks but is Myles's, so ask him; `coulson`
+has no merged PR; and about seventy local-only branches from earlier sessions, whose `origin`
+copies are already gone and which were mostly squash-merged, so each needs the same per-branch
+check before `git branch -D`. The `pr/*` refs in `git branch -r` are GitHub's read-only
+pull-request refs fetched by this clone's config, not branches; leave them.
 
 ### #168 Make the student-path run part of shipping a notebook
 
