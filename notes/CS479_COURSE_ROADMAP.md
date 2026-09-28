@@ -1,5 +1,9 @@
 # CS 479 Fall 2026: Course Roadmap
 
+*Repository copy of `CS479 Fall 2026 Roadmap_v6.md` (course-side roadmap v6), refreshed 2026-09-28. Everything above "## Which notebook serves which lecture" is regenerated from the desktop file by the course-side session; edit it there. Everything from that heading down is written in this repository and is preserved by the refresh.*
+
+---
+
 Introduction to Machine Translation, BYU. Monday and Wednesday, 11:00 to 12:15.
 
 **What this is.** The forward map of the semester: what each lecture covers, which notebooks
