@@ -1,31 +1,4 @@
-# CS 479 Fall 2026 course roadmap
-
-Course-side reference, maintained by the Cowork session. **v5, 2026-09-27.**
-
-Changes from v4:
-
-- **The TBC markers are gone. Every date in the table is now decided.** The eleventh session
-  the 8a/8b split needed comes from **Mon Nov 16**, which Lecture 17 now occupies.
-- **Assignment 8 stays Wed Oct 7.** v4 had it sliding to Oct 12 with its lecture. Eric
-  decided against the slip, so A8 now appears on **Lecture 9's row** rather than Lecture 10's.
-  The "Assignment due that day" column is about due dates, not ownership: A8 is still
-  Lecture 8's assignment. If your `leads_to` validation pairs assignments to the lecture whose
-  row they sit on, this row change is the one to look at.
-- **Assignments 9 through 14 and 16 each gained two to five days.** Exact new due dates are in
-  the table and itemized under "The Lecture 8 split, and what it moved".
-- **The TAUS conference report is dropped from Lecture 17.** That was a 2025 event, not a 2026
-  one, so it does not recur.
-- **Lecture 8 is now two decks on disk, 8a (26 slides) and 8b (25 slides).** The single
-  Lecture 8 deck is superseded. 8b gained three slides on Sep 27: query/key/value, positional
-  encoding, and the anatomy of an encoder block. None of them existed in the F2025 deck.
-- **Assignment 8's epoch count is raised from 30-to-36 to 60-to-70**, on your a8-benchmark
-  report. See the handoff entry: the report's own recommendation was a step budget, and
-  Eric chose the epoch count; the tradeoff is recorded rather than papered over.
-- **8a and 8b each get their own quiz.** One more quiz in the semester than last year.
-- **Learning Suite is now the stale copy.** These dates are decisions made course-side; the TA
-  (Coulson) is updating Learning Suite to match. Treat this file as the authority meanwhile.
-
----
+# CS 479 Fall 2026: Course Roadmap
 
 Introduction to Machine Translation, BYU. Monday and Wednesday, 11:00 to 12:15.
 
@@ -343,7 +316,13 @@ two papers for the quiz.
 
 ### 11. Neural Quality Estimation and Evaluation Toolkits (F2025, 19 slides)
 COMET and COMET-QE in depth, HTER distributions, partial-input baselines, lexical artifacts,
-xCOMET, QE with LLMs.
+xCOMET, and **LLM-as-judge** (decided Sep 28): this is the one lecture where the course treats
+prompting an LLM to score translations as a method in its own right. The F2025 deck carries two
+slides on it; the combined May 2025 "Lectures 10, 11" deck carries five (the Google 2023
+score-prediction prompt, GEMBA, a GEMBA-DA example, GEMBA against the other QE metrics, and the
+system-level vs segment-level caveat), and the rebuild should use the five. Two student reviews
+set it up on Oct 12: "LLMs are SOTA Evaluators of Translation Quality" (the GEMBA paper) and the
+2025 data-contamination study.
 **Notebooks:** none of its own; A10's install notebook is the prerequisite.
 **Sets:** A11 (due Mon Oct 19): run the default COMET model and COMET-QE-DA on the Lecture 6
 outputs; compare against the BLEU, chrF and human-ranking numbers already collected; one page.
