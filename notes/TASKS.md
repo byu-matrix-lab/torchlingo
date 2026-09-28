@@ -115,6 +115,8 @@ describes last week will mislead every lecture at once rather than one of them.
 | #113 | Land the PRs still open | **hyg** | **PR #127** and **PR #128** — both need your merge |
 | #118 | What does a paid Colab session actually provide? | **L8a** | **Coulson** — now blocks a live decision, not a claim |
 | #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | **10+** | Open |
+| #157 | Resume restores no scheduler, no AMP scaler, no RNG state | **10+** | Open — **(1) is a test for code that already ships** |
+| #158 | Our own `num_workers=4` default costs ~23s and never won | **10+** | Open — **needs your call**; measured on macOS only |
 | #8 | Verify Eole claims before syllabus use | **10+** | Open |
 | #9 | `pre-commit install` (still not installed) | **hyg** | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | **10+** | Open |
@@ -558,6 +560,53 @@ so splitting first would produce two evaluation tutorials and a choice nobody ma
 **Also a numbering correction:** the hand-off entry that mentions this writes a bare `#88` for
 the task. PR #88 is the unrelated rung-5 ladder change, already merged. Task #88 is the
 evaluation tutorial. Exactly the collision the naming rule in `CLAUDE.md` exists to prevent.
+
+### #157 Resume restores no scheduler, no AMP scaler, no RNG state
+
+Assessed 2026-09-27, when the question was whether the checkpointers are covered. The 18 tests in
+`tests/test_training_checkpoint.py` are good: round-trip, optimizer state, best-only writes,
+missing-file errors, step intervals, **atomicity** (a partial write does not replace a good
+checkpoint), resume-instead-of-restart end to end, and corrupt-checkpoint tolerance.
+
+Three gaps, sharpest first:
+
+1. **Nothing asserts the scheduler is restored.** The word `scheduler` does not appear in the test
+   file, yet `train_model` passes one — `checkpointer.load(model, opt, sched)`. The path ships and
+   nothing proves it. A resumed run could silently restart its warmup, which on the Transformer
+   schedule means a wrong learning rate for thousands of steps.
+2. **The AMP `GradScaler` state is not saved.** `use_amp=True` on every CUDA run, the cluster sweep
+   included, so a resume re-initialises the loss scale and the first steps afterwards can overflow.
+3. **RNG state is not saved**, so a resumed run draws a different data order and different dropout.
+   "Resume" is therefore not reproducible, which matters directly for a seed-controlled sweep.
+
+Do (1) first: it is a test for code that already exists, so it is the one that can only find bugs.
+
+### #158 Our own `num_workers=4` default costs ~23s and never won
+
+**Ours, not a dependency.** `config.py:920` sets `num_workers: int = 4` and `batching.py:375` hands
+it to all **three** DataLoaders — twelve worker processes, each importing torch. PyTorch is behaving
+correctly; the defect is picking 4 as a library-wide default in a teaching library and multiplying
+it by three loaders without regard to dataset size.
+
+Measured on macOS, which uses the `spawn` start method:
+
+| rows | `num_workers=4` | `num_workers=0` | ratio |
+|---|---|---|---|
+| 8 | 5.85s | 0.01s | 1107x |
+| 2,000 | 22.88s | 0.04s | 592x |
+| 20,000 | 23.00s | 0.22s | 106x |
+
+Roughly **23 seconds of fixed overhead regardless of corpus size**, and workers never won at any
+size tested. Linux forks, so the cost there is lower — but four workers for an eight-row dataset is
+wrong everywhere, and A8 students load 100,000 pairs on Colab.
+
+Found through the test suite: one test spent 21 of its 42 seconds here, and `num_workers=0` took the
+suite to 19.3s.
+
+**Not changed yet**, because it also affects throughput on real GPU runs where workers genuinely do
+help. Needs your call and its own measurement on Linux and CUDA. Options: default to 0; choose 0
+when the dataset is too small to amortise spawn; or keep 4 but give workers to one loader instead of
+three.
 
 ### #22 `examples/` and `scripts/` are outside the lint gate
 
