@@ -1,4 +1,4 @@
-"""Every BLEU score carries the settings that produced it.
+"""Every score carries the settings that produced it.
 
 sacreBLEU keeps the score and the signature on separate objects: the metric
 knows its settings, the score does not. A caller holding only the result cannot
@@ -15,7 +15,7 @@ not valid.
 
 import unittest
 
-from torchlingo.evaluation import compute_bleu
+from torchlingo.evaluation import compute_bleu, compute_chrf, compute_ter
 
 PREDICTIONS = ["The cat sat on the mat", "Hello world"]
 REFERENCES = ["A cat sat on a mat", "Hello world"]
@@ -85,6 +85,81 @@ class SignatureDistinguishesIncomparableScoresTests(unittest.TestCase):
         self.assertEqual(cased.score, 0.0, "case-sensitive should find no match")
         self.assertAlmostEqual(lowered.score, 100.0, places=4)
         self.assertNotEqual(cased.signature, lowered.signature)
+
+
+class EveryMetricCarriesASignatureTests(unittest.TestCase):
+    """Not only BLEU. Task #85.
+
+    `compute_bleu` had a signature and `compute_chrf` and `compute_ter` did not, because
+    those two used sacreBLEU's functional API — which returns a score with no route back to
+    the metric that produced it, so `get_signature()` was unreachable. All three use the
+    class API now.
+    """
+
+    def test_all_three_metrics_attach_one(self):
+        for name, fn in (
+            ("BLEU", compute_bleu),
+            ("chrF", compute_chrf),
+            ("TER", compute_ter),
+        ):
+            result = fn(PREDICTIONS, REFERENCES)
+            self.assertTrue(
+                getattr(result, "signature", None), f"{name} has no signature"
+            )
+            self.assertIn("version:", result.signature, name)
+
+    def test_chrf_declares_word_order(self):
+        """The case that proves signatures are not cosmetic.
+
+        `compute_chrf` defaults to `word_order=2` (chrF++) where sacreBLEU's own
+        `corpus_chrf` defaults to `0`. That one undeclared parameter caused two separate
+        confusions in this repository: a correct implementation judged broken by 0.45
+        points against the wrong baseline, and a bug note stating the right value beside a
+        snippet returning the wrong one.
+        """
+        self.assertIn("nw:2", compute_chrf(PREDICTIONS, REFERENCES).signature)
+        self.assertIn(
+            "nw:0", compute_chrf(PREDICTIONS, REFERENCES, word_order=0).signature
+        )
+
+    def test_word_order_changes_both_the_score_and_the_signature(self):
+        """Neither alone is enough: a setting that moves the number must move the label."""
+        plus = compute_chrf(PREDICTIONS, REFERENCES)
+        chars_only = compute_chrf(PREDICTIONS, REFERENCES, word_order=0)
+        self.assertNotAlmostEqual(plus.score, chars_only.score, places=4)
+        self.assertNotEqual(plus.signature, chars_only.signature)
+
+    def test_ter_records_that_it_lowercases_and_bleu_does_not(self):
+        """Quoted side by side, these two were computed on differently-cased text.
+
+        Nothing in either number says so, and a reader comparing them has no way to find
+        out except the signature.
+        """
+        self.assertIn("case:lc", compute_ter(PREDICTIONS, REFERENCES).signature)
+        self.assertIn("case:mixed", compute_bleu(PREDICTIONS, REFERENCES).signature)
+
+    def test_ter_normalization_appears(self):
+        plain = compute_ter(PREDICTIONS, REFERENCES)
+        normalized = compute_ter(PREDICTIONS, REFERENCES, normalized=True)
+        self.assertIn("norm:no", plain.signature)
+        self.assertIn("norm:yes", normalized.signature)
+
+    def test_switching_to_the_class_api_did_not_move_any_score(self):
+        """The refactor had to be numerically invisible, so it is checked against
+        sacreBLEU's functional API directly rather than against a remembered number."""
+        import sacrebleu
+
+        streams = [REFERENCES]
+        self.assertAlmostEqual(
+            compute_chrf(PREDICTIONS, REFERENCES).score,
+            sacrebleu.corpus_chrf(PREDICTIONS, streams, word_order=2).score,
+            places=10,
+        )
+        self.assertAlmostEqual(
+            compute_ter(PREDICTIONS, REFERENCES).score,
+            sacrebleu.corpus_ter(PREDICTIONS, streams).score,
+            places=10,
+        )
 
 
 if __name__ == "__main__":
