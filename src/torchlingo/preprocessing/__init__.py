@@ -16,6 +16,7 @@ from .base import (
     preprocess_base,
     save_data,
     split_data,
+    split_exact,
 )
 from .multilingual import add_language_tags, preprocess_multilingual
 from .sentencepiece import (
@@ -42,5 +43,6 @@ __all__ = [
     "save_data",
     "shuffle_target_side",
     "split_data",
+    "split_exact",
     "train_sentencepiece",
 ]

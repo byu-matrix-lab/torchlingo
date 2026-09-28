@@ -29,6 +29,10 @@ This module provides foundational functions for working with parallel corpora:
     options:
       show_source: true
 
+::: torchlingo.preprocessing.base.split_exact
+    options:
+      show_source: true
+
 
 
 ## Examples

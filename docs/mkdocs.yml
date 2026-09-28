@@ -157,6 +157,7 @@ nav:
     - Diagnostics: reference/diagnostics.md
     - Evaluation: reference/evaluation.md
     - Training Checkpoints: reference/training_checkpoint.md
+    - Notebook Setup: reference/colab.md
     - Data Processing:
       - reference/data_processing/index.md
       - Dataset: reference/data_processing/dataset.md

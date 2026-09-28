@@ -8,6 +8,7 @@ all downstream preprocessing operations.
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from ..config import Config, get_default_config
@@ -214,6 +215,59 @@ def split_data(
     train_df = df.iloc[:train_end]
     val_df = df.iloc[train_end:val_end]
     test_df = df.iloc[val_end:]
+    return train_df, val_df, test_df
+
+
+def split_exact(
+    df: pd.DataFrame,
+    n_val: int,
+    n_test: int,
+    seed: int,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Split a DataFrame into train, validation and test sets of exact sizes.
+
+    Assignments specify held-out sets by count ("2,000 validation and 2,000 test pairs"),
+    which :func:`split_data`'s ratios cannot express exactly. Everything not held out is
+    training data.
+
+    The shuffle is seeded and nothing else is random, so the same seed on the same rows
+    gives the same test set every time: the only way a score measured tomorrow is
+    comparable with one measured today.
+
+    Args:
+        df (pd.DataFrame): The rows to split.
+        n_val (int): Validation rows.
+        n_test (int): Test rows.
+        seed (int): Seed for the shuffle. Required rather than defaulted, because an
+            unseeded split silently changes the test set on every run.
+
+    Returns:
+        tuple: ``(train_df, val_df, test_df)``, each with a fresh 0-based index.
+
+    Raises:
+        ValueError: If the held-out sets would leave no training rows.
+
+    Examples:
+        >>> import pandas as pd
+        >>> frame = pd.DataFrame({'src': [f's{i}' for i in range(10)],
+        ...                       'tgt': [f't{i}' for i in range(10)]})
+        >>> train, val, test = split_exact(frame, n_val=2, n_test=3, seed=0)
+        >>> len(train), len(val), len(test)
+        (5, 2, 3)
+        >>> list(split_exact(frame, 2, 3, seed=0)[2].src) == list(test.src)
+        True
+    """
+    if n_val + n_test >= len(df):
+        raise ValueError(
+            f"{n_val} validation + {n_test} test rows leaves no training rows "
+            f"from {len(df)}"
+        )
+    # Test first, then validation: the order the A8 kickoff notebook used before this
+    # function existed, so a seed gives the same test set either way.
+    order = np.random.default_rng(seed).permutation(len(df))
+    test_df = df.iloc[order[:n_test]].reset_index(drop=True)
+    val_df = df.iloc[order[n_test : n_test + n_val]].reset_index(drop=True)
+    train_df = df.iloc[order[n_test + n_val :]].reset_index(drop=True)
     return train_df, val_df, test_df
 
 

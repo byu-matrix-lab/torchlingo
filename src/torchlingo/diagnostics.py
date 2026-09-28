@@ -172,6 +172,90 @@ def uniform_loss(vocab_size: int) -> float:
     return math.log(vocab_size)
 
 
+@dataclass
+class PaddingReport:
+    """How much of an epoch's work is padding, for one DataLoader.
+
+    Counts source-side tokens, the side a length-bucketing sampler groups by.
+
+    Attributes:
+        real_tokens (int): Tokens actually in the sentences.
+        padded_tokens (int): Tokens the loader's own batches occupy once each is padded
+            to its longest sentence.
+        shuffled_tokens (int): The same, for a plain shuffle at the same batch size: what
+            the loader would cost without bucketing.
+        dropped (int): Examples in no batch this epoch, which a bucketing sampler's
+            incomplete final batches cause.
+    """
+
+    real_tokens: int
+    padded_tokens: int
+    shuffled_tokens: int
+    dropped: int
+
+    def __str__(self) -> str:
+        """Render as two lines a student can read.
+
+        Returns:
+            str: Real, shuffled and actual padded tokens, and the examples dropped.
+        """
+        saving = 100 * (1 - self.padded_tokens / max(1, self.shuffled_tokens))
+        return (
+            f"Source tokens per epoch: {self.real_tokens:,} real; padded, "
+            f"{self.shuffled_tokens:,} shuffled against {self.padded_tokens:,} as batched "
+            f"({saving:.0f}% less).\n"
+            f"Examples in no batch this epoch: {self.dropped:,}."
+        )
+
+
+def padding_report(loader: torch.utils.data.DataLoader, seed: int = 0) -> PaddingReport:
+    """Measure the padding a DataLoader's batches carry, against a plain shuffle.
+
+    A batch is padded to its longest sentence, so mixing a 5-token sentence with a
+    90-token one spends most of the batch on padding. A length-bucketing sampler avoids
+    that; this puts a number on how much, for your data rather than someone else's.
+
+    It draws one epoch of batches from ``loader``'s own sampler, which advances that
+    sampler's random state. Call it before seeding for training, or accept that training's
+    first shuffle is the second one drawn.
+
+    Args:
+        loader (DataLoader): A loader over a dataset whose items are ``(src, tgt)``
+            sequences, as :class:`~torchlingo.data_processing.NMTDataset` yields.
+        seed (int, optional): Seed for the plain-shuffle comparison. Defaults to 0.
+
+    Returns:
+        PaddingReport: Real, as-batched and shuffled token counts, and examples dropped.
+
+    Examples:
+        >>> import torch
+        >>> from torch.utils.data import DataLoader
+        >>> pairs = [(torch.zeros(n), torch.zeros(n)) for n in (2, 2, 9, 9)]
+        >>> sorted_batches = [[0, 1], [2, 3]]           # lengths grouped, as bucketing would
+        >>> report = padding_report(DataLoader(pairs, batch_sampler=sorted_batches))
+        >>> report.real_tokens, report.padded_tokens, report.dropped
+        (22, 22, 0)
+    """
+    dataset = loader.dataset
+    lengths = [len(dataset[i][0]) for i in range(len(dataset))]
+    batches = [list(batch) for batch in loader.batch_sampler]
+    batch_size = max(len(batch) for batch in batches)
+
+    def padded(groups: Iterable[Sequence[int]]) -> int:
+        return sum(len(g) * max(lengths[i] for i in g) for g in groups if len(g))
+
+    generator = torch.Generator().manual_seed(seed)
+    order = torch.randperm(len(lengths), generator=generator).tolist()
+    shuffled = [order[i : i + batch_size] for i in range(0, len(order), batch_size)]
+
+    return PaddingReport(
+        real_tokens=sum(lengths),
+        padded_tokens=padded(batches),
+        shuffled_tokens=padded(shuffled),
+        dropped=len(lengths) - sum(len(batch) for batch in batches),
+    )
+
+
 def check_loss_moved(
     train_losses: Sequence[float],
     vocab_size: int | None = None,
