@@ -4,7 +4,7 @@ Opened 2026-08-22, last updated 2026-09-28. Numbered for reference in conversati
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
-Tasks run to #125 and PRs to #100, so every number below 101 names one of each. Say
+The two ranges have grown up together, so almost every number names one of each. Say
 "Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
 ambiguous, and on GitHub it auto-links to the pull request whether or not that
 was meant.
@@ -69,12 +69,17 @@ dates are not lecture-critical, and several with no date are.
 | **L5** | Data Preparation for MT Training, Part 2 — **has already run** | Mon Sep 21 · A4 due |
 | **L4/L5** | both data-preparation lectures | |
 | **L6** | Human and Automatic MT Evaluation — **has already run** | Wed Sep 23 · A5 due; A6 due Mon Sep 28 |
-| **L7** | Research Paper Reviews; Intro to Neural Networks | Mon Sep 28 · A6 due |
-| **L8a** | Neural MT: Encoder-Decoder, and Why Attention Was Invented | Wed Sep 30 · **A8 introduced** |
+| **L7** | Research Paper Reviews; Intro to Neural Networks | Mon Sep 28 · A6 due, **A7 set** |
+| **L8a** | Neural MT: Encoder-Decoder, and Why Attention Was Invented | Wed Sep 30 · A7 due, **A8 introduced** |
 | **L8b** | Neural MT: The Transformer | Mon Oct 5 |
 | **L8a/8b** | both halves of the split | |
 | **L9** | Morphology and Terminology in NMT | Wed Oct 7 · **A8 due, A9 set** |
-| **10+** | Lecture 10 onward, or no lecture depends on it | |
+| **L10** | Overview of MT Quality Estimation | Mon Oct 12 · A10 set (install COMET) |
+| **L11** | Neural Quality Estimation and Evaluation | Wed Oct 14 · A9, A10 due · A11 set |
+| **L12** | Using LLMs for MT; Expanding Context Awareness | Mon Oct 19 · A11 due · A12 set |
+| **L13** | Strategies for NMT of Low-Resource Languages | Wed Oct 21 · A13 set (back-translation) |
+| **14+** | Lecture 14 onward: multilingual and zero-shot, speech, and later | from Mon Oct 26 |
+| **lib** | library, tooling or docs work **no lecture depends on** | |
 | **hyg** | roadmap and process integrity — **critical, but not to one lecture** | |
 
 **A lecture that has already run still owns its work.** `L6` means "this belongs to Lecture
@@ -83,7 +88,9 @@ student revisiting the lecture or an instructor preparing Fall 2027 meets it the
 those as `10+` lost the one piece of information the label exists to carry. L1 to L5 were added
 on 2026-09-28 for the same reason: the vocabulary started at L6, so work belonging to the first
 five lectures could only be filed as `10+`, and Task #120's grader, which is Lectures 4 and 5's
-tool, was.
+tool, was. The same day `10+` itself was retired: it meant both "Lecture 10 onward" and "no
+lecture at all", and those are opposite answers to the question the column asks. L10 to L13 and
+`14+` now carry the first meaning, and `lib` the second.
 
 `hyg` is not a synonym for "later". It is the category that keeps the other labels true: a
 generated map that has drifted, a gate that reports without blocking, or a task list that
@@ -96,55 +103,55 @@ describes last week will mislead every lecture at once rather than one of them.
 | #164 | Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9 | **L9** | Open — **ours**, per Cowork's Sep 28 baton; `--check` warns on every run |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | Cowork's Q7 call — **unblocks #88**; #142 was already decided |
-| #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
-| #149 | `collect_benchmark.py` silently drops a run file it cannot find | **10+** | Open — it wrote a 2-run report over a 21-run source |
-| #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **10+** | **Your call** — it holds the corpus prep and all the HPC tooling |
-| #151 | The LSTM asks for dropout it cannot apply | **10+** | Open — nine tests warn; a student setting it gets nothing |
+| #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
+| #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
+| #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **hyg** | **Your call** — it holds the corpus prep and all the HPC tooling |
+| #151 | The LSTM asks for dropout it cannot apply | **L8a** | Open — nine tests warn; a student setting it gets nothing |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Lecture 9 is Wed Oct 7; A9 Wed Oct 14** — the only notebook L9 has on its own subject |
 | #122 | Make Assignment 9's control hard to get wrong in code | **L9** | Open — worth more than the wording fix |
-| #123 | A14's two-directions case has never been run | **10+** | Open — highest uncertainty, due Oct 28 |
-| #129 | Extract a shared `~/Projects/hpc` | **10+** | Open — after #128 gives a second implementation to diff |
+| #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
+| #129 | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
 | #97 | SentencePiece on versus off, controlled | **L9** | **Due Mon Oct 12** |
-| #102 | Inference cannot resume a long decode | **10+** | **Needed by Mon Oct 19** — largest undone piece |
-| #98 | Back-translation as a documented workflow | **10+** | **Due Mon Oct 26** |
-| #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **10+** | **Due Wed Oct 28** |
-| #160 | An NLLB spotlight lecture — data, architecture **and** curriculum | **10+** | **Cowork designs it** (Eric, Sep 27); our part is verifying the paper's numbers |
+| #102 | Inference cannot resume a long decode | **L13** | **Needed by Mon Oct 19** — largest undone piece |
+| #98 | Back-translation as a documented workflow | **L13** | **Due Mon Oct 26** |
+| #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
+| #160 | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #106 | A token cap breaks Assignment 9's control | **L9** | Open — one sentence in the assignment |
-| #107 | The optimizations exist and nothing uses them | **10+** | **Half done** — experiments bucket now; library default unchanged |
-| #108 | Nothing releases the device allocator's cache | **10+** | Open — **demoted**: length, not cache, is the driver |
+| #107 | The optimizations exist and nothing uses them | **L8a** | **Half done** — experiments bucket now; library default unchanged |
+| #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
 | #113 | Land the PRs still open | **hyg** | **PR #127** and **PR #128** — both need your merge |
 | #118 | What does a paid Colab session actually provide? | **L8a** | **Coulson** — now blocks a live decision, not a claim |
-| #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | **10+** | Open |
-| #157 | Resume restores no scheduler, no AMP scaler, no RNG state | **10+** | Open — **(1) is a test for code that already ships** |
-| #158 | Our own `num_workers=4` default costs ~23s and never won | **10+** | Open — **needs your call**; measured on macOS only |
-| #8 | Verify Eole claims before syllabus use | **10+** | Open |
+| #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | **L8a/8b** | Open |
+| #157 | Resume restores no scheduler, no AMP scaler, no RNG state | **L8a** | Open — **(1) is untested and the 8a notebook's resume path relies on it** |
+| #158 | Our own `num_workers=4` default costs ~23s and never won | **L8a** | Open — **needs your call**; measured on macOS only |
+| #8 | Verify Eole claims before syllabus use | **lib** | Open |
 | #9 | `pre-commit install` (still not installed) | **hyg** | Open |
-| #15 | Migrate history-blind `DummyTransformer` tests | **10+** | Open |
+| #15 | Migrate history-blind `DummyTransformer` tests | **lib** | Open |
 | #22 | `examples/` and `scripts/` are outside the lint gate | **hyg** | Open — **`scripts/notebook_meta.py` is now library code living there** |
 | #28 | Attention params skip `_init_weights` | **L8a/8b** | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | **hyg** | Open |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | **hyg** | Open |
 | #48 | Audit pedagogical value; write down sequencing and outcomes | **hyg** | In progress — in the roadmap |
 | #51 | The docs gate reports but does not block | **hyg** | Open — repo settings |
-| #52 | Try Moore (2002) if more of the corpus is wanted | **10+** | Open |
+| #52 | Try Moore (2002) if more of the corpus is wanted | **lib** | Open |
 | #53 | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #60 | Nobody is told when main goes red | **hyg** | Open |
-| #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | **10+** | Open |
-| #68 | Cite `torcheck` as prior art in the diagnostics docs | **10+** | Open |
-| #71 | Decide whether to report the Joey NMT breakage upstream | **10+** | Open — Eric's call |
+| #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | **L5** | Open |
+| #68 | Cite `torcheck` as prior art in the diagnostics docs | **lib** | Open |
+| #71 | Decide whether to report the Joey NMT breakage upstream | **lib** | Open — Eric's call |
 | #74 | Diagnose the 93 docs warnings | **hyg** | Open — **the anchor half shipped** in PR #51 |
 | #79 | An order-dependent test | **hyg** | **Fails on unmodified `main`** — so it blocks nothing; CI cannot see it |
 | #81 | Fail the build on hand-typed generated numbers | **hyg** | Open |
-| #82 | Add an on-target language check to `torchlingo.diagnostics` | **10+** | Open |
-| #86 | `evaluate_model` has no test, and it is what callers use | **10+** | Open — after PR #58 |
-| #88 | Open the tutorial 7 PR | **10+** | **Unblocked** — Cowork's Q7 says tutorial 7 should land |
+| #82 | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
+| #86 | `evaluate_model` has no test, and it is what callers use | **lib** | Open — after PR #58 |
+| #88 | Open the tutorial 7 PR | **L6** | **Unblocked** — Cowork's Q7 says tutorial 7 should land |
 | #89 | Fail the docs build when a page is off-nav | **hyg** | Open |
-| #91 | `metric_comparison.json` records no BLEU signature | **10+** | Open — nothing blocks it |
-| #92 | Tutorials 3 and 5 bypass the library's own evaluation API | **10+** | Open |
+| #91 | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
+| #92 | Tutorials 3 and 5 bypass the library's own evaluation API | **L10** | Open |
 
 ## The CS 479 pivot
 
@@ -840,38 +847,7 @@ knowing: the figure was once quoted as if any single task could deliver all of i
 Full explanation for students lives in `docs/docs/concepts/decoding.md` — keep it there
 rather than duplicating it into code and notes.
 
-**#4 Resolve length-normalization semantics** — in review as PR #54
-
-`inference.py:203` applies length normalization during *pruning*, not only at final selection,
-comparing normalized scores across lengths mid-search. Defensible but non-standard.
-
-**The evidence, from #40**, measured on the tutorial 5 model across five held-out subsets:
-`alpha=0.6`, the shipped default, is **indistinguishable from `alpha=0.0`** (−0.07 ± 0.03
-BLEU), while `alpha=1.0` gives +0.25 ± 0.06. The bias it targets is plainly there — mean output
-length falls from 12.61 tokens at greedy to 9.73 at beam 10, against references averaging 11.62.
-
-So the question is not whether the semantics are defensible, but **why a correction that
-measurably does nothing is on by default.** Two candidates the evidence cannot separate: the
-default is too weak, or normalizing during pruning blunts it.
-
-**Done when** `alpha` has been swept with normalization applied only at final selection, which
-separates them — cheap now that `scripts/sweep_decoding.py` exists.
-
 ## Code — other gaps
-
-**#7 One PyTorch deprecation warning left** — in review as PR #57
-On torch 2.13.0, "Support for mismatched key_padding_mask and attn_mask is deprecated",
-raised from the decode path. It will eventually break. The decode path passes a boolean
-`tgt_key_padding_mask` alongside a float `tgt_mask`; making both the same dtype should
-settle it.
-
-The other warning this entry used to list, the nested-tensor prototype notice from
-`nn.Transformer`, is gone. It was a side effect of disabling the encoder's nested-tensor
-fast path, which had to go because the op behind it is unimplemented on Apple's MPS
-backend and made every library decoder raise `NotImplementedError` on Apple Silicon.
-Worth knowing for the next device-specific bug: CI runners are x86 Linux, so nothing in
-the matrix can reproduce that class of failure — the lab's Macs are the only place it
-shows up, which is also where the students are.
 
 ## Evaluation / tooling
 
@@ -897,18 +873,6 @@ right.
   regenerate both the JSON and the markdown.
 - Related to #85: chrF and TER have no signature to record yet, so this lands properly
   only after that one.
-
-**#90 `CLAUDE.md`'s numbering example is stale**
-
-The "Say PR #X and Task #Y" rule says *"tasks run to #62, pull requests to #42, so every
-number below 43 names one of each."* Tasks now run to #92 and PRs to #64. The rule is
-right and its reasoning is intact; only the arithmetic has rotted, in the file that
-teaches the convention.
-
-- One line, in `CLAUDE.md` rather than `notes/`, so it cannot ride along on a notes-only
-  PR. Fold it into the next change that touches `CLAUDE.md` for another reason.
-- Consider dropping the specific numbers instead. They were never the point, and they
-  will be stale again within a week.
 
 **#86 `evaluate_model` has no test, and it is the function callers use**
 
@@ -1137,25 +1101,6 @@ trace recording candidates *before* pruning. The two below are what remains.
 
 ## Docs and tutorials
 
-**#78 Tutorial 5's committed outputs predate the retrained checkpoint** — in review as PR #57
-The notebook shipped translations produced by the old checkpoint, so a student reading
-the page and a student running the cell saw different results. Re-executed against the
-current checkpoint in PR #57. Re-executing is what surfaced #7: the fresh run baked three
-PyTorch warnings and a `/Users/ringger/...` path into the committed outputs, which main
-did not have, so both are fixed in the same PR.
-
-**#83 Show attention on the Transformer, not only the LSTM** — in review as PR #59
-Tutorial 4 taught alignment on the LSTM's additive attention, which is the architecture
-students do *not* use for the rest of the course. PR #59 adds Part 8: load the pretrained
-Transformer, decode one held-out sentence, and read its cross-attention through
-`attention_for_sequence`. Two things that made this non-obvious and are worth keeping in
-the prose: PyTorch hardcodes `need_weights=False` inside
-`TransformerDecoderLayer._mha_block`, so a plain forward hook returns `None` and you need
-`capture_cross_attention`; and the teacher-forced second pass is *exact* rather than an
-approximation, because the decoder is causally masked.
-- Costs CI nothing, but it does make tutorial 4 depend on `data/pretrained/model.pt`, so
-  tutorial 4 joins the LFS skip list. See #53.
-
 **#88 Open the tutorial 7 PR** — unblocked 2026-09-26, PR #58 merged
 
 Written, executed and verified on the **local** branch `docs/evaluation-tutorial` (commit
@@ -1230,36 +1175,6 @@ or a **scheduled full run** with LFS.
 
 **Done when** the green check states what it did not run. Same family as #51 and #60.
 
-**#63 Three pages have no mkdocs nav entry** — in review as PR #51
-
-`docs/mkdocs.yml` belonged to a PR we were not stacking on, so tutorial 6,
-`reference/diagnostics.md` and `related-work.md` shipped without nav entries. Off-nav is INFO
-rather than a warning, so `--strict` stays clean and nothing blocks — but each page is reachable
-only by direct link until PR #51 lands.
-
-| Page | Place it |
-|---|---|
-| `tutorials/06-diagnosing-failures.ipynb` | Tutorials, after `05-real-translations.ipynb` |
-| `reference/diagnostics.md` | API Reference, after `config.md` |
-| `related-work.md` | Top level, near Home |
-
-Also undo at the same time: `related-work.md` names `torchlingo.diagnostics` as plain code
-rather than linking to `reference/diagnostics.md`, because linking a page absent from `main`
-fails `--strict`. Make it a link once that page is there.
-
-The same trap has already caught the next pair of pages — see Task #84 — which is what #89 is
-for.
-
-**#65 Tutorial 6 and `torchlingo.diagnostics` are two copies of the same checks** — in review as PR #52
-
-PR #44 defines the five checks inline in the notebook; PR #45 ships them as a module.
-Until one sources from the other they can drift, and the notebook is the copy a student
-reads.
-
-- Only after **both** have merged — doing it in either PR would stack it on the other.
-- Keep the student seeing the logic; the pedagogy depends on it. Import the functions and
-  show the source (`inspect.getsource`), or keep a short annotated call, rather than
-  silently calling a black box.
 
 **#66 Adopt `nltk.translate.gale_church`; split #29 into two different jobs**
 
