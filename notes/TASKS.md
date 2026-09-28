@@ -106,6 +106,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #102 | Inference cannot resume a long decode | **10+** | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **10+** | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **10+** | **Due Wed Oct 28** |
+| #160 | An NLLB spotlight lecture — data, architecture **and** curriculum | **10+** | **Cowork designs it** (Eric, Sep 27); our part is verifying the paper's numbers |
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #103 | Extend the notebook gate to `docs/docs/course/` | **hyg** | Open — four course notebooks on `main`, still ungated |
 | #106 | A token cap breaks Assignment 9's control | **L9** | Open — one sentence in the assignment |
@@ -606,6 +607,26 @@ suite to 19.3s.
 help. Needs your call and its own measurement on Linux and CUDA. Options: default to 0; choose 0
 when the dataset is too small to amortise spawn; or keep 4 but give workers to one loader instead of
 three.
+
+### #160 An NLLB spotlight lecture — data, architecture **and** curriculum
+
+Eric, 2026-09-27: "NLLB is generally state of the art and deserves this level of attention." The
+course currently treats NLLB as a data story. His point is that data is one leg of three, and the
+architectural and training-curriculum decisions are the ones students never hear.
+
+The three-act shape, handed to Cowork in the 2026-09-27 outgoing entry: **data** (LASER3 bitext
+mining, back-translation, FLORES-200 as the benchmark that made 200-language comparison possible,
+and the quality and toxicity filtering), **architecture** (sparsely gated mixture-of-experts, the
+regularization that stops low-resource pairs being swamped, and the fact that the runnable dense
+models are *distillations* of the big sparse one), and **curriculum** (pairs introduced on a
+schedule rather than all at once, with high- and low-resource balance managed deliberately).
+
+Slots naturally at Lecture 13 or 14 — it is the worked example both currently lack.
+
+**Our half, and the only part that is ours:** the structure above is from memory of the 2022
+paper, not a fresh read. Expert counts, parameter counts, the exact regularization name and the
+curriculum schedule all need verifying against the paper before they reach a slide. Offered to
+Cowork; do it when they ask, and do not let the remembered figures propagate first.
 
 ### #22 `examples/` and `scripts/` are outside the lint gate
 

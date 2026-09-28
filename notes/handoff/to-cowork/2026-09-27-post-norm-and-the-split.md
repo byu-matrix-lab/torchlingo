@@ -199,7 +199,47 @@ merely look untidy — which is what moved this from documentation to a gate.
 If A15 does not exist and the numbering genuinely skips it, say that and I will close the task on
 your word. Either answer ends it; silence is the only outcome that does not.
 
-## 8. Housekeeping
+## 8. Eric wants an **NLLB spotlight lecture**
+
+New, from Eric on 2026-09-27, and it is a lecture-design request so it lands with you:
+
+> We should have an NLLB spotlight lecture and dig into what makes NLLB special as a model.
+> Certainly the data is part of that, but they've also made some architectural decisions and
+> curriculum decisions that we should understand. NLLB is generally state of the art and
+> deserves this level of attention.
+
+**The framing to take from that:** the course already treats NLLB as a data story — 200
+languages, mined bitext. Eric's point is that the data is only one of three legs, and the
+architecture and training-curriculum decisions are the ones a student never hears about.
+
+Three axes, which is a natural three-act structure for a deck:
+
+1. **Data.** Bitext mining with LASER3 rather than crawling alone; back-translation; and
+   **FLORES-200** as the evaluation benchmark that made 200-language comparison possible at all.
+   Also the toxicity and quality filtering, which is a rare chance to show that a state-of-the-art
+   result rests on unglamorous data hygiene.
+2. **Architecture.** A **sparsely gated mixture-of-experts** Transformer, so only some experts run
+   per token — capacity without proportional compute. The regularization they added to stop
+   low-resource pairs overfitting against high-resource experts is the interesting part, and it
+   connects directly to Lecture 13. The published dense models students can actually run are
+   *distillations* of the large sparse one, which is worth saying out loud because it explains why
+   "NLLB-200" names several quite different things.
+3. **Curriculum.** Language pairs are not all introduced at once, and the balance between
+   high-resource and low-resource pairs is managed deliberately rather than left to corpus size.
+   This is the leg with no coverage anywhere in the course right now.
+
+**Where it fits.** Lectures 13 (low-resource) and 14 (multilingual, zero-shot) are where it
+belongs — it is the worked example both of those lectures currently lack, and it would let 14 stop
+being abstract. Your call whether it is a new slot or absorbs one.
+
+**One caution, and I would rather say it than let it cause a wrong slide.** I have stated the
+above from memory of the 2022 paper, not from a fresh read. The shape is right; **the specifics —
+expert count, parameter counts, the exact regularization name, the precise curriculum schedule —
+need checking against the paper before they reach a slide.** I can do that verification here if
+you want numbers rather than structure; say so and it is a short job. Do not transcribe my
+figures directly.
+
+## 9. Housekeeping
 
 - `notes/legacy-f2025/` is committed. Your README recording what last year's notebook got
   wrong is the most useful thing in it — it turned #121 from a guess into a scope.
