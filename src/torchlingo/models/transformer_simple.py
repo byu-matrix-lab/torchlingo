@@ -21,6 +21,7 @@ References:
 """
 
 import math
+import warnings
 from contextlib import contextmanager
 
 import torch
@@ -132,11 +133,18 @@ class SimpleTransformer(nn.Module):
             encoding table. Defaults to 512.
         dropout (float, optional): Dropout rate throughout the model. Defaults to 0.1.
         pad_idx (int, optional): Padding token index. Falls back to config.pad_idx.
+        norm_first (bool, optional): ``False`` for post-norm,
+            ``LayerNorm(x + Sublayer(x))``, which is the ordering of Vaswani et al.
+            (2017) and the default here. ``True`` for pre-norm,
+            ``x + Sublayer(LayerNorm(x))``, which is what most Transformers published
+            since 2017 use: it trains more stably at depth and usually needs no
+            learning-rate warmup. Falls back to config.norm_first.
         config (Config, optional): Configuration object. Defaults to default config.
 
     Attributes:
         d_model (int): Model dimension.
         max_seq_length (int): Maximum sequence length.
+        norm_first (bool): True if this model is pre-norm, False if post-norm.
         pad_idx (int): Resolved padding index.
         src_tok_emb (nn.Embedding): Source token embedding layer.
         tgt_tok_emb (nn.Embedding): Target token embedding layer.
@@ -157,6 +165,7 @@ class SimpleTransformer(nn.Module):
         max_seq_length: int | None = None,
         dropout: float | None = None,
         pad_idx: int | None = None,
+        norm_first: bool | None = None,
         config: Config | None = None,
     ) -> None:
         super().__init__()
@@ -179,10 +188,12 @@ class SimpleTransformer(nn.Module):
             max_seq_length if max_seq_length is not None else cfg.max_seq_length
         )
         dropout = dropout if dropout is not None else cfg.dropout
+        norm_first = norm_first if norm_first is not None else cfg.norm_first
 
         self.d_model = d_model
         self.max_seq_length = max_seq_length
         self.dropout = dropout
+        self.norm_first = norm_first
 
         self.src_tok_emb = nn.Embedding(
             src_vocab_size, d_model, padding_idx=self.pad_idx
@@ -193,15 +204,26 @@ class SimpleTransformer(nn.Module):
         self.pos_encoding = SinusoidalPositionalEncoding(
             d_model, max_seq_length, dropout=dropout
         )
-        self.transformer = nn.Transformer(
-            d_model=d_model,
-            nhead=n_heads,
-            num_encoder_layers=num_encoder_layers,
-            num_decoder_layers=num_decoder_layers,
-            dim_feedforward=d_ff,
-            dropout=dropout,
-            batch_first=True,
-        )
+        # `norm_first=True` makes nn.Transformer warn that it is disabling the
+        # nested-tensor fast path. We disable that path ourselves on the next line and
+        # always have, so the warning reports a decision already made -- and it would
+        # otherwise appear in every student's notebook the moment they tried pre-norm.
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=".*enable_nested_tensor is True.*",
+                category=UserWarning,
+            )
+            self.transformer = nn.Transformer(
+                d_model=d_model,
+                nhead=n_heads,
+                num_encoder_layers=num_encoder_layers,
+                num_decoder_layers=num_decoder_layers,
+                dim_feedforward=d_ff,
+                dropout=dropout,
+                batch_first=True,
+                norm_first=norm_first,
+            )
         # Disable the encoder's nested-tensor fast path. In eval mode with a
         # padding mask, PyTorch converts the batch to a nested tensor, and the
         # op that does it is not implemented for Apple's MPS backend -- so

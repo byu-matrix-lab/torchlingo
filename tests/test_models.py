@@ -1,4 +1,5 @@
 import unittest
+import warnings
 
 import torch
 
@@ -645,6 +646,100 @@ class TransformerDeviceCompatibilityTests(unittest.TestCase):
         with torch.no_grad():
             memory = model.encode(src, src_key_padding_mask=src.eq(0))
         self.assertEqual(memory.shape, (1, 6, 32))
+
+
+class NormOrderingIsSelectableAndDefaultsToPostNorm(unittest.TestCase):
+    """Both orderings are available, and the default is the 2017 paper's.
+
+    The **default** is pinned because course material depends on it. Two Lecture 8b
+    slides diagram an encoder block and trace its residual stream, and each is drawn one
+    way for post-norm and the other way for pre-norm. A default that drifted would
+    invalidate them with no diff anywhere near a slide.
+
+    The **option** exists because nearly every Transformer published since 2017 is
+    pre-norm, so a student comparing TorchLingo with a modern reference implementation
+    should be able to run the other arrangement rather than read about it.
+
+    Everything here is asserted on the **built module**, not on the argument that was
+    passed, since the layers are what determine the arithmetic.
+    """
+
+    def _model(self, **kwargs):
+        """Build a small transformer whose layer ordering can be inspected.
+
+        Args:
+            **kwargs: Passed through to ``SimpleTransformer``.
+
+        Returns:
+            SimpleTransformer: A two-layer model, small enough to be free.
+        """
+        return SimpleTransformer(
+            src_vocab_size=50,
+            tgt_vocab_size=50,
+            d_model=32,
+            n_heads=4,
+            num_encoder_layers=2,
+            num_decoder_layers=2,
+            d_ff=64,
+            **kwargs,
+        )
+
+    def test_default_is_post_norm_on_every_layer(self):
+        """Post-norm everywhere by default, not merely on the first layer."""
+        model = self._model()
+        self.assertFalse(model.norm_first)
+        for depth, layer in enumerate(model.transformer.encoder.layers):
+            self.assertFalse(
+                layer.norm_first,
+                f"encoder layer {depth} defaults to pre-norm; the Lecture 8b "
+                "encoder-block slide and docs/docs/concepts/models.md say post-norm",
+            )
+        for depth, layer in enumerate(model.transformer.decoder.layers):
+            self.assertFalse(
+                layer.norm_first,
+                f"decoder layer {depth} defaults to pre-norm; the Lecture 8b "
+                "residual-stream slide and docs/docs/concepts/models.md say post-norm",
+            )
+
+    def test_pre_norm_reaches_every_layer_when_asked_for(self):
+        """``norm_first=True`` must reach the layers, not just the attribute.
+
+        Storing the flag and not passing it down would leave the model post-norm while
+        reporting itself pre-norm, which is the failure this checks for.
+        """
+        model = self._model(norm_first=True)
+        self.assertTrue(model.norm_first)
+        for depth, layer in enumerate(model.transformer.encoder.layers):
+            self.assertTrue(layer.norm_first, f"encoder layer {depth} stayed post-norm")
+        for depth, layer in enumerate(model.transformer.decoder.layers):
+            self.assertTrue(layer.norm_first, f"decoder layer {depth} stayed post-norm")
+
+    def test_config_selects_pre_norm(self):
+        """The config route works, so an experiment need not touch the call site."""
+        model = self._model(config=Config(norm_first=True))
+        self.assertTrue(model.transformer.encoder.layers[0].norm_first)
+
+    def test_explicit_argument_beats_the_config(self):
+        """The house rule: an explicit parameter always wins over config."""
+        model = self._model(norm_first=False, config=Config(norm_first=True))
+        self.assertFalse(model.transformer.encoder.layers[0].norm_first)
+
+    def test_pre_norm_trains_a_step_without_warning(self):
+        """Pre-norm must be usable, not merely constructible.
+
+        PyTorch warns that it is disabling the nested-tensor fast path when
+        ``norm_first=True``. We disable that path ourselves regardless, so the warning
+        describes a decision already made -- and left unfiltered it would surface in
+        every student notebook that tried pre-norm.
+        """
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")  # any warning becomes a failure here
+            model = self._model(norm_first=True)
+            src = torch.tensor([[2, 7, 8, 3]])
+            tgt = torch.tensor([[2, 5, 6, 3]])
+            out = model(src, tgt)
+        self.assertEqual(out.shape, (1, 4, 50))
+        self.assertFalse(model.transformer.encoder.use_nested_tensor)
 
 
 if __name__ == "__main__":

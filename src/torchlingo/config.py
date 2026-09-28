@@ -866,6 +866,7 @@ class Config:
         d_ff: int = 2048,
         dropout: float = 0.1,
         max_seq_length: int = 512,
+        norm_first: bool = False,
         # LSTM model hyperparameters
         lstm_emb_dim: int = 256,
         lstm_hidden_dim: int = 512,
@@ -1024,6 +1025,7 @@ class Config:
         self.d_ff = d_ff
         self.dropout = dropout
         self.max_seq_length = max_seq_length
+        self.norm_first = norm_first
 
         # LSTM model hyperparameters
         self.lstm_emb_dim = lstm_emb_dim
@@ -1364,6 +1366,7 @@ class Config:
             v, 0.0, 1.0, inclusive_high=False
         ),
         "max_seq_length": lambda self, v: self._ensure_positive_int(v),
+        "norm_first": lambda self, v: self._ensure_bool(v),
         "lstm_emb_dim": lambda self, v: self._ensure_positive_int(v),
         "lstm_hidden_dim": lambda self, v: self._ensure_positive_int(v),
         "lstm_num_layers": lambda self, v: self._ensure_positive_int(v),
@@ -2258,6 +2261,34 @@ class Config:
             value (int (positive)): Hidden dimension of the feedforward (MLP) layers within each Transformer block. Usually 4x D_MODEL. See https://docs.pytorch.org/docs/stable/generated/torch.nn.TransformerEncoderLayer.html
         """
         self._validate_and_set("d_ff", value)
+
+    @property
+    def norm_first(self) -> bool:
+        """Return whether each Transformer sublayer normalizes before the residual add.
+
+        ``False`` (the default) is **post-norm**, ``LayerNorm(x + Sublayer(x))``, the
+        ordering of Vaswani et al. 2017 and PyTorch's own default. ``True`` is
+        **pre-norm**, ``x + Sublayer(LayerNorm(x))``, which nearly every Transformer
+        published since 2017 uses because it trains more stably at depth and usually
+        needs no learning-rate warmup.
+
+        The default stays post-norm so the library keeps matching the paper the course
+        teaches from. See https://docs.pytorch.org/docs/stable/generated/torch.nn.Transformer.html
+
+        Returns:
+            bool: True for pre-norm, False for post-norm.
+        """
+
+        return self._get_field("norm_first")
+
+    @norm_first.setter
+    def norm_first(self, value: bool) -> None:
+        """Set whether each Transformer sublayer normalizes before the residual add.
+
+        Args:
+            value (bool): True for pre-norm, False for post-norm.
+        """
+        self._validate_and_set("norm_first", value)
 
     @property
     def dropout(self) -> float:
