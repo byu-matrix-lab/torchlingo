@@ -38,6 +38,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from torchlingo.config import get_default_config
 from torchlingo.models import SimpleSeq2SeqLSTM
 from torchlingo.training import train_model
+from torchlingo.training_checkpoint import TrainingCheckpointer
 from torchlingo.visualization import format_attention, plot_attention
 
 CFG = get_default_config()
@@ -205,7 +206,21 @@ def train_one(label: str, attention: bool, attn_type: str, loaders) -> tuple:
     optimizer = optim.Adam(model.parameters(), lr=3e-3)
     print(f"\n=== {label} ===", flush=True)
     result = train_model(
-        model, train_loader, val_loader, num_epochs=EPOCHS, optimizer=optimizer
+        model,
+        train_loader,
+        val_loader,
+        num_epochs=EPOCHS,
+        optimizer=optimizer,
+        # Twelve epochs on a 4,000-row toy task finishes in under a minute, so
+        # nothing here is at risk of being lost. It checkpoints anyway, because
+        # this file is an example and the habit is part of what it teaches --
+        # and because `label` gives each of the three configurations a distinct
+        # name, which is what makes checkpointing a loop safe at all.
+        checkpointer=TrainingCheckpointer(
+            experiment_name=label.lower().replace(' ', '-'),
+            checkpoint_dir=get_default_config().checkpoint_dir / 'attention-alignment',
+            verbose=False,
+        ),
     )
     return model, result.val_losses[-1]
 

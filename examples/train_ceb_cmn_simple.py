@@ -18,6 +18,7 @@ from torchlingo.data_processing.dataset import NMTDataset
 from torchlingo.data_processing.batching import collate_fn
 from torchlingo.models import SimpleTransformer
 from torchlingo.training import train_model
+from torchlingo.training_checkpoint import TrainingCheckpointer
 from torchlingo.checkpoint import load_checkpoint, save_checkpoint
 
 # Confirm that gpu is available
@@ -165,6 +166,14 @@ result = train_model(
     gradient_clip=1.0, device=device, config=cfg,
     save_dir=cfg.checkpoint_dir, use_amp=(device.type == 'cuda'),
     accumulation_steps=ACCUMULATION_STEPS,
+    # `save_dir` keeps the best model; this makes the run resumable. This script
+    # is the long one -- Cebuano to Mandarin over many epochs -- so it is the
+    # example where losing the run hurts most.
+    checkpointer=TrainingCheckpointer(
+        experiment_name='ceb-cmn-simple',
+        checkpoint_dir=cfg.checkpoint_dir / 'resumable',
+        verbose=True,
+    ),
 )
 
 

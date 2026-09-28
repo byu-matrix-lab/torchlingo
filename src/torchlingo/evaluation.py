@@ -254,7 +254,8 @@ def compute_chrf(
         word_order: Include word n-grams up to this order (0 = character-only, 2 = default).
 
     Returns:
-        CHRF object with .score attribute (0-100).
+        CHRF object with ``.score`` (0-100) and a ``.signature`` string recording
+        how the score was produced, including ``nw:`` for ``word_order``.
 
     Example:
         >>> preds = ["Le chat est assis", "Bonjour"]
@@ -274,12 +275,32 @@ def compute_chrf(
         100.0
         >>> compute_bleu(["Hello world"], ["Hello world"]).score
         0.0
+
+        The signature declares ``word_order``, which is the setting most likely to
+        make two chrF numbers incomparable:
+
+        >>> "nw:2" in compute_chrf(["Hello world"], ["Hello world"]).signature
+        True
+        >>> "nw:0" in compute_chrf(["a b"], ["a c"], word_order=0).signature
+        True
     """
-    return sacrebleu.corpus_chrf(
-        predictions,
-        _as_reference_streams(references),
-        word_order=word_order,
+    # The class API rather than `corpus_chrf`, for the signature. The functional
+    # form returns a score with no way back to the metric that produced it, so
+    # `get_signature()` is unreachable from it.
+    chrf_metric = sacrebleu.metrics.CHRF(word_order=word_order)
+    chrf_result = chrf_metric.corpus_score(
+        predictions, _as_reference_streams(references)
     )
+
+    # chrF needs its signature MORE than BLEU does, and this is the case that
+    # proves it. `word_order` defaults to 2 here (chrF++) and to 0 in sacreBLEU's
+    # own `corpus_chrf`. That one undeclared parameter caused two separate
+    # confusions in this repository: a correct implementation judged broken by
+    # 0.45 points against the wrong baseline, and a bug note stating the right
+    # value beside a snippet returning the wrong one. The signature says `nw:2`,
+    # so neither can recur silently.
+    chrf_result.signature = str(chrf_metric.get_signature())
+    return chrf_result
 
 
 def compute_ter(
@@ -299,7 +320,8 @@ def compute_ter(
         normalized: If True, apply normalization (lowercase, punctuation removal).
 
     Returns:
-        TER object with .score attribute (0-100, lower is better).
+        TER object with ``.score`` (0-100, lower is better) and a ``.signature``
+        string recording how the score was produced.
 
     Example:
         Note the direction: TER is an error rate, so **lower is better** and a
@@ -317,12 +339,26 @@ def compute_ter(
         scored 80.00 both correctly and under the old reference-shape bug, so
         it could never have caught it; this one reads 16.67 correctly and 0.00
         when the references are misread.
+
+        TER lowercases by default and BLEU does not, which the signature is the
+        only place to find out:
+
+        >>> "case:lc" in compute_ter(preds, refs).signature
+        True
+        >>> "case:mixed" in compute_bleu(preds, refs).signature
+        True
     """
-    return sacrebleu.corpus_ter(
-        predictions,
-        _as_reference_streams(references),
-        normalized=normalized,
-    )
+    # Class API for the signature, as in compute_chrf above.
+    ter_metric = sacrebleu.metrics.TER(normalized=normalized)
+    ter_result = ter_metric.corpus_score(predictions, _as_reference_streams(references))
+
+    # TER's signature records `norm`, `punct` and `asian`, all of which change the
+    # score and none of which are visible in the number. It also records
+    # `case:lc` -- TER lowercases by default where BLEU does not, so a TER and a
+    # BLEU quoted side by side were computed on differently-cased text. A reader
+    # cannot know that from two bare numbers.
+    ter_result.signature = str(ter_metric.get_signature())
+    return ter_result
 
 
 def evaluate_model(
