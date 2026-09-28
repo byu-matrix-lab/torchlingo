@@ -338,6 +338,10 @@ def train_model(
     stop_training = False
     no_improve_steps = 0
     start_epoch = 0
+    # Batches of start_epoch already trained before a mid-epoch save. With a
+    # shuffled loader the skipped batches are not the same ones that were
+    # trained, but the step count, and so the learning-rate schedule, is exact.
+    resume_skip = 0
 
     # Resume before the loop starts, so a re-run of the same cell after a
     # disconnect continues rather than starting over. Failing to resume is not
@@ -360,6 +364,7 @@ def train_model(
             print(f"Could not resume from checkpoint ({exc}); starting fresh.")
         else:
             start_epoch = state.epoch + 1
+            resume_skip = state.batches_into_epoch
             global_step = state.global_step
             best_val = state.best_val_loss
             train_losses = list(state.train_losses)
@@ -391,6 +396,8 @@ def train_model(
             tqdm(train_loader, desc=f"Epoch {epoch + 1}", total=num_batches),
             start=1,
         ):
+            if epoch == start_epoch and step <= resume_skip:
+                continue
             src = src.to(device)
             tgt = tgt.to(device)
             tgt_input = tgt[:, :-1]
@@ -443,8 +450,13 @@ def train_model(
 
                 # The checkpointer decides whether enough time or steps have
                 # passed; this stays a single call so the loop stays readable.
+                # Mid-epoch, the last *completed* epoch is the one before this.
                 if checkpointer is not None:
-                    checkpointer.update(epoch=epoch, global_step=global_step)
+                    checkpointer.update(
+                        epoch=epoch - 1,
+                        batches_into_epoch=step,
+                        global_step=global_step,
+                    )
                     checkpointer.maybe_save(model, opt, sched)
 
                 # stop when either explicit step_limit or config.num_steps reached
@@ -590,6 +602,16 @@ def train_model(
 
         if val_loader is None:
             print(f"Epoch {epoch + 1}/{num_epochs} | Train: {avg_train:.4f}")
+            # The epoch-boundary save below sits after validation, so without
+            # this a run with no val_loader never recorded a finished epoch.
+            if checkpointer is not None:
+                checkpointer.update(
+                    epoch=epoch,
+                    batches_into_epoch=0,
+                    global_step=global_step,
+                    train_loss=avg_train,
+                )
+                checkpointer.save(model, opt, sched)
             if stop_training:
                 break
             continue
@@ -624,6 +646,7 @@ def train_model(
         if checkpointer is not None:
             checkpointer.update(
                 epoch=epoch,
+                batches_into_epoch=0,
                 global_step=global_step,
                 train_loss=avg_train,
                 val_loss=avg_val,

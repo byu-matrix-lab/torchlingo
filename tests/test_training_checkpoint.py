@@ -231,6 +231,107 @@ class TestTrainModelIntegration(unittest.TestCase):
         self.assertEqual(len(result.train_losses), 4)
         self.assertEqual(second.state.epoch, 3)
 
+    class _Interruptible:
+        """Four batches per epoch; raises after ``die_after`` batches in total.
+
+        Stands in for a Colab disconnect, which kills the loop wherever it is.
+        """
+
+        def __init__(self, die_after=None):
+            src = torch.tensor([[2, 5, 3], [2, 6, 3]], dtype=torch.long)
+            tgt = torch.tensor([[2, 8, 3], [2, 9, 3]], dtype=torch.long)
+            self.batches = [(src, tgt)] * 4
+            self.die_after = die_after
+            self.served = 0
+
+        def __len__(self):
+            return len(self.batches)
+
+        def __iter__(self):
+            for batch in self.batches:
+                if self.die_after is not None and self.served >= self.die_after:
+                    raise KeyboardInterrupt("simulated disconnect")
+                self.served += 1
+                yield batch
+
+    def _run(self, loader, num_epochs, checkpointer=None):
+        """Train a fresh model; return the result and the final learning rate."""
+        from torchlingo.config import Config
+
+        torch.manual_seed(0)
+        model = self._tiny_model()
+        opt = optim.Adam(model.parameters(), lr=1e-3)
+        result = train_model(
+            model,
+            loader,
+            num_epochs=num_epochs,
+            optimizer=opt,
+            config=Config(warmup_steps=2, num_workers=0),
+            checkpointer=checkpointer,
+        )
+        return result, opt.param_groups[0]["lr"]
+
+    def _checkpointer(self, **kwargs):
+        return TrainingCheckpointer(
+            "demo",
+            checkpoint_dir=self.dir,
+            verbose=False,
+            save_every_seconds=0,
+            **kwargs,
+        )
+
+    def test_resume_restores_the_scheduler(self):
+        """A resumed run must land on the same learning rate as an unbroken one.
+
+        If the scheduler were not restored, the resumed run would restart its
+        warmup, and on a real run that is a wrong learning rate for thousands of
+        steps with nothing printed to say so.
+        """
+        _, unbroken_lr = self._run(self._Interruptible(), num_epochs=3)
+
+        self._run(
+            self._Interruptible(), num_epochs=2, checkpointer=self._checkpointer()
+        )
+        _, resumed_lr = self._run(
+            self._Interruptible(), num_epochs=3, checkpointer=self._checkpointer()
+        )
+        self.assertAlmostEqual(resumed_lr, unbroken_lr)
+
+    def test_mid_epoch_resume_finishes_the_interrupted_epoch(self):
+        """A save partway through an epoch must not make the resume skip its rest.
+
+        A periodic save almost always lands mid-epoch. This run dies six batches
+        in: epoch 0 finished, epoch 1 half done. The resume must train exactly
+        the twelve steps an unbroken three-epoch run takes, record all three
+        epochs, and end on the same learning rate.
+        """
+        _, unbroken_lr = self._run(self._Interruptible(), num_epochs=3)
+
+        with self.assertRaises(KeyboardInterrupt):
+            self._run(
+                self._Interruptible(die_after=6),
+                num_epochs=3,
+                checkpointer=self._checkpointer(save_every_steps=1),
+            )
+        state = self._checkpointer().load(self._tiny_model())
+        self.assertEqual((state.epoch, state.batches_into_epoch), (0, 2))
+
+        checkpointer = self._checkpointer()
+        result, resumed_lr = self._run(
+            self._Interruptible(), num_epochs=3, checkpointer=checkpointer
+        )
+        self.assertEqual(checkpointer.state.global_step, 12)
+        self.assertEqual(len(result.train_losses), 3)
+        self.assertAlmostEqual(resumed_lr, unbroken_lr)
+
+    def test_a_run_without_validation_still_records_its_epochs(self):
+        """The epoch-boundary save used to sit after validation, so it never ran."""
+        checkpointer = self._checkpointer()
+        self._run(self._Interruptible(), num_epochs=2, checkpointer=checkpointer)
+        state = self._checkpointer().load(self._tiny_model())
+        self.assertEqual(state.epoch, 1)
+        self.assertEqual(len(state.train_losses), 2)
+
     def test_corrupt_checkpoint_does_not_prevent_training(self):
         """Failing to resume should cost the history, not the ability to train."""
         checkpointer = TrainingCheckpointer(

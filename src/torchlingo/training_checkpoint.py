@@ -139,7 +139,12 @@ class CheckpointState:
     """Training progress, everything needed to resume a run.
 
     Attributes:
-        epoch (int): Last completed epoch, 0-indexed.
+        epoch (int): Last completed epoch, 0-indexed; -1 if a save happened
+            partway through the first epoch.
+        batches_into_epoch (int): Batches of the *next* epoch already trained
+            when the save was written. Zero at an epoch boundary. A periodic
+            save usually lands mid-epoch, and without this a resumed run would
+            skip the rest of that epoch.
         global_step (int): Total optimizer steps taken.
         best_val_loss (float): Best validation loss seen so far.
         train_losses (list[float]): Training loss per epoch.
@@ -150,6 +155,7 @@ class CheckpointState:
     """
 
     epoch: int = 0
+    batches_into_epoch: int = 0
     global_step: int = 0
     best_val_loss: float = float("inf")
     train_losses: list[float] = field(default_factory=list)
@@ -356,6 +362,7 @@ class TrainingCheckpointer:
         self,
         *,
         epoch: int | None = None,
+        batches_into_epoch: int | None = None,
         global_step: int | None = None,
         train_loss: float | None = None,
         val_loss: float | None = None,
@@ -364,6 +371,8 @@ class TrainingCheckpointer:
         """Record progress without writing anything to disk."""
         if epoch is not None:
             self.state.epoch = epoch
+        if batches_into_epoch is not None:
+            self.state.batches_into_epoch = batches_into_epoch
         if global_step is not None:
             self.state.global_step = global_step
         if train_loss is not None:
