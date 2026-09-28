@@ -40,6 +40,7 @@ pip install -e ".[dev]"
 
 ```bash
 scripts/preflight.sh                 # everything CI checks — see the workflow section
+scripts/student_path.sh NOTEBOOK     # a notebook as a Colab student runs it — see the course section
 ruff check --fix src tests && ruff format src tests
 python -m unittest discover tests
 python -m unittest tests.test_config -v                                    # one module
@@ -215,6 +216,18 @@ So code that does not parse must declare `blanks`, and a `blanks` declaration mu
 real blanks — checked both ways, or the marker rots into a licence to ship broken cells. Note that
 `!pip install` can appear *inside* a `try` block, so a plain `compile()` flags notebooks that run
 perfectly well.
+
+**Green CI is not a student's run, in two ways.** CI executes notebooks on x86 Linux against the
+repository's own install, with `data/` linked in. Students have neither:
+
+| | CI | student | what it missed |
+|---|---|---|---|
+| **environment** | editable install, the checkout's `data/` | PyPI, only what a cell downloads | tutorials 4 and 5 read `data/` a wheel lacks; tutorial 3 needs a checkpoint from another runtime |
+| **hardware** | x86 Linux | Colab GPUs, and Apple Silicon on the lab's Macs | an op unimplemented on MPS made every decoder raise `NotImplementedError` |
+
+For the first, run **`scripts/student_path.sh NOTEBOOK`** before shipping a notebook students open
+from a badge: a fresh environment, the notebook's own install from PyPI, Colab faked. For the
+second there is no CI answer; a device-specific bug shows up on a Mac or in Colab or not at all.
 
 ## Every training run checkpoints, and it is not a flag
 

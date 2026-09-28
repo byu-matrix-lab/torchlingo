@@ -103,6 +103,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #165 | Show resume on the Lecture 7 toy model before 8a needs it | **L7** | Open — 8a introduces `TrainingCheckpointer` cold, on a two-hour run |
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162** |
 | #167 | Prune merged branches and stale worktrees | **hyg** | Open — kept on purpose while PR self-closing is unexplained; **ask before deleting** |
+| #168 | Make the student-path run part of shipping a notebook | **hyg** | Open — `scripts/student_path.sh` exists and works; fold into the executor, schedule it |
 | #164 | Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9 | **L9** | Open — **ours**, per Cowork's Sep 28 baton; `--check` warns on every run |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
@@ -260,8 +261,24 @@ Both are deletions, so **ask Eric first**. Worktrees: `git worktree remove`. Bra
 whose PR is MERGED, checked per branch, never by pattern. **Done when** `git worktree list` shows
 only the main checkout and no merged PR's branch remains on `origin`.
 
-Knock-on: **PR #55** is what **Task #85** and **Task #91** wait on. (Task, not PR: PRs #84 and #85 exist and
-are unrelated — the collision `CLAUDE.md`'s numbering rule describes.)
+### #168 Make the student-path run part of shipping a notebook
+
+`scripts/student_path.sh` runs a notebook the way a Colab student does: a fresh environment, the
+notebook's own install cell pulling from PyPI, `google.colab` faked, a scratch Drive. It was built
+ad hoc on 2026-09-28 and found what CI could not: tutorials 4 and 5 reading `data/` a wheel lacks,
+and tutorial 3 needing a checkpoint from another runtime (#166). `CLAUDE.md` now says to run it.
+
+What is left is making it harder to forget:
+
+- **Fold it into `scripts/execute_notebooks.py`** as `--as-student`, so one tool knows which
+  notebooks exist and which `requires` rule out a local run, instead of a second list by hand.
+- **A scheduled CI job** — not per-PR, since it installs from PyPI and tests what is released, not
+  what the PR changes. Weekly, and after every release tag, is the useful cadence.
+- **One install per notebook.** Notebooks in one invocation share an environment, so only the
+  first exercises its install cell. Correct, and documented, but a trap.
+
+**Done when** the executor has the mode and a scheduled job runs it on every course notebook
+and tutorial.
 
 ### #147 A9 has no notebook, and one notebook would serve it and Lecture 9
 
