@@ -204,6 +204,46 @@ model = SimpleTransformer(
 )
 ```
 
+#### Post-norm by default, pre-norm on request
+
+Where a layer puts its normalization is a real architectural choice, and TorchLingo exposes it:
+
+```
+x = LayerNorm(x + Sublayer(x))        # post-norm — the default, and the 2017 paper
+x = x + Sublayer(LayerNorm(x))        # pre-norm  — norm_first=True
+```
+
+```python
+paper = SimpleTransformer(src_vocab_size=10000, tgt_vocab_size=10000)
+modern = SimpleTransformer(src_vocab_size=10000, tgt_vocab_size=10000, norm_first=True)
+```
+
+Both have **exactly the same parameters** — the same tensors in the same shapes, applied in a
+different order. Only the arithmetic changes.
+
+**The default is post-norm**, matching *Attention Is All You Need*, because that is the paper
+this course teaches from. If you diagram a TorchLingo encoder block or trace its residual
+stream, follow the paper.
+
+**Pre-norm is what nearly everything published since 2017 uses.** It keeps a clean residual path
+from input to output, which makes gradients better behaved in deep stacks; in practice it trains
+more stably and usually needs no learning-rate warmup. If you are comparing TorchLingo against a
+modern reference implementation and the training curves disagree, this is one of the first
+differences to check — and now you can just switch it rather than read about it.
+
+At the three-layer depth this course uses, the stability difference that motivated pre-norm
+barely arises, so the default costs you nothing. It matters at twelve layers and more.
+
+Either way it is selectable through the config too, so a sweep need not touch the call site:
+
+```python
+from torchlingo.config import Config
+
+model = SimpleTransformer(
+    src_vocab_size=10000, tgt_vocab_size=10000, config=Config(norm_first=True)
+)
+```
+
 ### Transformer Architecture Diagram
 
 ```

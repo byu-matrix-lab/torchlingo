@@ -81,14 +81,13 @@ describes last week will mislead every lecture at once rather than one of them.
 
 | | Task | Critical for | State |
 |---|---|---|---|
-| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | **Wed Sep 30** — say by Tue Sep 29 if it will not be ready |
-| #153 | Pre-norm answered for Cowork: `SimpleTransformer` is post-norm | **L8b** | **Answered** — deliver in the next hand-off; both 8b slides stand |
+| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | **Cowork writes it** (Eric, Sep 27) — eleven suggestions delivered from here |
 | #154 | Execute only the zero-dependency notebooks | **hyg** | **Decided: keep CI lightweight** — structural half merged |
 | #155 | A8's "What To Do" overlaps the kickoff notebook's first four steps | **L8a** | **Your call** — Cowork flagged it and did not act |
 | #145 | Say which assignment each notebook jump-starts | **hyg** | **Your call** — four proposed; blocks #146 |
 | #146 | Stamp the purpose cell into all ten notebooks, and gate it | **hyg** | Open — mechanics done in PR #117; waits on #144 and #145 |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
-| #148 | **A15** is missing from the schedule | **hyg** | Narrowed — A1 to A3 arrived with Cowork's update; **A7 is deliberate** |
+| #148 | **A15** is missing from the schedule | **hyg** | **Cowork fills it in** (Eric, Sep 27) — they hold the lecture detail |
 | #156 | The restructure orphaned #148's unanswered question | **hyg** | **Before the next baton** — re-raise it where they will read |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **10+** | Open — it wrote a 2-run report over a 21-run source |
@@ -350,6 +349,11 @@ assignments. Worth establishing which, because it is no longer only a documentat
 assignment the schedule does not name. If A7 exists and is unlisted, the validator will reject a
 correct declaration.
 
+**Narrowed to A15**, and **assigned to Cowork** by Eric on 2026-09-27: filling the row needs the
+lecture detail they hold and we do not. A1 to A3 arrived with their schedule update and A7 is
+deliberate. Our part is to ask clearly and to keep asking — the question was Question 4 of the
+ninth entry, came back unanswered, and is the reason the re-raise rule in `CLAUDE.md` exists.
+
 ### #151 The LSTM asks for dropout it cannot apply
 
 Found 2026-09-26 while checking whether #7's deprecation warnings were really gone. They are —
@@ -426,9 +430,18 @@ keeps the corpus and checkpoints out, so a remote would carry scripts and notes 
 
 ### #152 A8 kickoff notebook for Lecture 8a
 
-**Cowork's request, and it has the nearest deadline on this list: Lecture 8a is Wed Sep 30.**
-They asked to be told by **Tue Sep 29** if it will not be ready, because a deck slide pointing at
-a notebook that does not exist is worse than no slide.
+**Cowork writes this, not us.** Eric, 2026-09-27: they have full visibility into the assignment
+details and we do not, so our part is suggestions. Eleven of them are in the 2026-09-27 outgoing
+hand-off, section 4, found by drafting far enough to hit them. The three that change the design:
+**cap length before splitting** (capping after it puts the student below A8's own 100,000 floor),
+**make the contamination check raise rather than print** (dedupe-first makes failure impossible,
+so a printed warning is the only way a contaminated split survives), and **"write the six files"
+is ambiguous** — TorchLingo reads TSV, six implies `.src`/`.tgt` per split, and only the handout
+settles it.
+
+**The gap that still needs Eric:** the notebook mounts Drive, so neither session can execute it —
+the executor only runs `docs/docs/tutorials/`. One Colab run against a real A5 corpus before
+Wednesday closes it. Without that it meets eighteen students having never run end to end.
 
 **Why it exists, which is the strongest argument in the request.** Lectures 4, 5 and 6 each had
 an in-class activity that started the assignment. **The largest assignment in the course has
@@ -455,20 +468,6 @@ histogram, not in retyping a groupby.
 
 Step 10 is where #135 stops being abstract: this notebook is the one place a student's first real
 training run begins, and it must not be the place that teaches them to run without checkpoints.
-
-### #153 Pre-norm answered for Cowork: `SimpleTransformer` is post-norm
-
-**Answered 2026-09-27; deliver it in the next hand-off.** Two slides in the 8b deck depend on it
-and both are correct as written.
-
-`SimpleTransformer` constructs `nn.Transformer` without `norm_first`, so PyTorch's default of
-`False` applies — confirmed on the built module rather than inferred from the constructor:
-`encoder.layers[0].norm_first is False`. That is post-norm, the ordering of the 2017 paper, so
-the encoder-block anatomy slide and the residual-stream slide both stand.
-
-Worth keeping the method as much as the answer: the question was settled by building the model
-and reading the attribute, because the constructor does not mention the argument and a reader
-cannot tell from the call site which default is in force.
 
 ### #154 The notebook gate still runs tutorials only, and `course/` has seven
 
