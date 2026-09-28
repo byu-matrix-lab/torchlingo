@@ -1,418 +1,242 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code working in this repository.
 
-## Project Overview
+## Project overview
 
 **TorchLingo exists first and foremost to support CS 479.** Eric's framing, 2026-09-26.
-Third-party use of the library, independent of the course, is a later concern.
+Third-party use of the library is a later concern.
 
-That is a tie-breaker, not a slogan. When a choice could serve either a CS 479 student or a
-general newcomer, it serves the student: scope is judged against the course, the entry point
-that matters is the one an enrolled student opens, and a gap only matters if a lecture or an
-assignment walks into it. `notes/CS479_COURSE_ROADMAP.md` is the single source of truth for
-what the course needs, and it is where that judgement gets made.
+That is a tie-breaker, not a slogan: when a choice could serve either a CS 479 student or a
+general newcomer, it serves the student, and a gap only matters if a lecture or an assignment
+walks into it. **`notes/CS479_COURSE_ROADMAP.md` is the single source of truth** for what the
+course needs, and where that judgement gets made.
 
-It is still a clean, documented PyTorch NMT library with Transformer and LSTM
-implementations — that is *how* it serves the course, and it keeps the general-audience option
-open for later without paying for it now.
+It is still a clean, documented PyTorch NMT library with Transformer and LSTM implementations —
+that is *how* it serves the course, and it keeps the general-audience option open for later
+without paying for it now.
 
-## Environment Setup
+**Goals, in priority order:**
 
-**Virtual Environment**
-- Use the repository virtual environment at `.venv` if present; otherwise create it at the repo root
-- macOS / zsh / Linux setup:
-  ```bash
-  python3 -m venv .venv
-  source .venv/bin/activate
-  pip install -e ".[dev]"
-  ```
-- Windows setup:
-  ```bash
-  python -m venv .venv
-  .venv\Scripts\activate
-  pip install -e ".[dev]"
-  ```
-- Always use the activated venv for every `python`/`pip` invocation
+1. **CS 479 works.** Twenty-four students, on their own data, against dated assignments. A
+   defect on that path outranks anything else in this file.
+2. **Educational clarity** — clean, readable code designed for learning. The reason the library
+   exists rather than a configured toolkit, and what we decline to trade for speed.
+3. **Documentation that executes** — runnable examples, generated numbers rather than typed ones.
+4. **Simplicity** — avoid over-engineering; focus on core NMT concepts.
+5. **Accessibility** — beginner-friendly, Google-style docstrings.
 
-## Common Development Commands
+## Environment
 
-**Linting & Formatting** (ALWAYS run after code changes):
+Use the repository venv at `.venv`; create it at the repo root if absent. Activate it for every
+`python`/`pip` invocation.
+
 ```bash
-ruff check --fix src tests
-ruff format src tests
+python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
 ```
 
-**Testing**:
+## Commands
+
 ```bash
-# Run all tests
+scripts/preflight.sh                 # everything CI checks — see the workflow section
+ruff check --fix src tests && ruff format src tests
 python -m unittest discover tests
-
-# Run specific test module
-python -m unittest tests.test_config -v
-
-# Run single test case
-python -m unittest tests.test_preprocessing.TestLoadDataParallelFiles.test_load_parallel_txt_files -v
+python -m unittest tests.test_config -v                                    # one module
+python -m unittest tests.test_preprocessing.TestLoadDataParallelFiles -v   # one case
+./scripts/serve_docs.sh              # or: mkdocs build
+./scripts/build_wheel.sh             # or: python -m build
 ```
 
-**Documentation**:
-```bash
-# Serve docs locally (script in scripts/)
-./scripts/serve_docs.sh
+## Architecture
 
-# Build documentation
-mkdocs build
-```
-
-**Building Package**:
-```bash
-# Build wheel (script in scripts/)
-./scripts/build_wheel.sh
-
-# Or manually
-python -m build
-```
-
-## Code Architecture
-
-### Module Organization
-
-The codebase is organized into focused modules under `src/torchlingo/`:
-
-- **`config.py`**: Central configuration system with `Config` dataclass and module-level constants
-- **`models/`**: Neural network architectures
-  - `transformer_simple.py`: Transformer encoder-decoder with sinusoidal positional encoding
-  - `lstm_simple.py`: LSTM seq2seq baseline
-  - `positional.py`: Sinusoidal positional encoding (Vaswani et al., 2017)
-- **`data_processing/`**: Dataset and vocabulary management
-  - `dataset.py`: `NMTDataset` for loading parallel corpora
-  - `vocab.py`: `BaseVocab`, `SimpleVocab`, `SentencePieceVocab` implementations
-  - `batching.py`: Collate functions for DataLoader
-- **`preprocessing/`**: Data preprocessing and tokenization
-  - `base.py`: Core data loading utilities (`load_data`, `save_data`, `parallel_txt_to_dataframe`)
-  - `sentencepiece.py`: SentencePiece model training and tokenization
-  - `multilingual.py`: Multilingual data handling and back-translation
-- **`training.py`**: High-level training loop with `train_model()`, `TrainResult`, optional TensorBoard logging
-- **`inference.py`**: Decoding utilities (`greedy_decode`, `beam_search_decode`, `translate_batch`)
-
-### Key Design Patterns
-
-**Config Pattern**: All functions follow this pattern for configuration:
-```python
-def some_function(param1, param2=None, config: Optional[Config] = None):
-    cfg = config if config is not None else get_default_config()
-    param2 = param2 if param2 is not None else cfg.param2
-    # ... use cfg and param2
-```
-Explicit function parameters ALWAYS take precedence over config values.
-
-**Model Interface**:
-- Transformer models expose `encode()` and `decode()` methods
-- LSTM models expose `src_embed`, `encoder`, `decoder`, `output` modules
-- Both support the same `forward(src, tgt)` signature for training
-- Inference functions detect model type via `hasattr()` checks
-
-**Vocabulary Interface**:
-- All vocabs inherit from `BaseVocab` protocol
-- Must implement: `encode(text, add_special_tokens=True)` → `List[int]`
-- Must implement: `decode(ids, skip_special_tokens=True)` → `str`
-- Special token indices (`pad_idx`, `sos_idx`, `eos_idx`) can be stored as vocab attributes
-
-**Data Flow**:
-1. Raw parallel text → `load_data()` or `parallel_txt_to_dataframe()` → pandas DataFrame
-2. DataFrame → `NMTDataset(data_file, src_vocab, tgt_vocab)` → PyTorch Dataset
-3. Dataset → `DataLoader` with custom collate function → batched tensors
-4. Training: `train_model(model, train_loader, val_loader)` → `TrainResult`
-5. Inference: `translate_batch(model, sentences, src_vocab, tgt_vocab)` → translated strings
-
-### Special Features
-
-**SentencePiece Integration**:
-- Train models with `train_sentencepiece(input_files, model_prefix, vocab_size)`
-- Load with `SentencePieceVocab(model_path)`
-- Special tokens are embedded in the SentencePiece model during training
-
-**TensorBoard Support**:
-- Enabled via `config.use_tensorboard = True`
-- Logs to `config.tensorboard_dir / config.experiment_name`
-- Tracks train/val loss, learning rate, per-step and per-epoch metrics
-
-**Multilingual Training**:
-- `preprocessing.multilingual` provides utilities for multi-parallel corpora
-- Language pair identification and filtering
-- Back-translation data augmentation support
-
-## Coding Conventions
-
-**Naming**:
-- Constants: `UPPER_SNAKE_CASE` (e.g., `DATA_DIR`, `VOCAB_SIZE`)
-- Classes: `PascalCase` (e.g., `Config`, `SimpleTransformer`)
-- Functions/variables: `snake_case` (e.g., `load_data`)
-- Private names: leading underscore (`_resolve_device`)
-
-**Type Hints**: Annotate public functions and methods (use `Optional[...]`, `Union[...]` where needed)
-
-**Docstrings**: Google style with Args, Returns, Raises, and Examples for public APIs. Keep examples runnable and concise.
-
-**Imports**: Inside the package prefer relative imports (e.g., `from ..config import Config`)
-
-## Workflow After Code Changes
-
-ALWAYS complete these steps after making code changes:
-
-1. **Format and Lint**:
-   ```bash
-   ruff check --fix src tests
-   ruff format src tests
-   ```
-
-2. **Run Tests**:
-   ```bash
-   # Run relevant tests or full suite if core behavior changed
-   python -m unittest discover tests
-   ```
-
-3. **Update Documentation** (if needed):
-   - Search for usages of edited functions/classes in `docs/` folder
-   - Update or add documentation as needed
-   - Docs should be tailored to beginners with clear explanations and code examples
-
-4. **Run `scripts/preflight.sh` before pushing.** It runs exactly what CI runs, cheapest
-   gate first, and stops at the first failure.
-
-   ```bash
-   scripts/preflight.sh            # ~50s: static gates, both test runners, doctests, docs
-   scripts/preflight.sh --quick    # ~1s:  the four static gates only
-   scripts/preflight.sh --all      # also executes the runnable notebooks (minutes)
-   ```
-
-   **CI gates seven things across four jobs, and running them from memory means running
-   most of them.** The one that gets forgotten is the one that fails. On 2026-09-28 a pull
-   request burned a full CI cycle on `render_report.py --check` — 0.4 seconds locally —
-   because a generated report had been hand-edited. A GitHub round trip is four to six
-   minutes; `--quick` would have caught it before the push.
-
-   The gates it covers, in order: `ruff check`, `ruff format --check`,
-   `render_report.py --check`, `notebook_meta.py --check`, the suite under **both** pytest
-   and `unittest discover`, `--doctest-modules`, `mkdocs build --strict`, and optionally
-   `execute_notebooks.py`.
-
-## Pull Requests
-
-### Say "PR #X" and "Task #Y", never a bare `#N`
-
-The two numbering schemes overlap almost completely — as of 2026-09-26 tasks run
-to #118 and pull requests to #91, so **every number below 92 names one of each**.
-Write **"PR #37"** for a pull request and **"Task #37"** for a task-list item, in
-prose, commit messages and GitHub comments alike.
-
-*These figures go stale by design; the overlap only ever grows, so the rule gets
-stronger rather than weaker as they age. Earlier text said tasks ran to #62 and
-PRs to #42.*
-
-This is not pedantry. Task #37 ("stacked PRs fight the stale-review rule") was
-retired in the same breath as PR #37 (the `val_losses` fix) was listed as open
-and awaiting review, and both were called "#37". On GitHub there is a second
-reason: a bare `#N` in a comment auto-links to the pull request of that number,
-so an unqualified task reference silently becomes a wrong link.
-
-Task *subjects* keep the bare `#N` prefix. This is about how they are referred
-to, not how they are titled.
-
-### Do not stack pull requests
-
-Every PR targets `main`. If a change depends on
-work that is not merged yet, wait for it to merge rather than opening a PR whose
-base is another PR.
-
-This is a decision made on evidence, not taste. Stacked PRs have failed in three
-distinct ways in this repository:
+Modules under `src/torchlingo/`:
 
 | | |
 |---|---|
+| `config.py` | `Config` dataclass and module-level constants |
+| `models/` | `transformer_simple.py`, `lstm_simple.py`, `positional.py` (sinusoidal encoding) |
+| `data_processing/` | `dataset.py` (`NMTDataset`), `vocab.py` (`BaseVocab`, `SimpleVocab`, `SentencePieceVocab`), `batching.py` (collate, `create_dataloaders`) |
+| `preprocessing/` | `base.py` (`load_data`, `save_data`, `parallel_txt_to_dataframe`, `split_data`), `sentencepiece.py`, `multilingual.py` |
+| `training.py` | `train_model()`, `TrainResult`, optional TensorBoard |
+| `inference.py` | `greedy_decode`, `beam_search_decode`, `translate_batch` |
+| `diagnostics.py` | `uniform_loss`, `check_contamination`, `check_gradients`, and friends |
+
+**Config pattern.** Every function takes an optional `Config`, and **explicit parameters always
+win**:
+
+```python
+def f(param=None, config: Optional[Config] = None):
+    cfg = config if config is not None else get_default_config()
+    param = param if param is not None else cfg.param
+```
+
+**Interfaces.** Transformers expose `encode()`/`decode()`; LSTMs expose `src_embed`, `encoder`,
+`decoder`, `output`. Both share `forward(src, tgt)`, and inference detects the type with
+`hasattr()`. Vocabs inherit `BaseVocab` and must implement `encode(text, add_special_tokens=True)
+-> List[int]` and `decode(ids, skip_special_tokens=True) -> str`; `pad_idx`, `sos_idx` and
+`eos_idx` may be attributes.
+
+**Data flow.** Raw parallel text → `load_data()` → DataFrame → `NMTDataset` → `DataLoader` with a
+collate function → `train_model()` → `TrainResult`; then `translate_batch()`.
+
+**Also available.** SentencePiece (`train_sentencepiece`, then `SentencePieceVocab`; special
+tokens are embedded in the model). TensorBoard via `config.use_tensorboard`, logging to
+`config.tensorboard_dir / config.experiment_name`. `preprocessing.multilingual` for multi-parallel
+corpora, language-pair filtering and back-translation.
+
+## Conventions
+
+`UPPER_SNAKE_CASE` constants, `PascalCase` classes, `snake_case` functions, `_leading_underscore`
+for private. Annotate public functions and methods. Google-style docstrings with Args, Returns,
+Raises and Examples, kept runnable. Prefer relative imports inside the package
+(`from ..config import Config`).
+
+## Workflow after code changes
+
+1. **Format and lint**: `ruff check --fix src tests && ruff format src tests`
+2. **Test**: relevant tests, or the full suite if core behaviour changed.
+3. **Update documentation** if needed — search `docs/` for usages of anything you edited. Docs
+   are for beginners: clear explanations, worked examples.
+4. **Run `scripts/preflight.sh` before pushing.**
+
+```bash
+scripts/preflight.sh            # ~50s: static gates, both test runners, doctests, docs
+scripts/preflight.sh --quick    # ~1s:  the four static gates only
+scripts/preflight.sh --all      # also executes the runnable notebooks (minutes)
+```
+
+It runs exactly what CI runs, cheapest gate first, stopping at the first failure: `ruff check`,
+`ruff format --check`, `render_report.py --check`, `notebook_meta.py --check`, the suite under
+**both** pytest and `unittest discover`, `--doctest-modules`, `mkdocs build --strict`, and
+optionally `execute_notebooks.py`.
+
+**CI gates seven things across four jobs, and running them from memory means running most of
+them.** The forgotten one is the one that fails: on 2026-09-28 a PR burned a full cycle on
+`render_report.py --check` — 0.4s locally — because a generated report had been hand-edited. A
+GitHub round trip is four to six minutes.
+
+## Pull requests
+
+### Say "PR #X" and "Task #Y", never a bare `#N`
+
+The two numbering schemes overlap almost completely, so **most numbers name one of each**. Write
+"PR #37" or "Task #37" in prose, commit messages and GitHub comments alike. Task *subjects* keep
+their bare `#N` prefix — this is about how they are referred to, not how they are titled.
+
+Not pedantry: Task #37 was retired in the same breath as PR #37 was called open, both as "#37".
+And on GitHub a bare `#N` **auto-links to the pull request** of that number, so an unqualified
+task reference silently becomes a wrong link.
+
+### Do not stack pull requests
+
+Every PR targets `main`. If work depends on something unmerged, keep it on a local branch and
+open the PR once the dependency lands. Split large changes by *concern* into independent PRs, not
+into a chain. Merge promptly — most stacks here existed because something sat waiting for review.
+
+Evidence, not taste. Stacking has failed two ways that are specific to it:
+
 | Auto-close | PRs #11 and #12 closed when the base branch was deleted on merge |
-| Lost approvals | a rebase that changed no content dismissed the approval on PRs #27 and #34 |
-| Silent close | PR #26 closed unmerged during an unrelated merge, cause never established |
+|---|---|
+| Lost approvals | a rebase changing no content dismissed the approvals on PRs #27 and #34 |
 
-Each cost real time to recover from. GitHub has no rebase exemption for
-`dismiss_stale_reviews_on_push`, so there is no configuration that makes the
-pattern safe here.
+GitHub has no rebase exemption for `dismiss_stale_reviews_on_push`, so no configuration makes the
+pattern safe.
 
-**Corrected 2026-09-26.** This passage used to claim that every one of those
-failures "is specific to a PR whose base is another PR". That is no longer
-true, and the correction matters more than the original claim did.
+To unwind an existing stack, **order matters**: merge the base PR *without* `--delete-branch`,
+retarget the dependents to `main`, *then* delete the branch. Deleting first auto-closes the
+dependents, which is how #11 and #12 were lost.
 
-**PR #84 closed itself while based on `main`.** It went OPEN to CLOSED, never
-merged and with no merge commit, at 17:42:16Z — one second after the unrelated
-PR #86 was squash-merged at 17:42:15Z with `--admin --delete-branch`. The two
-touched different files. It was caught only by the open-set comparison below,
-and recovered in full with `gh pr reopen`.
+### A PR can close itself, and targeting `main` is not safety
 
-So the silent close is **not** stacking-specific, and PR #26 and PR #84 are two
-instances of one unexplained mechanism. Both closed within a second of an
-unrelated merge that passed `--delete-branch`. A later notes merge without that
-flag closed nothing, which is one data point each way rather than a finding.
+PR #26 and PR #84 both went OPEN to CLOSED, never merged, within one second of an unrelated
+squash-merge that passed `--delete-branch`. Different files, mechanism never established. **PR #84
+was based on `main`**, so this is not stacking-specific.
 
-Two consequences:
-
-- **Do not read "my PR targets `main`" as "my PR is safe."** Compare the open set
-  after every merge regardless of what anything is based on.
-- Prefer merging **without** `--delete-branch`, deleting the branch as a separate
-  step afterwards, until the mechanism is understood. The cost is one command;
-  the failure it may avoid cost a day to notice the first time.
-
-The stacking argument still stands on its own two remaining legs — auto-close and
-lost approvals are both genuinely specific to stacked PRs.
-
-What to do instead:
-
-- Merge promptly. Most stacks in this repo existed because something sat waiting
-  for review, not because the work genuinely had to be sequenced.
-- If work truly depends on unmerged work, keep it on a local branch and open the
-  PR once the dependency lands.
-- If a change is large, split it by *concern* into independent PRs against
-  `main`, not into a chain.
-
-If you inherit a stack that already exists, **unwind it in this order**:
-
-1. Merge the base PR **without** `--delete-branch`.
-2. Retarget the dependents to `main`.
-3. *Then* delete the branch.
-
-Deleting first auto-closes the dependents, which is how #11 and #12 were lost.
-
-### Check the open-PR set after every merge
-
-After a merge, the set of open PRs should be exactly what it was, minus the one
-merged. Compare it.
-
-This costs one command and catches a failure that took a day to notice: PR #26 was
-closed unmerged one second after an unrelated merge, its base branch was never
-deleted, and the cause was never established. A check is worth more than a
-diagnosis when the mechanism is unknown.
-
-**It has now paid for itself.** On 2026-09-26 the same thing happened to PR #84,
-one second after PR #86's unrelated merge, and the comparison is the only reason
-anyone noticed: before was `#86 #85 #84 #59 #57 #55 #54 #52 #51`, after was the
-same set minus **both** #86 and #84. Reopening took one command because the loss
-was caught immediately. PR #84 was based on `main`, so do not skip this check on
-the grounds that nothing is stacked.
+- **Compare the open-PR set after every merge** — it should be exactly what it was, minus the one
+  merged. This is how #84 was caught and reopened in one command; #26 took a day to notice.
+- **Prefer merging without `--delete-branch`**, deleting the branch as a separate step, until the
+  mechanism is understood. The cost is one command.
 
 ### Retargeting a PR dismisses its approvals
 
-Changing a PR's base with `gh pr edit <N> --base main` flips it from `APPROVED`
-to `REVIEW_REQUIRED` immediately. No commit, no push, no content change — just
-the base pointer moving. Nothing in the UI warns you first.
+`gh pr edit <N> --base main` flips `APPROVED` to `REVIEW_REQUIRED` immediately — no commit, no
+push, no content change, and no warning. Separate from push-dismissal, and learned expensively:
+unwinding one stack cost three approvals an hour after a reviewer worked through nine PRs.
 
-This is separate from the push-dismissal above, and it was learned the expensive
-way: unwinding one stack cost three approvals an hour after a reviewer had
-worked through nine PRs in a sitting.
-
-So **retarget before asking for review, never after**. If a retarget is
-unavoidable on an approved PR, say so when you ask for the re-review, and
-confirm the content is unchanged so the reviewer can trust their earlier
-judgement rather than repeat it.
+**Retarget before asking for review, never after.** If unavoidable on an approved PR, say so in
+the re-review request and confirm the content is unchanged.
 
 ### A green PR is green against the base it last saw
 
-Status checks record "passed against `main` as it was when they ran". They are
-not re-run because `main` moved, and GitHub will still show `MERGEABLE / CLEAN`
-alongside a wall of green ticks.
+Checks record "passed against `main` as it was when they ran"; they are not re-run because `main`
+moved, and GitHub still shows `MERGEABLE / CLEAN`. PR #17 carried ten green ticks while `main` had
+grown a `--doctest-modules` gate its new module failed — merging would have turned `main` red.
 
-That gap is not theoretical. PR #17 carried ten green checks and merged cleanly
-on paper, but `main` had since grown a `--doctest-modules` gate that its new
-module failed — the checks predated the gate's existence. Merging on that green
-would have turned `main` red, which is the same merge-order interaction that
-broke `main` once before: a file and the gate that runs it arriving from
-different branches, each green alone.
-
-**Before merging any PR more than a few days old**, merge `main` into it and let
-CI re-run, or build the merge result locally and test it. Do not treat an old
-green tick as evidence about today's `main`.
+**Before merging any PR more than a few days old**, merge `main` into it and let CI re-run, or
+build the merge result locally.
 
 ### Check which branch you are on before a destructive git command
 
-`git checkout <branch> || git checkout -b <branch>` can fail *both* ways — a
-branch held by another worktree cannot be checked out, and `-b` then fails
-because it already exists. A following `git reset --hard origin/<something>`
-will run anyway, against whatever branch you were standing on.
-
-That sequence silently moved local `main` onto another branch's commits here.
-Nothing reached the remote, but it went unnoticed for several commands. Put
-`git branch --show-current` between the checkout and anything destructive, and
-read it.
+`git checkout <b> || git checkout -b <b>` can fail *both* ways — a branch held by another
+worktree cannot be checked out, and `-b` then fails because it exists — and a following
+`git reset --hard` runs anyway, against whatever branch you were standing on. That silently moved
+local `main` onto another branch's commits here. Put `git branch --show-current` between the
+checkout and anything destructive, and read it.
 
 ## `docs/docs/course/` belongs to this repository
 
-The CS 479 in-class notebooks live in `docs/docs/course/`. The Cowork session writes their
-content but does **not** run git: changes arrive as requests in
-`notes/handoff/from-cowork/`, and committing, the nav entry and the pull request happen
-here.
+The CS 479 in-class notebooks live here. The Cowork session writes their content but does **not**
+run git: changes arrive as requests in `notes/handoff/from-cowork/`, and committing, the nav entry
+and the pull request happen here.
 
-Two standing constraints:
+- **Instructor notebooks never go public.** Lectures 3 and 4 have separate INSTRUCTOR notebooks
+  carrying worked solutions. They stay out of this tree.
+- **Editing a notebook here does not disturb a live assignment.** Eric, 2026-09-27: students work
+  from a *published* copy. **Do not defer a notebook fix because an assignment is in flight** — a
+  rule that used to say the opposite blocked two Lecture 6 tasks for nothing. What remains true:
+  **Drive copies are never deleted while students are in them**; only the copies on Eric's desktop
+  are Cowork's to remove. Deleting what a student is working in is the hazard; editing the source
+  is not.
+- **New notebooks copy tutorial 2's two-cell setup**: detect Colab and install unconditionally,
+  then verify and fail loudly. Not the old commented-out install, which was the bug.
 
-- **Instructor notebooks never go public.** Lectures 3 and 4 have separate INSTRUCTOR
-  notebooks carrying worked solutions. They stay out of this tree.
-- **Editing a notebook here does not disturb a live assignment.** Eric, 2026-09-27:
-  students work from a *published* copy, so a change in this repository does not reach the
-  copy they have open. **Do not defer a notebook fix because an assignment is in flight.**
+**Every notebook declares what it needs from its environment, in `requires`:** one of `pip`,
+`download`, `colab`, `hf-token`, `blanks`. A closed set, because a typo would otherwise read as
+"runnable in CI" — the opposite of what whoever wrote it meant. `needs` is repo-relative *paths*;
+`requires` is *capabilities*; they are not interchangeable.
 
-  This corrects a rule that used to say the opposite, and that cost real time: two Lecture
-  6 tasks sat blocked "until A6 closes" when nothing about A6 was ever in the way. The
-  part that *is* true and remains: **the Drive copies are never deleted while students are
-  in them** — only the copies on Eric's desktop are Cowork's to remove. Deleting what a
-  student is working in is the actual hazard; editing the source is not.
+**A notebook declaring nothing gets executed in CI**, which is the only way a course notebook is
+ever checked by running it. `lecture-10-comet-install` shipped `else:` followed by an unindented
+`drive` — a bare SyntaxError in Lecture 10's own assignment notebook, unnoticed because nothing
+executed this directory. A student would have hit it in the room.
 
-New notebooks copy tutorial 2's two-cell setup pattern: detect Colab and install
-unconditionally, then verify and fail loudly. Not the old commented-out install, which was
-the bug.
-
-**Every notebook declares what it needs from its environment, in `requires`.** One of `pip`,
-`download`, `colab`, `hf-token`, `blanks` — a closed set, because a typo would otherwise read
-as "runnable in CI", which is the opposite of what whoever wrote it meant. `needs` is for
-repo-relative *paths*; `requires` is for capabilities, and the two are not interchangeable.
-
-A notebook declaring nothing gets executed in CI. That is the point: it is the only way a
-course notebook is ever checked by running it.
-
-**Why this exists rather than a list in the workflow.** `lecture-10-comet-install` shipped with
-`else:` followed by an unindented `drive` — a bare SyntaxError in Lecture 10's own assignment
-notebook, committed and unnoticed for a day because nothing executed `docs/docs/course/` at
-all. A student would have hit it in the room.
-
-So code that does not parse must declare `blanks`, and a `blanks` declaration must correspond
-to real blanks. Both directions are checked: one-way would let the marker rot into a licence to
-ship broken cells. And when writing that check, note that `!pip install` can appear *inside* a
-`try` block — a plain `compile()` call reports notebooks that run perfectly well.
+So code that does not parse must declare `blanks`, and a `blanks` declaration must correspond to
+real blanks — checked both ways, or the marker rots into a licence to ship broken cells. Note that
+`!pip install` can appear *inside* a `try` block, so a plain `compile()` flags notebooks that run
+perfectly well.
 
 ## Every training run checkpoints, and it is not a flag
 
-Any script that calls `train_model` passes a `TrainingCheckpointer`. Unconditionally — not
-behind `--resumable`, not "when the run is long enough to be worth it."
+Any script calling `train_model` passes a `TrainingCheckpointer`. Unconditionally — not behind
+`--resumable`, not "when the run is long enough to be worth it." **A flag makes it optional, and
+the run that skips it is always the one you could least afford to lose**; "short enough not to
+bother" is judged before the run, which is exactly when you do not know.
 
-**A flag makes it optional, and the run that skips it is always the one you could least
-afford to lose.** "Short enough not to bother" is a judgement made *before* the run, which
-is exactly when you do not yet know which run turns out to be expensive.
+Two needs, two mechanisms, and you want both:
 
-Two separate needs, wanting the two separate mechanisms:
-
-| | what it buys |
-|---|---|
 | `save_dir` | keeps the best model, so the run leaves an artifact rather than only a number |
+|---|---|
 | `checkpointer` | makes the run resumable, so dying at hour three does not cost hours one and two |
 
-Both, not either. A 36-epoch benchmark here once ran for 65 minutes and produced a BLEU
-figure and **no model**, so the longer run that should have continued from it had to start
-again from scratch.
-
-This is also the practice the library exists to demonstrate: `training_checkpoint` was built
-so a Colab disconnect costs minutes rather than a session. A script that teaches
-checkpointing while not doing it teaches the opposite.
+A 36-epoch benchmark here ran 65 minutes and produced a BLEU figure and **no model**, so the
+longer run that should have continued from it started from scratch. This is also the practice the
+library exists to demonstrate: a script that teaches checkpointing while not doing it teaches the
+opposite.
 
 ## Where things belong
 
-Four files accumulate knowledge, and putting something in the wrong one is how it gets
-lost. Stated because it took three corrections in one sitting to get right.
+Four files accumulate knowledge, and the wrong one is how things get lost.
 
 | | holds | test |
 |---|---|---|
@@ -422,73 +246,42 @@ lost. Stated because it took three corrections in one sitting to get right.
 | `notes/handoff/` | the conversation with the Cowork session | is this a message to someone? |
 
 **A finished task is deleted, not marked done.** Marking it "Done" in place leaves the file
-describing shipped work as pending, and the rows then outnumber the live work. If a finished
-task carries something durable, move that thing to the file above where it belongs *before*
-deleting the task — the git history keeps the rest.
+describing shipped work as pending. If it carries something durable, move that to the right file
+*first* — git history keeps the rest.
 
-Three things that are **not** tasks and must not be filed as them: a standing habit, a watch
-item, and a finding. A watch item in particular looks like a task and never completes, which
-is exactly what the first column forbids.
+Three things are **not** tasks and must not be filed as them: a standing habit, a watch item, and
+a finding. A watch item in particular looks like a task and never completes.
 
-The cost of getting this wrong is not tidiness. A measurement of how training budget beat
-data by roughly 7x sat inside a task entry for days, where nobody would look for it — and it
-was the prior for the learning-curve experiment that was later designed without it. It is now
-in `notes/reports/training-budget.md`.
+The cost is not tidiness. A measurement of training budget beating data by roughly 7x sat inside a
+task entry for days, where nobody would look — and it was the prior for a learning-curve
+experiment later designed without it. It now lives in `notes/reports/training-budget.md`.
 
 ## Handing the baton
 
-Two Claude sessions work on CS 479: this one, in the repository, and a Cowork session
-that owns the course decks. They cannot message each other, so `notes/handoff/` is the
-channel. The protocol itself — which file is the mailbox, how entries are appended, and
-why — is in `notes/README.md`.
+Two Claude sessions work on CS 479: this one, in the repository, and a Cowork session that owns
+the course decks. They cannot message each other, so `notes/handoff/` is the channel. The protocol
+— which file is the mailbox, how entries are written — is in `notes/README.md`.
 
-**Two rules belong here rather than there. First: a baton pass in either direction means
-reconciling `notes/TASKS.md` in the same sitting.**
+Two rules belong here rather than there.
 
-A handoff is precisely when the lists go stale, and the only moment when both sides know
-what actually changed. It typically closes some tasks, reopens others, and creates work
-that only the *receiving* side can see is now possible.
+**First: a baton pass in either direction means reconciling `notes/TASKS.md` in the same sitting**,
+and saying in the reply which tasks moved. A hand-off is when the lists go stale and the only
+moment both sides know what changed. One baton return closed a task outright, made another moot,
+and created five that were invisible from this side — including `grader.exe` having no source or
+license, which the course had carried blind for a year. None of that is discoverable by reading
+code.
 
-The first pass under this rule is the evidence for it. One baton return closed Task #42
-outright ("it needs nothing"), settled Task #96, made Task #100 moot because its lecture
-slot had already passed, and created five tasks that were invisible from this side until
-Cowork wrote them down — including `grader.exe` having no source or license, a dependency
-the course had been carrying blind for a year.
+**Second: an unanswered question gets re-raised in the next hand-off, not left in the old one** —
+flagged as a repeat, because a question asked twice with no acknowledgement is a different signal
+from one asked once. Each hand-off is read once, on arrival, so a question inherited by an archived
+file is invisible thereafter.
 
-None of that is discoverable by reading the code. It arrives only in the handoff, and if
-the lists are not reconciled then, the next session inherits a list describing last week.
+**But first verify it really is unanswered, in the archive and not just in the newest file.** This
+half is the more important one, because the original example for this rule was wrong: #148 was
+described here as unanswered when Cowork had answered it with slide numbers and written "Close
+#148". Their reply had moved to `archive/` when the files were split. The rule as first written had
+a third ask drafted for a closed question. Three of their eight answers had gone unacted on for a
+week by the same route, including a Lecture 6 split that was ours to do and had no task row.
 
-So read the incoming entry, walk the status table **before** starting work, and say in the
-reply which tasks moved.
-
-**Second: an unanswered question gets re-raised in the next hand-off, not left in the old
-one.** Eric, 2026-09-27, agreeing with the case below.
-
-A hand-off asks questions the other side alone can answer. Some come back answered, and the
-rest are silently inherited by a file nobody will open again — because each hand-off is read
-once, when it arrives.
-
-This is not hypothetical, and the one-file-per-hand-off layout made it worse before it made
-it better. Five assignments missing from the schedule (#148) were Question 4 of the ninth
-entry to Cowork. They received it, did not answer it, and that entry is now in `archive/`.
-The current hand-off does not mention it, so the next baton would not have surfaced it at
-all — and it is no longer bookkeeping, because `leads_to` validates against that table and a
-correct declaration for an unlisted assignment is rejected.
-
-So before writing a hand-off, **check the previous one for questions that came back
-unanswered, and carry them forward.** Say that they are repeats; a question asked twice with
-no acknowledgement is a different signal from a question asked once.
-
-## Project Goals
-
-In priority order:
-
-1. **CS 479 works.** Twenty-four students, on their own data, against dated assignments. A defect
-   on that path outranks anything else in this file.
-2. **Educational clarity**: clean, readable code designed for learning. This is the reason the
-   library exists rather than a configured toolkit, and it is what we decline to trade for
-   speed — see the descoping decision in `notes/TASKS.md`.
-3. **Documentation that executes**: runnable examples, and generated numbers rather than typed
-   ones.
-4. **Simplicity**: avoid over-engineering; focus on core NMT concepts.
-5. **Accessibility**: beginner-friendly, Google-style docstrings.
+So: **read the last replies against your own open questions, close what was answered, and only
+then carry forward what genuinely was not.**
