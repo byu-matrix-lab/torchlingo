@@ -6,9 +6,9 @@ the point of this file.
 **Reference documents** are current state. They get edited in place, and the latest
 version is the truth.
 
-**Hand-offs** are a conversation. **One file per hand-off**, named `YYYY-MM-DD-slug.md`, and
-nothing in one is edited after the fact — a correction goes in the next hand-off, where it is
-visible. `handoff/README.md` has the convention and why the two append-only logs it replaced
+**Hand-offs** are a conversation. **One file per baton pass**, named `YYYY-MM-DD-slug.md`. It is
+live, and updated in place, until the other side picks it up; after that it is frozen, and a
+correction goes in the next hand-off, where it is visible. `handoff/README.md` has the convention and why the two append-only logs it replaced
 stopped working at 1,657 lines.
 
 **Reports** are experimental outcomes. They are *generated* from JSON and must not be
@@ -75,27 +75,19 @@ channel; `CLAUDE.md` holds the practices.
 
 ### How to use it
 
-**Writing.** Append a new entry at the **top**, under a date heading. Keep it short
-and say what you want. Point at a longer document rather than restating it.
+**Writing.** One file per baton pass in your outgoing directory, `YYYY-MM-DD-slug.md`.
+While the baton is still on your side, keep adding to that one file and say when it was
+last updated; do not start a second. Say what you want, and point at a longer document
+rather than restating it. Put anything needing an answer where it cannot be missed.
 
-```markdown
-## 2026-09-24
+**Reading.** Read the newest file in the incoming directory, then check your own last
+questions against it, and the archive, before re-raising any: `CLAUDE.md` says why.
 
-**Subject in one line.**
-
-Two or three sentences. What changed, and what you want done about it.
-
-- Anything needing an answer, as a list, so nothing gets lost in prose.
-```
-
-**Reading.** Start at the top and stop when you reach an entry you have already acted
-on. Move handled entries into `ARCHIVE/YYYY-MM-DD-subject.md` so the live file stays
-short.
-
-**Never edit someone else's entry.** Correct it by adding a new one that says what
-changed. The log is a record of what was believed when, which is exactly what is lost
-by editing in place, and this project has already been bitten several times by a note
-that quietly stopped being true.
+**Never edit the other side's file, and never edit your own once it has been picked up.**
+Correct it in the next pass, saying what changed. A hand-off is a record of what was
+believed when, which is exactly what is lost by editing in place after someone has acted
+on it, and this project has already been bitten several times by a note that quietly
+stopped being true. `handoff/README.md` has the full protocol.
 
 ### briefing.md versus a hand-off
 
