@@ -690,16 +690,16 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 1 | Course Overview and History of MT | — | — |
 | 2 | Translation Challenges for MT | — | — |
 | 3 | Introduction to Word Embeddings | `lecture-03-word-embeddings` (activity) | — |
-| 4 | Data Preparation for MT Training | `lecture-04-regex-refresher` (reference) ², `lecture-04-tmx-cleaning` (activity) | `01-data-and-vocab` (reference) ¹ |
+| 4 | Data Preparation for MT Training | `lecture-04-regex-refresher` (reference) ³, `lecture-04-tmx-cleaning` (activity) | `01-data-and-vocab` (reference) ¹ |
 | 5 | Data Preparation for MT Training, Part 2 | `lecture-05-sentence-alignment` (activity) | — |
-| 6 | Human and Automatic MT Evaluation | `lecture-06-mt-evaluation-homework` (homework) ³, `lecture-06-mt-evaluation` (activity) ⁴ | — |
+| 6 | Human and Automatic MT Evaluation | `lecture-06-mt-evaluation-homework` (homework) ⁴, `lecture-06-mt-evaluation` (activity) ⁵ | `07-evaluating-translations` (reading) ² |
 | 7 | Research Paper Reviews; Intro to Neural Networks | — | `02-train-tiny-model` (reading) |
 | 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | — | `04-attention-and-alignment` (reading) |
 | 8b | Neural MT: The Transformer | — | `04-attention-and-alignment` (reading) |
 | 9 | Morphology and Terminology in NMT | — | `01-data-and-vocab` (reference) ¹, `06-diagnosing-failures` (reading) |
-| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) ⁵ | `03-inference-and-beamsearch` (reading), `05-real-translations` (reading) |
+| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) ⁶ | `03-inference-and-beamsearch` (reading), `05-real-translations` (reading) |
 | 11 | Neural Quality Estimation and Evaluation | — | — |
-| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) ⁶ | — |
+| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) ⁷ | — |
 | 13 | Strategies for NMT of Low-Resource Languages | — | — |
 | 14 | Multilingual NMT and "Zero-shot" NMT | — | — |
 | 15 | Overview of Speech-to-Speech MT | — | — |
@@ -717,24 +717,27 @@ Notes on the rows that are not simple:
   Lecture 4's subject from the library side, and its vocabulary half belongs to Lecture 9.
   Lecture 4 has already run this year, so the pairing is retrospective there and genuine
   for a future offering.
-- ² **`lecture-04-regex-refresher`** — Fall 2025 material, brought into the repository on
+- ² **`07-evaluating-translations`** — The out-of-class treatment of evaluation.
+  lecture-06-mt-evaluation is the in-class activity and owns the teaching; this one makes
+  the student choose between two systems (Cowork's Q7 call).
+- ³ **`lecture-04-regex-refresher`** — Fall 2025 material, brought into the repository on
   2026-09-27. A fifteen-minute tour of Python regular expressions, which is what the
   sixteen cleaning steps are written in. Lecture 4's deck links it twice and Learning
   Suite posts it on the Lecture 3 tab as well, so it is offered ahead of Lecture 4 rather
   than used inside it.
-- ³ **`lecture-06-mt-evaluation-homework`** — Part 4 of the original Lecture 6 notebook,
+- ⁴ **`lecture-06-mt-evaluation-homework`** — Part 4 of the original Lecture 6 notebook,
   split out on 2026-09-27. Uploads the student's own Assignment 5 corpus through the Colab
   file picker, so it cannot run outside Colab.
-- ⁴ **`lecture-06-mt-evaluation`** — Parts 1 to 3 of the original Lecture 6 notebook. Part
+- ⁵ **`lecture-06-mt-evaluation`** — Parts 1 to 3 of the original Lecture 6 notebook. Part
   4 moved to lecture-06-mt-evaluation-homework on 2026-09-27, because `role` holds one
   value and this file was an activity with homework inside it. Needs nothing and no Colab
   runtime, so it executes in CI.
-- ⁵ **`lecture-10-comet-install`** — Fall 2025 material, brought into the repository on
+- ⁶ **`lecture-10-comet-install`** — Fall 2025 material, brought into the repository on
   2026-09-26. Installs unbabel-comet, scores a worked example, and sets up the HuggingFace
   token through Colab Secrets, which the reference-free models require. It is Lecture 10's
   assignment and the setup for Lecture 11's. Framework-independent: nothing in it touched
   OpenNMT.
-- ⁶ **`lecture-12-llm-context`** — Fall 2025 material, brought into the repository on
+- ⁷ **`lecture-12-llm-context`** — Fall 2025 material, brought into the repository on
   2026-09-26. The Assignment 12 scaffold: pick a non-MT HuggingFace model, translate a
   low-resource test set with growing numbers of in-context examples, chart BLEU against
   context size. Every code cell is a TODO, so it contains no answers.
