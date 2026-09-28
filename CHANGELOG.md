@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-28
+
+### Fixed
+- **Resuming mid-epoch no longer skips the rest of that epoch.** A periodic checkpoint recorded
+  the epoch in progress as complete, so a resumed run trained fewer steps and ended on the wrong
+  learning rate. Checkpoints now carry `batches_into_epoch`; older checkpoints still load.
+- A run with no `val_loader` now writes its epoch-boundary checkpoint, so its loss history
+  survives a resume.
+- `create_dataloaders` forwards its `Config` to the datasets it builds.
+- One causal-mask convention throughout, which removes a PyTorch deprecation warning from decoding.
+
+### Added
+- `check_contamination(..., name="val")` names the held-out set in its report; the default is
+  unchanged.
+- `norm_first` on `SimpleTransformer` and `Config` for pre-norm Transformers. The default stays
+  post-norm, the 2017 arrangement, and is now pinned by a test.
+- chrF and TER results carry a sacreBLEU `.signature`, as BLEU already did.
+
+### Changed
+- Beam search's length penalty is documented as applying at final selection only, since
+  pruning cannot see `alpha`.
+
+## Earlier changes, never assigned to a release
+
+This block was the `[Unreleased]` section until 0.2.1. Some of it shipped in 0.1.x and 0.2.0,
+but this file was not updated when those versions were tagged, so which release carried which
+change is not recorded here.
+
 ### Added
 - py.typed marker file for PEP 561 compliance (enables type checking for downstream users)
 - pytest configuration and migration from unittest
