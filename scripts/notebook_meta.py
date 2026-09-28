@@ -358,10 +358,16 @@ def write_meta(path: Path, meta: dict) -> None:
                     break
             i += 1
         end = i + 1
-        if text[end : end + 1] == ",":
+        # Put back a comma only if one was there. The block is first in a notebook this
+        # tool stamped, but an nbformat round trip sorts keys and moves it last, and an
+        # unconditional comma there is a trailing comma -- invalid JSON, which is how
+        # restamping tutorial 1 after a re-execution broke five tests.
+        had_comma = text[end : end + 1] == ","
+        if had_comma:
             end += 1
         path.write_text(
-            text[: existing + 1] + block + "," + text[end:], encoding="utf-8"
+            text[: existing + 1] + block + ("," if had_comma else "") + text[end:],
+            encoding="utf-8",
         )
         return
 

@@ -1107,5 +1107,42 @@ class TestTheExecutorSkipsOnCapabilities(unittest.TestCase):
         self.assertIn("args.course", source)
 
 
+class TestWriteMetaWhereverTheBlockSits(unittest.TestCase):
+    """Rewriting the block must leave valid JSON whether it is first or last.
+
+    A notebook this tool stamped has the block first. An ``nbformat`` round trip -- which
+    re-executing a tutorial is -- sorts the metadata keys and moves it last, and the rewrite
+    used to add a comma after it unconditionally: a trailing comma, so invalid JSON.
+    Tutorials 4 and 5 were left in that shape by a re-execution, one restamp from breaking.
+    """
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+
+    def roundtrip(self, metadata: dict) -> dict:
+        path = self.tmp / "nb.ipynb"
+        path.write_text(
+            json.dumps({"cells": [], "metadata": metadata, "nbformat": 4}, indent=1),
+            encoding="utf-8",
+        )
+        nm.write_meta(path, {"family": "tutorial", "role": "reading"})
+        return json.loads(path.read_text(encoding="utf-8"))["metadata"]
+
+    def test_block_first(self):
+        meta = self.roundtrip(
+            {"torchlingo": {"role": "activity"}, "kernelspec": {"name": "x"}}
+        )
+        self.assertEqual(meta["torchlingo"]["role"], "reading")
+        self.assertEqual(meta["kernelspec"], {"name": "x"})
+
+    def test_block_last(self):
+        meta = self.roundtrip(
+            {"kernelspec": {"name": "x"}, "torchlingo": {"role": "activity"}}
+        )
+        self.assertEqual(meta["torchlingo"]["role"], "reading")
+        self.assertEqual(meta["kernelspec"], {"name": "x"})
+
+
 if __name__ == "__main__":
     unittest.main()
