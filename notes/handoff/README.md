@@ -14,7 +14,7 @@ handoff/
   briefing.md          standing context; read once, not every time
   to-cowork/           messages out, one file per hand-off
   from-cowork/         messages in, one file per hand-off
-  archive/             the append-only logs this replaced
+  archive/             answered hand-offs, and the append-only logs this replaced
 ```
 
 ## Naming
