@@ -241,17 +241,20 @@ class TestExecuteNotebooksReadsTheSameField(unittest.TestCase):
         )
 
     def test_needs_are_resolved_from_metadata(self):
+        """What a notebook needs comes from its own metadata, nowhere else.
+
+        The declared list is read rather than restated here. An earlier version
+        pinned tutorial 4's exact two entries, which made this test fail when one
+        of them was corrected -- reporting a stale expectation as a regression.
+        """
         import execute_notebooks as en
 
         nb = nm.TUTORIALS / "04-attention-and-alignment.ipynb"
-        self.assertEqual(
-            nm.read_meta(nb)["needs"],
-            ["data/example.tsv", "data/pretrained/model.pt"],
-        )
+        declared = nm.read_meta(nb)["needs"]
+        # Guards the subset assertion below against passing vacuously.
+        self.assertTrue(declared, "the fixture notebook declares nothing to need")
         # Whatever is missing must be a subset of what is declared, never something else.
-        self.assertTrue(
-            set(en.missing_requirements(nb)) <= set(nm.read_meta(nb)["needs"])
-        )
+        self.assertTrue(set(en.missing_requirements(nb)) <= set(declared))
 
 
 @unittest.skipIf(nbformat is None, "nbformat is a docs extra, absent in CI's test job")

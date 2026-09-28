@@ -666,7 +666,7 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 4 | Data Preparation for MT Training | `lecture-04-regex-refresher` (reference) ², `lecture-04-tmx-cleaning` (activity) | `01-data-and-vocab` (reference) ¹ |
 | 5 | Data Preparation for MT Training, Part 2 | `lecture-05-sentence-alignment` (activity) | — |
 | 6 | Human and Automatic MT Evaluation | `lecture-06-mt-evaluation` (activity) | — |
-| 7 | Research Paper Reviews; Intro to Neural Networks | — | `02-train-tiny-model` (activity) |
+| 7 | Research Paper Reviews; Intro to Neural Networks | — | `02-train-tiny-model` (reading) |
 | 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | — | `04-attention-and-alignment` (reading) |
 | 8b | Neural MT: The Transformer | — | `04-attention-and-alignment` (reading) |
 | 9 | Morphology and Terminology in NMT | — | `01-data-and-vocab` (reference) ¹, `06-diagnosing-failures` (reading) |
@@ -729,6 +729,22 @@ notebook that has not been written cannot declare anything:
 - **Twelve of the twenty-three lectures pair with nothing** — 1, 2, 11 to 18, 20 and 21. Which
   is fine: not every lecture wants a notebook, and inventing one to fill a row would be the
   redundancy this document already warns about.
+
+One row appears twice on purpose. **Tutorial 4 serves Lectures 8a and 8b and will not be
+split**, which reverses #140 and the recommendation sent to Cowork on 2026-09-27.
+
+Splitting it was argued from the heading list, which reads like two notebooks: Parts 1 to 6 are
+LSTM attention, Parts 7 and 8 are the Transformer. Reading it settles the question the other
+way. **Part 7 is titled "You have already seen the Transformer's mechanism"**, and its whole
+move is that the attention the reader just ablated in Parts 1 to 6 *is* that mechanism. Split
+the file and the 8b half opens by invoking an experiment its reader never ran.
+
+The cost of not splitting is real but small: Parts 1 to 6 are nine of the ten code cells and
+need nothing, so they would have been CI-executable on their own (#154), and the 8b half would
+have been a one-code-cell notebook. Neither is worth the notebook's best transition.
+
+Two incidental corrections, since #140's own description had them wrong: the seam is *after*
+Part 6, not at it, and Part 6 — Bahdanau versus Luong — is Lecture 8a's material, not 8b's.
 
 ## What exists
 
