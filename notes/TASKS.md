@@ -125,11 +125,9 @@ describes last week will mislead every lecture at once rather than one of them.
 | #160 | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #106 | A token cap breaks Assignment 9's control | **L9** | Open — one sentence in the assignment |
-| #107 | The optimizations exist and nothing uses them | **L8a** | **Half done** — experiments bucket now; library default unchanged |
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
 | #118 | What does a paid Colab session actually provide? | **L8a** | **Coulson** — now blocks a live decision, not a claim |
 | #157 | Resume restores no AMP scaler and no RNG state | **lib** | Open — the scheduler half is tested and a mid-epoch bug fixed (PR #145, in 0.2.1) |
-| #158 | Our own `num_workers=4` default costs ~23s and never won | **L8a** | Open — **needs your call**; measured on macOS only |
 | #8 | Verify Eole claims before syllabus use | **lib** | Open |
 | #9 | `pre-commit install` (still not installed) | **hyg** | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | **lib** | Open |
@@ -212,30 +210,6 @@ on the student following the workflow.
 **Done when** an interrupted bulk decode can be restarted without redoing finished work.
 Needed for Assignment 13's material, due in class **Mon Oct 19**.
 
-### #107 The optimizations already exist and nothing uses them
-
-Measured on the 100K split, real tokenizer, batch 64:
-
-```
-real tokens                2.90 M per epoch
-random batching, padded   10.97 M    3.79x waste
-length-bucketed, padded    2.90 M    1.00x waste   -> 74% saving
-```
-
-`BucketBatchSampler`, `create_dataloaders(use_bucketing=...)`, `train_model(use_amp=...)`,
-`num_workers` and `pin_memory` all already exist and **all default off**, so the saving is
-available and unclaimed by default.
-
-**Half done 2026-09-26:** the experiments bucket now (`ladder.py`, `benchmark_a8.py`). The
-library default is unchanged.
-
-**Done when** a decision is recorded on whether `use_bucketing` should default True. It changes
-batch composition and therefore results, which argues against flipping it silently — but 74%
-matters enormously on a Colab budget, so the course guidance should say to enable it even if the
-default stays.
-
-Not a gap: decoding is already optimized, 27.5 ms against 109.5 ms, because `inference_fast`
-batches beams within a sentence.
 
 ### #108 Nothing releases the device allocator's cache
 
@@ -475,6 +449,11 @@ an unfinished schedule, the wrong final learning rate. On A8 nearly every discon
 mid-epoch. Gaps (2) and (3) remain, and neither touches students: `use_amp` defaults off and the
 8a notebook does not set it.
 
+**Gap (2) is also what keeps AMP out of the 8a notebook.** Mixed precision is the other speed-up
+Task #107 listed, and on a Colab GPU it is a real one, but 8a depends on resuming after
+disconnects, and a resume that re-initialises the loss scale can overflow. Close (2) before any
+student-facing notebook sets `use_amp=True`.
+
 Assessed 2026-09-27, when the question was whether the checkpointers are covered. The 18 tests in
 `tests/test_training_checkpoint.py` are good: round-trip, optimizer state, best-only writes,
 missing-file errors, step intervals, **atomicity** (a partial write does not replace a good
@@ -492,33 +471,6 @@ Three gaps, sharpest first:
    "Resume" is therefore not reproducible, which matters directly for a seed-controlled sweep.
 
 Do (1) first: it is a test for code that already exists, so it is the one that can only find bugs.
-
-### #158 Our own `num_workers=4` default costs ~23s and never won
-
-**Ours, not a dependency.** `config.py:920` sets `num_workers: int = 4` and `batching.py:375` hands
-it to all **three** DataLoaders — twelve worker processes, each importing torch. PyTorch is behaving
-correctly; the defect is picking 4 as a library-wide default in a teaching library and multiplying
-it by three loaders without regard to dataset size.
-
-Measured on macOS, which uses the `spawn` start method:
-
-| rows | `num_workers=4` | `num_workers=0` | ratio |
-|---|---|---|---|
-| 8 | 5.85s | 0.01s | 1107x |
-| 2,000 | 22.88s | 0.04s | 592x |
-| 20,000 | 23.00s | 0.22s | 106x |
-
-Roughly **23 seconds of fixed overhead regardless of corpus size**, and workers never won at any
-size tested. Linux forks, so the cost there is lower — but four workers for an eight-row dataset is
-wrong everywhere, and A8 students load 100,000 pairs on Colab.
-
-Found through the test suite: one test spent 21 of its 42 seconds here, and `num_workers=0` took the
-suite to 19.3s.
-
-**Not changed yet**, because it also affects throughput on real GPU runs where workers genuinely do
-help. Needs your call and its own measurement on Linux and CUDA. Options: default to 0; choose 0
-when the dataset is too small to amortise spawn; or keep 4 but give workers to one loader instead of
-three.
 
 ### #160 An NLLB spotlight lecture — data, architecture **and** curriculum
 
