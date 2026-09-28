@@ -64,7 +64,7 @@ class TestConfigReachesDatasets(unittest.TestCase):
         """The train dataset's max_length tracks the config, not the default."""
         with tempfile.TemporaryDirectory() as tmp:
             corpus = _write_corpus(Path(tmp))
-            config = Config(batch_size=2, max_seq_length=5)
+            config = Config(batch_size=2, max_seq_length=5, num_workers=0)
             train_loader, _, _, _ = create_dataloaders(
                 train_file=corpus, batch_size=2, config=config
             )
@@ -77,7 +77,7 @@ class TestConfigReachesDatasets(unittest.TestCase):
         """
         with tempfile.TemporaryDirectory() as tmp:
             corpus = _write_corpus(Path(tmp))
-            config = Config(batch_size=2, max_seq_length=5)
+            config = Config(batch_size=2, max_seq_length=5, num_workers=0)
             _, val_loader, _, _ = create_dataloaders(
                 train_file=corpus, val_file=corpus, batch_size=2, config=config
             )
@@ -92,7 +92,7 @@ class TestConfigReachesDatasets(unittest.TestCase):
         """
         with tempfile.TemporaryDirectory() as tmp:
             corpus = _write_corpus(Path(tmp))
-            config = Config(batch_size=2, max_seq_length=5)
+            config = Config(batch_size=2, max_seq_length=5, num_workers=0)
             train_loader, _, _, _ = create_dataloaders(
                 train_file=corpus, batch_size=2, config=config
             )
@@ -108,7 +108,9 @@ class TestConfigReachesDatasets(unittest.TestCase):
         """
         with tempfile.TemporaryDirectory() as tmp:
             corpus = _write_corpus(Path(tmp), src_col="german", tgt_col="english")
-            config = Config(batch_size=2, src_col="german", tgt_col="english")
+            config = Config(
+                batch_size=2, src_col="german", tgt_col="english", num_workers=0
+            )
             train_loader, _, _, _ = create_dataloaders(
                 train_file=corpus, batch_size=2, config=config
             )
@@ -124,7 +126,9 @@ class TestConfigReachesDatasets(unittest.TestCase):
         """
         with tempfile.TemporaryDirectory() as tmp:
             corpus = _write_corpus(Path(tmp))
-            train_loader, _, _, _ = create_dataloaders(train_file=corpus, batch_size=2)
+            train_loader, _, _, _ = create_dataloaders(
+                train_file=corpus, batch_size=2, num_workers=0
+            )
             self.assertEqual(
                 train_loader.dataset.max_length, get_default_config().max_seq_length
             )
