@@ -359,8 +359,12 @@ def check_contamination(
     test_sources: Iterable[str],
     train_sources: Iterable[str],
     max_examples: int = 3,
+    name: str = "test",
 ) -> CheckResult:
     """Check that no test sentence also appears in training.
+
+    Works for any held-out set, not only test: pass ``name="val"`` when
+    checking validation, so the report says which set it looked at.
 
     The most dangerous failure is the one that makes your numbers look *good*.
     A contaminated test set does not report an error; it reports a score partway
@@ -374,6 +378,7 @@ def check_contamination(
         test_sources (Iterable[str]): Source-side sentences of the test set.
         train_sources (Iterable[str]): Source-side sentences used in training.
         max_examples (int): How many offending sentences to quote in the detail.
+        name (str): What to call the held-out set in the report.
 
     Returns:
         CheckResult: Passing when the two sets are disjoint.
@@ -384,15 +389,17 @@ def check_contamination(
         >>> result = check_contamination(["a seen sentence"], ["a seen sentence"])
         >>> bool(result)
         False
+        >>> check_contamination(["new"], ["old"], name="val").detail
+        '0/1 val sources also appear in training'
     """
     test_list = list(test_sources)
     shared = sorted(set(test_list) & set(train_sources))
 
-    detail = f"{len(shared)}/{len(test_list)} test sources also appear in training"
+    detail = f"{len(shared)}/{len(test_list)} {name} sources also appear in training"
     if shared:
         quoted = ", ".join(repr(s) for s in shared[:max_examples])
         detail += f"; e.g. {quoted}"
-    return CheckResult("test set is clean", not shared, detail)
+    return CheckResult(f"{name} set is clean", not shared, detail)
 
 
 def check_eval_mode(model: nn.Module) -> CheckResult:
