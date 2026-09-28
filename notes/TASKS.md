@@ -115,7 +115,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
-| #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Scope settled by Cowork** — Lecture 9 Wed Oct 7; two questions for us first, (a) and (b) |
+| #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Scoped, questions answered** — Lecture 9 Wed Oct 7; A9 = 8a Step 6 + two SentencePiece arguments |
 | #122 | Make Assignment 9's control hard to get wrong in code | **L9** | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
 | #129 | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
@@ -633,6 +633,15 @@ or does it want a tokenizer hook — and if a `tokenizer=` on `Config` is the cl
 (b) BLEU must be scored on *decoded* output, so the A9 path needs a decode step before the
 kickoff's scoring cell — either in the library, or as a snippet the activity's last cell writes
 for students to paste.
+
+**Both answered 2026-09-28, in `to-cowork/2026-09-28-b-lecture-9-answers-and-8a.md`: no new API
+either way.** (a) A `SentencePieceVocab` tokenizes raw text itself, so A9 is 8a's Step 6 plus
+`use_sentencepiece=True, sp_model_path=...` in `create_dataloaders`. (b) `translate_batch`
+decodes through the target vocabulary, so 8a's scoring cell already scores real text. **One scope
+change follows, and this notebook must honour it:** do **not** re-encode the A8 files for training.
+Pre-split text through a word vocabulary makes the model emit pieces and BLEU incomparable with
+A8's. Re-encode only to *show* the `<unk>` counts and the round trip; A9 trains on the same raw
+files and split as A8, so the tokenizer is the only variable.
 
 The existing SentencePiece handout is OpenNMT-specific and has to be replaced.
 `docs/docs/course/lecture-09-subword-tokenization.ipynb` is the natural form, and that
