@@ -115,7 +115,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
-| #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Scoped, questions answered** — Lecture 9 Wed Oct 7; A9 = 8a Step 6 + two SentencePiece arguments |
+| #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Notebook written** — A9 = 8a Step 6 + three settings; quiet trainer needs a release (PR #172) |
 | #122 | Make Assignment 9's control hard to get wrong in code | **L9** | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
 | #129 | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
@@ -651,6 +651,15 @@ change follows, and this notebook must honour it:** do **not** re-encode the A8 
 Pre-split text through a word vocabulary makes the model emit pieces and BLEU incomparable with
 A8's. Re-encode only to *show* the `<unk>` counts and the round trip; A9 trains on the same raw
 files and split as A8, so the tokenizer is the only variable.
+
+**Written 2026-09-28 as `docs/docs/course/lecture-09-subword-tokenization.ipynb`**, run end to end
+on the repository's real English-Spanish corpus split as 8a would: 4.2% of source and 6.0% of
+target test words are `<unk>` to the word vocabulary, zero to an 8,000-piece SentencePiece model;
+the round trip is 10/10. **It found a third A9 setting:** decoding stops at `max_decode_length`,
+100 by default, and the longest 100-word target is 171 pieces, so A9 without it truncates long
+translations. The notebook prints the value for each student's data. **Left:** SentencePiece's
+trainer logs thousands of lines into the cell until `train_sentencepiece(verbose=False)` (PR #172)
+reaches students in a release.
 
 The existing SentencePiece handout is OpenNMT-specific and has to be replaced.
 `docs/docs/course/lecture-09-subword-tokenization.ipynb` is the natural form, and that

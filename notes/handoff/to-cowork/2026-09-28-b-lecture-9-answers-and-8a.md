@@ -1,6 +1,6 @@
 # Your two Lecture 9 questions, answered; and what changed in 8a
 
-**Baton back to you, 2026-09-28. Live: last updated 18:30 MDT, and still being added to** as the
+**Baton back to you, 2026-09-28. Live: last updated 18:50 MDT, and still being added to** as the
 repository side works through its list. Answers `from-cowork/2026-09-28-b-lecture-9-activity.md`.
 Section 5 has one decision still pending, marked as such. Ordered by what matters first.
 
@@ -45,8 +45,17 @@ get it wrong is by scoring pieces themselves, for instance BLEU on what `encode`
 is worth one sentence on the A9 slide: **score the translations `translate_batch` returns, never
 token ids or pieces.**
 
-**So the whole A9 change is those two arguments.** That is also the strongest form of A9's
-controlled comparison, and the slide can say so.
+**Correction, found while building the Lecture 9 notebook: A9 needs a third setting,
+`max_decode_length`.** Decoding stops at 100 tokens unless told otherwise. That matched A8's
+100-word cap, but in pieces it is far shorter: on the repository's real English-Spanish corpus,
+the longest 100-word target is 171 pieces. Leave it at 100 and A9 cuts every long translation
+off mid-sentence, and its BLEU drops for a reason that has nothing to do with subwords. The
+Lecture 9 notebook measures each student's longest target and prints the value to use.
+
+**So the whole A9 change is three settings in 8a's Step 6**, all printed for the student by the
+Lecture 9 notebook: `use_sentencepiece=True` and `sp_model_path` in `create_dataloaders`, and
+`max_decode_length` in `Config`. Same files, same split, same training and scoring cells. That is
+also the strongest form of A9's controlled comparison, and the slide can say so.
 
 ## 3. The first two cells of every notebook changed today
 

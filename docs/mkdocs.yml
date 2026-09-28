@@ -149,6 +149,7 @@ nav:
     - MT Evaluation Homework (Lecture 6): course/lecture-06-mt-evaluation-homework.ipynb
     - Your First Model (Lecture 7): course/lecture-07-toy-model.ipynb
     - Assignment 8 Kickoff (Lecture 8a): course/lecture-08a-a8-kickoff.ipynb
+    - Subword Tokenization (Lecture 9): course/lecture-09-subword-tokenization.ipynb
     - Installing COMET (Lecture 10): course/lecture-10-comet-install.ipynb
     - LLMs and Context (Lecture 12): course/lecture-12-llm-context.ipynb
   - API Reference:

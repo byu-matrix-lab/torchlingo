@@ -592,10 +592,10 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 7 | Research Paper Reviews; Intro to Neural Networks | `lecture-07-toy-model` (activity) [7] | `02-train-tiny-model` (reading) [2] |
 | 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | `lecture-08a-a8-kickoff` (activity) [8] | `04-attention-and-alignment` (reading) |
 | 8b | Neural MT: The Transformer | — | `04-attention-and-alignment` (reading) |
-| 9 | Morphology and Terminology in NMT | — | `01-data-and-vocab` (reference) [1], `06-diagnosing-failures` (reading) |
-| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [9] | `03-inference-and-beamsearch` (reading), `05-real-translations` (reading) |
+| 9 | Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [9] | `01-data-and-vocab` (reference) [1], `06-diagnosing-failures` (reading) |
+| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [10] | `03-inference-and-beamsearch` (reading), `05-real-translations` (reading) |
 | 11 | Neural Quality Estimation and Evaluation | — | — |
-| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [10] | — |
+| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [11] | — |
 | 13 | Strategies for NMT of Low-Resource Languages | — | — |
 | 14 | Multilingual NMT and "Zero-shot" NMT | — | — |
 | 15 | Overview of Speech-to-Speech MT | — | — |
@@ -641,12 +641,17 @@ Notes on the rows that are not simple:
   training run that is already going when class ends. The handout is the authority; this
   is the executable path through it, and every threshold is quoted from the handout in one
   cell. Cannot run in CI: it mounts Drive and needs a GPU.
-- [9] **`lecture-10-comet-install`** — Fall 2025 material, brought into the repository on
+- [9] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity, written
+  2026-09-28 to the scope Cowork set: SentencePiece fit on the student's A8 training
+  split, word-level against subword unknown counts on their test set, a round trip, and
+  the two settings A9 needs (use_sentencepiece, and a max_decode_length measured on their
+  data). Retrains nothing. Reads the A8 split from Drive, so it cannot run in CI.
+- [10] **`lecture-10-comet-install`** — Fall 2025 material, brought into the repository on
   2026-09-26. Installs unbabel-comet, scores a worked example, and sets up the HuggingFace
   token through Colab Secrets, which the reference-free models require. It is Lecture 10's
   assignment and the setup for Lecture 11's. Framework-independent: nothing in it touched
   OpenNMT.
-- [10] **`lecture-12-llm-context`** — Fall 2025 material, brought into the repository on
+- [11] **`lecture-12-llm-context`** — Fall 2025 material, brought into the repository on
   2026-09-26. The Assignment 12 scaffold: pick a non-MT HuggingFace model, translate a
   low-resource test set with growing numbers of in-context examples, chart BLEU against
   context size. Every code cell is a TODO, so it contains no answers.
