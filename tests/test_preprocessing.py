@@ -923,5 +923,40 @@ class TestApplySentencepieceConfigOverride(unittest.TestCase):
         self.assertIn("explicit_tgt", saved_df.columns)
 
 
+class TestTrainSentencepieceIsQuiet(unittest.TestCase):
+    """SentencePiece logs every merge; a notebook cell should not show thousands of lines.
+
+    The log is written by C++ to file descriptor 2, which Python's capture tools do not
+    see, so each training runs in a subprocess and its stderr is counted.
+    """
+
+    @staticmethod
+    def stderr_lines(verbose: bool) -> int:
+        import subprocess
+        import sys
+
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp) / "train.tsv"
+            rows = [
+                f"sentence number {i} with words w{i % 97} and x{i % 89}"
+                for i in range(400)
+            ]
+            pd.DataFrame({"src": rows, "tgt": rows}).to_csv(data, sep="\t", index=False)
+            code = (
+                "from torchlingo.preprocessing.sentencepiece import train_sentencepiece; "
+                f"train_sentencepiece([{str(data)!r}], {str(Path(tmp) / 'sp')!r}, "
+                f"vocab_size=200, verbose={verbose})"
+            )
+            done = subprocess.run(
+                [sys.executable, "-c", code], capture_output=True, text=True, check=True
+            )
+        return len(done.stderr.splitlines())
+
+    def test_quiet_by_default_and_verbose_on_request(self):
+        quiet, loud = self.stderr_lines(False), self.stderr_lines(True)
+        self.assertEqual(quiet, 0)
+        self.assertGreater(loud, 20)
+
+
 if __name__ == "__main__":
     unittest.main()
