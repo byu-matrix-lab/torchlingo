@@ -85,18 +85,16 @@ describes last week will mislead every lecture at once rather than one of them.
 | #153 | Pre-norm answered for Cowork: `SimpleTransformer` is post-norm | **L8b** | **Answered** — deliver in the next hand-off; both 8b slides stand |
 | #154 | Execute only the zero-dependency notebooks | **hyg** | **Decided: keep CI lightweight** — structural half merged |
 | #155 | A8's "What To Do" overlaps the kickoff notebook's first four steps | **L8a** | **Your call** — Cowork flagged it and did not act |
-| #144 | Tutorial 2 is a tutorial used as Lecture 7's in-class activity | **L7** | **Your call** — the one notebook where family and role disagree |
 | #145 | Say which assignment each notebook jump-starts | **hyg** | **Your call** — four proposed; blocks #146 |
 | #146 | Stamp the purpose cell into all ten notebooks, and gate it | **hyg** | Open — mechanics done in PR #117; waits on #144 and #145 |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
-| #148 | Five assignments are missing from the schedule | **hyg** | Open — asked in the ninth entry, **unanswered**; see #156 |
+| #148 | **A15** is missing from the schedule | **hyg** | Narrowed — A1 to A3 arrived with Cowork's update; **A7 is deliberate** |
 | #156 | The restructure orphaned #148's unanswered question | **hyg** | **Before the next baton** — re-raise it where they will read |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **10+** | Open — it wrote a 2-run report over a 21-run source |
 | #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **10+** | **Your call** — it holds the corpus prep and all the HPC tooling |
 | #151 | The LSTM asks for dropout it cannot apply | **10+** | Open — nine tests warn; a student setting it gets nothing |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
-| #140 | Split tutorial 4 at Part 6 — Parts 6 to 8 are Lecture 8 material | **L8a/8b** | Open — **a Lecture 8 split makes this land somewhere** |
 | #142 | Decide which notebook owns BLEU before splitting either | **10+** | Open — tutorial 3 Part 5 versus the planned tutorial 7 |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **10+** | Open — point the course at it; decide on diagnostics |
@@ -291,28 +289,6 @@ exactly the failure `training_checkpoint` exists for.
 
 Left separate deliberately: those five files sit outside the lint gate (#22), so a change there
 is unguarded, and a five-file mechanical diff would bury its own review.
-
-### #144 Tutorial 2 is a tutorial used as Lecture 7's in-class activity
-
-**Eric, 2026-09-26:** the tutorials are out-of-class and the course notebooks are in-class
-active learning. True of every notebook but one.
-
-`02-train-tiny-model` lives in `docs/docs/tutorials/` and its declared role is `activity` —
-Lecture 7's in-class activity, which is what the roadmap's table said before the metadata
-existed. So for this notebook the collection and the use disagree.
-
-That was worth surfacing rather than smoothing over, and it corrected the tooling: `family`
-says where a notebook *lives*, `role` says how it is *used*, and a reader is told the role. The
-two are independent fields for exactly this case.
-
-**The remaining question is yours.** Either tutorial 2 really is Lecture 7's activity — in which
-case nothing changes and the exception is deliberate — or Lecture 7 should get a course notebook
-of its own and tutorial 2 reverts to out-of-class reading. The metadata will say whichever you
-decide; today it says the first.
-
-Worth weighing alongside #145: tutorial 2 is also the clearest A8 jump start in the repository,
-and "the thing students work through before the big assignment" may be a better description of
-it than either in-class or out-of-class.
 
 ### #145 Say which assignment each notebook jump-starts
 
@@ -570,25 +546,6 @@ Two consequences:
 Either correct tutorial 1's `serves_lectures` to `[4]`, or leave the 9 and add a `note` saying
 it motivates rather than covers. The first is honest; the second keeps the pointer a student
 revisiting Lecture 9 would benefit from. Pick one deliberately.
-
-### #140 Split tutorial 4 at Part 6 — Parts 6 to 8 are Lecture 8 material
-
-The only notebook whose content genuinely spans two lectures without saying so:
-
-| parts | subject | lecture |
-|---|---|---|
-| 1 to 5 — bottleneck, known-alignment task, ablation, alignment accuracy, the picture | measuring alignment | 19, as declared |
-| 6 to 8 — Bahdanau versus Luong, the Transformer's mechanism, cross-attention on the real model | architectures | 8, undeclared |
-
-It was previously held back because **Lecture 8 is over-subscribed** — tutorial 6 as reading and
-A8 both land there, and a fourth artifact would not have helped.
-
-**A Lecture 8 split changes that verdict.** Two sessions can absorb the architecture half where
-one could not, and this is the one split whose seam is in the content rather than in the
-paperwork. Sequence it after the split, not before, so it lands in a lecture that exists.
-
-Cost: a new nav entry and a new Colab badge. No rename of the existing file, so no link a
-student is holding gets broken — which is why this is separable from #101.
 
 ### #142 Decide which notebook owns BLEU before splitting either
 

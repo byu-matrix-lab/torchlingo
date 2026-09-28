@@ -717,6 +717,44 @@ def notebook_with_purpose(path: Path, meta: dict) -> str:
     return text.replace(anchor, f"{anchor}{cell},\n", 1)
 
 
+def late_head_starts() -> list[str]:
+    """Find notebooks that prepare an assignment already due by the lecture they serve.
+
+    A notebook declaring ``leads_to: ["A8"]`` while being read at a lecture *after* A8's
+    deadline is not helping anyone start A8. That can be deliberate -- a debrief, or a
+    notebook a student is meant to revisit -- which is why this reports rather than fails.
+
+    Compares against the notebook's **earliest** lecture, since a notebook serving several
+    is available from the first of them.
+
+    Returns:
+        list: One line per notebook, empty when every head start arrives in time.
+    """
+    titles, aliases = lectures()
+    order = {key: i for i, key in enumerate(titles)}
+    due = assignments()
+
+    late = []
+    for path in notebooks():
+        meta = read_meta(path)
+        served = [
+            aliases.get(lecture_id(n), lecture_id(n)) for n in meta["serves_lectures"]
+        ]
+        positions = [order[s] for s in served if s in order]
+        if not positions:
+            continue
+        first_seen = min(positions)
+        for assignment in meta.get("leads_to", []):
+            deadline = due.get(assignment)
+            if deadline in order and order[deadline] < first_seen:
+                earliest = next(k for k, i in order.items() if i == first_seen)
+                late.append(
+                    f"{path.stem}: read at Lecture {earliest}, but {assignment} is due "
+                    f"at Lecture {deadline}"
+                )
+    return late
+
+
 def roadmap_with_table(current: str) -> str:
     """Return the roadmap text with the generated block replaced.
 
@@ -856,6 +894,23 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  {c}", file=sys.stderr)
         return 1
     print(f"  {len(found)} notebooks, metadata sound")
+
+    # A head start that arrives after the deadline is worth saying out loud.
+    #
+    # Reported rather than failed, deliberately: WHERE a notebook is read is the
+    # instructors' call, and a check that blocked CI over a placement judgement would be
+    # overstepping. But it is machine-detectable, and noticing it by eye is exactly what
+    # does not happen twice -- `05-real-translations` is read at Lecture 10 while the
+    # assignment it prepares is due at Lecture 9, which looks like an artifact of the
+    # Lecture 8 split rather than a decision anyone made.
+    late = late_head_starts()
+    if late:
+        print(f"\n  {len(late)} notebook(s) prepare an assignment that is already due:")
+        for line in late:
+            print(f"    {line}")
+        print(
+            "    Not an error -- placement is the instructors' call. Flag it to them."
+        )
 
     # Only reached when the metadata is sound, deliberately: regenerating the roadmap from
     # a block that failed validation would write a table with holes in it.

@@ -241,17 +241,20 @@ class TestExecuteNotebooksReadsTheSameField(unittest.TestCase):
         )
 
     def test_needs_are_resolved_from_metadata(self):
+        """What a notebook needs comes from its own metadata, nowhere else.
+
+        The declared list is read rather than restated here. An earlier version
+        pinned tutorial 4's exact two entries, which made this test fail when one
+        of them was corrected -- reporting a stale expectation as a regression.
+        """
         import execute_notebooks as en
 
         nb = nm.TUTORIALS / "04-attention-and-alignment.ipynb"
-        self.assertEqual(
-            nm.read_meta(nb)["needs"],
-            ["data/example.tsv", "data/pretrained/model.pt"],
-        )
+        declared = nm.read_meta(nb)["needs"]
+        # Guards the subset assertion below against passing vacuously.
+        self.assertTrue(declared, "the fixture notebook declares nothing to need")
         # Whatever is missing must be a subset of what is declared, never something else.
-        self.assertTrue(
-            set(en.missing_requirements(nb)) <= set(nm.read_meta(nb)["needs"])
-        )
+        self.assertTrue(set(en.missing_requirements(nb)) <= set(declared))
 
 
 @unittest.skipIf(nbformat is None, "nbformat is a docs extra, absent in CI's test job")
@@ -495,10 +498,15 @@ class TestPurposeLine(unittest.TestCase):
         self.assertIn(f"Lecture {nm.assignments()['A8']}", line)
 
     def test_no_head_start_clause_when_leads_to_is_absent(self):
-        line = nm.purpose_line(
-            nm.read_meta(nm.TUTORIALS / "06-diagnosing-failures.ipynb")
-        )
+        """Built from a literal rather than naming a real notebook.
+
+        This pointed at `06-diagnosing-failures` and broke the moment that notebook was
+        given `leads_to: ["A8"]` -- a test asserting the absence of a field must not depend
+        on a particular file continuing to lack it.
+        """
+        line = nm.purpose_line({**GOOD, "leads_to": []})
         self.assertNotIn("head start", line)
+        self.assertIn("head start", nm.purpose_line({**GOOD, "leads_to": ["A8"]}))
 
     def test_every_role_renders(self):
         """A role with no phrase would raise at generation time, on whichever notebook
@@ -590,6 +598,37 @@ class TestWritersAreIdempotent(unittest.TestCase):
         path.write_text('{"metadata": {}}', encoding="utf-8")
         with self.assertRaises(ValueError):
             nm.notebook_with_purpose(path, GOOD)
+
+
+class TestLateHeadStartsAreReported(unittest.TestCase):
+    """A head start that arrives after the deadline is worth saying out loud.
+
+    Reported rather than failed: where a notebook is read is the instructors' call. But it is
+    machine-detectable, and noticing it by eye is exactly what does not happen twice.
+    """
+
+    def test_it_finds_the_real_one(self):
+        """`05-real-translations` is read at Lecture 10 and prepares A8, due at Lecture 9."""
+        late = nm.late_head_starts()
+        self.assertTrue(any("05-real-translations" in line for line in late), late)
+
+    def test_a_same_lecture_head_start_is_not_late(self):
+        """Tutorial 6 is read at Lecture 9 and A8 is due at Lecture 9. Tight, not late --
+        a student can still read it while the assignment is open."""
+        late = nm.late_head_starts()
+        self.assertFalse(any("06-diagnosing-failures" in line for line in late), late)
+
+    def test_an_on_time_head_start_is_not_reported(self):
+        for stem in ("02-train-tiny-model", "lecture-04-tmx-cleaning"):
+            self.assertFalse(any(stem in line for line in nm.late_head_starts()), stem)
+
+    def test_the_check_reports_without_failing(self):
+        """Exit 0 with the advisory printed. Failing would block CI on a curriculum call."""
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            code = nm.main(["--check"])
+        self.assertEqual(code, 0)
+        self.assertIn("already due", stdout.getvalue())
 
 
 class TestNotebookHygiene(unittest.TestCase):
