@@ -62,7 +62,13 @@ dates are not lecture-critical, and several with no date are.
 
 | label | means | date |
 |---|---|---|
-| **L6** | Human and Automatic MT Evaluation — **has already run** | Wed Sep 23 · A6 due Mon Sep 28 |
+| **L1** | Course Overview and History of MT — **has already run** | Wed Sep 2 · A1 due |
+| **L2** | Translation Challenges for MT — **has already run** | Wed Sep 9 · A2 due |
+| **L3** | Introduction to Word Embeddings — **has already run** | Mon Sep 14 · A3 due |
+| **L4** | Data Preparation for MT Training — **has already run** | Wed Sep 16 |
+| **L5** | Data Preparation for MT Training, Part 2 — **has already run** | Mon Sep 21 · A4 due |
+| **L4/L5** | both data-preparation lectures | |
+| **L6** | Human and Automatic MT Evaluation — **has already run** | Wed Sep 23 · A5 due; A6 due Mon Sep 28 |
 | **L7** | Research Paper Reviews; Intro to Neural Networks | Mon Sep 28 · A6 due |
 | **L8a** | Neural MT: Encoder-Decoder, and Why Attention Was Invented | Wed Sep 30 · **A8 introduced** |
 | **L8b** | Neural MT: The Transformer | Mon Oct 5 |
@@ -74,7 +80,10 @@ dates are not lecture-critical, and several with no date are.
 **A lecture that has already run still owns its work.** `L6` means "this belongs to Lecture
 6", not "this is overdue" — the deadline pressure is gone, the subject matter is not, and a
 student revisiting the lecture or an instructor preparing Fall 2027 meets it there. Filing
-those as `10+` lost the one piece of information the label exists to carry.
+those as `10+` lost the one piece of information the label exists to carry. L1 to L5 were added
+on 2026-09-28 for the same reason: the vocabulary started at L6, so work belonging to the first
+five lectures could only be filed as `10+`, and Task #120's grader, which is Lectures 4 and 5's
+tool, was.
 
 `hyg` is not a synonym for "later". It is the category that keeps the other labels true: a
 generated map that has drifted, a gate that reports without blocking, or a task list that
@@ -86,14 +95,14 @@ describes last week will mislead every lecture at once rather than one of them.
 | #163 | `check_contamination` calls every held-out set "test" | **L8a** | Open — 8a prints `val: 0/200 test sources`; reaches Colab only with a PyPI release |
 | #164 | Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9 | **L9** | Open — **ours**, per Cowork's Sep 28 baton; `--check` warns on every run |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
-| #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **10+** | Cowork's Q7 call — **unblocks #88**; #142 was already decided |
+| #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | Cowork's Q7 call — **unblocks #88**; #142 was already decided |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **10+** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **10+** | Open — it wrote a 2-run report over a 21-run source |
 | #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **10+** | **Your call** — it holds the corpus prep and all the HPC tooling |
 | #151 | The LSTM asks for dropout it cannot apply | **10+** | Open — nine tests warn; a student setting it gets nothing |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
-| #120 | The grader now has a source repository | **10+** | Open — point the course at it; decide on diagnostics |
+| #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Lecture 9 is Wed Oct 7; A9 Wed Oct 14** — the only notebook L9 has on its own subject |
 | #122 | Make Assignment 9's control hard to get wrong in code | **L9** | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | **10+** | Open — highest uncertainty, due Oct 28 |
