@@ -98,15 +98,17 @@ describes last week will mislead every lecture at once rather than one of them.
 
 | | Task | Critical for | State |
 |---|---|---|---|
-| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | **In review, PR #140** — then **Eric's Colab run** on a real A5 corpus before Wed |
-| #163 | `check_contamination` calls every held-out set "test" | **L8a** | Open — 8a prints `val: 0/200 test sources`; reaches Colab only with a PyPI release |
+| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only **Eric's Colab run** on a real A5 corpus remains, before Wed |
+| #163 | `check_contamination` calls every held-out set "test" | **L8a** | Library half in **0.2.1** (PR #146) — left: the 8a notebook passes `name="val"` |
+| #165 | Show resume on the Lecture 7 toy model before 8a needs it | **L7** | Open — 8a introduces `TrainingCheckpointer` cold, on a two-hour run |
+| #166 | Tutorials 1 and 3 still have the commented-out install | **L9** | Open — same bug PR #149 fixed in tutorials 4 and 5 |
 | #164 | Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9 | **L9** | Open — **ours**, per Cowork's Sep 28 baton; `--check` warns on every run |
 | #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
-| #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | Cowork's Q7 call — **unblocks #88**; #142 was already decided |
+| #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144 |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
 | #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **hyg** | **Your call** — it holds the corpus prep and all the HPC tooling |
-| #151 | The LSTM asks for dropout it cannot apply | **L8a** | Open — nine tests warn; a student setting it gets nothing |
+| #151 | The LSTM asks for dropout it cannot apply | **lib** | Open — the default is two layers, and tutorial 4 passes `dropout=0.0`; only the tests hit it |
 | #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
@@ -125,8 +127,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
 | #113 | Land the PRs still open | **hyg** | **PR #127** and **PR #128** — both need your merge |
 | #118 | What does a paid Colab session actually provide? | **L8a** | **Coulson** — now blocks a live decision, not a claim |
-| #114 | The wheel ships no data, so tutorials 4 and 5 cannot find it | **L8a/8b** | Open |
-| #157 | Resume restores no scheduler, no AMP scaler, no RNG state | **L8a** | Open — **(1) is untested and the 8a notebook's resume path relies on it** |
+| #157 | Resume restores no AMP scaler and no RNG state | **lib** | Open — the scheduler half is tested and a mid-epoch bug fixed (PR #145, in 0.2.1) |
 | #158 | Our own `num_workers=4` default costs ~23s and never won | **L8a** | Open — **needs your call**; measured on macOS only |
 | #8 | Verify Eole claims before syllabus use | **lib** | Open |
 | #9 | `pre-commit install` (still not installed) | **hyg** | Open |
@@ -148,7 +149,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #81 | Fail the build on hand-typed generated numbers | **hyg** | Open |
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
 | #86 | `evaluate_model` has no test, and it is what callers use | **lib** | Open — after PR #58 |
-| #88 | Open the tutorial 7 PR | **L6** | **Unblocked** — Cowork's Q7 says tutorial 7 should land |
 | #89 | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
 | #92 | Tutorials 3 and 5 bypass the library's own evaluation API | **L10** | Open |
@@ -316,6 +316,11 @@ Worth deciding rather than patching: either pass `dropout=0.0` when `num_layers 
 in the docstring, or default the LSTM to two layers. The first is honest about the limitation; the
 second makes the knob work. Not the same choice, and the second changes a default.
 
+**Checked 2026-09-28: the default is already two layers** (`lstm_num_layers = 2`), so the knob
+works unless someone asks for one layer — and tutorial 4, the only student path that does, passes
+`dropout=0.0` explicitly. Only the tests hit the warning. Relabelled `lib`; what is left is the
+first option above, for whoever sets one layer on their own.
+
 ### #132 Quick Start has no notebook, and its badge opens a different one
 
 `docs/docs/getting-started/quickstart.md` carries a Colab badge, and the badge opens
@@ -372,7 +377,7 @@ keeps the corpus and checkpoints out, so a remote would carry scripts and notes 
 
 ### #152 A8 kickoff notebook for Lecture 8a
 
-**Written by Cowork, 2026-09-28, and in review as PR #140** as
+**Written by Cowork and merged 2026-09-28 as PR #140**, as
 `docs/docs/course/lecture-08a-a8-kickoff.ipynb`. All eleven suggestions from here are in it.
 
 **Checked here as far as anything here can check it.** A CPU copy ran end to end against a
@@ -383,8 +388,7 @@ which is what its Colab cell installs. Two fixes were made in the PR: the first-
 (`log_every` is a mean over N steps, and the first line sits *above* `ln(V)`), and the scoring
 cell no longer needs `result`, which only exists in the session that trained.
 
-**Done when PR #140 merges and Eric has run it once in Colab against a real A5 corpus before
-Wed Sep 30.** Nothing here can execute a Drive mount on a GPU; that run is the only end-to-end
+**Done when Eric has run it once in Colab against a real A5 corpus before Wed Sep 30.** Nothing here can execute a Drive mount on a GPU; that run is the only end-to-end
 test this notebook will get before twenty-four students do.
 
 ### #163 `check_contamination` calls every held-out set "test"
@@ -397,6 +401,28 @@ Add a `name: str = "test"` parameter that the detail uses, and pass `"val"` from
 **The catch:** the notebook installs torchlingo from PyPI, so the library half reaches students
 only with a release, and a notebook passing `name=` before that release will raise `TypeError`.
 Land both together, or the notebook half after the release.
+
+**Library half shipped in 0.2.1** (PR #146, released 2026-09-28). What remains is the notebook's
+one-word change, safe now that `pip install torchlingo` resolves to 0.2.1.
+
+### #165 Show resume on the Lecture 7 toy model before 8a needs it
+
+The 8a notebook introduces `TrainingCheckpointer` cold, on a run of hours, where the first real
+test of resume is a real disconnect. On the toy model a student can watch it work in seconds:
+start training with a checkpointer, interrupt the cell, run it again, see it continue. It would
+also make `lecture-07-toy-model` follow `CLAUDE.md`'s own rule — every `train_model` call
+checkpoints — which its two calls currently do not.
+
+Add it to Part B, not Part A: Part A is timed for the room. **Done when** the notebook
+demonstrates an interrupted-and-resumed run and both calls pass a checkpointer.
+
+### #166 Tutorials 1 and 3 still have the commented-out install
+
+Found 2026-09-28 while fixing the same bug in tutorials 4 and 5 (PR #149): both still open with
+"uncomment in Google Colab", so a student running straight through hits `ModuleNotFoundError`.
+Tutorial 1 is Lecture 9's `reference` (and Lecture 4's); tutorial 3 is Lecture 10's reading.
+Copy tutorial 2's two-cell setup, add a Colab download for any `data/` file they read, re-execute,
+and check the outputs are unchanged — the PR #149 procedure.
 
 ### #164 Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9
 
@@ -432,7 +458,14 @@ Either correct tutorial 1's `serves_lectures` to `[4]`, or leave the 9 and add a
 it motivates rather than covers. The first is honest; the second keeps the pointer a student
 revisiting Lecture 9 would benefit from. Pick one deliberately.
 
-### #157 Resume restores no scheduler, no AMP scaler, no RNG state
+### #157 Resume restores no AMP scaler and no RNG state
+
+**Gap (1) is closed, and closing it found a worse bug beside it** (PR #145, in 0.2.1). The
+scheduler *was* restored — the new test passes on the old code. But a periodic save recorded the
+epoch in progress as complete, so a mid-epoch resume skipped the rest of that epoch: fewer steps,
+an unfinished schedule, the wrong final learning rate. On A8 nearly every disconnect lands
+mid-epoch. Gaps (2) and (3) remain, and neither touches students: `use_amp` defaults off and the
+8a notebook does not set it.
 
 Assessed 2026-09-27, when the question was whether the checkpointers are covered. The 18 tests in
 `tests/test_training_checkpoint.py` are good: round-trip, optimizer state, best-only writes,
@@ -688,24 +721,6 @@ measurement is not redundant with ours.
 whether 9.60 GiB fits. Until then **no memory figure goes in front of students** — only the
 ordering, which is solid: batch count drives epoch time, the length cap drives whether the run
 fits at all.
-
-### #114 The wheel ships no data, so tutorials 4 and 5 cannot find what they load
-
-The installed package contains **zero** data files — verified against the real wheel. So
-`data/example.tsv` and `data/pretrained/` exist in the repository and not in a pip install, and
-a student who opens tutorial 4 or 5 from its Colab badge, installs with pip and runs it fails at
-the load with nothing explaining why.
-
-Tutorial 2 is unaffected: it builds its corpus inline. Its prose does say the file "ships with
-the repo", true of the repo and false of the wheel, so that wants rewording either way.
-
-Options: fetch over HTTP in the notebooks that need it, ship it as package data, or say plainly
-that those tutorials need a clone. **The first keeps the Colab badge honest**, which is the point
-of having one.
-
-**Done when** a pip-installed tutorial 4 or 5 either runs or fails with a message that says what
-to do. Same shape as the wheel-missing-modules defect: what the repository has is not what the
-wheel carries, and nothing checks.
 
 ## Code — decoding performance
 
@@ -1100,21 +1115,6 @@ All three raised by Coulson on Discord, 2026-09-14, after reviewing the open PRs
 trace recording candidates *before* pruning. The two below are what remains.
 
 ## Docs and tutorials
-
-**#88 Open the tutorial 7 PR** — unblocked 2026-09-26, PR #58 merged
-
-Written, executed and verified on the **local** branch `docs/evaluation-tutorial` (commit
-`1516aa0`), held locally rather than stacked. It needs PR #55 for the `.signature` it prints.
-
-At PR time: rebase onto a `main` carrying #58 and #55; expect a small nav conflict in
-`docs/mkdocs.yml`, since PR #51 also edits the tutorials block — **tutorial 7 goes after
-tutorial 6**; re-execute and re-run every check; say in the body that it closes Task #84.
-
-Already verified on the branch: 7/7 notebooks execute cleanly, no local paths in outputs, every
-number quoted in prose appears in an output, `mkdocs --strict` exits 0, ruff clean, tests pass.
-It needs no LFS artifact, so it takes the CI gate to 3 of 7.
-
-**Done when** the PR is open and green.
 
 **#89 Fail the docs build when a page is off-nav**
 
