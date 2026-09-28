@@ -118,7 +118,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #8 | Verify Eole claims before syllabus use | **10+** | Open |
 | #9 | `pre-commit install` (still not installed) | **hyg** | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | **10+** | Open |
-| #22 | `examples/` and `scripts/` are outside the lint gate | **hyg** | Open |
+| #22 | `examples/` and `scripts/` are outside the lint gate | **hyg** | Open — **`scripts/notebook_meta.py` is now library code living there** |
 | #28 | Attention params skip `_init_weights` | **L8a/8b** | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | **hyg** | Open |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | **hyg** | Open |
@@ -558,6 +558,20 @@ so splitting first would produce two evaluation tutorials and a choice nobody ma
 **Also a numbering correction:** the hand-off entry that mentions this writes a bare `#88` for
 the task. PR #88 is the unrelated rung-5 ladder change, already merged. Task #88 is the
 evaluation tutorial. Exactly the collision the naming rule in `CLAUDE.md` exists to prevent.
+
+### #22 `examples/` and `scripts/` are outside the lint gate
+
+CI runs `ruff check src tests` and `ruff format --check src tests`. Both other source trees are
+ungated, and `scripts/generate_sentencepiece_models.py` fails three rules on unmodified `main`:
+`EXE001` (shebang, no exec bit), `I001` (unsorted imports), `BLE001` (blind `except Exception`).
+
+**What changed the priority**, 2026-09-27: `scripts/notebook_meta.py` is now ~900 lines, carries
+77 tests, and gates the roadmap's generated map in CI. It is library code that happens to live in
+`scripts/`, and it is the one file here whose breakage would be least visible — a formatting drift
+in it is exactly what silently defeated a mutation test earlier today.
+
+Fix is widening two workflow lines and clearing the three violations. Keep it as its own PR, so
+pre-existing fixes are not buried inside a feature diff.
 
 ### #101 Give the tutorials stable unique names
 
