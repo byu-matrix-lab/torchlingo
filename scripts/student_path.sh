@@ -74,13 +74,25 @@ run = sys.argv[1]
 nb = nbformat.read(f"{run}/in.ipynb", as_version=4)
 
 # Pretend to be Colab before any cell runs, including a Drive that "mounts" successfully.
+# The fake must survive a real `import google.colab` (torchlingo.colab.is_colab does one), so
+# it hangs off a `google` package, and mounting creates MyDrive as the real one does.
+# /content cannot be created off Colab, so the mount point is a scratch directory: rewritten in
+# notebook source that names it, and given to torchlingo.colab.setup through its variable.
+fake_drive = os.path.abspath(f"{run}/fake-content-drive")
 nb.cells.insert(0, nbformat.v4.new_code_cell(
-    "import sys, types\n"
+    "import os, sys, types\n"
+    "from pathlib import Path\n"
+    f"os.environ['TORCHLINGO_DRIVE_MOUNT'] = {fake_drive!r}\n"
+    "def _mount(path, **kw):\n"
+    "    (Path(path) / 'MyDrive').mkdir(parents=True, exist_ok=True)\n"
+    "    print(f'(fake) mounted {path}')\n"
     "colab = types.ModuleType('google.colab')\n"
-    "colab.drive = types.SimpleNamespace(mount=lambda path, **kw: print(f'(fake) mounted {path}'))\n"
+    "colab.drive = types.SimpleNamespace(mount=_mount)\n"
+    "google = sys.modules.get('google') or types.ModuleType('google')\n"
+    "google.colab = colab\n"
+    "sys.modules['google'] = google\n"
     "sys.modules['google.colab'] = colab"
 ))
-fake_drive = os.path.abspath(f"{run}/fake-content-drive")
 for cell in nb.cells:
     cell.source = cell.source.replace("/content/drive", fake_drive)
 
