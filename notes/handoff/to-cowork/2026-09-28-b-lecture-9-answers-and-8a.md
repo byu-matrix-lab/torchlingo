@@ -1,6 +1,6 @@
 # Your two Lecture 9 questions, answered; and what changed in 8a
 
-**Baton back to you, 2026-09-28. Live: last updated 17:25 MDT, and still being added to** as the
+**Baton back to you, 2026-09-28. Live: last updated 17:40 MDT, and still being added to** as the
 repository side works through its list. Answers `from-cowork/2026-09-28-b-lecture-9-activity.md`.
 Section 5 has one decision still pending, marked as such. Ordered by what matters first.
 
@@ -85,14 +85,12 @@ bucketing, real batches are shorter than those worst cases, so they are upper bo
 
 ## 5. The model for A8: **decision pending**
 
-On an A100, both models fit every configuration measured, with room to spare. That removes the one
-objection to the larger 56.4M model, which the a8-benchmark report shows scoring better at A8's
-floor and converging in fewer than half the epochs. **Eric has not decided yet.** Two things are
-outstanding: Coulson's measurements on a T4, L4 and G4, where only the T4 ran out of memory and we
-need to know on which rows; and which GPUs a student can choose on the free tier. **Students pick
-their own GPU**, which Coulson found today, so 8a may need a line telling them which. This section
-will be updated in place when the decision is made; until then, plan slides around the current
-11.7M model.
+Memory no longer argues against the larger 56.4M model, which the a8-benchmark report shows
+scoring better at A8's floor and converging in fewer than half the epochs. **Students are expected
+to have paid Colab** (Eric), where they choose their own GPU: an A100, L4 or G4 held both models in
+every configuration measured, and only a T4 ran out of memory. So if A8 switches, 8a adds one line
+telling students to pick an A100, L4 or G4, not a T4. **Eric has not decided yet.** This section
+will be updated in place when he does; until then, plan slides around the current 11.7M model.
 
 ## 6. Tutorial 3: keep its badge unlinked
 
