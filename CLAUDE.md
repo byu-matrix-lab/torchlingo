@@ -347,6 +347,24 @@ New notebooks copy tutorial 2's two-cell setup pattern: detect Colab and install
 unconditionally, then verify and fail loudly. Not the old commented-out install, which was
 the bug.
 
+**Every notebook declares what it needs from its environment, in `requires`.** One of `pip`,
+`download`, `colab`, `hf-token`, `blanks` — a closed set, because a typo would otherwise read
+as "runnable in CI", which is the opposite of what whoever wrote it meant. `needs` is for
+repo-relative *paths*; `requires` is for capabilities, and the two are not interchangeable.
+
+A notebook declaring nothing gets executed in CI. That is the point: it is the only way a
+course notebook is ever checked by running it.
+
+**Why this exists rather than a list in the workflow.** `lecture-10-comet-install` shipped with
+`else:` followed by an unindented `drive` — a bare SyntaxError in Lecture 10's own assignment
+notebook, committed and unnoticed for a day because nothing executed `docs/docs/course/` at
+all. A student would have hit it in the room.
+
+So code that does not parse must declare `blanks`, and a `blanks` declaration must correspond
+to real blanks. Both directions are checked: one-way would let the marker rot into a licence to
+ship broken cells. And when writing that check, note that `!pip install` can appear *inside* a
+`try` block — a plain `compile()` call reports notebooks that run perfectly well.
+
 ## Every training run checkpoints, and it is not a flag
 
 Any script that calls `train_model` passes a `TrainingCheckpointer`. Unconditionally — not

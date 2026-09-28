@@ -40,6 +40,7 @@ from pathlib import Path
 from notebook_meta import read_meta
 
 TUTORIALS = Path("docs/docs/tutorials")
+COURSE = Path("docs/docs/course")
 TIMEOUT_SECONDS = 900
 
 
@@ -116,6 +117,28 @@ def missing_requirements(notebook: Path) -> list[str]:
     return [name for name in needs if not is_available(Path(name))]
 
 
+def missing_capabilities(notebook: Path) -> list[str]:
+    """List the environment capabilities this notebook declares and CI does not have.
+
+    Distinct from :func:`missing_requirements`, which is about *files in this repository*.
+    A notebook can be missing no file and still be unrunnable here because it installs a
+    package, downloads a model, mounts Google Drive or wants a HuggingFace token. Those are
+    capabilities, not paths, which is why declaring them needed a second field.
+
+    Every declared capability counts as missing, because none of them is available in the
+    test job and none should be added to it silently: Eric's standing decision is that CI
+    stays lightweight, so a notebook that wants more than a plain environment is skipped
+    rather than accommodated.
+
+    Args:
+        notebook (Path): The notebook to inspect.
+
+    Returns:
+        list[str]: The capabilities it declared, sorted; empty when it needs none.
+    """
+    return sorted(read_meta(notebook).get("requires", []))
+
+
 def link_repo_data(workdir: Path) -> None:
     """Expose the repository's read-only data inside the scratch directory.
 
@@ -144,12 +167,24 @@ def main() -> int:
     """Execute every tutorial notebook in order and summarize."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--tutorials", type=Path, default=TUTORIALS)
+    parser.add_argument("--course", type=Path, default=COURSE)
     parser.add_argument("--timeout", type=int, default=TIMEOUT_SECONDS)
     args = parser.parse_args()
 
-    notebooks = sorted(args.tutorials.glob("*.ipynb"))
+    # Both families, because the course notebooks are the ones students open in the room, on
+    # a clock -- a broken one costs twenty minutes of class rather than a confusing evening.
+    # They were executed by nothing at all until this was widened.
+    #
+    # Tutorials first and in name order, because tutorial 3 loads the checkpoint tutorial 2
+    # writes. The course notebooks are independent of each other and of the tutorials.
+    notebooks = sorted(args.tutorials.glob("*.ipynb")) + sorted(
+        args.course.glob("*.ipynb")
+    )
     if not notebooks:
-        print(f"No notebooks found under {args.tutorials}", file=sys.stderr)
+        print(
+            f"No notebooks found under {args.tutorials} or {args.course}",
+            file=sys.stderr,
+        )
         return 1
 
     failures = []
@@ -163,6 +198,14 @@ def main() -> int:
         link_repo_data(workdir)
 
         for notebook in notebooks:
+            unavailable = missing_capabilities(notebook)
+            if unavailable:
+                skipped.append(notebook.name)
+                print(
+                    f"  SKIP  {notebook.name} (requires {', '.join(unavailable)})",
+                    flush=True,
+                )
+                continue
             absent = missing_requirements(notebook)
             if absent:
                 skipped.append(notebook.name)

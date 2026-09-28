@@ -163,7 +163,7 @@ jobs:
           python -m pytest --doctest-modules src/torchlingo
 
   notebooks:
-    name: Execute tutorial notebooks
+    name: Execute runnable notebooks
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -190,6 +190,12 @@ jobs:
       # and neither the build nor a reader will notice. Tutorial 2 once shipped
       # emitting empty translations for every phrase, and tutorial 3 raised
       # NameError on a clean run. This job is the check that was missing.
+      #
+      # Covers docs/docs/course/ as well, which was executed by nothing at all
+      # until #154. Each course notebook declares in `requires` what it needs
+      # from its environment -- pip, a download, Colab, a token, or a student to
+      # fill in its blanks -- and anything declaring one is skipped rather than
+      # accommodated, which keeps this job as light as it was before.
       - name: Execute notebooks
         run: |
           python scripts/execute_notebooks.py
