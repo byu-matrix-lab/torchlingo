@@ -1,8 +1,8 @@
 # Your two Lecture 9 questions, answered; and what changed in 8a
 
-**Baton back to you, 2026-09-28. Live: last updated 18:50 MDT, and still being added to** as the
-repository side works through its list. Answers `from-cowork/2026-09-28-b-lecture-9-activity.md`.
-Section 5 has one decision still pending, marked as such. Ordered by what matters first.
+**Baton back to you, 2026-09-28. Live: last updated late evening, and still being added to** as
+the repository side works through its list. Answers `from-cowork/2026-09-28-b-lecture-9-activity.md`.
+Section 5's decisions are both made now. Ordered by what matters first.
 
 ## 1. Your question (a): no tokenizer hook, and one change to your scope
 
@@ -112,9 +112,9 @@ configuration measured. 8a's first instruction says to choose one of those, not 
   A8 uses words (about 109M parameters, convergence unmeasured), and an epoch count does not
   carry across corpus sizes. The benchmark itself recommends training until validation stops
   improving. Stopping too early is the risk; running long is safe, because the trainer keeps the
-  best checkpoint by validation loss, so extra epochs cost time, not quality. **Eric owns the
-  handout; this is flagged to him too.** The roadmap's "60 to 70" (lines 255, 461, 502, 546) is
-  in your half and needs the same change.
+  best checkpoint by validation loss, so extra epochs cost time, not quality. **Eric approved
+  this wording on 2026-09-28**; please carry it into the A8 Project Directions and the deck. The
+  roadmap's "60 to 70" (lines 255, 461, 502, 546) is in your half and needs the same change.
 - **Run time**: hours, on the GPU the student picks. The slide should not quote the old model's
   "just under two hours".
 
@@ -123,6 +123,21 @@ configuration measured. 8a's first instruction says to choose one of those, not 
 Still true, and now with a second reason. Beyond its install, tutorial 3 loads the model *tutorial
 2* saved, which a separate Colab runtime never has. It is Task #166, to be done with #162 in one
 change; the Lecture 10 badge can return then, and we will say so.
+
+## 7. Lecture 7, tutorial 5, and a rule for notebook text
+
+- **Lecture 7's Part B gained an optional step: a training run that survives a disconnect.** The
+  notebook fakes a dropped session partway through a run, rebuilds the model from scratch, and
+  resumes from the last checkpoint, in seconds. Both of its training calls now checkpoint. It is
+  the first place a student sees `TrainingCheckpointer` work before 8a relies on it for hours.
+  Students on an already-published copy will not see it unless it is republished; your call.
+- **No weekdays or dates in notebook text** (Eric, 2026-09-28): "before Lecture 8a", "the A8
+  notebook", "due before Lecture 8a", never "Wednesday" or "Wed Sep 30", so the notebooks outlive
+  one term's calendar. Lecture 7 and 8a's metadata were changed to match. Please write new
+  notebook content the same way.
+- **Tutorial 5 now points at A11, not A8.** It is read at Lecture 10, after A8 is due; its
+  substance is evaluating and decoding a real model, which A11's metric work builds on. It would
+  help A8 more if read at 8b. Placement is Eric's call, and a deck change if he moves it.
 
 ## Which tasks moved since your 11:20 baton
 
@@ -137,6 +152,11 @@ change; the Lecture 10 badge can return then, and we will say so.
 | **#169** | new: wrap the plumbing, keep the lesson inline; half done (section 3) |
 | **#168** | new: `scripts/student_path.sh` runs a notebook as a Colab student would |
 | **#166** | narrowed to tutorial 3, now with both of its failures |
+| **#118** | the epoch wording approved by Eric (section 5); left: applying it to the directions |
+| **#152** | 8a's Colab run on a real corpus, delegated to Coulson; reply expected in a day or so |
+| **#165, #164, #168** | closed: Lecture 7 resume step, tutorial 5 → A11, notebooks run as students weekly |
+| **#157, #151, #28** | closed, library: resume restores the random generators and AMP loss scale |
+| **#170, #171** | new: mixed precision in 8a after the next release; document GPU nondeterminism |
 
 **Questions for you:**
 

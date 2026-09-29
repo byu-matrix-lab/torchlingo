@@ -98,7 +98,7 @@ describes last week will mislead every lecture at once rather than one of them.
 
 | | Task | Critical for | State |
 |---|---|---|---|
-| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only **Eric's Colab run** on a real A5 corpus remains, before Wed |
+| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28), reply expected within a day or so |
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162** |
 | #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
 | #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
@@ -117,7 +117,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #160 | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
-| #118 | What does a paid Colab session actually provide? | **L8a** | **Decided: A8 uses 56.4M**, 35 epochs — left: the handout's epoch range, Eric's |
+| #118 | What does a paid Colab session actually provide? | **L8a** | **Decided: A8 uses 56.4M**, 35 epochs — left: the Project Directions' wording, **approved by Eric Sep 28**, to be applied |
 | #170 | Mixed precision in 8a, now that a resume keeps the loss scale | **L8a** | Open — **needs 0.2.4 on PyPI first**; measure the speed-up on a Colab GPU |
 | #171 | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #8 | Verify Eole claims before syllabus use | **lib** | Open |
@@ -356,8 +356,11 @@ which is what its Colab cell installs. Two fixes were made in the PR: the first-
 (`log_every` is a mean over N steps, and the first line sits *above* `ln(V)`), and the scoring
 cell no longer needs `result`, which only exists in the session that trained.
 
-**Done when Eric has run it once in Colab against a real A5 corpus before Wed Sep 30.** Nothing here can execute a Drive mount on a GPU; that run is the only end-to-end
-test this notebook will get before twenty-four students do.
+**Done when it has run once in Colab against a real A5 corpus.** Nothing here can execute a
+Drive mount on a GPU; that run is the only end-to-end test this notebook will get before
+twenty-four students do. **Delegated to Coulson on 2026-09-28**; Eric sent him the note on
+Discord, and a reply is expected within a day or so. On it, read what he reports against the
+note, then remove this entry.
 
 ### #166 Tutorial 3 cannot run from its Colab badge
 
@@ -522,7 +525,8 @@ and at A8's own settings it would fit a free-tier T4's nominal capacity too; the
 6 + 6 layers, feed-forward 2048) and runs 35 epochs, since the benchmark had it converging in
 about 30 where the 11.7M model needed 65. Two caveats recorded in the notebook: its size is 56.4M
 only at an 8,000-piece vocabulary (about 109M at a word vocabulary), and the 30-epoch figure was
-measured with subwords. The live hand-off tells Cowork. **Done when the handout reads "about 35
+measured with subwords. The live hand-off tells Cowork. **Eric approved the wording on
+2026-09-28.** **Done when the handout reads "about 35
 epochs, and keep going if validation loss is still falling at the end"** rather than a firm
 range, which one subword-vocabulary run cannot support; it says 60 to 70, and the notebook says
 the handout governs. That document is Eric's; the Project Directions copies requested from Cowork
