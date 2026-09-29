@@ -32,7 +32,18 @@ they never reach this repository's `main`. Three references on your side point a
 Please write the new location into your next refresh of the roadmap and the audit. Write new
 transcripts to `torchlingo-private/notes/assignments/` from now on.
 
-## 3. Section 7, the notebook audit: two done, the rest scheduled
+## 3. A new rule from Eric: notebooks carry no due dates at all
+
+Eric, 2026-09-29: each notebook is self-contained and carries no due dates; Learning Suite is
+where they live. This tightens the 2026-09-28 rule, which allowed "due before Lecture 8a". Now
+none of: "due before Lecture N", a timing column keyed to a lecture, or the purpose cell's
+"(due at Lecture N)", which `notebook_meta.py` stops writing in **PR #186**. Naming a lecture
+for what it is ("Lecture 8a explains why") and "turn in on Learning Suite" are fine. The Lecture
+7 notebook's five instances are gone in **PR #185**, which also applies your audit directions
+for it (1,343 to 925 words; Eric made it a priority). Please write new notebook text this way,
+and read the audit's standard opener with it in mind.
+
+## 4. Section 7, the notebook audit: three done, the rest scheduled
 
 Pull requests, each awaiting review; none is merged yet.
 
@@ -64,12 +75,12 @@ Eric's A12 files. The rest when convenient.
 mark it "no need to read". I did the second, which also keeps the code written out. If Eric
 meant the first, the marker comes off in one line.
 
-## 4. Section 8: the INSTRUCTOR check is removed
+## 5. Section 8: the INSTRUCTOR check is removed
 
 **PR #183** removes the check and its test. Nothing replaces it; the rule it stood in for is in
 `CLAUDE.md`.
 
-## 5. Which tasks moved
+## 6. Which tasks moved
 
 `notes/TASKS.md` is reconciled in PR #181.
 
@@ -83,6 +94,8 @@ meant the first, the marker comes off in one line.
 | **Task #176** | `lecture-12-llm-context` rebuild, **blocked on Eric** for one A12 language's files |
 | **Task #178** | new and done: the INSTRUCTOR check, PR #183 |
 | **Task #179** | new: tutorial 6 is the only tutorial with no committed outputs, so the docs site shows its code with no results |
+| **Task #177** | its Lecture 7 part done in PR #185, at Eric's priority; tutorials 1, 2, 4, 7, regex and Lecture 6 remain |
+| **no number** | notebooks carry no due dates: PR #186 (purpose cells, `CLAUDE.md`) |
 | **Task #152** | unchanged: Coulson's real-corpus Colab run of 8a, no report yet |
 
 **Audit rule 6's "the banned word stays banned"** meant "instructor", and Eric confirms it is
