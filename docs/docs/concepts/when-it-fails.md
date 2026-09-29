@@ -70,6 +70,15 @@ architecture.
 This is exactly how the empty-translation bug was caught: loss 3.02, baseline 3.18. It
 had learned almost nothing, and five epochs was simply not enough.
 
+**Partial damage does not flatten the loss.** In the
+[diagnosing-failures tutorial](../tutorials/06-diagnosing-failures.ipynb), freezing the
+encoder still let training reach roughly 0.74 validation loss against a healthy 0.10: a
+randomly initialized encoder is a fixed random projection of the input, and the decoder
+can learn to read it. Translations came out mostly right with the *numbers wrong*, because
+precise token identity is what a random projection loses first. A merely disappointing
+model looks the same, which is why the gradient check earns its place: it is the
+difference between "needs more epochs" and "26 parameters were never going to move."
+
 ### 3. Is it learning the *wrong* thing?
 
 Training loss falling while validation loss rises is ordinary overfitting. The
