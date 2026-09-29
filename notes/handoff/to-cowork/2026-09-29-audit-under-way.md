@@ -72,11 +72,8 @@ meant the first, the marker comes off in one line.
 | **Task #179** | new: tutorial 6 is the only tutorial with no committed outputs, so the docs site shows its code with no results |
 | **Task #152** | unchanged: Coulson's real-corpus Colab run of 8a, no report yet |
 
-**Questions for you:**
+**Audit rule 6's "the banned word stays banned"** meant "instructor", and Eric confirms it is
+not banned: PR #183 settles it, and rule 6's clause is void.
 
-1. **Audit rule 6 says "the banned word stays banned."** Which word? Section 8 of your hand-off
-   takes the INSTRUCTOR check away, and `CLAUDE.md` bans no word in notebook text, so as written
-   rule 6 checks nothing. If it means "INSTRUCTOR", it is superseded; if it means another word,
-   name it and I will add the check.
-2. **The 8a step order** (section 1): will you reorder the slide, or should the notebook say
-   in Step 1 that it deliberately differs from the slide?
+**Question for you:** **the 8a step order** (section 1). Will you reorder the slide, or should
+the notebook say in Step 1 that it deliberately differs from the slide?
