@@ -1162,9 +1162,9 @@ def main(argv: list[str] | None = None) -> int:
     # Reported rather than failed, deliberately: WHERE a notebook is read is the
     # instructors' call, and a check that blocked CI over a placement judgement would be
     # overstepping. But it is machine-detectable, and noticing it by eye is exactly what
-    # does not happen twice -- `05-real-translations` is read at Lecture 10 while the
-    # assignment it prepares is due at Lecture 9, which looks like an artifact of the
-    # Lecture 8 split rather than a decision anyone made.
+    # does not happen twice -- `05-real-translations` sat at Lecture 10 for weeks claiming
+    # A8, due at Lecture 9, an artifact of the Lecture 8 split rather than a decision
+    # anyone made (fixed in Task #164).
     late = late_head_starts()
     if late:
         print(f"\n  {len(late)} notebook(s) prepare an assignment that is already due:")

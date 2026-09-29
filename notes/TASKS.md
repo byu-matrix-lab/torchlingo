@@ -99,17 +99,13 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only **Eric's Colab run** on a real A5 corpus remains, before Wed |
-| #165 | Show resume on the Lecture 7 toy model before 8a needs it | **L7** | Open — 8a introduces `TrainingCheckpointer` cold, on a two-hour run |
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162** |
 | #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
-| #168 | Make the student-path run part of shipping a notebook | **hyg** | Open — `scripts/student_path.sh` exists and works; fold into the executor, schedule it |
 | #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
-| #164 | Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9 | **L9** | Open — **ours**, per Cowork's Sep 28 baton; `--check` warns on every run |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
 | #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **hyg** | **Your call** — it holds the corpus prep and all the HPC tooling |
-| #151 | The LSTM asks for dropout it cannot apply | **lib** | Open — the default is two layers, and tutorial 4 passes `dropout=0.0`; only the tests hit it |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
@@ -122,12 +118,12 @@ describes last week will mislead every lecture at once rather than one of them.
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
 | #118 | What does a paid Colab session actually provide? | **L8a** | **Decided: A8 uses 56.4M**, 35 epochs — left: the handout's epoch range, Eric's |
-| #157 | Resume restores no AMP scaler and no RNG state | **lib** | Open — the scheduler half is tested and a mid-epoch bug fixed (PR #145, in 0.2.1) |
+| #170 | Mixed precision in 8a, now that a resume keeps the loss scale | **L8a** | Open — **needs 0.2.4 on PyPI first**; measure the speed-up on a Colab GPU |
+| #171 | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #8 | Verify Eole claims before syllabus use | **lib** | Open |
 | #9 | `pre-commit install` (still not installed) | **hyg** | Open |
 | #15 | Migrate history-blind `DummyTransformer` tests | **lib** | Open |
 | #22 | `examples/` and `scripts/` are outside the lint gate | **hyg** | Open — **`scripts/notebook_meta.py` is now library code living there** |
-| #28 | Attention params skip `_init_weights` | **L8a/8b** | Open |
 | #36 | CI actions pinned to a deprecated Node runtime | **hyg** | Open |
 | #44 | Gate the sdist on "no Git LFS pointer shipped" | **hyg** | Open |
 | #48 | Audit pedagogical value; write down sequencing and outcomes | **hyg** | In progress — in the roadmap |
@@ -238,24 +234,25 @@ copies are already gone and which were mostly squash-merged, so each needs the s
 check before `git branch -D`. The `pr/*` refs in `git branch -r` are GitHub's read-only
 pull-request refs fetched by this clone's config, not branches; leave them.
 
-### #168 Make the student-path run part of shipping a notebook
+### #171 Document GPU nondeterminism next to the seeding conventions
 
-`scripts/student_path.sh` runs a notebook the way a Colab student does: a fresh environment, the
-notebook's own install cell pulling from PyPI, `google.colab` faked, a scratch Drive. It was built
-ad hoc on 2026-09-28 and found what CI could not: tutorials 4 and 5 reading `data/` a wheel lacks,
-and tutorial 3 needing a checkpoint from another runtime (#166). `CLAUDE.md` now says to run it.
+On 2026-09-28 two runs with the same seed, code and data on an Apple GPU scored BLEU 8.36 and
+8.53. Float addition is not associative and GPU kernels may sum in a different order each run, so
+a seed buys reproducibility on a CPU only. Nothing in `CLAUDE.md` says so, and a difference
+between two GPU runs is easy to read as the effect of a change. Draft for `CLAUDE.md`'s
+Conventions, after the bucketing paragraph:
 
-What is left is making it harder to forget:
+> **A seed makes a run reproducible on a CPU, not on a GPU.** GPU kernels may sum in a different
+> order from run to run, and float addition is not associative, so two runs with the same seed,
+> code and data drift apart: two identical runs on an Apple GPU scored BLEU 8.36 and 8.53. So a
+> difference between two GPU runs is not evidence until it is larger than that drift; compare
+> several seeds, or reproduce on a CPU, before attributing it to a change. Tests that assert
+> exact equality run on the CPU for this reason. Checkpoints save every random generator, so what
+> a seed *does* control survives a resume.
 
-- **Fold it into `scripts/execute_notebooks.py`** as `--as-student`, so one tool knows which
-  notebooks exist and which `requires` rule out a local run, instead of a second list by hand.
-- **A scheduled CI job** — not per-PR, since it installs from PyPI and tests what is released, not
-  what the PR changes. Weekly, and after every release tag, is the useful cadence.
-- **One install per notebook.** Notebooks in one invocation share an environment, so only the
-  first exercises its install cell. Correct, and documented, but a trap.
-
-**Done when** the executor has the mode and a scheduled job runs it on every course notebook
-and tutorial.
+Open question before landing it: whether Lecture 9 or the A9 handout should say the same to
+students, since A9 compares two GPU runs' BLEU. **Done when** `CLAUDE.md` carries it and that
+question is answered.
 
 ### #169 Wrap the plumbing, keep the lesson inline, in every notebook
 
@@ -291,31 +288,6 @@ closing #86). The A8 kickoff moved onto them, verified byte-identical in its spl
 
 "One evaluation tutorial, one course activity, and no third copy." So #142 is answered, and **#88,
 the tutorial 7 pull request, is unblocked** — its row said "see #142 first".
-
-### #151 The LSTM asks for dropout it cannot apply
-
-Found 2026-09-26 while checking whether #7's deprecation warnings were really gone. They are —
-but the suite's ten remaining warnings are one numpy division and **nine instances of this**:
-
-> `UserWarning: dropout option adds dropout after all but last recurrent layer, so non-zero
-> dropout expects num_layers greater than 1, but got dropout=0.2 and num_layers=1`
-
-PyTorch applies recurrent dropout *between* layers, so with one layer there is nowhere to put it
-and the value is discarded. The model is built with `dropout=0.2` and one layer, so **the dropout
-does nothing and nothing says so** except a warning nobody reads.
-
-**Why this matters more here than in a normal library.** A student who sets `dropout` on an LSTM
-to reduce overfitting will see no change, conclude that dropout does not help, and be wrong. The
-library's job is to make the concept legible, and this quietly teaches the opposite of the truth.
-
-Worth deciding rather than patching: either pass `dropout=0.0` when `num_layers == 1` and say why
-in the docstring, or default the LSTM to two layers. The first is honest about the limitation; the
-second makes the knob work. Not the same choice, and the second changes a default.
-
-**Checked 2026-09-28: the default is already two layers** (`lstm_num_layers = 2`), so the knob
-works unless someone asks for one layer — and tutorial 4, the only student path that does, passes
-`dropout=0.0` explicitly. Only the tests hit the warning. Relabelled `lib`; what is left is the
-first option above, for whoever sets one layer on their own.
 
 ### #132 Quick Start has no notebook, and its badge opens a different one
 
@@ -387,17 +359,6 @@ cell no longer needs `result`, which only exists in the session that trained.
 **Done when Eric has run it once in Colab against a real A5 corpus before Wed Sep 30.** Nothing here can execute a Drive mount on a GPU; that run is the only end-to-end
 test this notebook will get before twenty-four students do.
 
-### #165 Show resume on the Lecture 7 toy model before 8a needs it
-
-The 8a notebook introduces `TrainingCheckpointer` cold, on a run of hours, where the first real
-test of resume is a real disconnect. On the toy model a student can watch it work in seconds:
-start training with a checkpointer, interrupt the cell, run it again, see it continue. It would
-also make `lecture-07-toy-model` follow `CLAUDE.md`'s own rule — every `train_model` call
-checkpoints — which its two calls currently do not.
-
-Add it to Part B, not Part A: Part A is timed for the room. **Done when** the notebook
-demonstrates an interrupted-and-resumed run and both calls pass a checkpointer.
-
 ### #166 Tutorial 3 cannot run from its Colab badge
 
 Found 2026-09-28 while fixing the commented-out install in tutorials 4 and 5 (PR #149).
@@ -417,49 +378,6 @@ check every output against the committed one: the PR #149 procedure.
 **When it closes, tell Cowork**: the Lecture 10 deck's decoding slide dropped tutorial 3's badge
 on 2026-09-28 and names the tutorial instead, to be restored once it runs standalone.
 `scripts/student_path.sh` is the check that it does.
-
-### #164 Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9
-
-`05-real-translations` serves `[10]` as `reading` and declares `leads_to: ["A8"]`, so it
-"prepares" an assignment that is due before a student is pointed at it. `notebook_meta.py`
-flags it on every run as not-an-error, and Cowork's 2026-09-28 baton records it as ours.
-
-Two honest fixes, and choosing one is the task: move the reading earlier, to 8b or 9, where it
-can still help A8; or keep it at 10 and replace `leads_to` with whatever it genuinely prepares,
-likely A10 (decoding and quality), with a `note` saying so. Read the notebook before choosing;
-the second is right if its substance is decoding rather than training.
-
-### #157 Resume restores no AMP scaler and no RNG state
-
-**Gap (1) is closed, and closing it found a worse bug beside it** (PR #145, in 0.2.1). The
-scheduler *was* restored — the new test passes on the old code. But a periodic save recorded the
-epoch in progress as complete, so a mid-epoch resume skipped the rest of that epoch: fewer steps,
-an unfinished schedule, the wrong final learning rate. On A8 nearly every disconnect lands
-mid-epoch. Gaps (2) and (3) remain, and neither touches students: `use_amp` defaults off and the
-8a notebook does not set it.
-
-**Gap (2) is also what keeps AMP out of the 8a notebook.** Mixed precision is the other speed-up
-Task #107 listed, and on a Colab GPU it is a real one, but 8a depends on resuming after
-disconnects, and a resume that re-initialises the loss scale can overflow. Close (2) before any
-student-facing notebook sets `use_amp=True`.
-
-Assessed 2026-09-27, when the question was whether the checkpointers are covered. The 18 tests in
-`tests/test_training_checkpoint.py` are good: round-trip, optimizer state, best-only writes,
-missing-file errors, step intervals, **atomicity** (a partial write does not replace a good
-checkpoint), resume-instead-of-restart end to end, and corrupt-checkpoint tolerance.
-
-Three gaps, sharpest first:
-
-1. **Nothing asserts the scheduler is restored.** The word `scheduler` does not appear in the test
-   file, yet `train_model` passes one — `checkpointer.load(model, opt, sched)`. The path ships and
-   nothing proves it. A resumed run could silently restart its warmup, which on the Transformer
-   schedule means a wrong learning rate for thousands of steps.
-2. **The AMP `GradScaler` state is not saved.** `use_amp=True` on every CUDA run, the cluster sweep
-   included, so a resume re-initialises the loss scale and the first steps afterwards can overflow.
-3. **RNG state is not saved**, so a resumed run draws a different data order and different dropout.
-   "Resume" is therefore not reproducible, which matters directly for a seed-controlled sweep.
-
-Do (1) first: it is a test for code that already exists, so it is the one that can only find bugs.
 
 ### #160 An NLLB spotlight lecture — data, architecture **and** curriculum
 
@@ -1181,11 +1099,4 @@ enough to run beside ours.
 
 **Done when** those questions are answered and the roadmap states outcomes the course wants
 rather than outcomes the code implies.
-
-**#28 Attention parameters skip `_init_weights`**
-`SimpleSeq2SeqLSTM._init_weights` matches on `weight_ih` / `weight_hh` / `bias`, so
-`AdditiveAttention`'s `W_dec`/`W_enc`/`v` and `attn_combine` keep PyTorch's default Linear
-init. Defensible — they train well, additive reaches 93.6% alignment accuracy — but it is
-currently implicit rather than chosen. Either extend `_init_weights` deliberately or leave
-a comment saying the default is intended. Small, and worth settling while it is fresh.
 

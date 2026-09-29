@@ -586,16 +586,16 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 1 | Course Overview and History of MT | — | — |
 | 2 | Translation Challenges for MT | — | — |
 | 3 | Introduction to Word Embeddings | `lecture-03-word-embeddings` (activity) | — |
-| 4 | Data Preparation for MT Training | `lecture-04-regex-refresher` (reference) [4], `lecture-04-tmx-cleaning` (activity) | `01-data-and-vocab` (reference) [1] |
+| 4 | Data Preparation for MT Training | `lecture-04-regex-refresher` (reference) [5], `lecture-04-tmx-cleaning` (activity) | `01-data-and-vocab` (reference) [1] |
 | 5 | Data Preparation for MT Training, Part 2 | `lecture-05-sentence-alignment` (activity) | — |
-| 6 | Human and Automatic MT Evaluation | `lecture-06-mt-evaluation-homework` (homework) [5], `lecture-06-mt-evaluation` (activity) [6] | `07-evaluating-translations` (reading) [3] |
-| 7 | Research Paper Reviews; Intro to Neural Networks | `lecture-07-toy-model` (activity) [7] | `02-train-tiny-model` (reading) [2] |
-| 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | `lecture-08a-a8-kickoff` (activity) [8] | `04-attention-and-alignment` (reading) |
+| 6 | Human and Automatic MT Evaluation | `lecture-06-mt-evaluation-homework` (homework) [6], `lecture-06-mt-evaluation` (activity) [7] | `07-evaluating-translations` (reading) [4] |
+| 7 | Research Paper Reviews; Intro to Neural Networks | `lecture-07-toy-model` (activity) [8] | `02-train-tiny-model` (reading) [2] |
+| 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | `lecture-08a-a8-kickoff` (activity) [9] | `04-attention-and-alignment` (reading) |
 | 8b | Neural MT: The Transformer | — | `04-attention-and-alignment` (reading) |
-| 9 | Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [9] | `01-data-and-vocab` (reference) [1], `06-diagnosing-failures` (reading) |
-| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [10] | `03-inference-and-beamsearch` (reading), `05-real-translations` (reading) |
+| 9 | Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [10] | `01-data-and-vocab` (reference) [1], `06-diagnosing-failures` (reading) |
+| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [11] | `03-inference-and-beamsearch` (reading), `05-real-translations` (reading) [3] |
 | 11 | Neural Quality Estimation and Evaluation | — | — |
-| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [11] | — |
+| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [12] | — |
 | 13 | Strategies for NMT of Low-Resource Languages | — | — |
 | 14 | Multilingual NMT and "Zero-shot" NMT | — | — |
 | 15 | Overview of Speech-to-Speech MT | — | — |
@@ -615,43 +615,47 @@ Notes on the rows that are not simple:
   for a future offering.
 - [2] **`02-train-tiny-model`** — The library's own tutorial. Lecture 7's in-class
   exercise, lecture-07-toy-model, was adapted from it.
-- [3] **`07-evaluating-translations`** — The out-of-class treatment of evaluation.
+- [3] **`05-real-translations`** — Read at Lecture 10, so it no longer claims A8, which is
+  due at Lecture 9. Its substance is evaluating and decoding a real model -- held-out
+  BLEU, greedy against beam search -- which is what A11's metric work builds on. It would
+  help A8 more if read at 8b; where it sits is Eric's call.
+- [4] **`07-evaluating-translations`** — The out-of-class treatment of evaluation.
   lecture-06-mt-evaluation is the in-class activity and owns the teaching; this one makes
   the student choose between two systems (Cowork's Q7 call).
-- [4] **`lecture-04-regex-refresher`** — Fall 2025 material, brought into the repository
+- [5] **`lecture-04-regex-refresher`** — Fall 2025 material, brought into the repository
   on 2026-09-27. A fifteen-minute tour of Python regular expressions, which is what the
   sixteen cleaning steps are written in. Lecture 4's deck links it twice and Learning
   Suite posts it on the Lecture 3 tab as well, so it is offered ahead of Lecture 4 rather
   than used inside it.
-- [5] **`lecture-06-mt-evaluation-homework`** — Part 4 of the original Lecture 6 notebook,
+- [6] **`lecture-06-mt-evaluation-homework`** — Part 4 of the original Lecture 6 notebook,
   split out on 2026-09-27. Uploads the student's own Assignment 5 corpus through the Colab
   file picker, so it cannot run outside Colab.
-- [6] **`lecture-06-mt-evaluation`** — Parts 1 to 3 of the original Lecture 6 notebook.
+- [7] **`lecture-06-mt-evaluation`** — Parts 1 to 3 of the original Lecture 6 notebook.
   Part 4 moved to lecture-06-mt-evaluation-homework on 2026-09-27, because `role` holds
   one value and this file was an activity with homework inside it. Needs nothing and no
   Colab runtime, so it executes in CI.
-- [7] **`lecture-07-toy-model`** — Lecture 7's in-class activity, written 2026-09-28 as a
+- [8] **`lecture-07-toy-model`** — Lecture 7's in-class activity, written 2026-09-28 as a
   three-part exercise: Part A in class (install, train the toy model, read the loss curve
   against ln(V)), Part B outside class (hold one phrase out, retrain, score seen against
   unseen with SacreBLEU), Part C a short report handed in as A7 before Lecture 8a. Adapted
   from tutorial 2, which stays the library's own tutorial. Trains a 64-dimensional model
   in seconds, so it runs in CI.
-- [8] **`lecture-08a-a8-kickoff`** — The in-class start of Assignment 8, written
-  2026-09-28 for Lecture 8a on Sep 30. Takes a student from their Assignment 5 corpus to a
-  training run that is already going when class ends. The handout is the authority; this
-  is the executable path through it, and every threshold is quoted from the handout in one
-  cell. Cannot run in CI: it mounts Drive and needs a GPU.
-- [9] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity, written
+- [9] **`lecture-08a-a8-kickoff`** — The in-class start of Assignment 8, written
+  2026-09-28 for Lecture 8a. Takes a student from their Assignment 5 corpus to a training
+  run that is already going when class ends. The handout is the authority; this is the
+  executable path through it, and every threshold is quoted from the handout in one cell.
+  Cannot run in CI: it mounts Drive and needs a GPU.
+- [10] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity, written
   2026-09-28 to the scope Cowork set: SentencePiece fit on the student's A8 training
   split, word-level against subword unknown counts on their test set, a round trip, and
   the two settings A9 needs (use_sentencepiece, and a max_decode_length measured on their
   data). Retrains nothing. Reads the A8 split from Drive, so it cannot run in CI.
-- [10] **`lecture-10-comet-install`** — Fall 2025 material, brought into the repository on
+- [11] **`lecture-10-comet-install`** — Fall 2025 material, brought into the repository on
   2026-09-26. Installs unbabel-comet, scores a worked example, and sets up the HuggingFace
   token through Colab Secrets, which the reference-free models require. It is Lecture 10's
   assignment and the setup for Lecture 11's. Framework-independent: nothing in it touched
   OpenNMT.
-- [11] **`lecture-12-llm-context`** — Fall 2025 material, brought into the repository on
+- [12] **`lecture-12-llm-context`** — Fall 2025 material, brought into the repository on
   2026-09-26. The Assignment 12 scaffold: pick a non-MT HuggingFace model, translate a
   low-resource test set with growing numbers of in-context examples, chart BLEU against
   context size. Every code cell is a TODO, so it contains no answers.

@@ -41,6 +41,7 @@ pip install -e ".[dev]"
 ```bash
 scripts/preflight.sh                 # everything CI checks — see the workflow section
 scripts/student_path.sh NOTEBOOK     # a notebook as a Colab student runs it — see the course section
+python scripts/execute_notebooks.py --as-student   # every notebook that way, one environment each
 ruff check --fix src tests && ruff format src tests
 python -m unittest discover tests
 python -m unittest tests.test_config -v                                    # one module
@@ -217,6 +218,10 @@ and the pull request happen here.
   cell rather than one later; `setup(gpu=, drive=, data=)` does the device, the Drive mount and
   the downloads. Copy tutorial 2's first two code cells. Not the old commented-out install,
   which was the bug, nor the 20-to-60-line cells that replaced it.
+- **Name lectures and assignments, never weekdays or dates.** Eric, 2026-09-28: the notebooks
+  are meant to outlive one term's calendar. "Before Lecture 8a", "the A8 notebook", "due before
+  Lecture 8a" — not "Wednesday" or "Wed Sep 30". The schedule lives in the roadmap and on
+  Learning Suite, where it changes in one place. "Today", meaning the class session, is fine.
 
 **Wrap the plumbing; keep the lesson inline.** Eric, 2026-09-28: large code cells lose a new
 student. So code a student learns nothing from reading (installs, downloads, Drive, file
@@ -251,8 +256,11 @@ repository's own install, with `data/` linked in. Students have neither:
 | **hardware** | x86 Linux | Colab GPUs, and Apple Silicon on the lab's Macs | an op unimplemented on MPS made every decoder raise `NotImplementedError` |
 
 For the first, run **`scripts/student_path.sh NOTEBOOK`** before shipping a notebook students open
-from a badge: a fresh environment, the notebook's own install from PyPI, Colab faked. For the
-second there is no CI answer; a device-specific bug shows up on a Mac or in Colab or not at all.
+from a badge: a fresh environment, the notebook's own install from PyPI, Colab faked. The
+scheduled workflow `student_path.yml` runs every notebook that way, weekly and on each release tag,
+through `execute_notebooks.py --as-student`; it tests what is released, so it is not a PR check.
+For the second there is no CI answer; a device-specific bug shows up on a Mac or in Colab or not
+at all.
 
 ## Every training run checkpoints, and it is not a flag
 
