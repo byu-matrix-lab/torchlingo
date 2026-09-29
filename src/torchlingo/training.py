@@ -349,7 +349,7 @@ def train_model(
     # not the ability to train at all.
     if checkpointer is not None and checkpointer.has_checkpoint():
         try:
-            state = checkpointer.load(model, opt, sched)
+            state = checkpointer.load(model, opt, sched, scaler=scaler)
         except (
             # A truncated file raises UnpicklingError or EOFError; a checkpoint
             # from a different architecture raises RuntimeError or KeyError.
@@ -457,7 +457,7 @@ def train_model(
                         batches_into_epoch=step,
                         global_step=global_step,
                     )
-                    checkpointer.maybe_save(model, opt, sched)
+                    checkpointer.maybe_save(model, opt, sched, scaler=scaler)
 
                 # stop when either explicit step_limit or config.num_steps reached
                 if (
@@ -611,7 +611,7 @@ def train_model(
                     global_step=global_step,
                     train_loss=avg_train,
                 )
-                checkpointer.save(model, opt, sched)
+                checkpointer.save(model, opt, sched, scaler=scaler)
             if stop_training:
                 break
             continue
@@ -651,7 +651,9 @@ def train_model(
                 train_loss=avg_train,
                 val_loss=avg_val,
             )
-            checkpointer.save(model, opt, sched, is_best=avg_val < best_val)
+            checkpointer.save(
+                model, opt, sched, is_best=avg_val < best_val, scaler=scaler
+            )
 
         if avg_val < best_val:
             best_val = avg_val

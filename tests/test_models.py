@@ -364,6 +364,20 @@ class TestLSTMInitialization(unittest.TestCase):
         )
         self.assertEqual(model.hidden_dim, 256)
 
+    def test_one_layer_drops_the_dropout_it_cannot_apply(self):
+        """One layer has nowhere to put recurrent dropout: 0.0, and no warning."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            model = SimpleSeq2SeqLSTM(50, 50, num_layers=1, dropout=0.3)
+        self.assertEqual(model.encoder.dropout, 0.0)
+        self.assertEqual(model.decoder.dropout, 0.0)
+
+    def test_stacked_layers_keep_their_dropout(self):
+        """With two or more layers the rate is applied as given."""
+        model = SimpleSeq2SeqLSTM(50, 50, num_layers=2, dropout=0.3)
+        self.assertEqual(model.encoder.dropout, 0.3)
+        self.assertEqual(model.decoder.dropout, 0.3)
+
     def test_lstm_has_required_components(self):
         """LSTM should have all required components."""
         model = SimpleSeq2SeqLSTM(src_vocab_size=50, tgt_vocab_size=50)
