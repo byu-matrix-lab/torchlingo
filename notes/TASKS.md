@@ -100,14 +100,15 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28), reply expected within a day or so |
-| #172 | Notebook audit: the 8a kickoff | **L8a** | Open — Steps 4 and 6 cut to the audit's wording; students are running it |
-| #173 | Notebook audit: tutorial 6 becomes a lookup | **L9** | Open — reading before Lecture 9 |
+| #172 | Notebook audit: the 8a kickoff | **L8a** | **In review, PR #182** |
+| #173 | Notebook audit: tutorial 6 becomes a lookup | **L9** | **In review, PR #184** — also adds the install cell it lacked |
+| #179 | Tutorial 6 has no committed outputs, so the docs site shows none | **L9** | Open — after PR #184 merges |
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162 and the audit's tutorial 3 directions** |
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open |
 | #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open |
 | #176 | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
 | #177 | Notebook audit: the notebooks already read | **hyg** | Open — tutorials 1, 2, 4, 7; Lectures 4 (regex), 6 and 7 |
-| #178 | Remove the INSTRUCTOR check from `notebook_meta.py` | **hyg** | Open — Eric, Sep 29: he never banned the word |
+| #178 | Remove the INSTRUCTOR check from `notebook_meta.py` | **hyg** | **In review, PR #183** |
 | #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
 | #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
@@ -401,6 +402,16 @@ Eric, 2026-09-29, via Cowork: he never banned the word, and notebooks may say "a
 instructor". `hygiene()` flags any notebook containing it. Remove the check and
 `test_an_instructor_marker_is_caught`. The rule it stood in for, that the Lecture 3 and 4
 solution notebooks stay in `torchlingo-private`, is in `CLAUDE.md`.
+
+### #179 Tutorial 6 has no committed outputs
+
+Found 2026-09-29 doing Task #173. Every other tutorial commits its outputs, because
+`docs/mkdocs.yml` renders notebooks with `execute: false`: the committed outputs *are* what the
+docs site shows. Tutorial 6 has none, so a student reading it there sees the code and prose
+quoting numbers ("+0.03, +0.12, +0.66, +1.08") with no output to find them in.
+
+Execute it and commit the result, after PR #184 lands so the outputs match the reworked cells.
+It runs in about 90 seconds on a CPU. Check the quoted numbers against the committed outputs.
 
 ### #166 Tutorial 3 cannot run from its Colab badge
 
