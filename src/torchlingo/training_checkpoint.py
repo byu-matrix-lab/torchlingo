@@ -40,6 +40,7 @@ Note:
 
 from __future__ import annotations
 
+import random
 import shutil
 import time
 from dataclasses import asdict, dataclass, field
@@ -101,6 +102,43 @@ def mount_drive(mount_point: Path | str = DRIVE_MOUNT_POINT) -> bool:
 
     drive.mount(str(mount_point))
     return (mount_point / "MyDrive").exists()
+
+
+def _capture_rng() -> dict[str, Any]:
+    """Snapshot every random number generator training draws from.
+
+    Data order comes from torch's generator (a shuffled ``DataLoader``) or
+    Python's ``random`` (the length-bucketing sampler); dropout from torch's,
+    on the CPU or the GPU. Saving all of them is what lets a run resumed at an
+    epoch boundary draw the same batches and dropout masks as one that never
+    stopped.
+    """
+    import numpy as np
+
+    return {
+        "torch": torch.get_rng_state(),
+        "cuda": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+        "python": random.getstate(),
+        "numpy": np.random.get_state(),
+    }
+
+
+def _restore_rng(rng: dict[str, Any]) -> None:
+    """Put back what :func:`_capture_rng` saved, skipping what this machine lacks."""
+    import numpy as np
+
+    torch.set_rng_state(rng["torch"])
+    # A checkpoint written on a GPU can resume on a CPU, and the reverse.
+    # Only onto the same number of devices; otherwise the states cannot be matched up.
+    cuda = rng.get("cuda")
+    if (
+        cuda is not None
+        and torch.cuda.is_available()
+        and len(cuda) == torch.cuda.device_count()
+    ):
+        torch.cuda.set_rng_state_all(cuda)
+    random.setstate(rng["python"])
+    np.random.set_state(rng["numpy"])
 
 
 def default_checkpoint_dir(experiment_name: str) -> Path:
@@ -266,8 +304,13 @@ class TrainingCheckpointer:
         scheduler: Any = None,
         *,
         is_best: bool = False,
+        scaler: Any = None,
     ) -> Path:
         """Write the current training state.
+
+        The random number generators are always saved too, so a resumed run
+        draws the same data order and dropout as an uninterrupted one would
+        have from that point.
 
         Args:
             model (nn.Module): Model whose weights are saved.
@@ -275,6 +318,9 @@ class TrainingCheckpointer:
                 its momentum and step counts intact, not just its weights.
             scheduler (optional): Learning-rate scheduler, saved for the same reason.
             is_best (bool, optional): Also write ``best.pt``.
+            scaler (torch.amp.GradScaler, optional): The mixed-precision loss
+                scale. Without it a resumed ``use_amp`` run restarts the scale
+                from its initial value, and the first steps can overflow.
 
         Returns:
             Path: The path written.
@@ -284,6 +330,8 @@ class TrainingCheckpointer:
             "model": model.state_dict(),
             "optimizer": optimizer.state_dict() if optimizer is not None else None,
             "scheduler": scheduler.state_dict() if scheduler is not None else None,
+            "scaler": scaler.state_dict() if scaler is not None else None,
+            "rng": _capture_rng(),
         }
 
         # Write to a temporary file first, then move it into place. A Colab
@@ -312,8 +360,14 @@ class TrainingCheckpointer:
         scheduler: Any = None,
         which: str = "latest",
         map_location: Any = "cpu",
+        *,
+        scaler: Any = None,
+        restore_rng: bool = True,
     ) -> CheckpointState:
         """Restore training state in place and return it.
+
+        Checkpoints written before the scaler and RNG state were saved still
+        load; those parts are simply not restored.
 
         Args:
             model (nn.Module): Model to load weights into.
@@ -321,6 +375,11 @@ class TrainingCheckpointer:
             scheduler (optional): Restored when present in the file.
             which (str, optional): ``"latest"`` or ``"best"``.
             map_location (optional): Passed through to ``torch.load``.
+            scaler (torch.amp.GradScaler, optional): Restored when present in the file.
+            restore_rng (bool, optional): Put the saved random number generator
+                state back, which is what makes a resumed run's data order and
+                dropout match. Set False to load weights without touching the
+                caller's generators.
 
         Returns:
             CheckpointState: The restored progress.
@@ -341,6 +400,10 @@ class TrainingCheckpointer:
             optimizer.load_state_dict(payload["optimizer"])
         if scheduler is not None and payload.get("scheduler") is not None:
             scheduler.load_state_dict(payload["scheduler"])
+        if scaler is not None and payload.get("scaler") is not None:
+            scaler.load_state_dict(payload["scaler"])
+        if restore_rng and payload.get("rng") is not None:
+            _restore_rng(payload["rng"])
 
         self.state = CheckpointState.from_dict(payload["state"])
         self._log(
@@ -390,6 +453,7 @@ class TrainingCheckpointer:
         scheduler: Any = None,
         *,
         global_step: int | None = None,
+        scaler: Any = None,
     ) -> Path | None:
         """Save only if :meth:`should_save` says it is time.
 
@@ -403,4 +467,4 @@ class TrainingCheckpointer:
             self.state.global_step = global_step
         if not self.should_save():
             return None
-        return self.save(model, optimizer, scheduler)
+        return self.save(model, optimizer, scheduler, scaler=scaler)

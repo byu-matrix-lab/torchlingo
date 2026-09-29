@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **A resumed run now draws what an unbroken one would have.** Training checkpoints save the
+  random number generators (torch, CUDA, Python's `random`, NumPy), so a run resumed at an epoch
+  boundary gets the same data order and dropout masks, and on a CPU ends on identical weights.
+  `load(..., restore_rng=False)` leaves the caller's generators alone.
+- Training checkpoints save the mixed-precision `GradScaler`, so a resumed `use_amp` run keeps
+  its loss scale instead of restarting it. Checkpoints from earlier versions still load.
+- `SimpleSeq2SeqLSTM` with `num_layers=1` uses no recurrent dropout instead of accepting a rate
+  PyTorch would ignore with a warning: one layer has no "between layers" to apply it.
+
 ## [0.2.3] - 2026-09-28
 
 ### Changed

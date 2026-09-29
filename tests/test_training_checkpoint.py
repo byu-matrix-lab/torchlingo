@@ -5,6 +5,7 @@ to mount. What is tested is everything else, plus that the Colab helpers degrade
 safely off-Colab, which is the behavior a local user actually depends on.
 """
 
+import random
 import tempfile
 import unittest
 from pathlib import Path
@@ -152,6 +153,66 @@ class TestTrainingCheckpointer(unittest.TestCase):
         staging = saver.path_for("latest").with_suffix(".tmp")
         staging.write_bytes(b"truncated garbage")
         self.assertEqual(saver.path_for("latest").read_bytes(), good)
+
+    class _Scaler:
+        """Stands in for torch.amp.GradScaler, which needs a GPU to be enabled."""
+
+        def __init__(self, scale):
+            self.scale = scale
+
+        def state_dict(self):
+            return {"scale": self.scale}
+
+        def load_state_dict(self, state):
+            self.scale = state["scale"]
+
+    def test_amp_scaler_round_trips(self):
+        """Without it a resumed AMP run restarts its loss scale and can overflow."""
+        self._checkpointer().save(_model(), scaler=self._Scaler(1024.0))
+        restored = self._Scaler(65536.0)
+        self._checkpointer().load(_model(), scaler=restored)
+        self.assertEqual(restored.scale, 1024.0)
+
+    def test_random_generators_round_trip(self):
+        """After a load, every generator draws what it would have drawn at the save."""
+        import numpy as np
+
+        self._checkpointer().save(_model())
+        expected = (torch.rand(3), random.random(), np.random.rand())
+
+        model = _model()
+        torch.manual_seed(123)
+        random.seed(123)
+        np.random.seed(123)
+        self._checkpointer().load(model)
+        drawn = (torch.rand(3), random.random(), np.random.rand())
+
+        torch.testing.assert_close(drawn[0], expected[0])
+        self.assertEqual(drawn[1:], expected[1:])
+
+    def test_restore_rng_false_leaves_the_generators_alone(self):
+        self._checkpointer().save(_model())
+        model = _model()  # built first: initialising its weights draws from torch
+        torch.manual_seed(7)
+        expected = torch.rand(3)
+        torch.manual_seed(7)
+        self._checkpointer().load(model, restore_rng=False)
+        torch.testing.assert_close(torch.rand(3), expected)
+
+    def test_a_checkpoint_from_before_scaler_and_rng_still_loads(self):
+        """Checkpoints written by 0.2.3 and earlier carry neither key."""
+        saver = self._checkpointer()
+        saver.update(epoch=4)
+        saver.save(_model())
+        path = saver.path_for("latest")
+        payload = torch.load(path, weights_only=False)
+        del payload["scaler"], payload["rng"]
+        torch.save(payload, path)
+
+        scaler = self._Scaler(8.0)
+        state = self._checkpointer().load(_model(), scaler=scaler)
+        self.assertEqual(state.epoch, 4)
+        self.assertEqual(scaler.scale, 8.0)
 
 
 class TestTrainModelIntegration(unittest.TestCase):
@@ -323,6 +384,74 @@ class TestTrainModelIntegration(unittest.TestCase):
         self.assertEqual(checkpointer.state.global_step, 12)
         self.assertEqual(len(result.train_losses), 3)
         self.assertAlmostEqual(resumed_lr, unbroken_lr)
+
+    def test_resume_at_an_epoch_boundary_matches_an_unbroken_run(self):
+        """Same data order and dropout after the resume, so the same final weights.
+
+        The loader shuffles and the model has dropout, so both draw from torch's
+        generator every epoch. Before the generators were checkpointed, the
+        resumed run drew from wherever a fresh process's seed left them.
+        """
+        from torchlingo.config import Config
+        from torchlingo.models import SimpleTransformer
+
+        config = Config(
+            d_model=16,
+            n_heads=2,
+            num_encoder_layers=1,
+            num_decoder_layers=1,
+            d_ff=32,
+            dropout=0.1,
+            num_workers=0,
+            # A real learning rate from the first step: under the default warmup
+            # these twelve steps barely move the weights, and any two runs match.
+            learning_rate=1e-2,
+            warmup_steps=1,
+        )
+        src = torch.tensor([[2, 4 + i, 5 + i % 3, 3] for i in range(8)])
+        tgt = torch.tensor([[2, 11 - i, 6 + i % 2, 3] for i in range(8)])
+        dataset = torch.utils.data.TensorDataset(src, tgt)
+
+        class Dies:
+            """A shuffled loader that raises after ``after`` batches in total."""
+
+            def __init__(self, after=None):
+                self.loader = torch.utils.data.DataLoader(
+                    dataset, batch_size=2, shuffle=True
+                )
+                self.after, self.served = after, 0
+
+            def __len__(self):
+                return len(self.loader)
+
+            def __iter__(self):
+                for batch in self.loader:
+                    if self.after is not None and self.served >= self.after:
+                        raise KeyboardInterrupt("simulated disconnect")
+                    self.served += 1
+                    yield batch
+
+        def run(loader, checkpointer=None):
+            torch.manual_seed(0)
+            model = SimpleTransformer(12, 12, config=config)
+            train_model(
+                model,
+                loader,
+                num_epochs=3,
+                config=config,
+                checkpointer=checkpointer,
+            )
+            return model
+
+        unbroken = run(Dies())
+        with self.assertRaises(KeyboardInterrupt):
+            run(Dies(after=8), checkpointer=self._checkpointer())  # dies after epoch 2
+        resumed = run(Dies(), checkpointer=self._checkpointer())
+
+        for (name, a), (_, b) in zip(
+            unbroken.state_dict().items(), resumed.state_dict().items()
+        ):
+            torch.testing.assert_close(a, b, rtol=0, atol=0, msg=name)  # CPU: exact
 
     def test_a_run_without_validation_still_records_its_epochs(self):
         """The epoch-boundary save used to sit after validation, so it never ran."""
