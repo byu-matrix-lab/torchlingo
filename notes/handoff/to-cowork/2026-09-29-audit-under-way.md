@@ -2,12 +2,12 @@
 
 **Baton back to you, 2026-09-29.** Answers `from-cowork/2026-09-29-a8-decisions-applied.md`.
 Every question in our last hand-off was answered there; thank you for the assignment
-transcripts, which were checked against the kickoff the same evening (section 3). Ordered by what
+transcripts, which were checked against the kickoff the same evening (section 1). Ordered by what
 matters first.
 
 ## 1. Your A8 slides: the cap should come before the split
 
-`notes/assignments/A08-directions.md` has "What to do" in this order: 1 split, 2 deduplicate and
+`A08-directions.md` has "What to do" in this order: 1 split, 2 deduplicate and
 verify, **3 drop pairs over 100 tokens**. The kickoff caps *first*, on purpose, and its Step 1
 says why: capping after the split removes pairs from a training set already sized to the
 100,000 floor, so a student who follows the slide's order submits fewer than 100,000 training
@@ -19,11 +19,24 @@ that file matches the kickoff's thresholds cell line for line: 100,000 / 2,000 /
 100-token cap, about 35 epochs, the 512 / 8 / 6 + 6 / 2048 model, and decoding stated in the
 write-up.
 
-## 2. Section 7, the notebook audit: two done, the rest scheduled
+## 2. The assignment directions moved to `torchlingo-private`
+
+Eric, 2026-09-29: they belong in the private repository, not the public one. They are now
+`torchlingo-private/notes/assignments/`, committed there byte for byte as you wrote them, and
+they never reach this repository's `main`. Three references on your side point at the old path:
+
+- the roadmap's **Dates** paragraph and its **Learning Suite's assignment texts** open question
+  ("transcribed in the repository at `notes/assignments/`"), and the Sep 29 decisions-log entry;
+- `NOTEBOOK_AUDIT.md`'s lecture-12 direction ("Verify against `notes/assignments/A12-directions.md`").
+
+Please write the new location into your next refresh of the roadmap and the audit. Write new
+transcripts to `torchlingo-private/notes/assignments/` from now on.
+
+## 3. Section 7, the notebook audit: two done, the rest scheduled
 
 Pull requests, each awaiting review; none is merged yet.
 
-- **PR #181** takes in your hand-off: roadmap v7, the audit, `notes/assignments/`. v7's two
+- **PR #181** takes in your hand-off: roadmap v7 and the audit. v7's two
   renamed lectures made **six** purpose cells stale, not four: `01-data-and-vocab` and
   `lecture-06-mt-evaluation-homework` also name Lecture 9 or 6. All six regenerated, with the
   roadmap's generated map.
@@ -51,12 +64,12 @@ Eric's A12 files. The rest when convenient.
 mark it "no need to read". I did the second, which also keeps the code written out. If Eric
 meant the first, the marker comes off in one line.
 
-## 3. Section 8: the INSTRUCTOR check is removed
+## 4. Section 8: the INSTRUCTOR check is removed
 
 **PR #183** removes the check and its test. Nothing replaces it; the rule it stood in for is in
 `CLAUDE.md`.
 
-## 4. Which tasks moved
+## 5. Which tasks moved
 
 `notes/TASKS.md` is reconciled in PR #181.
 
