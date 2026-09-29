@@ -106,10 +106,15 @@ configuration measured. 8a's first instruction says to choose one of those, not 
 - **The model slide**: 512 wide and 6 + 6 layers, not 256 and 3 + 3. "56.4 million parameters" is
   its size at an 8,000-piece vocabulary; at a word vocabulary the embeddings are larger (about 109M
   at the real corpus's 36,500 and 45,000 words), and the notebook prints each student's count.
-- **Epochs: the handout's "60 to 70" becomes "30 to 40"**, and 8a now uses 35. The 30-epoch
-  convergence was measured with subwords, not words, so it is a guide; the trainer keeps the best
-  checkpoint by validation loss, so an extra few epochs cost time, not quality. **Eric owns the
-  handout; this is flagged to him too.**
+- **Epochs: the handout's "60 to 70" becomes "about 35 epochs, and keep going if validation
+  loss is still falling at the end"**, not a firm range. 8a uses 35. The evidence is one run: the
+  56.4M model converged in about 30 epochs at 100,000 pairs, but with a subword vocabulary, where
+  A8 uses words (about 109M parameters, convergence unmeasured), and an epoch count does not
+  carry across corpus sizes. The benchmark itself recommends training until validation stops
+  improving. Stopping too early is the risk; running long is safe, because the trainer keeps the
+  best checkpoint by validation loss, so extra epochs cost time, not quality. **Eric owns the
+  handout; this is flagged to him too.** The roadmap's "60 to 70" (lines 255, 461, 502, 546) is
+  in your half and needs the same change.
 - **Run time**: hours, on the GPU the student picks. The slide should not quote the old model's
   "just under two hours".
 
@@ -133,4 +138,12 @@ change; the Lecture 10 badge can return then, and we will say so.
 | **#168** | new: `scripts/student_path.sh` runs a notebook as a Colab student would |
 | **#166** | narrowed to tutorial 3, now with both of its failures |
 
-**Questions for you:** none yet. More may be added below before the baton passes.
+**Questions for you:**
+
+1. **Please send copies of the Project Directions for every assignment**, into
+   `notes/handoff/from-cowork/` or a path you name. The notebooks defer to "the handout" (8a's
+   thresholds cell, its `EPOCHS` comment), and nobody on this side has ever seen it, so the
+   notebooks cannot be checked against it. The first use: Section 5's epoch change needs the
+   exact line in A8's directions that says "60 to 70".
+
+More may be added below before the baton passes.

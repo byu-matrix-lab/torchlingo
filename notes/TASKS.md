@@ -522,9 +522,11 @@ and at A8's own settings it would fit a free-tier T4's nominal capacity too; the
 6 + 6 layers, feed-forward 2048) and runs 35 epochs, since the benchmark had it converging in
 about 30 where the 11.7M model needed 65. Two caveats recorded in the notebook: its size is 56.4M
 only at an 8,000-piece vocabulary (about 109M at a word vocabulary), and the 30-epoch figure was
-measured with subwords. The live hand-off tells Cowork. **Done when the handout's epoch range
-reads 30 to 40**; it says 60 to 70, and the notebook says the handout governs. That document is
-Eric's.
+measured with subwords. The live hand-off tells Cowork. **Done when the handout reads "about 35
+epochs, and keep going if validation loss is still falling at the end"** rather than a firm
+range, which one subword-vocabulary run cannot support; it says 60 to 70, and the notebook says
+the handout governs. That document is Eric's; the Project Directions copies requested from Cowork
+will show the exact line.
 
 **Coulson measures it, Eric's call.** The other half of the A8 memory question: the ladder in
 [`reports/length-ladder.md`](reports/length-ladder.md) gives demand at each length cap, this

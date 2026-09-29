@@ -648,8 +648,9 @@ Notes on the rows that are not simple:
 - [10] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity, written
   2026-09-28 to the scope Cowork set: SentencePiece fit on the student's A8 training
   split, word-level against subword unknown counts on their test set, a round trip, and
-  the two settings A9 needs (use_sentencepiece, and a max_decode_length measured on their
-  data). Retrains nothing. Reads the A8 split from Drive, so it cannot run in CI.
+  the three settings A9 needs (use_sentencepiece, sp_model_path, and a max_decode_length
+  measured on their data). Retrains nothing. Reads the A8 split from Drive, so it cannot
+  run in CI.
 - [11] **`lecture-10-comet-install`** — Fall 2025 material, brought into the repository on
   2026-09-26. Installs unbabel-comet, scores a worked example, and sets up the HuggingFace
   token through Colab Secrets, which the reference-free models require. It is Lecture 10's
