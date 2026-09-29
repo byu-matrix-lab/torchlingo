@@ -33,6 +33,7 @@ def train_sentencepiece(
     eos_token: str | None = None,
     user_defined_symbols: list[str] | None = None,
     config: Config | None = None,
+    verbose: bool = False,
 ):
     """Train a SentencePiece tokenization model on raw text data.
 
@@ -66,6 +67,9 @@ def train_sentencepiece(
             vocabulary pieces that are never split during tokenization. Useful
             for multilingual language tags (e.g., ['<2es>', '<2fr>']).
         config (Config, optional): Configuration object. Falls back to get_default_config().
+        verbose (bool, optional): Show SentencePiece's own training log. Off by default:
+            at an 8,000-piece vocabulary it prints a line per merge, thousands of lines
+            that bury a notebook cell's real output. Warnings and errors still appear.
 
     Side Effects:
         - Creates temporary file during training (automatically cleaned up).
@@ -135,6 +139,7 @@ def train_sentencepiece(
             bos_piece=sos_token,
             eos_piece=eos_token,
             user_defined_symbols=user_defined_symbols or [],
+            minloglevel=0 if verbose else 1,  # 1 keeps warnings and errors, drops INFO
         )
         print(f"SentencePiece model saved to {model_prefix}.model")
     finally:
