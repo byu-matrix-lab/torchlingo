@@ -19,10 +19,9 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-09-28, midday, the in-session list is empty, at Eric's request**: everything open is
-here. The only Lecture 8 item left is **#152**, and its last step is Eric's own Colab run, not
-session work. Next in line when a session picks something up: **#121**, because Lecture 9 has
-nothing else on its own subject.
+**As of 2026-09-28, evening:** everything open is here. The only Lecture 8 item left is **#152**,
+whose last step, a Colab run on a real A5 corpus, Eric has delegated to Coulson; the handout's
+epoch range also needs Eric (Task #118). Lecture 9's notebook is written and merged.
 
 **Read the "Critical for" column rather than the dates.** Labelling every task by lecture showed
 that only fifteen of sixty-two are critical to a lecture in the next ten days — and that two of
@@ -106,17 +105,13 @@ describes last week will mislead every lecture at once rather than one of them.
 | #168 | Make the student-path run part of shipping a notebook | **hyg** | Open — `scripts/student_path.sh` exists and works; fold into the executor, schedule it |
 | #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
 | #164 | Tutorial 5 is read at Lecture 10 but claims A8, due at Lecture 9 | **L9** | Open — **ours**, per Cowork's Sep 28 baton; `--check` warns on every run |
-| #147 | A9 has no notebook, and one notebook would serve it and Lecture 9 | **L9** | **Due Mon Oct 12** — raises #121's value; do them as one |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
 | #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **hyg** | **Your call** — it holds the corpus prep and all the HPC tooling |
 | #151 | The LSTM asks for dropout it cannot apply | **lib** | Open — the default is two layers, and tutorial 4 passes `dropout=0.0`; only the tests hit it |
-| #139 | Lecture 9 is claimed by tutorial 1 and not actually served | **L9** | Open — **folded into #121**; tutorial 1 keeps 9 only as `reference` |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
-| #121 | A Lecture 9 subword notebook, and it is ours | **L9** | **Notebook written** — A9 = 8a Step 6 + three settings; quiet trainer needs a release (PR #172) |
-| #122 | Make Assignment 9's control hard to get wrong in code | **L9** | Open — worth more than the wording fix |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
 | #129 | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
 | #97 | SentencePiece on versus off, controlled | **L9** | **Due Mon Oct 12** |
@@ -125,7 +120,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
 | #160 | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
-| #106 | A token cap breaks Assignment 9's control | **L9** | Open — one sentence in the assignment |
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
 | #118 | What does a paid Colab session actually provide? | **L8a** | **Decided: A8 uses 56.4M**, 35 epochs — left: the handout's epoch range, Eric's |
 | #157 | Resume restores no AMP scaler and no RNG state | **lib** | Open — the scheduler half is tested and a mid-epoch bug fixed (PR #145, in 0.2.1) |
@@ -280,21 +274,9 @@ closing #86). The A8 kickoff moved onto them, verified byte-identical in its spl
 - **Cowork's course notebooks** (Lectures 3, 4, 5, 6, 10, 12) install other packages, not
   TorchLingo, so `setup()` does not replace their installs; check each for plumbing that a
   helper does cover, and ask Cowork before changing their cells.
-- **Every new notebook, starting with #121's**, is written this way from the first draft.
+- **Every new notebook** is written this way from the first draft, as Lecture 9's was.
 
 **Done when** no notebook carries plumbing a library helper covers.
-
-### #147 A9 has no notebook, and one notebook would serve it and Lecture 9
-
-A9 is SentencePiece, **due Mon Oct 12** at Lecture 11. Lecture 9 is morphology and terminology
-and has no notebook either (#121, answer owed to Cowork by Oct 3).
-
-These are one piece of work, not two. A subword notebook serves the lecture *and* starts the
-assignment, and #139 found the opening for free: tutorial 1's Part 2 ends on `<unk>` for "Hello
-universe", which is the motivating example for everything A9 asks a student to do.
-
-So #121's value is higher than it looked. Build it once, declare `serves_lectures: [9]` and
-`leads_to: ["A9"]`, and two gaps close together.
 
 ### #162 Tutorial 3's Part 5 shrinks to a pointer at tutorial 7
 
@@ -447,29 +429,6 @@ can still help A8; or keep it at 10 and replace `leads_to` with whatever it genu
 likely A10 (decoding and quality), with a `note` saying so. Read the notebook before choosing;
 the second is right if its substance is decoding rather than training.
 
-### #139 Lecture 9 is claimed by tutorial 1 and not actually served
-
-The map says tutorial 1 serves Lectures 4 and 9. **For Lecture 9 that is an over-claim**,
-inherited from the hand-written table's "1, the vocabulary half" and now checkable for the first
-time.
-
-Read on 2026-09-26: tutorial 1's Part 2 is word-level `SimpleVocab` only. No SentencePiece, no
-subwords, no morphology. Its last cell encodes "Hello universe", prints `<unk>`, and stops.
-
-That makes it the **motivating example** for Lecture 9 rather than coverage of it — it ends
-precisely at the cliff edge where the lecture's subject begins.
-
-Two consequences:
-
-1. **Do not split tutorial 1 to serve Lecture 9.** Extracting Part 2 would register as coverage
-   in the map while teaching the prerequisite, which is worse than the visible gap it replaces.
-2. **#121's notebook should start where Part 2 stops** — same corpus, same `<unk>`, then
-   subwords. That is a stronger opening than starting cold, and it is free.
-
-Either correct tutorial 1's `serves_lectures` to `[4]`, or leave the 9 and add a `note` saying
-it motivates rather than covers. The first is honest; the second keeps the pointer a student
-revisiting Lecture 9 would benefit from. Pick one deliberately.
-
 ### #157 Resume restores no AMP scaler and no RNG state
 
 **Gap (1) is closed, and closing it found a worse bug beside it** (PR #145, in 0.2.1). The
@@ -615,108 +574,6 @@ checking its checks still match what Lectures 4 and 5 ask for before a deck poin
 being gone. `torchlingo.diagnostics` already does the alignment and contamination halves, so
 convergence is now a design question rather than a rescue, and should not be decided under
 deadline.
-
-### #121 A Lecture 9 subword notebook, and it is ours to write
-
-**Lecture 9 is Wed Oct 7; Assignment 9 is due Wed Oct 14.** Cowork rebuilds the Lecture 9 deck
-next, and it still teaches OpenNMT, so this notebook and that deck land together.
-
-**Scope settled by Cowork, 2026-09-28** (`from-cowork/2026-09-28-b-lecture-9-activity.md`). A8 is
-due that morning, so every student arrives with a trained model, a word-level V and test output.
-The activity is the part of A9 that fits in twenty minutes without a GPU. **It must not retrain**;
-that is A9's homework. When it ends, a student has, in `MyDrive/CS479`:
-
-1. **A SentencePiece model fit on their own A5 training split**, vocabulary size chosen and
-   printed; default **8,000**, the number the Lecture 7 slides quote (ln 8000 ≈ 9.0).
-2. **Their nine A8 files re-encoded** under a suffix, **never re-split**, so A9 is "point the
-   kickoff notebook at these and rerun Step 7". Re-encoding the same files is also what keeps the
-   sentence set identical across A9's two runs, which #106 and #122 require.
-3. **Word-level V and `<unk>` count against subword V and `<unk>` count**, the second asserted
-   zero, or explained: characters unseen in training are the only way.
-4. **A round-trip on ten sentences**, encode then decode equal to the original: the
-   demonstration that subwords are lossless, the one idea Lecture 9 needs believed.
-
-**Two questions Cowork needs answered, ideally before the deck is rebuilt so the slide can quote
-the notebook:** (a) does `NMTDataset` take pre-encoded text as-is under whitespace tokenization,
-or does it want a tokenizer hook — and if a `tokenizer=` on `Config` is the clean answer, say so;
-(b) BLEU must be scored on *decoded* output, so the A9 path needs a decode step before the
-kickoff's scoring cell — either in the library, or as a snippet the activity's last cell writes
-for students to paste.
-
-**Both answered 2026-09-28, in `to-cowork/2026-09-28-b-lecture-9-answers-and-8a.md`: no new API
-either way.** (a) A `SentencePieceVocab` tokenizes raw text itself, so A9 is 8a's Step 6 plus
-`use_sentencepiece=True, sp_model_path=...` in `create_dataloaders`. (b) `translate_batch`
-decodes through the target vocabulary, so 8a's scoring cell already scores real text. **One scope
-change follows, and this notebook must honour it:** do **not** re-encode the A8 files for training.
-Pre-split text through a word vocabulary makes the model emit pieces and BLEU incomparable with
-A8's. Re-encode only to *show* the `<unk>` counts and the round trip; A9 trains on the same raw
-files and split as A8, so the tokenizer is the only variable.
-
-**Written 2026-09-28 as `docs/docs/course/lecture-09-subword-tokenization.ipynb`**, run end to end
-on the repository's real English-Spanish corpus split as 8a would: 4.2% of source and 6.0% of
-target test words are `<unk>` to the word vocabulary, zero to an 8,000-piece SentencePiece model;
-the round trip is 10/10. **It found a third A9 setting:** decoding stops at `max_decode_length`,
-100 by default, and the longest 100-word target is 171 pieces, so A9 without it truncates long
-translations. The notebook prints the value for each student's data. **Left:** SentencePiece's
-trainer logs thousands of lines into the cell until `train_sentencepiece(verbose=False)` (PR #172)
-reaches students in a release.
-
-The existing SentencePiece handout is OpenNMT-specific and has to be replaced.
-`docs/docs/course/lecture-09-subword-tokenization.ipynb` is the natural form, and that
-directory is now ours.
-
-**The demonstration it should carry**, which is already agreed and is better than a diagram:
-before subwording a student's tokens are words; after it the same 100-token cap excludes a
-*different* set of sentences; they can count the difference on their own data.
-`audit_bitext.py`'s cap-pricing table is exactly this measurement, so the notebook and the
-audit tool tell one story.
-
-The one-line version Cowork asked for: **their tokens stop being words, the same sentence
-gets roughly 1.8x longer, and every length-based rule they have written now selects a
-different set of sentences.**
-
-**Load-bearing as of 2026-09-27, and the dates moved.** Lecture 9 is **Wed Oct 7** and A9 is
-**Wed Oct 14**, both two lectures later than before the split. After tutorial 6 moved to Lecture
-9 and tutorial 3 to Lecture 10, **this is the only notebook Lecture 9 will have that is about
-Lecture 9's own subject.**
-
-**The scope is no longer guesswork.** Last year's predecessor is in `notes/legacy-f2025/` with a
-README. Nineteen cells, of which the reusable core is three: install SentencePiece, train it,
-look at the pieces. Everything else was OpenNMT plumbing this library replaces — including a
-`pip install "numpy<2.0"` carrying a comment that it works around OpenNMT being unmaintained,
-which Cowork fairly called the pivot's own epitaph.
-
-**Two things it did that the new one must not:**
-
-- **It fit the tokenizer on a toy corpus rather than the student's training split.** A9 is a
-  controlled comparison on their own data, so it must fit on **train only**. Fitting on the full
-  corpus leaks test material into the vocabulary, and nothing crashes when it does.
-- **It said nothing about the length cap.** Expressing the cap in tokens breaks A9's comparison,
-  because changing the tokenizer changes which pairs the cap excludes. The notebook is where
-  "choose the sentence set once, with the subword tokenizer, and use it for both runs" has to
-  become concrete — a student will not derive it from the handout. That is #106 and #122.
-
-**And the teaching now arrives after the constraint.** Lecture 10 is Mon Oct 12 and A9 is due Wed
-Oct 14, so decoding is taught two days before the assignment it protects and some students will
-already have run it. Cowork's fix is to state the rule on Lecture 9's own A9 slide and teach the
-reason at Lecture 10. Nothing for this repository to do, but worth knowing why the A9 wording
-carries a rule with no explanation attached.
-
-### #122 Make Assignment 9's control hard to get wrong in code, not just in prose
-
-**Cowork fixed the wording; they also said that if the library can make it hard to get wrong,
-that is worth more. It is.**
-
-A9 asks students to hold everything fixed except the tokenizer. If the length cap is
-expressed in tokens, changing the tokenizer changes the training set, so the comparison has
-two variables and the write-up credits all of it to the tokenizer.
-
-The wording fix is "choose the sentence set once, with the subword tokenizer, and use that
-same set for both runs". A student can still not do that, and nothing will tell them.
-
-What would: a way to select a sentence set once and carry it between runs — an explicit id
-list, or a split written to disk and reused, rather than a cap re-applied per run. Worth
-scoping against what `NMTDataset` already offers before adding anything.
 
 ### #123 A14's two-directions case has never been run
 
