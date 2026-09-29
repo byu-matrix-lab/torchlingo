@@ -103,6 +103,12 @@ ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 88
+# The Colab memory probe is kept byte-for-byte as it ran, because
+# notes/reports/colab-memory.md quotes its output as a measurement. Linting it
+# into shape would make the file in the repository differ from the one that
+# produced the numbers. Listed here now so that widening the lint gate to
+# scripts/ (Task #22) does not quietly "fix" it.
+extend-exclude = ["scripts/colab_memory_probe.py"]
 
 [tool.ruff.lint]
 # E402 (imports not at top) and F401 (unused import) in documentation notebooks:

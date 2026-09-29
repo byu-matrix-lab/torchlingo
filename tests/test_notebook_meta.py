@@ -621,10 +621,26 @@ class TestLateHeadStartsAreReported(unittest.TestCase):
     machine-detectable, and noticing it by eye is exactly what does not happen twice.
     """
 
-    def test_it_finds_the_real_one(self):
-        """`05-real-translations` is read at Lecture 10 and prepares A8, due at Lecture 9."""
+    def test_it_finds_one(self):
+        """Read at Lecture 10 while preparing A8, due at Lecture 9: tutorial 5's old shape.
+
+        Built in a scratch directory, since the repository no longer has a live example
+        (Task #164 fixed tutorial 5), and a test that needs a defect to exist would push
+        someone to leave one in.
+        """
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        late_copy = tmp / "99-late-reading.ipynb"
+        data = json.loads(
+            (nm.TUTORIALS / "05-real-translations.ipynb").read_text(encoding="utf-8")
+        )
+        data["metadata"]["torchlingo"]["leads_to"] = ["A8"]
+        late_copy.write_text(json.dumps(data), encoding="utf-8")
+        self.addCleanup(setattr, nm, "TUTORIALS", nm.TUTORIALS)
+        nm.TUTORIALS = tmp
+
         late = nm.late_head_starts()
-        self.assertTrue(any("05-real-translations" in line for line in late), late)
+        self.assertTrue(any("99-late-reading" in line for line in late), late)
 
     def test_a_same_lecture_head_start_is_not_late(self):
         """Tutorial 6 is read at Lecture 9 and A8 is due at Lecture 9. Tight, not late --
@@ -638,6 +654,8 @@ class TestLateHeadStartsAreReported(unittest.TestCase):
 
     def test_the_check_reports_without_failing(self):
         """Exit 0 with the advisory printed. Failing would block CI on a curriculum call."""
+        self.addCleanup(setattr, nm, "late_head_starts", nm.late_head_starts)
+        nm.late_head_starts = lambda: ["99-late-reading: read at Lecture 10, ..."]
         stdout = io.StringIO()
         with contextlib.redirect_stdout(stdout):
             code = nm.main(["--check"])

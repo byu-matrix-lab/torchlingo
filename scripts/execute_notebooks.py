@@ -26,11 +26,18 @@ Two details this script exists to get right:
 
 Run:
     python scripts/execute_notebooks.py
+    python scripts/execute_notebooks.py --as-student   # PyPI install, Colab faked
+
+``--as-student`` runs each notebook through ``scripts/student_path.sh`` instead:
+a fresh environment *per notebook*, the notebook's own install cell pulling
+from PyPI, no ``data/`` linked in. It tests what is released, not what is
+checked out, so it runs on a schedule rather than on pull requests.
 
 Exits non-zero if any notebook fails, so CI can gate on it.
 """
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -42,6 +49,20 @@ from notebook_meta import read_meta
 TUTORIALS = Path("docs/docs/tutorials")
 COURSE = Path("docs/docs/course")
 TIMEOUT_SECONDS = 900
+STUDENT_PATH = Path(__file__).resolve().parent / "student_path.sh"
+
+# What the student path can supply. It installs packages and downloads, and it fakes
+# `google.colab` well enough for a notebook that mounts Drive only to write into it. It has
+# no GPU, no real Drive holding a student's own files, and no token -- so a notebook that
+# declares `colab` (in the course, that means one of those), `hf-token` or `blanks` is skipped.
+STUDENT_CANNOT = {"blanks", "colab", "hf-token"}
+
+# Failures already filed. Reported, not counted, so a scheduled run stays green on news it
+# already has; an entry that starts passing is reported too, so it gets removed.
+KNOWN_STUDENT_FAILURES = {
+    "03-inference-and-beamsearch.ipynb": "Task #166: loads a checkpoint tutorial 2 "
+    "saved in a different runtime",
+}
 
 
 def execute(notebook: Path, workdir: Path, timeout: int) -> tuple[bool, str]:
@@ -163,12 +184,78 @@ def link_repo_data(workdir: Path) -> None:
             (target / name).symlink_to(member)
 
 
+def run_as_student(notebook: Path) -> tuple[bool, str]:
+    """Run one notebook through ``student_path.sh``, in an environment of its own.
+
+    One environment per notebook, because a shared one exercises only the first
+    notebook's install cell: every later one finds torchlingo already there.
+
+    Args:
+        notebook (Path): Repository path of the notebook.
+
+    Returns:
+        tuple[bool, str]: Success flag, and the harness's output.
+    """
+    student_dir = tempfile.mkdtemp(prefix=f"torchlingo-student-{notebook.stem}-")
+    result = subprocess.run(
+        ["bash", str(STUDENT_PATH), str(notebook)],
+        env={**os.environ, "STUDENT_DIR": student_dir},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.returncode == 0, result.stdout + result.stderr
+
+
+def main_as_student(notebooks: list[Path]) -> int:
+    """Run every notebook the student path can supply, and summarize."""
+    failures, skipped, known = [], [], []
+    for notebook in notebooks:
+        unavailable = sorted(set(missing_capabilities(notebook)) & STUDENT_CANNOT)
+        if unavailable:
+            skipped.append(notebook.name)
+            print(f"  SKIP  {notebook.name} (requires {', '.join(unavailable)})")
+            continue
+        print(f"as a student: {notebook.name} ...", flush=True)
+        ok, output = run_as_student(notebook)
+        reason = KNOWN_STUDENT_FAILURES.get(notebook.name)
+        if reason and not ok:
+            known.append(notebook.name)
+            print(f"  KNOWN {notebook.name} ({reason})", flush=True)
+        elif reason:
+            print(
+                f"  PASS  {notebook.name}: now passes; remove it from "
+                "KNOWN_STUDENT_FAILURES",
+                flush=True,
+            )
+        elif ok:
+            print(f"  PASS  {notebook.name}", flush=True)
+        else:
+            failures.append(notebook.name)
+            print(f"  FAIL  {notebook.name}", flush=True)
+            print(output, file=sys.stderr, flush=True)
+
+    ran = len(notebooks) - len(skipped) - len(known)
+    print(f"\n{ran - len(failures)}/{ran} notebooks ran cleanly from a PyPI install")
+    if known:
+        print(f"{len(known)} known failures, not counted: " + ", ".join(known))
+    if failures:
+        print("failed: " + ", ".join(failures), file=sys.stderr)
+        return 1
+    return 0
+
+
 def main() -> int:
     """Execute every tutorial notebook in order and summarize."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--tutorials", type=Path, default=TUTORIALS)
     parser.add_argument("--course", type=Path, default=COURSE)
     parser.add_argument("--timeout", type=int, default=TIMEOUT_SECONDS)
+    parser.add_argument(
+        "--as-student",
+        action="store_true",
+        help="install from PyPI and fake Colab, one fresh environment per notebook",
+    )
     args = parser.parse_args()
 
     # Both families, because the course notebooks are the ones students open in the room, on
@@ -186,6 +273,8 @@ def main() -> int:
             file=sys.stderr,
         )
         return 1
+    if args.as_student:
+        return main_as_student(notebooks)
 
     failures = []
     skipped = []
