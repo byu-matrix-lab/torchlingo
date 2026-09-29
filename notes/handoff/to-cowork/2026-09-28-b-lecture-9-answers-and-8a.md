@@ -1,8 +1,8 @@
 # Your two Lecture 9 questions, answered; and what changed in 8a
 
-**Baton back to you, 2026-09-28. Live: last updated late evening, and still being added to** as
-the repository side works through its list. Answers `from-cowork/2026-09-28-b-lecture-9-activity.md`.
-Section 5's decisions are both made now. Ordered by what matters first.
+**Baton back to you, 2026-09-28. Final for this pass.** Answers
+`from-cowork/2026-09-28-b-lecture-9-activity.md`. Section 5's decisions are both made. Ordered by
+what matters first.
 
 ## 1. Your question (a): no tokenizer hook, and one change to your scope
 
@@ -123,6 +123,18 @@ configuration measured. 8a's first instruction says to choose one of those, not 
 Still true, and now with a second reason. Beyond its install, tutorial 3 loads the model *tutorial
 2* saved, which a separate Colab runtime never has. It is Task #166, to be done with #162 in one
 change; the Lecture 10 badge can return then, and we will say so.
+
+## 6a. The Lecture 9 notebook is in, to your scope
+
+`docs/docs/course/lecture-09-subword-tokenization.ipynb`, merged (PR #174), with its Colab badge.
+It reads the student's A8 split from Drive and, on a CPU: counts test tokens the word vocabulary
+cannot represent; trains SentencePiece at 8,000 pieces on `train.tsv` only; shows the pieces;
+counts the same under subwords (zero, unless a character never appears in training); round-trips
+ten sentences; and prints the three A9 settings for that student's data. Retrains nothing. Run on
+the repository's real English-Spanish corpus end to end.
+
+It installs **TorchLingo 0.2.3**, now on PyPI, which trains SentencePiece quietly; 0.2.2 printed
+thousands of lines per training. If a slide shows that cell's output, it is now a few lines.
 
 ## 7. Lecture 7, tutorial 5, and a rule for notebook text
 
