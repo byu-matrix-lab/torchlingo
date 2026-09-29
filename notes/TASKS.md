@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-09-28. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-09-29. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
@@ -19,9 +19,10 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-09-28, evening:** everything open is here. The only Lecture 8 item left is **#152**,
-whose last step, a Colab run on a real A5 corpus, Eric has delegated to Coulson; the handout's
-epoch range also needs Eric (Task #118). Lecture 9's notebook is written and merged.
+**As of 2026-09-29:** everything open is here. Two Lecture 8a items: **#152**, whose last step, a
+Colab run on a real A5 corpus, Eric has delegated to Coulson; and **#172**, the notebook audit's
+directions for the 8a kickoff. The audit (`NOTEBOOK_AUDIT.md`, from Cowork) is Tasks #172 to
+#177 plus tutorial 3's share of #166.
 
 **Read the "Critical for" column rather than the dates.** Labelling every task by lecture showed
 that only fifteen of sixty-two are critical to a lecture in the next ten days — and that two of
@@ -99,7 +100,14 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28), reply expected within a day or so |
-| #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162** |
+| #172 | Notebook audit: the 8a kickoff | **L8a** | Open — Steps 4 and 6 cut to the audit's wording; students are running it |
+| #173 | Notebook audit: tutorial 6 becomes a lookup | **L9** | Open — reading before Lecture 9 |
+| #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162 and the audit's tutorial 3 directions** |
+| #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open |
+| #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open |
+| #176 | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
+| #177 | Notebook audit: the notebooks already read | **hyg** | Open — tutorials 1, 2, 4, 7; Lectures 4 (regex), 6 and 7 |
+| #178 | Remove the INSTRUCTOR check from `notebook_meta.py` | **hyg** | Open — Eric, Sep 29: he never banned the word |
 | #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
 | #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
@@ -117,7 +125,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #160 | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
-| #118 | What does a paid Colab session actually provide? | **L8a** | **Decided: A8 uses 56.4M**, 35 epochs — left: the Project Directions' wording, **approved by Eric Sep 28**, to be applied |
 | #170 | Mixed precision in 8a, now that a resume keeps the loss scale | **L8a** | Open — **needs 0.2.4 on PyPI first**; measure the speed-up on a Colab GPU |
 | #171 | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #8 | Verify Eole claims before syllabus use | **lib** | Open |
@@ -362,6 +369,39 @@ twenty-four students do. **Delegated to Coulson on 2026-09-28**; Eric sent him t
 Discord, and a reply is expected within a day or so. On it, read what he reports against the
 note, then remove this entry.
 
+### #172 to #177 The notebook audit
+
+Cowork audited all eighteen notebooks from a student's seat at Eric's request (2026-09-29):
+[`NOTEBOOK_AUDIT.md`](NOTEBOOK_AUDIT.md). Its second half, "Implementation directions", is
+written to be carried out without asking: six rules for every notebook (standard opener, one
+closing section, prose ceilings, marked setup cells, **no project history**, the text rules in
+force), per-notebook directions with replacement text, and an order of work. The directions are
+the spec; these rows only track which notebooks are done. Eric's test where they leave room:
+**the job of each notebook is to teach.**
+
+One task per group that shares a deadline, so the "Critical for" column stays honest:
+
+- **#172, 8a kickoff** (L8a): students are running it this week.
+- **#173, tutorial 6** (L9).
+- **Tutorial 3** rides with **#166** and #162, which reshape the same notebook (L10).
+- **#174, `lecture-10-comet-install`** and **#175, tutorial 5** (L10).
+- **#176, `lecture-12-llm-context`** (L12): rebuilt as a runnable notebook on a built-in
+  English-Spanish sample. **Blocked on Eric**: the loader must be written against one A12
+  language's real files, or their format.
+- **#177, the rest** (hyg): tutorials 1, 2, 4 and 7; `lecture-04-regex-refresher`,
+  `lecture-06-mt-evaluation`, `lecture-07-toy-model`. Already read by students.
+
+Each PR checks the notebook's prose against its ceiling and runs `scripts/student_path.sh` on it.
+**Done when** every notebook the audit names has had its directions applied; then this section
+and `NOTEBOOK_AUDIT.md` go.
+
+### #178 Remove the INSTRUCTOR check from `notebook_meta.py`
+
+Eric, 2026-09-29, via Cowork: he never banned the word, and notebooks may say "ask the
+instructor". `hygiene()` flags any notebook containing it. Remove the check and
+`test_an_instructor_marker_is_caught`. The rule it stood in for, that the Lecture 3 and 4
+solution notebooks stay in `torchlingo-private`, is in `CLAUDE.md`.
+
 ### #166 Tutorial 3 cannot run from its Colab badge
 
 Found 2026-09-28 while fixing the commented-out install in tutorials 4 and 5 (PR #149).
@@ -506,53 +546,6 @@ separate test sets per direction", which is precisely what Assignment 14 asks fo
 
 Distinct from **#99**, which is the tutorial. This is the question of whether the code path
 works at all, and it should be answered before a notebook is written on top of it.
-
-### #118 What does a paid Colab session actually provide?
-
-**Sent 2026-09-28: Eric posted a one-cell probe to Coulson on Discord**, kept verbatim as
-`scripts/colab_memory_probe.py` so his output can be read against the code that produced it. It
-prints the GPU and its free memory, then peak memory and ms/batch for both A8 candidates (11.7M and
-56.4M, batch 64, three AdamW steps) at vocabulary 8,000 and 50,000 and length 102 and 180: the
-worst case for A8's word-level vocabulary and for A9's subwords. It also asked him to repeat it in a
-fresh session, to see whether the GPU varies.
-
-**Measured the same day, in two sessions: `reports/colab-memory.md`.** Both drew the same A100
-(39.1 GiB free), with identical peak memory. **The 56.4M model fits every configuration there**,
-and at A8's own settings it would fit a free-tier T4's nominal capacity too; the one T4 miss is
-50K vocabulary at length 180, a combination A9's 8K subwords never produce.
-
-**Decided 2026-09-28, Eric: A8 uses the 56.4M model.** 8a's Step 6 now builds it (`d_model` 512,
-6 + 6 layers, feed-forward 2048) and runs 35 epochs, since the benchmark had it converging in
-about 30 where the 11.7M model needed 65. Two caveats recorded in the notebook: its size is 56.4M
-only at an 8,000-piece vocabulary (about 109M at a word vocabulary), and the 30-epoch figure was
-measured with subwords. The live hand-off tells Cowork. **Eric approved the wording on
-2026-09-28.** **Done when the handout reads "about 35
-epochs, and keep going if validation loss is still falling at the end"** rather than a firm
-range, which one subword-vocabulary run cannot support; it says 60 to 70, and the notebook says
-the handout governs. That document is Eric's; the Project Directions copies requested from Cowork
-will show the exact line.
-
-**Coulson measures it, Eric's call.** The other half of the A8 memory question: the ladder in
-[`reports/length-ladder.md`](reports/length-ladder.md) gives demand at each length cap, this
-gives the ceiling. Neither half is useful alone.
-
-**What to ask for**, because "how much RAM does Colab have" is not the useful question:
-
-- Which accelerator a paid session actually assigns — T4, L4 and A100 are roughly 16, 24 and
-  40 GB, and the answer changes the recommendation.
-- Device memory available to the *process*, not the instance total.
-- Whether it varies between students or within a session. An assignment cannot ride on a
-  lucky draw.
-
-**What to compare against:** the measured curve, where the agreed 100-token cap holds 9.60 GiB
-against 35.80 uncapped. **Carry the caveat** that those are MPS unified-memory figures, so
-they transfer as a scaling *shape* rather than absolute numbers — which is exactly why this
-measurement is not redundant with ours.
-
-**Done when** the accelerator and its per-process memory are known, so the handout can say
-whether 9.60 GiB fits. Until then **no memory figure goes in front of students** — only the
-ordering, which is solid: batch count drives epoch time, the length cap drives whether the run
-fits at all.
 
 ## Code — decoding performance
 
