@@ -748,12 +748,10 @@ def purpose_line(meta: dict) -> str:
 
     collection = FAMILY_COLLECTION[meta["family"]]
     parts = [f"**{collection}** — {ROLE_PHRASE[meta['role']]} {named}."]
+    # No due dates. Eric, 2026-09-29: a notebook is self-contained and Learning Suite is
+    # where due dates live, so a notebook stays true when the schedule moves.
     if meta.get("leads_to"):
-        due = assignments()
-        starts = ", ".join(
-            f"**{a}** (due at Lecture {due[a]})" if due[a] else f"**{a}**"
-            for a in meta["leads_to"]
-        )
+        starts = ", ".join(f"**{a}**" for a in meta["leads_to"])
         parts.append(f"A head start on {starts}.")
     return " ".join(parts)
 
