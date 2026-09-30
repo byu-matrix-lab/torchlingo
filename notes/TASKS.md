@@ -115,7 +115,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
 | #129 | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
-| #97 | SentencePiece on versus off, controlled | **L9** | Open — left: release the fix (PR #189, merged); the A9 test **in review, PR #195** |
 | #102 | Inference cannot resume a long decode | **L13** | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **L13** | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
@@ -164,22 +163,6 @@ session) and in **`notes/handoff/briefing.md`**. Both are kept current; restatin
 produced two copies that disagreed within days.
 
 What stays below are the dated tasks themselves.
-
-### #97 SentencePiece on versus off, controlled
-
-Assignment 9 retrains Assignment 8's system with SentencePiece so the two can be compared.
-The comparison is the assignment, so the only thing that may differ between the two runs is
-the tokenizer. Same concern as #59: nothing currently checks that a comparison controlled
-its variables.
-
-**Left:**
-
-- **Release** PR #189's library fix (merged: an explicit `sp_model_path` serves both sides).
-  Students are already covered on 0.2.3 by PR #190's printout (merged), so this is not urgent.
-- **Merge PR #195**, the integration test for the A9 path (`tests/test_a9_path.py`), which
-  fails on the code before PR #189 and passes after.
-
-**Done when** both are in.
 
 ### #98 Back-translation as a documented workflow
 
