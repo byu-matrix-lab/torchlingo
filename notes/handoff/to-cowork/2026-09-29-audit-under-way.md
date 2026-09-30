@@ -45,7 +45,8 @@ and read the audit's standard opener with it in mind.
 
 ## 4. Section 7, the notebook audit: three done, the rest scheduled
 
-Pull requests, each awaiting review; none is merged yet.
+**PRs #182 to #186 are merged to `main`** (2026-09-29, evening); PR #181, this hand-off, stays
+open while the baton is on this side.
 
 - **PR #181** takes in your hand-off: roadmap v7 and the audit. v7's two
   renamed lectures made **six** purpose cells stale, not four: `01-data-and-vocab` and
@@ -95,7 +96,7 @@ meant the first, the marker comes off in one line.
 | **Task #178** | new and done: the INSTRUCTOR check, PR #183 |
 | **Task #179** | new: tutorial 6 is the only tutorial with no committed outputs, so the docs site shows its code with no results |
 | **Task #177** | its Lecture 7 part done in PR #185, at Eric's priority; tutorials 1, 2, 4, 7, regex and Lecture 6 remain |
-| **no number** | notebooks carry no due dates: PR #186 (purpose cells, `CLAUDE.md`) |
+| **no number** | notebooks carry no due dates: PR #186 (purpose cells, `CLAUDE.md`). Its commit on `main` ends "(Task #22)" by mistake: that was a working-list number, and `TASKS.md`'s Task #22 is the unrelated lint-gate item |
 | **Task #152** | unchanged: Coulson's real-corpus Colab run of 8a, no report yet |
 
 **Audit rule 6's "the banned word stays banned"** meant "instructor", and Eric confirms it is

@@ -19,10 +19,10 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-09-29:** everything open is here. Two Lecture 8a items: **#152**, whose last step, a
-Colab run on a real A5 corpus, Eric has delegated to Coulson; and **#172**, the notebook audit's
-directions for the 8a kickoff. The audit (`NOTEBOOK_AUDIT.md`, from Cowork) is Tasks #172 to
-#177 plus tutorial 3's share of #166.
+**As of 2026-09-29, evening:** everything open is here. One Lecture 8a item: **#152**, whose last
+step, a Colab run on a real A5 corpus, Eric has delegated to Coulson. The notebook audit
+(`NOTEBOOK_AUDIT.md`, from Cowork) is Tasks #174 to #177 plus tutorial 3's share of #166; the 8a
+kickoff, tutorial 6 and Lecture 7 are done (PRs #182, #184, #185).
 
 **Read the "Critical for" column rather than the dates.** Labelling every task by lecture showed
 that only fifteen of sixty-two are critical to a lecture in the next ten days — and that two of
@@ -100,15 +100,12 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28), reply expected within a day or so |
-| #172 | Notebook audit: the 8a kickoff | **L8a** | **In review, PR #182** |
-| #173 | Notebook audit: tutorial 6 becomes a lookup | **L9** | **In review, PR #184** — also adds the install cell it lacked |
-| #179 | Tutorial 6 has no committed outputs, so the docs site shows none | **L9** | Open — after PR #184 merges |
+| #179 | Tutorial 6 has no committed outputs, so the docs site shows none | **L9** | Open — unblocked, PR #184 merged |
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162 and the audit's tutorial 3 directions** |
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open |
 | #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open |
 | #176 | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
 | #177 | Notebook audit: the notebooks already read | **hyg** | Open — tutorials 1, 2, 4, 7; Lectures 4 (regex), 6 and 7 |
-| #178 | Remove the INSTRUCTOR check from `notebook_meta.py` | **hyg** | **In review, PR #183** |
 | #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
 | #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
@@ -370,7 +367,7 @@ twenty-four students do. **Delegated to Coulson on 2026-09-28**; Eric sent him t
 Discord, and a reply is expected within a day or so. On it, read what he reports against the
 note, then remove this entry.
 
-### #172 to #177 The notebook audit
+### #174 to #177 The notebook audit
 
 Cowork audited all eighteen notebooks from a student's seat at Eric's request (2026-09-29):
 [`NOTEBOOK_AUDIT.md`](NOTEBOOK_AUDIT.md). Its second half, "Implementation directions", is
@@ -380,28 +377,21 @@ force), per-notebook directions with replacement text, and an order of work. The
 the spec; these rows only track which notebooks are done. Eric's test where they leave room:
 **the job of each notebook is to teach.**
 
-One task per group that shares a deadline, so the "Critical for" column stays honest:
+One task per group that shares a deadline, so the "Critical for" column stays honest. Done
+and removed: the 8a kickoff (PR #182), tutorial 6 (PR #184) and `lecture-07-toy-model` (PR #185,
+Eric's priority, taken out of #177).
 
-- **#172, 8a kickoff** (L8a): students are running it this week.
-- **#173, tutorial 6** (L9).
 - **Tutorial 3** rides with **#166** and #162, which reshape the same notebook (L10).
 - **#174, `lecture-10-comet-install`** and **#175, tutorial 5** (L10).
 - **#176, `lecture-12-llm-context`** (L12): rebuilt as a runnable notebook on a built-in
   English-Spanish sample. **Blocked on Eric**: the loader must be written against one A12
   language's real files, or their format.
 - **#177, the rest** (hyg): tutorials 1, 2, 4 and 7; `lecture-04-regex-refresher`,
-  `lecture-06-mt-evaluation`, `lecture-07-toy-model`. Already read by students.
+  `lecture-06-mt-evaluation`. Already read by students.
 
 Each PR checks the notebook's prose against its ceiling and runs `scripts/student_path.sh` on it.
 **Done when** every notebook the audit names has had its directions applied; then this section
 and `NOTEBOOK_AUDIT.md` go.
-
-### #178 Remove the INSTRUCTOR check from `notebook_meta.py`
-
-Eric, 2026-09-29, via Cowork: he never banned the word, and notebooks may say "ask the
-instructor". `hygiene()` flags any notebook containing it. Remove the check and
-`test_an_instructor_marker_is_caught`. The rule it stood in for, that the Lecture 3 and 4
-solution notebooks stay in `torchlingo-private`, is in `CLAUDE.md`.
 
 ### #179 Tutorial 6 has no committed outputs
 
@@ -410,8 +400,8 @@ Found 2026-09-29 doing Task #173. Every other tutorial commits its outputs, beca
 docs site shows. Tutorial 6 has none, so a student reading it there sees the code and prose
 quoting numbers ("+0.03, +0.12, +0.66, +1.08") with no output to find them in.
 
-Execute it and commit the result, after PR #184 lands so the outputs match the reworked cells.
-It runs in about 90 seconds on a CPU. Check the quoted numbers against the committed outputs.
+Execute it and commit the result; PR #184 has landed, so the outputs will match the reworked
+cells. It runs in about 90 seconds on a CPU. Check the quoted numbers against the committed outputs.
 
 ### #166 Tutorial 3 cannot run from its Colab badge
 
