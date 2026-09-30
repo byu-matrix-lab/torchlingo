@@ -440,9 +440,10 @@ four passing, or failing for a reason a student would also hit.
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 
 Found 2026-09-29 doing Task #173: tutorial 6 had a Colab badge and no install cell, so Run all
-from the badge stopped at `import torchlingo`. Every CI gate passed, because CI runs against the
-repository's own editable install. `CLAUDE.md` now makes Run-all-from-the-badge part of
-"self-contained", and nothing checks it.
+from the badge stopped at `import torchlingo`. **Tutorial 7 had the same defect**, found the same
+day by the first student-path run (fixed in PR #192). Every CI gate passed both times, because CI
+runs against the repository's own editable install. `CLAUDE.md` now makes Run-all-from-the-badge
+part of "self-contained", and nothing checks it.
 
 **The weekly run is not enough, and the check is not redundant with it.** `student_path.yml`
 (`execute_notebooks.py --as-student`) would catch this, since tutorial 6 declares no requirements,
@@ -453,8 +454,9 @@ had not yet run at all when this was found. A static check blocks the PR.
 imports `torchlingo` must have a code cell installing it (the four-line `%pip` cell `CLAUDE.md`
 prescribes) before its first `torchlingo` import. Notebooks that never import `torchlingo`, such
 as Lectures 3 to 6 with their own packages, are exempt. It runs in the lint job beside the other
-hygiene checks. **Done when** that check exists, with a test that fails on tutorial 6 as it was
-before PR #184.
+hygiene checks. **Done when** that check exists, with tests that fail on tutorial 6 as it was
+before PR #184 and tutorial 7 as it was before PR #192, and it passes on all nineteen notebooks
+as they are now.
 
 ### #181 A prose word-count report in `notebook_meta.py`
 
