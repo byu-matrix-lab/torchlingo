@@ -403,6 +403,74 @@ class TestCreateDataloaders(unittest.TestCase):
         self.assertIs(tgt_vocab, train_ds.tgt_vocab)
 
 
+class TestCreateDataloadersSentencePiece(unittest.TestCase):
+    """An explicit ``sp_model_path`` serves both sides unless a target model is also given.
+
+    This is the call Assignment 9 makes: ``use_sentencepiece=True`` and ``sp_model_path``, with
+    no ``sp_tgt_model_path`` and a default ``Config``. It used to load the target vocabulary from
+    the configured default path, ``data/sp_model.model``, which a student's Colab runtime does
+    not have -- so A9 would have stopped at its first cell with a file-not-found error.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        from torchlingo.preprocessing import train_sentencepiece
+
+        cls.temp_dir = tempfile.TemporaryDirectory()
+        root = Path(cls.temp_dir.name)
+        words = [
+            "the",
+            "cat",
+            "dog",
+            "bird",
+            "sees",
+            "wants",
+            "finds",
+            "a",
+            "small",
+            "big",
+            "red",
+            "old",
+        ]
+        rows = [
+            (f"{a} {b} {c}", f"{c} {b} {a}")
+            for a in words
+            for b in words
+            for c in words[:4]
+        ]
+        cls.train_file = root / "train.tsv"
+        pd.DataFrame(rows, columns=["src", "tgt"]).to_csv(
+            cls.train_file, sep="\t", index=False
+        )
+        train_sentencepiece([cls.train_file], str(root / "spm"), vocab_size=40)
+        train_sentencepiece([cls.train_file], str(root / "spm_tgt"), vocab_size=40)
+        cls.model = str(root / "spm.model")
+        cls.tgt_model = str(root / "spm_tgt.model")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temp_dir.cleanup()
+
+    def test_sp_model_path_alone_serves_both_sides(self):
+        _, _, src_vocab, tgt_vocab = create_dataloaders(
+            self.train_file,
+            use_sentencepiece=True,
+            sp_model_path=self.model,
+            num_workers=0,
+        )
+        self.assertIs(tgt_vocab, src_vocab)
+
+    def test_an_explicit_target_model_is_still_used(self):
+        _, _, src_vocab, tgt_vocab = create_dataloaders(
+            self.train_file,
+            use_sentencepiece=True,
+            sp_model_path=self.model,
+            sp_tgt_model_path=self.tgt_model,
+            num_workers=0,
+        )
+        self.assertIsNot(tgt_vocab, src_vocab)
+
+
 class TestCreateDataloadersParallelConversion(unittest.TestCase):
     """Test create_dataloaders after converting parallel txt to a single file."""
 
