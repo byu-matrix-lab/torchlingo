@@ -114,7 +114,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #180 | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #184 | The student-path harness reports four working notebooks as failures | **hyg** | Open — `!pip` installs outside the harness's venv |
 | #181 | A prose word-count report in `notebook_meta.py` | **hyg** | Open — makes the audit's ceilings checkable |
-| #182 | PR #181's first commit still carries the assignment directions on GitHub | **hyg** | **Your call** — only if Eric wants a force-push |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
@@ -465,19 +464,6 @@ tutorial 6 and Lecture 7. Add `--words` to `notebook_meta.py`: per notebook and 
 excluding the generated purpose cell, flagging cells over 250 and notebooks over their role's
 ceiling. **A report, not a gate**: the audit allows justified overruns (tutorial 6 at 1,600,
 Lecture 7 at 900), so failing CI on a number would be wrong. Extend the existing script.
-
-### #182 PR #181's first commit still carries the assignment directions on GitHub
-
-Cowork's assignment transcripts arrived as `notes/assignments/` and were pushed in PR #181's
-first commit (`98ab820`) before Eric moved them to `torchlingo-private`. A later commit removes
-them, and **squash-merging PR #181 keeps them out of `main`**, but the PR branch's history on
-GitHub still holds them, and GitHub can keep a PR's old commits reachable even after a
-force-push. They are the texts students are given, so the exposure is small.
-
-**Eric's call**; he authorized the move, not a force-push. If yes: rebuild the branch without
-the files and force-push (the pre-move branch is backed up as
-`backup/handoff-2026-09-29-intake-2026-09-29`). **Done when** Eric decides, or when PR #181 is
-squash-merged and he is content with that.
 
 ### #166 Tutorial 3 cannot run from its Colab badge
 
