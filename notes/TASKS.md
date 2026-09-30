@@ -126,7 +126,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #160 | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
-| #170 | Mixed precision in 8a, now that a resume keeps the loss scale | **L8a** | Open — **needs 0.2.4 on PyPI first**; measure the speed-up on a Colab GPU |
+| #170 | Mixed precision for A9's runs, if a Colab GPU shows it pays | **L9** | Open — **measure first**; not a release blocker after all (see below) |
 | #171 | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #8 | Verify Eole claims before syllabus use | **lib** | Open |
 | #9 | `pre-commit install` (still not installed) | **hyg** | Open |
@@ -241,6 +241,28 @@ has no merged PR; and about seventy local-only branches from earlier sessions, w
 copies are already gone and which were mostly squash-merged, so each needs the same per-branch
 check before `git branch -D`. The `pr/*` refs in `git branch -r` are GitHub's read-only
 pull-request refs fetched by this clone's config, not branches; leave them.
+
+### #170 Mixed precision for A9's runs, if a Colab GPU shows it pays
+
+`train_model(..., use_amp=True)` runs most of the arithmetic in 16-bit, which on an A100 or L4
+usually trains faster and in less memory. The 8a kickoff trains its 56.4M model in 32-bit, and
+**the speed-up has never been measured here** for that model.
+
+**Corrected 2026-09-29: it does not need 0.2.4.** It was parked on the next release because
+0.2.3 does not save the mixed-precision loss scale in a checkpoint, so a resumed run would lose
+it. But `use_amp` chooses **bfloat16** on any GPU that supports it and then uses no loss scaler
+at all (checked in the released 0.2.3, not only on `main`). A100, L4 and G4 all support
+bfloat16, so on every GPU the kickoff allows there is no scale to lose. Only float16, on a GPU
+without bfloat16 such as the T4 the kickoff already rules out, needs the fix.
+
+**Relabelled from L8a to L9.** Changing the kickoff the night before Lecture 8a would reach every
+student through the badge untested on a GPU. And bfloat16 shifts the numbers slightly, so A8 and
+A9 should use the same setting, and A9 is where students retrain anyway.
+
+**Done when** someone has timed `use_amp=True` against 32-bit for the 56.4M model on a Colab A100
+(a few batches at worst-case length, as `scripts/colab_memory_probe.py` does for memory), and,
+if the gain is material, A9's settings say to use it for both of A9's runs, with the time estimates
+updated to match.
 
 ### #171 Document GPU nondeterminism next to the seeding conventions
 
