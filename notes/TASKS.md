@@ -101,9 +101,9 @@ describes last week will mislead every lecture at once rather than one of them.
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28), reply expected within a day or so |
 | #179 | Tutorial 6 has no committed outputs, so the docs site shows none | **L9** | Open — unblocked, PR #184 merged |
-| #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162 and the audit's tutorial 3 directions** |
-| #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open |
-| #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open |
+| #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 2's checkpoint; **do with #162, #92 and the audit's tutorial 3 directions** |
+| #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
+| #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
 | #176 | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
 | #177 | Notebook audit: the notebooks already read | **hyg** | Open — tutorials 1, 2, 4, 7; Lectures 4 (regex), 6 and 7 |
 | #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
@@ -145,7 +145,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
 | #89 | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
-| #92 | Tutorials 3 and 5 bypass the library's own evaluation API | **L10** | Open |
+| #92 | Tutorials 3 and 5 bypass the library's own evaluation API | **L10** | Open — **do inside #166 and #175**, which rewrite the same two notebooks |
 
 ## The CS 479 pivot
 
@@ -381,8 +381,11 @@ One task per group that shares a deadline, so the "Critical for" column stays ho
 and removed: the 8a kickoff (PR #182), tutorial 6 (PR #184) and `lecture-07-toy-model` (PR #185,
 Eric's priority, taken out of #177).
 
-- **Tutorial 3** rides with **#166** and #162, which reshape the same notebook (L10).
-- **#174, `lecture-10-comet-install`** and **#175, tutorial 5** (L10).
+- **Lecture 10's three, in this order** (the audit's): **tutorial 3**, riding with **#166**,
+  #162 and #92, which reshape the same notebook; **#174, `lecture-10-comet-install`**; **#175,
+  tutorial 5**, with #92's half for tutorial 5. #92 routes both tutorials' scoring through
+  `torchlingo.evaluation`, so doing it separately would mean re-executing each notebook twice.
+  Every one of them follows the no-due-dates rule in `CLAUDE.md`.
 - **#176, `lecture-12-llm-context`** (L12): rebuilt as a runnable notebook on a built-in
   English-Spanish sample. **Blocked on Eric**: the loader must be written against one A12
   language's real files, or their format.
