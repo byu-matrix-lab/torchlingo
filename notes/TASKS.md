@@ -105,13 +105,14 @@ describes last week will mislead every lecture at once rather than one of them.
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
 | #176 | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
-| #177 | Notebook audit: the notebooks already read | **hyg** | Open — tutorials 1, 2, 7; Lectures 4 (regex) and 6 |
+| #177 | Notebook audit: the notebooks already read | **hyg** | **In review, PR #192** |
 | #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
 | #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
 | #180 | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
+| #184 | The student-path harness reports four working notebooks as failures | **hyg** | Open — `!pip` installs outside the harness's venv |
 | #181 | A prose word-count report in `notebook_meta.py` | **hyg** | Open — makes the audit's ceilings checkable |
 | #182 | PR #181's first commit still carries the assignment directions on GitHub | **hyg** | **Your call** — only if Eric wants a force-push |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
@@ -424,6 +425,18 @@ optional. Options: (a) tutorial 4 says Part 7 is 8b's reading; (b) an 8b activit
 instance self-attention or the decoder block on the toy model; (c) accept it. **Eric and Cowork
 decide**, before 8b.
 
+
+### #184 The student-path harness reports four working notebooks as failures
+
+`scripts/student_path.sh` runs each notebook with `venv/bin/python` but does not put `venv/bin`
+on `PATH`. A cell's `!pip install` is a shell command, so it finds the system `pip` and installs
+outside the venv; the next import fails. Lectures 3, 4 (TMX cleaning), 5 and 12 install their
+packages that way, so `student_path.yml` fails on all four, although `!pip` works in Colab,
+which has one environment. `%pip` would not be affected; Colab supports both.
+
+**Fix the harness, not the notebooks:** prepend `$STUDENT_DIR/venv/bin` to `PATH` for the kernel,
+so `!pip` resolves as it does in Colab. **Done when** a manual `student_path.yml` run shows those
+four passing, or failing for a reason a student would also hit.
 
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 
