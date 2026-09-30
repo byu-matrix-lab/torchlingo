@@ -120,7 +120,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
 | #129 | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
-| #97 | SentencePiece on versus off, controlled | **L9** | **In review, PRs #189 and #190** — the A9 path ran end to end and found a bug that would have stopped every student |
+| #97 | SentencePiece on versus off, controlled | **L9** | **In review, PRs #189 and #190**; left: an integration test for the A9 path |
 | #102 | Inference cannot resume a long decode | **L13** | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **L13** | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
@@ -177,22 +177,17 @@ The comparison is the assignment, so the only thing that may differ between the 
 the tokenizer. Same concern as #59: nothing currently checks that a comparison controlled
 its variables.
 
-**Mostly delivered by the Lecture 9 notebook (PR #174):** same files and split, three settings
-changed, BLEU scored on the decoded text `translate_batch` returns. **What nobody had done was
-run the A9 path**, so on 2026-09-29 it ran end to end on a CPU: the 8a kickoff's Steps 3 to 7
-and scoring cell, twice on one 3,569-pair split, once with words and once with the Lecture 9
-notebook's printed settings (a scratch script, not in the repository).
+**Left:**
 
-**It found that A9 would have failed for every student.** `create_dataloaders(use_sentencepiece=True,
-sp_model_path=...)` loaded the target vocabulary from the default `data/sp_model.model`, not the
-student's model, and raised file-not-found in Colab. The Sep 28 hand-off had told Cowork that
-call worked; it had been read, not run. Two fixes, both in review: **PR #189** makes an explicit
-`sp_model_path` serve both sides (needs a release to reach students), and **PR #190** has the
-Lecture 9 notebook also print `sp_tgt_model_path`, which works on the released 0.2.3. With both
-in place the smoke run trains and scores both configurations on decoded text.
+- Merge **PR #190** (the Lecture 9 printout also passes `sp_tgt_model_path`, which works on the
+  released 0.2.3) before Lecture 9.
+- Merge **PR #189** (the library fix: an explicit `sp_model_path` serves both sides) and release it.
+- **Add an integration test for the A9 path**: the 8a kickoff's split, training and scoring,
+  once with words and once with the three A9 settings, on a tiny corpus on the CPU. Asserting
+  both runs score decoded text would have caught PR #189's bug. The one run so far was a
+  scratch script.
 
-**Done when** PR #190 is merged (students are covered on 0.2.3) and PR #189 is merged and
-released.
+**Done when** all three are in.
 
 ### #98 Back-translation as a documented workflow
 
