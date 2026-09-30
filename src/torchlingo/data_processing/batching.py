@@ -306,8 +306,9 @@ def create_dataloaders(
             Required if use_sentencepiece=True. Defaults to
             config.sentencepiece_src_model.
         sp_tgt_model_path (str, optional): Path to SentencePiece target model file.
-            If None with use_sentencepiece=True, uses the configured target path
-            or sp_model_path when identical. Defaults to None.
+            If None with use_sentencepiece=True, the model at ``sp_model_path``
+            serves both sides when that is given, and the configured target path
+            is used otherwise. Defaults to None.
         use_bucketing (bool, optional): If True, use BucketBatchSampler to group
             sequences by length. Reduces padding overhead for datasets with
             variable sequence lengths. Defaults to False.
@@ -389,6 +390,11 @@ def create_dataloaders(
     else:
         train_data = train_file
         if use_sentencepiece:
+            # An explicit sp_model_path serves both sides unless a target model is also
+            # given. Falling back to the configured target path instead sent A9's call,
+            # which names one shared model, looking for data/sp_model.model.
+            if sp_tgt_model_path is None and sp_model_path is not None:
+                sp_tgt_model_path = sp_model_path
             sp_model_path = (
                 sp_model_path
                 if sp_model_path is not None

@@ -667,7 +667,7 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 6 | Automatic and Human MT Evaluation | `lecture-06-mt-evaluation-homework` (homework) [6], `lecture-06-mt-evaluation` (activity) [7] | `07-evaluating-translations` (reading) [4] |
 | 7 | Research Paper Reviews; Intro to Neural Networks | `lecture-07-toy-model` (activity) [8] | `02-train-tiny-model` (reading) [2] |
 | 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | `lecture-08a-a8-kickoff` (activity) [9] | `04-attention-and-alignment` (reading) |
-| 8b | Neural MT: The Transformer | — | `04-attention-and-alignment` (reading) |
+| 8b | Neural MT: The Transformer | — | `04-attention-and-alignment` (reading), `08-transformer-attention` (reading) |
 | 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [10] | `01-data-and-vocab` (reference) [1], `06-diagnosing-failures` (reading) |
 | 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [11] | `03-inference-and-beamsearch` (reading), `05-real-translations` (reading) [3] |
 | 11 | Neural Quality Estimation and Evaluation | — | — |

@@ -246,10 +246,12 @@ class TestExecuteNotebooksReadsTheSameField(unittest.TestCase):
         The declared list is read rather than restated here. An earlier version
         pinned tutorial 4's exact two entries, which made this test fail when one
         of them was corrected -- reporting a stale expectation as a regression.
+        Tutorial 8 is the fixture now: it took tutorial 4's pretrained-model part,
+        and the need went with it.
         """
         import execute_notebooks as en
 
-        nb = nm.TUTORIALS / "04-attention-and-alignment.ipynb"
+        nb = nm.TUTORIALS / "08-transformer-attention.ipynb"
         declared = nm.read_meta(nb)["needs"]
         # Guards the subset assertion below against passing vacuously.
         self.assertTrue(declared, "the fixture notebook declares nothing to need")
