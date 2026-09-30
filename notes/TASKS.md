@@ -100,7 +100,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28), reply expected within a day or so |
-| #183 | Lecture 8b gets tutorial 8, split out of tutorial 4's Part 8 | **L8b** | **In review, PR #193** — then Cowork names it on the 8b deck and in the roadmap |
+| #183 | Lecture 8b gets tutorial 8, split out of tutorial 4's Part 8 | **L8b** | PR #193 merged — left: **Cowork** names it on the 8b deck and in the roadmap |
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 2's checkpoint; **do with #162, #92 and the audit's tutorial 3 directions** |
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
@@ -112,8 +112,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
 | #180 | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
-| #184 | The student-path harness reports four working notebooks as failures | **hyg** | Open — `!pip` installs outside the harness's venv |
-| #181 | A prose word-count report in `notebook_meta.py` | **hyg** | Open — makes the audit's ceilings checkable |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
@@ -421,21 +419,8 @@ Eric, 2026-09-29. Tutorial 4's Part 8 (a pretrained Transformer's attention on r
 becomes `tutorials/08-transformer-attention.ipynb`, serving 8b. Tutorial 4 keeps Parts 1 to 7 in
 the same file and no longer says Part 7 is optional.
 
-**Left:** merge PR #193; then Cowork names tutorial 8 on the 8b deck and in the roadmap's 8b
-section (told in the hand-off). **Done when** both are in.
-
-
-### #184 The student-path harness reports four working notebooks as failures
-
-`scripts/student_path.sh` runs each notebook with `venv/bin/python` but does not put `venv/bin`
-on `PATH`. A cell's `!pip install` is a shell command, so it finds the system `pip` and installs
-outside the venv; the next import fails. Lectures 3, 4 (TMX cleaning), 5 and 12 install their
-packages that way, so `student_path.yml` fails on all four, although `!pip` works in Colab,
-which has one environment. `%pip` would not be affected; Colab supports both.
-
-**Fix the harness, not the notebooks:** prepend `$STUDENT_DIR/venv/bin` to `PATH` for the kernel,
-so `!pip` resolves as it does in Colab. **Done when** a manual `student_path.yml` run shows those
-four passing, or failing for a reason a student would also hit.
+**Left:** PR #193 is merged; Cowork names tutorial 8 on the 8b deck and in the roadmap's 8b
+section (told in the hand-off). **Done when** that is in.
 
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 
@@ -455,17 +440,8 @@ imports `torchlingo` must have a code cell installing it (the four-line `%pip` c
 prescribes) before its first `torchlingo` import. Notebooks that never import `torchlingo`, such
 as Lectures 3 to 6 with their own packages, are exempt. It runs in the lint job beside the other
 hygiene checks. **Done when** that check exists, with tests that fail on tutorial 6 as it was
-before PR #184 and tutorial 7 as it was before PR #192, and it passes on all nineteen notebooks
-as they are now.
-
-### #181 A prose word-count report in `notebook_meta.py`
-
-The audit sets prose ceilings (activity 800 words, homework 700, tutorial 1,200, no cell over
-250), and on 2026-09-29 the count was hand-rolled three times in one session, for the 8a kickoff,
-tutorial 6 and Lecture 7. Add `--words` to `notebook_meta.py`: per notebook and per cell,
-excluding the generated purpose cell, flagging cells over 250 and notebooks over their role's
-ceiling. **A report, not a gate**: the audit allows justified overruns (tutorial 6 at 1,600,
-Lecture 7 at 900), so failing CI on a number would be wrong. Extend the existing script.
+before PR #184 and tutorial 7 as it was before PR #192, and it passes on every notebook as they
+are now.
 
 ### #166 Tutorial 3 cannot run from its Colab badge
 
