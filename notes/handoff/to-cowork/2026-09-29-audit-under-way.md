@@ -97,6 +97,7 @@ meant the first, the marker comes off in one line.
 | **Task #179** | new: tutorial 6 is the only tutorial with no committed outputs, so the docs site shows its code with no results |
 | **Task #177** | its Lecture 7 part done in PR #185, at Eric's priority; tutorials 1, 2, 4, 7, regex and Lecture 6 remain |
 | **no number** | notebooks carry no due dates: PR #186 (purpose cells, `CLAUDE.md`). Its commit on `main` ends "(Task #22)" by mistake: that was a working-list number, and `TASKS.md`'s Task #22 is the unrelated lint-gate item |
+| **Task #170** | corrected: mixed precision is **not** "8a after the next release", as the Sep 28 hand-off said. On A100, L4 and G4 it runs in bfloat16 with no loss scale to lose, so no release is needed; it is now an A9 question, pending a Colab timing. Until then the decks' two-to-five-hour estimate stands |
 | **Task #152** | unchanged: Coulson's real-corpus Colab run of 8a, no report yet |
 
 **Audit rule 6's "the banned word stays banned"** meant "instructor", and Eric confirms it is
