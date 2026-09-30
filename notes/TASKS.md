@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-09-28. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-09-29. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
@@ -19,9 +19,10 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-09-28, evening:** everything open is here. The only Lecture 8 item left is **#152**,
-whose last step, a Colab run on a real A5 corpus, Eric has delegated to Coulson; the handout's
-epoch range also needs Eric (Task #118). Lecture 9's notebook is written and merged.
+**As of 2026-09-30, early morning:** everything open is here. One Lecture 8a item: **#152**, whose
+last step, a Colab run on a real A5 corpus, Eric has delegated to Coulson and follows up on this
+morning. What remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork) is Lecture 10's
+three (#166, #174, #175) and Lecture 12's rebuild (#176); everything else in it is merged.
 
 **Read the "Critical for" column rather than the dates.** Labelling every task by lecture showed
 that only fifteen of sixty-two are critical to a lecture in the next ten days — and that two of
@@ -98,27 +99,29 @@ describes last week will mislead every lecture at once rather than one of them.
 
 | | Task | Critical for | State |
 |---|---|---|---|
-| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28), reply expected within a day or so |
-| #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — commented-out install, and it needs tutorial 2's checkpoint; **do with #162** |
+| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28); **Eric follows up the morning of Sep 30** |
+| #183 | Lecture 8b gets tutorial 8, split out of tutorial 4's Part 8 | **L8b** | PR #193 merged — left: **Cowork** names it on the 8b deck and in the roadmap |
+| #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 2's checkpoint; **do with #162, #92 and the audit's tutorial 3 directions** |
+| #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
+| #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
+| #176 | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
 | #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
 | #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
-| #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **hyg** | **Your call** — it holds the corpus prep and all the HPC tooling |
+| #180 | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
 | #129 | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
-| #97 | SentencePiece on versus off, controlled | **L9** | **Due Mon Oct 12** |
 | #102 | Inference cannot resume a long decode | **L13** | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **L13** | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
 | #160 | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
-| #118 | What does a paid Colab session actually provide? | **L8a** | **Decided: A8 uses 56.4M**, 35 epochs — left: the Project Directions' wording, **approved by Eric Sep 28**, to be applied |
-| #170 | Mixed precision in 8a, now that a resume keeps the loss scale | **L8a** | Open — **needs 0.2.4 on PyPI first**; measure the speed-up on a Colab GPU |
+| #170 | Mixed precision for A9's runs, if a Colab GPU shows it pays | **L9** | Open — **measure first**; not a release blocker after all (see below) |
 | #171 | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #8 | Verify Eole claims before syllabus use | **lib** | Open |
 | #9 | `pre-commit install` (still not installed) | **hyg** | Open |
@@ -140,7 +143,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
 | #89 | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
-| #92 | Tutorials 3 and 5 bypass the library's own evaluation API | **L10** | Open |
+| #92 | Tutorials 3 and 5 bypass the library's own evaluation API | **L10** | Open — **do inside #166 and #175**, which rewrite the same two notebooks |
 
 ## The CS 479 pivot
 
@@ -160,13 +163,6 @@ session) and in **`notes/handoff/briefing.md`**. Both are kept current; restatin
 produced two copies that disagreed within days.
 
 What stays below are the dated tasks themselves.
-
-### #97 SentencePiece on versus off, controlled
-
-Assignment 9 retrains Assignment 8's system with SentencePiece so the two can be compared.
-The comparison is the assignment, so the only thing that may differ between the two runs is
-the tokenizer. Same concern as #59: nothing currently checks that a comparison controlled
-its variables.
 
 ### #98 Back-translation as a documented workflow
 
@@ -233,6 +229,28 @@ has no merged PR; and about seventy local-only branches from earlier sessions, w
 copies are already gone and which were mostly squash-merged, so each needs the same per-branch
 check before `git branch -D`. The `pr/*` refs in `git branch -r` are GitHub's read-only
 pull-request refs fetched by this clone's config, not branches; leave them.
+
+### #170 Mixed precision for A9's runs, if a Colab GPU shows it pays
+
+`train_model(..., use_amp=True)` runs most of the arithmetic in 16-bit, which on an A100 or L4
+usually trains faster and in less memory. The 8a kickoff trains its 56.4M model in 32-bit, and
+**the speed-up has never been measured here** for that model.
+
+**Corrected 2026-09-29: it does not need 0.2.4.** It was parked on the next release because
+0.2.3 does not save the mixed-precision loss scale in a checkpoint, so a resumed run would lose
+it. But `use_amp` chooses **bfloat16** on any GPU that supports it and then uses no loss scaler
+at all (checked in the released 0.2.3, not only on `main`). A100, L4 and G4 all support
+bfloat16, so on every GPU the kickoff allows there is no scale to lose. Only float16, on a GPU
+without bfloat16 such as the T4 the kickoff already rules out, needs the fix.
+
+**Relabelled from L8a to L9.** Changing the kickoff the night before Lecture 8a would reach every
+student through the badge untested on a GPU. And bfloat16 shifts the numbers slightly, so A8 and
+A9 should use the same setting, and A9 is where students retrain anyway.
+
+**Done when** someone has timed `use_amp=True` against 32-bit for the 56.4M model on a Colab A100
+(a few batches at worst-case length, as `scripts/colab_memory_probe.py` does for memory), and,
+if the gain is material, A9's settings say to use it for both of A9's runs, with the time estimates
+updated to match.
 
 ### #171 Document GPU nondeterminism next to the seeding conventions
 
@@ -327,22 +345,6 @@ have been an error.
 
 Worth checking `scripts/collect_ladder.py` for the same pattern while in there.
 
-### #150 `torchlingo-private` has no git remote, so nothing in it is backed up
-
-`git remote -v` prints nothing. The repository is local to this machine only.
-
-It holds the corpus preparation scripts, `benchmark_a8.py`, `split_curve.py`, `runtime_guard.py`,
-the whole `hpc/` directory, and the findings prose that every published report is generated from.
-The German corpus itself is deliberately unversioned and can be rebuilt from the TMX; the
-*scripts* cannot be rebuilt from anything.
-
-Committing has been giving a false sense of safety — including to me, which is how this was
-found: I reported "pushed private" after a push that had failed for want of a remote.
-
-**Your call**, because it is an account and privacy decision rather than a technical one: a
-private GitHub repository under the lab, or a different backup entirely. The `.gitignore` already
-keeps the corpus and checkpoints out, so a remote would carry scripts and notes only.
-
 ### #152 A8 kickoff notebook for Lecture 8a
 
 **Written by Cowork and merged 2026-09-28 as PR #140**, as
@@ -359,8 +361,67 @@ cell no longer needs `result`, which only exists in the session that trained.
 **Done when it has run once in Colab against a real A5 corpus.** Nothing here can execute a
 Drive mount on a GPU; that run is the only end-to-end test this notebook will get before
 twenty-four students do. **Delegated to Coulson on 2026-09-28**; Eric sent him the note on
-Discord, and a reply is expected within a day or so. On it, read what he reports against the
-note, then remove this entry.
+Discord. No report had arrived by the evening of 2026-09-29; **Eric follows up with Coulson on
+the morning of 2026-09-30**, before Lecture 8a. On his report, read it against the note, then
+remove this entry.
+
+### #174 to #176 The notebook audit
+
+Cowork audited all eighteen notebooks from a student's seat at Eric's request (2026-09-29):
+[`NOTEBOOK_AUDIT.md`](NOTEBOOK_AUDIT.md). Its second half, "Implementation directions", is
+written to be carried out without asking: six rules for every notebook (standard opener, one
+closing section, prose ceilings, marked setup cells, **no project history**, the text rules in
+force), per-notebook directions with replacement text, and an order of work. The directions are
+the spec; these rows only track which notebooks are done. Eric's test where they leave room:
+**the job of each notebook is to teach.**
+
+One task per group that shares a deadline, so the "Critical for" column stays honest. Done
+and removed: the 8a kickoff (PR #182), tutorial 6 (PR #184), and Task #177's notebooks already
+read, `lecture-07-toy-model` (PR #185), tutorial 4 (PR #187), and tutorials 1, 2 and 7, the regex
+refresher and Lecture 6 (PR #192).
+
+- **Lecture 10's three, in this order** (the audit's): **tutorial 3**, riding with **#166**,
+  #162 and #92, which reshape the same notebook; **#174, `lecture-10-comet-install`**; **#175,
+  tutorial 5**, with #92's half for tutorial 5. #92 routes both tutorials' scoring through
+  `torchlingo.evaluation`, so doing it separately would mean re-executing each notebook twice.
+  Every one of them follows the no-due-dates rule in `CLAUDE.md`.
+- **#176, `lecture-12-llm-context`** (L12): rebuilt as a runnable notebook on a built-in
+  English-Spanish sample. **Blocked on Eric**: the loader must be written against one A12
+  language's real files, or their format.
+
+Each PR checks the notebook's prose against its ceiling and runs `scripts/student_path.sh` on it.
+**Done when** every notebook the audit names has had its directions applied; then this section
+and `NOTEBOOK_AUDIT.md` go.
+
+### #183 Lecture 8b gets tutorial 8, split out of tutorial 4's Part 8
+
+Eric, 2026-09-29. Tutorial 4's Part 8 (a pretrained Transformer's attention on real text)
+becomes `tutorials/08-transformer-attention.ipynb`, serving 8b. Tutorial 4 keeps Parts 1 to 7 in
+the same file and no longer says Part 7 is optional.
+
+**Left:** PR #193 is merged; Cowork names tutorial 8 on the 8b deck and in the roadmap's 8b
+section (told in the hand-off). **Done when** that is in.
+
+### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
+
+Found 2026-09-29 doing Task #173: tutorial 6 had a Colab badge and no install cell, so Run all
+from the badge stopped at `import torchlingo`. **Tutorial 7 had the same defect**, found the same
+day by the first student-path run (fixed in PR #192). Every CI gate passed both times, because CI
+runs against the repository's own editable install. `CLAUDE.md` now makes Run-all-from-the-badge
+part of "self-contained", and nothing checks it.
+
+**The weekly run is not enough, and the check is not redundant with it.** `student_path.yml`
+(`execute_notebooks.py --as-student`) would catch this, since tutorial 6 declares no requirements,
+but it runs on Mondays and on release tags, so it reports only after the defect has merged, and it
+had not yet run at all when this was found. A static check blocks the PR.
+
+**Extend `hygiene()` in `notebook_meta.py`**, no new tool: a notebook with a Colab badge that
+imports `torchlingo` must have a code cell installing it (the four-line `%pip` cell `CLAUDE.md`
+prescribes) before its first `torchlingo` import. Notebooks that never import `torchlingo`, such
+as Lectures 3 to 6 with their own packages, are exempt. It runs in the lint job beside the other
+hygiene checks. **Done when** that check exists, with tests that fail on tutorial 6 as it was
+before PR #184 and tutorial 7 as it was before PR #192, and it passes on every notebook as they
+are now.
 
 ### #166 Tutorial 3 cannot run from its Colab badge
 
@@ -506,53 +567,6 @@ separate test sets per direction", which is precisely what Assignment 14 asks fo
 
 Distinct from **#99**, which is the tutorial. This is the question of whether the code path
 works at all, and it should be answered before a notebook is written on top of it.
-
-### #118 What does a paid Colab session actually provide?
-
-**Sent 2026-09-28: Eric posted a one-cell probe to Coulson on Discord**, kept verbatim as
-`scripts/colab_memory_probe.py` so his output can be read against the code that produced it. It
-prints the GPU and its free memory, then peak memory and ms/batch for both A8 candidates (11.7M and
-56.4M, batch 64, three AdamW steps) at vocabulary 8,000 and 50,000 and length 102 and 180: the
-worst case for A8's word-level vocabulary and for A9's subwords. It also asked him to repeat it in a
-fresh session, to see whether the GPU varies.
-
-**Measured the same day, in two sessions: `reports/colab-memory.md`.** Both drew the same A100
-(39.1 GiB free), with identical peak memory. **The 56.4M model fits every configuration there**,
-and at A8's own settings it would fit a free-tier T4's nominal capacity too; the one T4 miss is
-50K vocabulary at length 180, a combination A9's 8K subwords never produce.
-
-**Decided 2026-09-28, Eric: A8 uses the 56.4M model.** 8a's Step 6 now builds it (`d_model` 512,
-6 + 6 layers, feed-forward 2048) and runs 35 epochs, since the benchmark had it converging in
-about 30 where the 11.7M model needed 65. Two caveats recorded in the notebook: its size is 56.4M
-only at an 8,000-piece vocabulary (about 109M at a word vocabulary), and the 30-epoch figure was
-measured with subwords. The live hand-off tells Cowork. **Eric approved the wording on
-2026-09-28.** **Done when the handout reads "about 35
-epochs, and keep going if validation loss is still falling at the end"** rather than a firm
-range, which one subword-vocabulary run cannot support; it says 60 to 70, and the notebook says
-the handout governs. That document is Eric's; the Project Directions copies requested from Cowork
-will show the exact line.
-
-**Coulson measures it, Eric's call.** The other half of the A8 memory question: the ladder in
-[`reports/length-ladder.md`](reports/length-ladder.md) gives demand at each length cap, this
-gives the ceiling. Neither half is useful alone.
-
-**What to ask for**, because "how much RAM does Colab have" is not the useful question:
-
-- Which accelerator a paid session actually assigns — T4, L4 and A100 are roughly 16, 24 and
-  40 GB, and the answer changes the recommendation.
-- Device memory available to the *process*, not the instance total.
-- Whether it varies between students or within a session. An assignment cannot ride on a
-  lucky draw.
-
-**What to compare against:** the measured curve, where the agreed 100-token cap holds 9.60 GiB
-against 35.80 uncapped. **Carry the caveat** that those are MPS unified-memory figures, so
-they transfer as a scaling *shape* rather than absolute numbers — which is exactly why this
-measurement is not redundant with ours.
-
-**Done when** the accelerator and its per-process memory are known, so the handout can say
-whether 9.60 GiB fits. Until then **no memory figure goes in front of students** — only the
-ordering, which is solid: batch count drives epoch time, the length cap drives whether the run
-fits at all.
 
 ## Code — decoding performance
 
