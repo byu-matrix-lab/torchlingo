@@ -100,7 +100,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28), reply expected within a day or so |
-| #183 | Lecture 8b has no notebook, and its one reading is now marked optional | **L8b** | **Eric and Cowork** — decide before 8b |
+| #183 | Lecture 8b gets tutorial 8, split out of tutorial 4's Part 8 | **L8b** | **In review, PR #193** — then Cowork names it on the 8b deck and in the roadmap |
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 2's checkpoint; **do with #162, #92 and the audit's tutorial 3 directions** |
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
@@ -415,14 +415,14 @@ Each PR checks the notebook's prose against its ceiling and runs `scripts/studen
 **Done when** every notebook the audit names has had its directions applied; then this section
 and `NOTEBOOK_AUDIT.md` go.
 
-### #183 Lecture 8b has no notebook, and its one reading is now marked optional
+### #183 Lecture 8b gets tutorial 8, split out of tutorial 4's Part 8
 
-Eric asked, 2026-09-29. The roadmap serves 8b with tutorial 4's Part 7 alone ("You have already
-seen the Transformer's mechanism"), as reading; there is no in-class activity. PR #187 applies the
-audit to tutorial 4 and marks Parts 6 to 8 optional, so 8b's only assigned reading is labelled
-optional. Options: (a) tutorial 4 says Part 7 is 8b's reading; (b) an 8b activity notebook, for
-instance self-attention or the decoder block on the toy model; (c) accept it. **Eric and Cowork
-decide**, before 8b.
+Eric, 2026-09-29. Tutorial 4's Part 8 (a pretrained Transformer's attention on real text)
+becomes `tutorials/08-transformer-attention.ipynb`, serving 8b. Tutorial 4 keeps Parts 1 to 7 in
+the same file and no longer says Part 7 is optional.
+
+**Left:** merge PR #193; then Cowork names tutorial 8 on the 8b deck and in the roadmap's 8b
+section (told in the hand-off). **Done when** both are in.
 
 
 ### #184 The student-path harness reports four working notebooks as failures

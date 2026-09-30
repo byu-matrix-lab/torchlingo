@@ -39,10 +39,13 @@ in substance** (subwords on, the model, the decode length), but a slide that quo
 should show both path lines. With both fixes the whole A9 path runs: same split, both models
 trained, both scored on decoded text.
 
-**Lecture 8b also has a question for you and Eric** (Task #183): its only notebook material is
-tutorial 4's Part 7, and the audit's directions, applied in PR #187, mark Parts 6 to 8 optional.
-Either tutorial 4 names Part 7 as 8b's reading, or 8b gets an activity of its own, or it stays as
-it is. Your call with Eric.
+**Lecture 8b now has a notebook of its own** (Task #183, Eric's decision; PR #193). Tutorial 4's
+Part 8, a pretrained Transformer's attention on real text, is now
+`tutorials/08-transformer-attention.ipynb`, reading for 8b and a head start on A8. Tutorial 4
+keeps Parts 1 to 7 in the same file, so every link to it still works, and it no longer tells
+students Part 7 is optional: "Part 7 is not optional: Lecture 8b starts from it." Please name
+tutorial 8 on the 8b deck's reading slide and in the roadmap's 8b section; the generated map
+already lists it.
 
 ## 2. The assignment directions moved to `torchlingo-private`
 
