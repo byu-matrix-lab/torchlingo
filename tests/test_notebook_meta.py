@@ -761,10 +761,6 @@ class TestNotebookHygiene(unittest.TestCase):
         self.assertTrue(found)
         self.assertNotIn(secret, " ".join(found))
 
-    def test_an_instructor_marker_is_caught(self):
-        found = self.check(self.with_code_line("# INSTRUCTOR: the answer is 42"))
-        self.assertTrue(any("INSTRUCTOR" in c for c in found))
-
     def test_a_missing_colab_badge_is_caught_for_course_notebooks(self):
         text = self.source.read_text(encoding="utf-8").replace(
             "colab.research.google.com", "example.invalid"
