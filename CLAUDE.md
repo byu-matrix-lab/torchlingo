@@ -229,8 +229,10 @@ and the pull request happen here.
 **Wrap the plumbing; keep the lesson inline.** Eric, 2026-09-28: large code cells lose a new
 student. So code a student learns nothing from reading (installs, downloads, Drive, file
 loading, exact splits, loader construction, padding arithmetic) belongs in the library, and a
-notebook calls it. Code that *is* the lesson stays written out: tutorial 3's beam search, tutorial
-6's `Vocab`, 8a's length cap, dedupe and contamination check. Data fixtures stay visible too.
+notebook calls it. Code that *is* the lesson stays written out: tutorial 3's beam search, 8a's
+length cap, dedupe and contamination check. Data fixtures stay visible too. Plumbing that stays
+in a notebook because it serves only that notebook, such as tutorial 6's toy-corpus `Vocab`, opens
+with `# Setup: run this cell, no need to read it.` (Eric, 2026-09-29).
 Before writing a helper, check the library has not got one already: on the day this rule was
 written, `create_dataloaders`, `parallel_txt_to_dataframe` and `evaluate_model` all existed and
 no course notebook used them.
