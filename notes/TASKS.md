@@ -112,7 +112,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
-| #180 | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — check what the student-path run covers first |
+| #180 | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #181 | A prose word-count report in `notebook_meta.py` | **hyg** | Open — makes the audit's ceilings checkable |
 | #182 | PR #181's first commit still carries the assignment directions on GitHub | **hyg** | **Your call** — only if Eric wants a force-push |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
@@ -443,12 +443,17 @@ from the badge stopped at `import torchlingo`. Every CI gate passed, because CI 
 repository's own editable install. `CLAUDE.md` now makes Run-all-from-the-badge part of
 "self-contained", and nothing checks it.
 
-**Check the existing tools first.** `execute_notebooks.py --as-student` (the weekly
-`student_path.yml`) installs from PyPI in a fresh environment, so it should have caught this:
-find out whether tutorial 6 is in its set, and whether it has run since the badge was added. If
-it covers it, the fix is running it on PRs that touch a notebook's first cells rather than a new
-check. If not, extend `hygiene()` in `notebook_meta.py`: a notebook with a Colab badge must have
-a code cell that installs TorchLingo before its first `torchlingo` import. No new tool.
+**The weekly run is not enough, and the check is not redundant with it.** `student_path.yml`
+(`execute_notebooks.py --as-student`) would catch this, since tutorial 6 declares no requirements,
+but it runs on Mondays and on release tags, so it reports only after the defect has merged, and it
+had not yet run at all when this was found. A static check blocks the PR.
+
+**Extend `hygiene()` in `notebook_meta.py`**, no new tool: a notebook with a Colab badge that
+imports `torchlingo` must have a code cell installing it (the four-line `%pip` cell `CLAUDE.md`
+prescribes) before its first `torchlingo` import. Notebooks that never import `torchlingo`, such
+as Lectures 3 to 6 with their own packages, are exempt. It runs in the lint job beside the other
+hygiene checks. **Done when** that check exists, with a test that fails on tutorial 6 as it was
+before PR #184.
 
 ### #181 A prose word-count report in `notebook_meta.py`
 
