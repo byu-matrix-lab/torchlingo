@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-09-30
+
 ### Fixed
 - **`create_dataloaders(use_sentencepiece=True, sp_model_path=...)` uses that one model for both
   sides.** Without `sp_tgt_model_path` it used to load the target vocabulary from the configured
