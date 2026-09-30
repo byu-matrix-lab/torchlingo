@@ -96,10 +96,9 @@ Next, in your order: tutorial 3 (with Tasks #166 and #162, which reshape the sam
 `lecture-10-comet-install`, tutorial 5, all before Lecture 10. `lecture-12-llm-context` waits on
 Eric's A12 files. The rest when convenient.
 
-**Rule 4 and `CLAUDE.md` pull against each other on tutorial 6's `Vocab`.** `CLAUDE.md` lists
-"tutorial 6's `Vocab`" among code that *is* the lesson and stays written out; your rule 4 says to
-mark it "no need to read". I did the second, which also keeps the code written out. If Eric
-meant the first, the marker comes off in one line.
+**Rule 4 and `CLAUDE.md` pulled against each other on tutorial 6's `Vocab`**, and Eric settled it
+for your rule: it is setup, marked "no need to read". `CLAUDE.md` no longer lists it as lesson
+code (PR #191).
 
 ## 5. Section 8: the INSTRUCTOR check is removed
 
