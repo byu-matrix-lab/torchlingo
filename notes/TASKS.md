@@ -99,7 +99,7 @@ describes last week will mislead every lecture at once rather than one of them.
 
 | | Task | Critical for | State |
 |---|---|---|---|
-| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28), reply expected within a day or so |
+| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28); **Eric follows up the morning of Sep 30** |
 | #183 | Lecture 8b gets tutorial 8, split out of tutorial 4's Part 8 | **L8b** | PR #193 merged — left: **Cowork** names it on the 8b deck and in the roadmap |
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 2's checkpoint; **do with #162, #92 and the audit's tutorial 3 directions** |
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
@@ -116,7 +116,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
 | #129 | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
-| #97 | SentencePiece on versus off, controlled | **L9** | Open — left: release the fix (PR #189, merged) and an integration test for the A9 path |
+| #97 | SentencePiece on versus off, controlled | **L9** | Open — left: release the fix (PR #189, merged); the A9 test **in review, PR #195** |
 | #102 | Inference cannot resume a long decode | **L13** | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **L13** | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
@@ -177,10 +177,8 @@ its variables.
 
 - **Release** PR #189's library fix (merged: an explicit `sp_model_path` serves both sides).
   Students are already covered on 0.2.3 by PR #190's printout (merged), so this is not urgent.
-- **Add an integration test for the A9 path**: the 8a kickoff's split, training and scoring,
-  once with words and once with the three A9 settings, on a tiny corpus on the CPU. Asserting
-  both runs score decoded text would have caught PR #189's bug. The one run so far was a
-  scratch script.
+- **Merge PR #195**, the integration test for the A9 path (`tests/test_a9_path.py`), which
+  fails on the code before PR #189 and passes after.
 
 **Done when** both are in.
 
@@ -381,8 +379,9 @@ cell no longer needs `result`, which only exists in the session that trained.
 **Done when it has run once in Colab against a real A5 corpus.** Nothing here can execute a
 Drive mount on a GPU; that run is the only end-to-end test this notebook will get before
 twenty-four students do. **Delegated to Coulson on 2026-09-28**; Eric sent him the note on
-Discord, and a reply is expected within a day or so. On it, read what he reports against the
-note, then remove this entry.
+Discord. No report had arrived by the evening of 2026-09-29; **Eric follows up with Coulson on
+the morning of 2026-09-30**, before Lecture 8a. On his report, read it against the note, then
+remove this entry.
 
 ### #174 to #177 The notebook audit
 
