@@ -21,8 +21,10 @@
 # install cell; the rest find torchlingo already there. To test a notebook's install, give it
 # a run of its own.
 #
-# WHAT IT CANNOT DO. Google's Drive authorization dialog, a GPU, and Colab's own network and
-# preinstalled packages. A PASS here means "runs from a clean PyPI install", not "runs in Colab".
+# WHAT IT CANNOT DO. Google's Drive authorization dialog, a GPU, and Colab's own network. Of
+# Colab's preinstalled packages it provides only numpy, pandas and matplotlib; a notebook
+# relying on any other must install it. A PASS here means "runs from a clean PyPI install",
+# not "runs in Colab".
 #
 # Usage:
 #   scripts/student_path.sh NOTEBOOK...
@@ -48,12 +50,22 @@ cd "$STUDENT_DIR" || exit 1
 
 if [ ! -x venv/bin/python ]; then
   python3 -m venv venv
-  # The runner only. The notebooks install torchlingo themselves; that is what is under test.
-  venv/bin/pip install --quiet nbclient nbformat ipykernel
+  # The runner, and the few packages every Colab runtime already has. Not torchlingo: the
+  # notebooks install that themselves, and that is what is under test. Without the Colab
+  # baseline, Lecture 5 failed on `import numpy`, which it never installs because Colab has it.
+  # torchlingo depends on all three, so this cannot hide a notebook that forgot to install it.
+  venv/bin/pip install --quiet nbclient nbformat ipykernel numpy pandas matplotlib
 fi
 if venv/bin/python -c "import torchlingo" 2>/dev/null; then
   echo "NOTE: torchlingo is already in $STUDENT_DIR/venv, so install cells will not be exercised."
 fi
+
+# The kernel inherits this, so a notebook's `!pip install` finds the venv's pip, as it finds
+# the runtime's only pip in Colab. Without it `!pip` reached the system pip and installed
+# outside the venv, and Lectures 3, 4, 5 and 12 failed at their next import although they run
+# in Colab. `%pip` targets the kernel's interpreter either way.
+export VIRTUAL_ENV="$STUDENT_DIR/venv"
+export PATH="$VIRTUAL_ENV/bin:$PATH"
 
 status=0
 for path in "$@"; do
