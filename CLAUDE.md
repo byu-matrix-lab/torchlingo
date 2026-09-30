@@ -218,10 +218,13 @@ and the pull request happen here.
   cell rather than one later; `setup(gpu=, drive=, data=)` does the device, the Drive mount and
   the downloads. Copy tutorial 2's first two code cells. Not the old commented-out install,
   which was the bug, nor the 20-to-60-line cells that replaced it.
-- **Name lectures and assignments, never weekdays or dates.** Eric, 2026-09-28: the notebooks
-  are meant to outlive one term's calendar. "Before Lecture 8a", "the A8 notebook", "due before
-  Lecture 8a" — not "Wednesday" or "Wed Sep 30". The schedule lives in the roadmap and on
-  Learning Suite, where it changes in one place. "Today", meaning the class session, is fine.
+- **Notebooks are self-contained and carry no due dates.** Eric, 2026-09-29: due dates live in
+  Learning Suite, and only there. Not "due before Lecture 8a", not "(due at Lecture 9)" in the
+  purpose cell, not a "when" column keyed to a lecture; and no weekdays or calendar dates at all
+  (Eric, 2026-09-28: the notebooks are meant to outlive one term's calendar). Naming a lecture
+  or assignment for *what it is* is fine: "the A8 notebook", "Lecture 8a explains why",
+  "turn in on Learning Suite". "Today", meaning the class session, is fine. Self-contained also
+  means Run all from the Colab badge works: nothing to uncomment, no other notebook's output.
 
 **Wrap the plumbing; keep the lesson inline.** Eric, 2026-09-28: large code cells lose a new
 student. So code a student learns nothing from reading (installs, downloads, Drive, file

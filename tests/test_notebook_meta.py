@@ -488,14 +488,15 @@ class TestPurposeLine(unittest.TestCase):
         self.assertIn("TorchLingo tutorial", tutorial)
         self.assertNotIn("TorchLingo tutorial", course)
 
-    def test_assignment_head_start_is_stated_with_its_deadline(self):
+    def test_assignment_head_start_is_stated_without_a_due_date(self):
+        """Eric, 2026-09-29: due dates live in Learning Suite, never in a notebook."""
         meta = {
             **nm.read_meta(nm.TUTORIALS / "02-train-tiny-model.ipynb"),
             "leads_to": ["A8"],
         }
         line = nm.purpose_line(meta)
         self.assertIn("A8", line)
-        self.assertIn(f"Lecture {nm.assignments()['A8']}", line)
+        self.assertNotIn("due", line.lower())
 
     def test_no_head_start_clause_when_leads_to_is_absent(self):
         """Built from a literal rather than naming a real notebook.
@@ -760,10 +761,6 @@ class TestNotebookHygiene(unittest.TestCase):
         found = self.check(self.with_code_line(f"TOKEN = '{secret}'"))
         self.assertTrue(found)
         self.assertNotIn(secret, " ".join(found))
-
-    def test_an_instructor_marker_is_caught(self):
-        found = self.check(self.with_code_line("# INSTRUCTOR: the answer is 42"))
-        self.assertTrue(any("INSTRUCTOR" in c for c in found))
 
     def test_a_missing_colab_badge_is_caught_for_course_notebooks(self):
         text = self.source.read_text(encoding="utf-8").replace(

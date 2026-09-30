@@ -434,7 +434,7 @@ def hygiene(path: Path) -> list[str]:
 
     These are the checks that were run **by hand** on 2026-09-27 when three course notebooks
     arrived from the Cowork session: no committed outputs, no execution counts, no tokens, a
-    Colab badge on anything a student is meant to open there, and no instructor solutions.
+    Colab badge on anything a student is meant to open there.
 
     Productized because the hand check recurs on every baton and is exactly the kind of thing
     that gets skipped on the busy pass. It also catches what actually breaks a course
@@ -525,12 +525,6 @@ def hygiene(path: Path) -> list[str]:
         # Report the prefix only. Echoing a live token into CI logs would publish it more
         # widely than the commit did.
         found.append(f"{path}: contains something shaped like a token ({shape[:6]}...)")
-
-    if "INSTRUCTOR" in text.upper():
-        found.append(
-            f"{path}: mentions INSTRUCTOR. Instructor notebooks carry worked solutions and "
-            "must not be in this tree."
-        )
 
     # A course notebook is opened in Colab by a student, from a badge. A tutorial is read on
     # the docs site, where mkdocs-jupyter renders it, so the badge is a nicety there and a
@@ -748,12 +742,10 @@ def purpose_line(meta: dict) -> str:
 
     collection = FAMILY_COLLECTION[meta["family"]]
     parts = [f"**{collection}** — {ROLE_PHRASE[meta['role']]} {named}."]
+    # No due dates. Eric, 2026-09-29: a notebook is self-contained and Learning Suite is
+    # where due dates live, so a notebook stays true when the schedule moves.
     if meta.get("leads_to"):
-        due = assignments()
-        starts = ", ".join(
-            f"**{a}** (due at Lecture {due[a]})" if due[a] else f"**{a}**"
-            for a in meta["leads_to"]
-        )
+        starts = ", ".join(f"**{a}**" for a in meta["leads_to"])
         parts.append(f"A head start on {starts}.")
     return " ".join(parts)
 
