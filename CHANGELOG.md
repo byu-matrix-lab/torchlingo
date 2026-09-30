@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **`create_dataloaders(use_sentencepiece=True, sp_model_path=...)` uses that one model for both
+  sides.** Without `sp_tgt_model_path` it used to load the target vocabulary from the configured
+  default path, `data/sp_model.model`, and fail with a file-not-found error wherever that file
+  did not exist, which is every Colab runtime. This is exactly Assignment 9's call.
+  `sp_tgt_model_path` still selects a separate target model.
 - **A resumed run now draws what an unbroken one would have.** Training checkpoints save the
   random number generators (torch, CUDA, Python's `random`, NumPy), so a run resumed at an epoch
   boundary gets the same data order and dropout masks, and on a CPU ends on identical weights.
