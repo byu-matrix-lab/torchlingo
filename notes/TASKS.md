@@ -112,7 +112,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
-| #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **hyg** | **Your call** — it holds the corpus prep, the HPC tooling, and since 2026-09-29 the assignment directions and the instructor notebooks |
 | #180 | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — check what the student-path run covers first |
 | #181 | A prose word-count report in `notebook_meta.py` | **hyg** | Open — makes the audit's ceilings checkable |
 | #182 | PR #181's first commit still carries the assignment directions on GitHub | **hyg** | **Your call** — only if Eric wants a force-push |
@@ -369,26 +368,6 @@ same shape as #137, which was fixed an hour earlier in the other script: a filte
 have been an error.
 
 Worth checking `scripts/collect_ladder.py` for the same pattern while in there.
-
-### #150 `torchlingo-private` has no git remote, so nothing in it is backed up
-
-`git remote -v` prints nothing. The repository is local to this machine only.
-
-It holds the corpus preparation scripts, `benchmark_a8.py`, `split_curve.py`, `runtime_guard.py`,
-the whole `hpc/` directory, and the findings prose that every published report is generated from.
-The German corpus itself is deliberately unversioned and can be rebuilt from the TMX; the
-*scripts* cannot be rebuilt from anything.
-
-Committing has been giving a false sense of safety — including to me, which is how this was
-found: I reported "pushed private" after a push that had failed for want of a remote.
-
-**Your call**, because it is an account and privacy decision rather than a technical one: a
-private GitHub repository under the lab, or a different backup entirely. The `.gitignore` already
-keeps the corpus and checkpoints out, so a remote would carry scripts and notes only.
-
-**More rides on it as of 2026-09-29.** Two new commits exist only on this disk: `109247d`, every
-assignment's directions (moved out of this public repository at Eric's request), and `4e6827a`,
-the Lecture 3 and 4 instructor notebooks, which had never been committed at all.
 
 ### #152 A8 kickoff notebook for Lecture 8a
 
