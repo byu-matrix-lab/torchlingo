@@ -111,7 +111,10 @@ describes last week will mislead every lecture at once rather than one of them.
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
-| #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **hyg** | **Your call** — it holds the corpus prep and all the HPC tooling |
+| #150 | `torchlingo-private` has no git remote, so nothing in it is backed up | **hyg** | **Your call** — it holds the corpus prep, the HPC tooling, and since 2026-09-29 the assignment directions and the instructor notebooks |
+| #180 | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — check what the student-path run covers first |
+| #181 | A prose word-count report in `notebook_meta.py` | **hyg** | Open — makes the audit's ceilings checkable |
+| #182 | PR #181's first commit still carries the assignment directions on GitHub | **hyg** | **Your call** — only if Eric wants a force-push |
 | #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
@@ -348,6 +351,10 @@ found: I reported "pushed private" after a push that had failed for want of a re
 private GitHub repository under the lab, or a different backup entirely. The `.gitignore` already
 keeps the corpus and checkpoints out, so a remote would carry scripts and notes only.
 
+**More rides on it as of 2026-09-29.** Two new commits exist only on this disk: `109247d`, every
+assignment's directions (moved out of this public repository at Eric's request), and `4e6827a`,
+the Lecture 3 and 4 instructor notebooks, which had never been committed at all.
+
 ### #152 A8 kickoff notebook for Lecture 8a
 
 **Written by Cowork and merged 2026-09-28 as PR #140**, as
@@ -405,6 +412,42 @@ quoting numbers ("+0.03, +0.12, +0.66, +1.08") with no output to find them in.
 
 Execute it and commit the result; PR #184 has landed, so the outputs will match the reworked
 cells. It runs in about 90 seconds on a CPU. Check the quoted numbers against the committed outputs.
+
+### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
+
+Found 2026-09-29 doing Task #173: tutorial 6 had a Colab badge and no install cell, so Run all
+from the badge stopped at `import torchlingo`. Every CI gate passed, because CI runs against the
+repository's own editable install. `CLAUDE.md` now makes Run-all-from-the-badge part of
+"self-contained", and nothing checks it.
+
+**Check the existing tools first.** `execute_notebooks.py --as-student` (the weekly
+`student_path.yml`) installs from PyPI in a fresh environment, so it should have caught this:
+find out whether tutorial 6 is in its set, and whether it has run since the badge was added. If
+it covers it, the fix is running it on PRs that touch a notebook's first cells rather than a new
+check. If not, extend `hygiene()` in `notebook_meta.py`: a notebook with a Colab badge must have
+a code cell that installs TorchLingo before its first `torchlingo` import. No new tool.
+
+### #181 A prose word-count report in `notebook_meta.py`
+
+The audit sets prose ceilings (activity 800 words, homework 700, tutorial 1,200, no cell over
+250), and on 2026-09-29 the count was hand-rolled three times in one session, for the 8a kickoff,
+tutorial 6 and Lecture 7. Add `--words` to `notebook_meta.py`: per notebook and per cell,
+excluding the generated purpose cell, flagging cells over 250 and notebooks over their role's
+ceiling. **A report, not a gate**: the audit allows justified overruns (tutorial 6 at 1,600,
+Lecture 7 at 900), so failing CI on a number would be wrong. Extend the existing script.
+
+### #182 PR #181's first commit still carries the assignment directions on GitHub
+
+Cowork's assignment transcripts arrived as `notes/assignments/` and were pushed in PR #181's
+first commit (`98ab820`) before Eric moved them to `torchlingo-private`. A later commit removes
+them, and **squash-merging PR #181 keeps them out of `main`**, but the PR branch's history on
+GitHub still holds them, and GitHub can keep a PR's old commits reachable even after a
+force-push. They are the texts students are given, so the exposure is small.
+
+**Eric's call**; he authorized the move, not a force-push. If yes: rebuild the branch without
+the files and force-push (the pre-move branch is backed up as
+`backup/handoff-2026-09-29-intake-2026-09-29`). **Done when** Eric decides, or when PR #181 is
+squash-merged and he is content with that.
 
 ### #166 Tutorial 3 cannot run from its Colab badge
 
