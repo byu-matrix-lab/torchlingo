@@ -14,6 +14,8 @@ The easiest way to run these tutorials is in **Google Colab**—no installation 
 | **4. Attention and Alignment** | Measure what attention learns | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/04-attention-and-alignment.ipynb) |
 | **5. Translating Unseen Sentences** | A real model on text it never saw | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/05-real-translations.ipynb) |
 | **6. Diagnosing Failures** | Break a model on purpose; watch each check fire | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/06-diagnosing-failures.ipynb) |
+| **7. Evaluating Translations** | Watch the default metric pick the worse system | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/07-evaluating-translations.ipynb) |
+| **8. Attention on a Real Transformer** | Read a pretrained model's alignment on unseen text | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/08-transformer-attention.ipynb) |
 
 !!! tip "Enable GPU in Colab"
     For faster training, enable GPU: **Runtime → Change runtime type → GPU**
@@ -73,6 +75,22 @@ Follow these tutorials in order for the best learning experience:
     Break a model five different ways and watch a specific check catch each one.
 
     [:octicons-arrow-right-24: Start Tutorial](06-diagnosing-failures.ipynb)
+
+-   :material-numeric-7-circle:{ .lg .middle } **Evaluating Translations**
+
+    ---
+
+    Score two systems three ways, and watch the default metric pick the one that changed the meaning.
+
+    [:octicons-arrow-right-24: Start Tutorial](07-evaluating-translations.ipynb)
+
+-   :material-numeric-8-circle:{ .lg .middle } **Attention on a Real Transformer**
+
+    ---
+
+    Read where a pretrained Transformer looked while it translated a sentence it never saw.
+
+    [:octicons-arrow-right-24: Start Tutorial](08-transformer-attention.ipynb)
 
 </div>
 
@@ -207,6 +225,31 @@ You'll learn:
 generalization gap, test contamination, `model.eval()`
 
 **Key functions covered**: `diagnose_alignment`, `shuffle_target_side`, `compute_bleu`
+
+### Tutorial 7: Evaluating Translations
+
+Given two systems, which one ships? Fixed strings, so each example changes one thing.
+
+You'll learn:
+
+- Why BLEU, chrF and TER can rank the same two systems three different ways
+- Why a corpus score and an average of sentence scores differ
+- Why a score needs its signature, and how the wrong reference shape returns a plausible
+  number and no error
+
+**Key functions covered**: `compute_bleu`, `compute_chrf`, `compute_ter`
+
+### Tutorial 8: Attention on a Real Transformer
+
+Tutorial 4's inspection, on a pretrained Transformer reading a held-out sentence.
+
+You'll learn:
+
+- Reading cross-attention as an alignment map on real text, with subword pieces
+- Why a model can find the right source words and still translate badly
+- Spotting a dropped word as a column nothing attends to
+
+**Key functions covered**: `attention_for_sequence`, `format_attention`, `greedy_decode`
 
 ## Tips for Success
 
