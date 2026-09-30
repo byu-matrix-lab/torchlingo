@@ -19,10 +19,10 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-09-29, evening:** everything open is here. One Lecture 8a item: **#152**, whose last
-step, a Colab run on a real A5 corpus, Eric has delegated to Coulson. The notebook audit
-(`NOTEBOOK_AUDIT.md`, from Cowork) is Tasks #174 to #177 plus tutorial 3's share of #166; the 8a
-kickoff, tutorial 6 and Lecture 7 are done (PRs #182, #184, #185).
+**As of 2026-09-30, early morning:** everything open is here. One Lecture 8a item: **#152**, whose
+last step, a Colab run on a real A5 corpus, Eric has delegated to Coulson and follows up on this
+morning. What remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork) is Lecture 10's
+three (#166, #174, #175) and Lecture 12's rebuild (#176); everything else in it is merged.
 
 **Read the "Critical for" column rather than the dates.** Labelling every task by lecture showed
 that only fifteen of sixty-two are critical to a lecture in the next ten days — and that two of
@@ -105,7 +105,6 @@ describes last week will mislead every lecture at once rather than one of them.
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
 | #176 | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
-| #177 | Notebook audit: the notebooks already read | **hyg** | **In review, PR #192** |
 | #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
 | #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
 | #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
@@ -383,7 +382,7 @@ Discord. No report had arrived by the evening of 2026-09-29; **Eric follows up w
 the morning of 2026-09-30**, before Lecture 8a. On his report, read it against the note, then
 remove this entry.
 
-### #174 to #177 The notebook audit
+### #174 to #176 The notebook audit
 
 Cowork audited all eighteen notebooks from a student's seat at Eric's request (2026-09-29):
 [`NOTEBOOK_AUDIT.md`](NOTEBOOK_AUDIT.md). Its second half, "Implementation directions", is
@@ -394,8 +393,9 @@ the spec; these rows only track which notebooks are done. Eric's test where they
 **the job of each notebook is to teach.**
 
 One task per group that shares a deadline, so the "Critical for" column stays honest. Done
-and removed: the 8a kickoff (PR #182), tutorial 6 (PR #184), and, taken out of #177,
-`lecture-07-toy-model` (PR #185, Eric's priority) and tutorial 4 (PR #187).
+and removed: the 8a kickoff (PR #182), tutorial 6 (PR #184), and Task #177's notebooks already
+read, `lecture-07-toy-model` (PR #185), tutorial 4 (PR #187), and tutorials 1, 2 and 7, the regex
+refresher and Lecture 6 (PR #192).
 
 - **Lecture 10's three, in this order** (the audit's): **tutorial 3**, riding with **#166**,
   #162 and #92, which reshape the same notebook; **#174, `lecture-10-comet-install`**; **#175,
@@ -405,8 +405,6 @@ and removed: the 8a kickoff (PR #182), tutorial 6 (PR #184), and, taken out of #
 - **#176, `lecture-12-llm-context`** (L12): rebuilt as a runnable notebook on a built-in
   English-Spanish sample. **Blocked on Eric**: the loader must be written against one A12
   language's real files, or their format.
-- **#177, the rest** (hyg): tutorials 1, 2 and 7; `lecture-04-regex-refresher`,
-  `lecture-06-mt-evaluation`. Already read by students.
 
 Each PR checks the notebook's prose against its ceiling and runs `scripts/student_path.sh` on it.
 **Done when** every notebook the audit names has had its directions applied; then this section
