@@ -100,7 +100,8 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28), reply expected within a day or so |
-| #179 | Tutorial 6 has no committed outputs, so the docs site shows none | **L9** | Open — unblocked, PR #184 merged |
+| #179 | Tutorial 6 has no committed outputs, so the docs site shows none | **L9** | **In review, PR #188** |
+| #183 | Lecture 8b has no notebook, and its one reading is now marked optional | **L8b** | **Eric and Cowork** — decide before 8b |
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 2's checkpoint; **do with #162, #92 and the audit's tutorial 3 directions** |
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
@@ -119,7 +120,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
 | #129 | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
-| #97 | SentencePiece on versus off, controlled | **L9** | **Due Mon Oct 12** |
+| #97 | SentencePiece on versus off, controlled | **L9** | **In review, PRs #189 and #190** — the A9 path ran end to end and found a bug that would have stopped every student |
 | #102 | Inference cannot resume a long decode | **L13** | **Needed by Mon Oct 19** — largest undone piece |
 | #98 | Back-translation as a documented workflow | **L13** | **Due Mon Oct 26** |
 | #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
@@ -175,6 +176,23 @@ Assignment 9 retrains Assignment 8's system with SentencePiece so the two can be
 The comparison is the assignment, so the only thing that may differ between the two runs is
 the tokenizer. Same concern as #59: nothing currently checks that a comparison controlled
 its variables.
+
+**Mostly delivered by the Lecture 9 notebook (PR #174):** same files and split, three settings
+changed, BLEU scored on the decoded text `translate_batch` returns. **What nobody had done was
+run the A9 path**, so on 2026-09-29 it ran end to end on a CPU: the 8a kickoff's Steps 3 to 7
+and scoring cell, twice on one 3,569-pair split, once with words and once with the Lecture 9
+notebook's printed settings (a scratch script, not in the repository).
+
+**It found that A9 would have failed for every student.** `create_dataloaders(use_sentencepiece=True,
+sp_model_path=...)` loaded the target vocabulary from the default `data/sp_model.model`, not the
+student's model, and raised file-not-found in Colab. The Sep 28 hand-off had told Cowork that
+call worked; it had been read, not run. Two fixes, both in review: **PR #189** makes an explicit
+`sp_model_path` serve both sides (needs a release to reach students), and **PR #190** has the
+Lecture 9 notebook also print `sp_tgt_model_path`, which works on the released 0.2.3. With both
+in place the smoke run trains and scores both configurations on decoded text.
+
+**Done when** PR #190 is merged (students are covered on 0.2.3) and PR #189 is merged and
+released.
 
 ### #98 Back-translation as a documented workflow
 
@@ -424,6 +442,15 @@ Eric's priority, taken out of #177).
 Each PR checks the notebook's prose against its ceiling and runs `scripts/student_path.sh` on it.
 **Done when** every notebook the audit names has had its directions applied; then this section
 and `NOTEBOOK_AUDIT.md` go.
+
+### #183 Lecture 8b has no notebook, and its one reading is now marked optional
+
+Eric asked, 2026-09-29. The roadmap serves 8b with tutorial 4's Part 7 alone ("You have already
+seen the Transformer's mechanism"), as reading; there is no in-class activity. PR #187 applies the
+audit to tutorial 4 and marks Parts 6 to 8 optional, so 8b's only assigned reading is labelled
+optional. Options: (a) tutorial 4 says Part 7 is 8b's reading; (b) an 8b activity notebook, for
+instance self-attention or the decoder block on the toy model; (c) accept it. **Eric and Cowork
+decide**, before 8b.
 
 ### #179 Tutorial 6 has no committed outputs
 

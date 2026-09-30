@@ -19,6 +19,31 @@ that file matches the kickoff's thresholds cell line for line: 100,000 / 2,000 /
 100-token cap, about 35 epochs, the 512 / 8 / 6 + 6 / 2048 model, and decoding stated in the
 write-up.
 
+## 1b. A correction you need before the Lecture 9 deck: A9's call did not work
+
+My Sep 28 hand-off told you the A9 path was "8a's Step 6 with two added arguments",
+`use_sentencepiece=True, sp_model_path=...`. **That was read, not run, and it was wrong.** Run end
+to end on 2026-09-29, the call loaded the *target* vocabulary from a default path that no Colab
+runtime has, and failed with file-not-found: every student would have stopped at A9's first
+training cell. Two fixes, in review: PR #189 fixes the library (needs a release), and PR #190
+makes the Lecture 9 notebook print a third argument that works on the released version:
+
+```
+use_sentencepiece=True,
+sp_model_path=str(OUT_DIR / 'spm.model'),
+sp_tgt_model_path=str(OUT_DIR / 'spm.model'),
+```
+
+The same file twice, because one subword model serves both languages. **A9 is still three settings
+in substance** (subwords on, the model, the decode length), but a slide that quotes the printout
+should show both path lines. With both fixes the whole A9 path runs: same split, both models
+trained, both scored on decoded text.
+
+**Lecture 8b also has a question for you and Eric** (Task #183): its only notebook material is
+tutorial 4's Part 7, and the audit's directions, applied in PR #187, mark Parts 6 to 8 optional.
+Either tutorial 4 names Part 7 as 8b's reading, or 8b gets an activity of its own, or it stays as
+it is. Your call with Eric.
+
 ## 2. The assignment directions moved to `torchlingo-private`
 
 Eric, 2026-09-29: they belong in the private repository, not the public one. They are now
