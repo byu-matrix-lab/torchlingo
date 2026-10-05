@@ -167,7 +167,7 @@ PRETRAINED = Path(__file__).resolve().parent.parent / "data" / "pretrained"
     "pretrained checkpoint not fetched in this checkout (Git LFS)",
 )
 class TestPretrainedArtifacts(unittest.TestCase):
-    """Tutorial 5 loads these; if they go missing it fails in CI, not silently."""
+    """Tutorial 7 loads these; if they go missing it fails in CI, not silently."""
 
     def test_checkpoint_and_tokenizer_are_present(self):
         self.assertTrue((PRETRAINED / "model.pt").exists())

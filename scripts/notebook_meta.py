@@ -98,7 +98,7 @@ ROLES = {"activity", "reading", "homework", "reference"}
 CAPABILITIES = {"pip", "download", "colab", "hf-token", "blanks"}
 
 # Which collection a notebook belongs to. This says where it lives, not how it is used --
-# a distinction worth keeping separate, because they come apart: tutorial 2 lives in the
+# a distinction worth keeping separate, because they come apart: tutorial 3 lives in the
 # tutorials and is used as Lecture 7's in-class activity.
 FAMILY_COLLECTION = {
     "tutorial": "TorchLingo tutorial",
@@ -297,12 +297,74 @@ def assignments() -> dict[str, str | None]:
 
 
 def notebooks() -> list[Path]:
-    """Return every notebook in both families, tutorials first.
+    """Return every notebook in both families, tutorials first, redirect stubs excluded.
 
     Returns:
         list: Paths, sorted within each family.
     """
-    return sorted(TUTORIALS.glob("*.ipynb")) + sorted(COURSE.glob("*.ipynb"))
+    every = sorted(TUTORIALS.glob("*.ipynb")) + sorted(COURSE.glob("*.ipynb"))
+    return [path for path in every if not is_redirect(path)]
+
+
+# A redirect stub keeps an old notebook path alive after a rename (Task #186, 2026-10-05: the
+# tutorials were renumbered mid-term). Students hold Colab badges and Content-page links that
+# embed the old path, so a one-cell notebook stays there pointing at the new one until the
+# term ends (Task #187). Its whole `torchlingo` block is {"redirect": "<new filename>"}.
+#
+# A stub is not a notebook in the sense the rest of this file means: it serves no lecture, has
+# nothing to execute, and must not appear on the map. So `notebooks()` leaves it out, and
+# `redirect_problems` checks it instead -- otherwise a stub could point at a file that was
+# renamed again, which is the exact failure it exists to prevent.
+def is_redirect(path: Path) -> bool:
+    """Report whether a notebook is a redirect stub.
+
+    Args:
+        path (Path): The notebook.
+
+    Returns:
+        bool: True when its ``torchlingo`` block names a ``redirect`` target.
+    """
+    return "redirect" in read_meta(path)
+
+
+def redirects() -> list[Path]:
+    """Return every redirect stub in both families.
+
+    Returns:
+        list: Paths, sorted.
+    """
+    every = sorted(TUTORIALS.glob("*.ipynb")) + sorted(COURSE.glob("*.ipynb"))
+    return [path for path in every if is_redirect(path)]
+
+
+def redirect_problems(path: Path) -> list[str]:
+    """Return every complaint about one redirect stub.
+
+    A stub must hold nothing but its ``redirect`` key, point at a real notebook in the same
+    directory that is not itself a stub, and consist of one Markdown cell that links there.
+
+    Args:
+        path (Path): The stub.
+
+    Returns:
+        list: Human-readable complaints; empty when the stub is sound.
+    """
+    meta = read_meta(path)
+    target = meta.get("redirect", "")
+    found = []
+    if set(meta) != {"redirect"}:
+        found.append(f"{path}: a redirect stub's torchlingo block holds only 'redirect'")
+    dest = path.parent / target
+    if not target or not dest.exists():
+        found.append(f"{path}: redirects to {target!r}, which does not exist")
+    elif is_redirect(dest):
+        found.append(f"{path}: redirects to {target}, which is itself a redirect")
+    cells = json.loads(path.read_text(encoding="utf-8"))["cells"]
+    if len(cells) != 1 or cells[0]["cell_type"] != "markdown":
+        found.append(f"{path}: a redirect stub is one Markdown cell")
+    elif f"]({target})" not in "".join(cells[0]["source"]):
+        found.append(f"{path}: its cell does not link to {target}")
+    return found
 
 
 def read_meta(path: Path) -> dict:
@@ -395,7 +457,7 @@ def _cell_parses(cell: dict) -> bool:
 
     IPython line magics are stripped first, per line rather than per cell. A naive
     ``compile()`` flagged two notebooks that run perfectly well, because ``!pip install``
-    appears *inside* a ``try`` block in tutorial 3 and mid-cell in lecture-12 -- neither is
+    appears *inside* a ``try`` block in tutorial 8 and mid-cell in lecture-12 -- neither is
     Python, both are fine in Jupyter. Skipping only cells that *begin* with ``!`` or ``%``
     misses exactly those cases, which is the version that produced the false positives.
 
@@ -1073,7 +1135,7 @@ def main(argv: list[str] | None = None) -> int:
         #
         # A stamp used to rebuild the block from the arguments alone, so restamping a
         # notebook to change one field silently deleted every other optional one. That has
-        # now cost three notes: tutorials 3 and 4 lost theirs when lecture ids became
+        # now cost three notes: tutorials 4 and 8 lost theirs when lecture ids became
         # strings, and tutorial 1 lost a four-line note explaining a retrospective pairing
         # while this very field was being added. Each loss was invisible -- the block still
         # validated, and the generated table does not show `note`.
@@ -1117,13 +1179,16 @@ def main(argv: list[str] | None = None) -> int:
     for path in found:
         complaints.extend(problems(path, read_meta(path)))
         complaints.extend(hygiene(path))
+    stubs = redirects()
+    for path in stubs:
+        complaints.extend(redirect_problems(path))
 
     # The purpose cell, applied or checked.
     #
     # Eric, 2026-09-27: each notebook should say on its face what it is for. The text is
     # GENERATED from the metadata rather than written, so the one that students read and the
     # one the roadmap's map reads cannot disagree -- which they did for a week, with the map
-    # calling tutorial 2 an activity while the notebook called itself a tutorial.
+    # calling tutorial 3 an activity while the notebook called itself a tutorial.
     #
     # Held until #144 and #145 were settled, because the wording encodes both: whether a
     # tutorial can be an in-class activity, and which assignment each notebook starts.
@@ -1148,13 +1213,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  {c}", file=sys.stderr)
         return 1
     print(f"  {len(found)} notebooks, metadata sound")
+    if stubs:
+        print(f"  {len(stubs)} redirect stubs, each pointing at a real notebook")
 
     # A head start that arrives after the deadline is worth saying out loud.
     #
     # Reported rather than failed, deliberately: WHERE a notebook is read is the
     # instructors' call, and a check that blocked CI over a placement judgement would be
     # overstepping. But it is machine-detectable, and noticing it by eye is exactly what
-    # does not happen twice -- `05-real-translations` sat at Lecture 10 for weeks claiming
+    # does not happen twice -- `07-real-translations` sat at Lecture 10 for weeks claiming
     # A8, due at Lecture 9, an artifact of the Lecture 8 split rather than a decision
     # anyone made (fixed in Task #164).
     late = late_head_starts()

@@ -4,14 +4,14 @@
 costs, and `scripts/bench_decode.py` supplies the cost numbers. Neither answers
 the question a student asks next: **what do I get for it?**
 
-The docs previously left that to prose, and tutorial 3 left it to a sweep over
+The docs previously left that to prose, and tutorial 8 left it to a sweep over
 `beam_size` in 1, 2, 3, 5, 10 that printed the same translation on every row.
-Not because beam size does not matter, but because tutorial 3's model is a toy
+Not because beam size does not matter, but because tutorial 8's model is a toy
 trained on a handful of phrases and is decisive enough that widening the beam
 changes nothing. A table of five identical rows teaches the opposite of the
 intended lesson.
 
-This script runs the same sweep against the pretrained model from tutorial 5,
+This script runs the same sweep against the pretrained model from tutorial 7,
 which is trained on real data and is wrong often enough to be interesting, and
 reports three things per configuration:
 
@@ -93,7 +93,7 @@ def is_available(path: Path) -> bool:
 
 
 def load_model(device: torch.device):
-    """Load the tutorial 5 checkpoint and its tokenizer.
+    """Load the tutorial 7 checkpoint and its tokenizer.
 
     Args:
         device (torch.device): Where to place the model.
@@ -573,7 +573,7 @@ def render_markdown(results: dict) -> str:
 
 Measured on {s["n_sentences"]} held-out sentences per run, across {n_seeds} runs
 (seeds {", ".join(str(x) for x in s["seeds"])}), `max_len={s["max_len"]}`, torch
-{s["torch"]}, {s["device"]}. The model is the tutorial 5 checkpoint, trained on
+{s["torch"]}, {s["device"]}. The model is the tutorial 7 checkpoint, trained on
 {s["train_pairs"]:,} real sentence pairs. The held-out references average
 {s["reference_mean_length"]} whitespace tokens.
 

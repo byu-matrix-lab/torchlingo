@@ -27,8 +27,8 @@ score collapses no matter how good the translations are.
 
 **BLEU is a corpus-level metric.** On a handful of short sentences it is not
 merely noisy, it is meaningless. That is not a bug in sacreBLEU; it is what the
-formula says. It is also why Tutorial 3's BLEU of 100 was the broken
-measurement and Tutorial 5's 7 was the working one.
+formula says. It is also why Tutorial 8's BLEU of 100 was the broken
+measurement and Tutorial 7's 7 was the working one.
 
 ## Three metrics, one set of translations
 
@@ -41,7 +41,7 @@ TorchLingo ships three, all from sacreBLEU:
 | [`compute_ter`](../reference/evaluation.md) | TER | edits per reference word | **lower** is better |
 
 Scored on the same held-out sentences from the
-[Tutorial 5](../tutorials/05-real-translations.ipynb) checkpoint:
+[Tutorial 7](../tutorials/07-real-translations.ipynb) checkpoint:
 
 --8<-- "docs/_generated/metric_comparison.md"
 
@@ -89,7 +89,7 @@ which is the same discipline as
 | 50–60 | Very high quality, adequate and fluent |
 | > 60 | Often better than human |
 
-**The Tutorial 5 model scores 7 to 9.** That is the bottom row. The tutorial
+**The Tutorial 7 model scores 7 to 9.** That is the bottom row. The tutorial
 says the translations are not good; this is the calibrated version of the same
 statement, and it is why a BLEU in the single digits is the expected result of
 this much data and this much training rather than a sign something broke.

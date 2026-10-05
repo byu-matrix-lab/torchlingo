@@ -2,7 +2,7 @@
 
 Every number a student meets in this project is BLEU. That is one metric's
 opinion, and the docs never say so. This script scores the *same* translations
-from the tutorial 5 checkpoint under BLEU, chrF and TER, and records what each
+from the tutorial 7 checkpoint under BLEU, chrF and TER, and records what each
 one says.
 
 Three things it is built to show, none of which survive a single-metric table:
@@ -67,7 +67,7 @@ def is_available(path: Path) -> bool:
 
 
 def load_model(device: torch.device):
-    """Load the tutorial 5 checkpoint and its tokenizer.
+    """Load the tutorial 7 checkpoint and its tokenizer.
 
     Args:
         device (torch.device): Where to place the model.

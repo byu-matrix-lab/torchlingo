@@ -23,12 +23,12 @@ The generated purpose cell (Lecture N, assignment N) is present in all 18 and do
 | lecture-10-comet-install | homework | 258 | 22 | **No** | Wrong places | Needs a goal; cut the token tour |
 | lecture-12-llm-context | homework | 548 | 12 | As a spec, yes | Yes | Fix the loop wording; add one worked prompt |
 | 01-data-and-vocab | reference | 273 | 122 | One-liner only | Yes | Add a "by the end" list; drop boilerplate |
-| 02-train-tiny-model | reading | 341 | 176 | One-liner only | Yes | Say how it relates to Lecture 7's activity |
-| 03-inference-and-beamsearch | reading | 1,645 | 258 | One-liner only | No | Point it at A9; merge three closings; fix stale Colab text |
+| 03-train-tiny-model | reading | 341 | 176 | One-liner only | Yes | Say how it relates to Lecture 7's activity |
+| 08-inference-and-beamsearch | reading | 1,645 | 258 | One-liner only | No | Point it at A9; merge three closings; fix stale Colab text |
 | 04-attention-and-alignment | reading | 1,709 | 177 | Yes, best of all | No | Mark Parts 6 to 8 optional |
-| 05-real-translations | reading | 1,970 | 111 | Yes | No | Move the 710-word postmortem to a concept page |
+| 07-real-translations | reading | 1,970 | 111 | Yes | No | Move the 710-word postmortem to a concept page |
 | 06-diagnosing-failures | reading | 2,330 | 252 | Yes | No | Reframe as a lookup procedure; collapse notes |
-| 07-evaluating-translations | reading | 1,877 | 99 | Yes | No | Cut the project-history paragraphs |
+| 02-evaluating-translations | reading | 1,877 | 99 | Yes | No | Cut the project-history paragraphs |
 
 Eleven of eighteen have a clear goal. Eight are brief enough. The course activities written this month (L4 TMX, L5, L6, L9) are the strongest on both counts; the five long tutorials (3 to 7) are the weakest on brevity, and the three Fall 2025 carry-overs (regex, COMET install, LLM context) are the weakest on goal.
 
@@ -60,31 +60,31 @@ Eleven of eighteen have a clear goal. Eight are brief enough. The course activit
 
 **01-data-and-vocab.** The opener is one line ("Learn how to load parallel data, build vocabularies, and prepare your data"). Short and runnable, but a student reading it "alongside Lecture 4 and Lecture 9" is never told which part serves which lecture, or what it gives them for A5. The Summary ("You've learned: 1. Loading data...") and Next Steps are the boilerplate pattern the course notebooks dropped. Fix: a three-item "by the end" list in the opener, one closing line. Low priority.
 
-**02-train-tiny-model.** Also a one-liner opener, though the Colab instructions (GPU first, then two cells) are the clearest install text in the set. A student who did Lecture 7's activity in class will recognise the same corpus and the same model and will not know whether this is a repeat. Fix: say so in the opener ("Lecture 7's activity was cut from this; here is the library's version, with save and load, which A8 needs") and a three-item "by the end" list. Low priority.
+**03-train-tiny-model.** Also a one-liner opener, though the Colab instructions (GPU first, then two cells) are the clearest install text in the set. A student who did Lecture 7's activity in class will recognise the same corpus and the same model and will not know whether this is a repeat. Fix: say so in the opener ("Lecture 7's activity was cut from this; here is the library's version, with save and load, which A8 needs") and a three-item "by the end" list. Low priority.
 
-**03-inference-and-beamsearch.** Assigned reading for Lecture 10 and a head start on A9, which is where students will meet `translate_batch`, beam size, `alpha` and `max_decode_length`. The notebook does not say that. Its goal line is "Generate translations using greedy and beam search," the Colab text still says "Uncomment and run the `%pip install` cell" (nothing is commented out any more), and it requires the Tutorial 2 checkpoint (repository task #166). It is 1,645 words and 258 code lines with a 72-line cell, and it closes three times: Summary, Key Takeaways, What's Next, 378 words together. "A measurement that tells you nothing" is a good lesson told at essay length. Fix: a "by the end" list pointed at the A9 settings; fold the null-result section to one paragraph with a link to the Decoding concept page; one closing section; fix the Colab text. #166 covers the checkpoint.
+**08-inference-and-beamsearch.** Assigned reading for Lecture 10 and a head start on A9, which is where students will meet `translate_batch`, beam size, `alpha` and `max_decode_length`. The notebook does not say that. Its goal line is "Generate translations using greedy and beam search," the Colab text still says "Uncomment and run the `%pip install` cell" (nothing is commented out any more), and it requires the Tutorial 3 checkpoint (repository task #166). It is 1,645 words and 258 code lines with a 72-line cell, and it closes three times: Summary, Key Takeaways, What's Next, 378 words together. "A measurement that tells you nothing" is a good lesson told at essay length. Fix: a "by the end" list pointed at the A9 settings; fold the null-result section to one paragraph with a link to the Decoding concept page; one closing section; fix the Colab text. #166 covers the checkpoint.
 
 **04-attention-and-alignment.** The best goal statement in the set: four numbered things you will have done, then eight parts that do them. The cost is 1,709 words, and Parts 6 to 8 (Bahdanau or Luong; the Transformer's mechanism; the same picture on a real model, with a 380-word reading of one heatmap) are extensions of the point Parts 1 to 5 already made. Fix: keep the goal list, label Parts 6 to 8 "if you have time," and cut the heatmap reading to its two conclusions (attention found the right words; the output is wrong anyway). That makes the core about 1,000 words, which is right for 8a and 8b reading.
 
-**05-real-translations.** The opener is the most motivating in the set: a warning that the translations are bad, and why seeing that is the point. Then it grows to 1,970 words in 15 cells. The 710-word cell at the end is a postmortem on a confounded experiment (+2.33 BLEU credited to data, mostly training length). It is a fine essay about research method and it is the wrong place: the student came to see a model fail on unseen text, and the same story is told again in tutorial 6's Question 4. The 437-word greedy-versus-beam cell restates tutorial 3's signature lesson. "What's Next" points back to Tutorial 4. Fix: move the postmortem to `concepts/when-it-fails.md` (or its own concept page) and leave a three-sentence pointer; cut the greedy/beam cell to the comparison table and one paragraph; fix What's Next. Target about 1,100 words. Its purpose cell says Lecture 10 and A11; that placement is Eric's open call.
+**07-real-translations.** The opener is the most motivating in the set: a warning that the translations are bad, and why seeing that is the point. Then it grows to 1,970 words in 15 cells. The 710-word cell at the end is a postmortem on a confounded experiment (+2.33 BLEU credited to data, mostly training length). It is a fine essay about research method and it is the wrong place: the student came to see a model fail on unseen text, and the same story is told again in tutorial 6's Question 4. The 437-word greedy-versus-beam cell restates tutorial 8's signature lesson. "What's Next" points back to Tutorial 4. Fix: move the postmortem to `concepts/when-it-fails.md` (or its own concept page) and leave a three-sentence pointer; cut the greedy/beam cell to the comparison table and one paragraph; fix What's Next. Target about 1,100 words. Its purpose cell says Lecture 10 and A11; that placement is Eric's open call.
 
 **06-diagnosing-failures.** Clear goal, and the right shape for what it is: five questions in cost order, each with Recognize and Fix, and a closing procedure table. At 2,330 words and 30 cells it is the longest notebook, and it is assigned as reading before Lecture 9 while students' A8 runs are going. The two `!!! note` admonitions add about 300 words of nuance a first reader does not need; the setup is a 56-line cell plus an 81-line `Vocab` class that a student will assume they are supposed to read. Fix: present it to students as a lookup ("read the table; run the question that matches your symptom") rather than a linear read, collapse the two notes, and mark the setup cells "run, do not read." The content itself is what a student with a broken A8 run needs.
 
-**07-evaluating-translations.** Sharp goal ("given two systems, which one ships?", "by the end you will have seen the default metric pick the worse system"). Every part changes one thing, which is good teaching. About 400 of its 1,877 words are project history: the two wrong conclusions the `word_order` default produced in this repository (Part 3) and the reference-shape bug in `compute_chrf` and `compute_ter` "for their whole existence" (Part 4). The habits those stories teach are stated in one sentence each and can stand alone. Fix: cut the history to a one-line "this bit this project once" per part, and link the bug note. Target about 1,400 words. Its purpose cell names Lecture 6 and A6, which is past; it is one of the four stale purpose cells already in the hand-off.
+**02-evaluating-translations.** Sharp goal ("given two systems, which one ships?", "by the end you will have seen the default metric pick the worse system"). Every part changes one thing, which is good teaching. About 400 of its 1,877 words are project history: the two wrong conclusions the `word_order` default produced in this repository (Part 3) and the reference-shape bug in `compute_chrf` and `compute_ter` "for their whole existence" (Part 4). The habits those stories teach are stated in one sentence each and can stand alone. Fix: cut the history to a one-line "this bit this project once" per part, and link the bug note. Target about 1,400 words. Its purpose cell names Lecture 6 and A6, which is past; it is one of the four stale purpose cells already in the hand-off.
 
 ## Cross-cutting
 
 1. **Two opener conventions.** The course activities written this month all open the same way: what this is, ungraded or not, time, "by the end you will have," what it feeds. The tutorials and the three Fall 2025 carry-overs do not. One four-line header on every notebook would close most of the goal gaps in this audit. The purpose cell already supplies the last line; the "by the end" line is the one missing.
-2. **Project history leaks into teaching text.** Tutorials 3, 5, 6 and 7 each tell the story of a bug the library shipped, and the +2.33 BLEU confound appears in both 5 and 6. The lesson each story carries ("change one thing at a time", "score a case whose answer you know") is one sentence; the story is a changelog entry, and it dates the notebook. None of it belongs in a notebook.
-3. **Triple closings.** Summary, Key Takeaways and What's Next in tutorials 1 to 3; "Congratulations" in the regex tour. One closing section, and only when it says something the body did not.
-4. **Code walls.** The longest code cells are 70 to 81 lines (L6 activity, tutorial 3, tutorial 6). A student cannot tell a helper from a step. Either move helpers into the library or label the cell.
-5. **Stale text.** Tutorial 3's "uncomment and run"; tutorial 5's What's Next; tutorial 7's purpose line; the COMET notebook's write-token advice; the language-loop comment in lecture-12.
+2. **Project history leaks into teaching text.** Tutorials 2, 6, 7 and 8 each tell the story of a bug the library shipped, and the +2.33 BLEU confound appears in both 6 and 7. The lesson each story carries ("change one thing at a time", "score a case whose answer you know") is one sentence; the story is a changelog entry, and it dates the notebook. None of it belongs in a notebook.
+3. **Triple closings.** Summary, Key Takeaways and What's Next in tutorials 1, 3 and 8; "Congratulations" in the regex tour. One closing section, and only when it says something the body did not.
+4. **Code walls.** The longest code cells are 70 to 81 lines (L6 activity, tutorial 8, tutorial 6). A student cannot tell a helper from a step. Either move helpers into the library or label the cell.
+5. **Stale text.** Tutorial 8's "uncomment and run"; tutorial 7's What's Next; tutorial 2's purpose line; the COMET notebook's write-token advice; the language-loop comment in lecture-12.
 
 ## Implementation directions
 
 Written for the torchlingo session to carry out without coming back for clarification. Two decisions from Eric on September 29 govern all of it:
 
-- **Every notebook runs end to end.** Open the Colab badge in a fresh runtime, Run all, no cell to uncomment, no edit required, no dependency on another notebook's output. That includes lecture-12, which becomes a runnable notebook, and tutorial 3, which stops depending on tutorial 2's checkpoint (#166).
+- **Every notebook runs end to end.** Open the Colab badge in a fresh runtime, Run all, no cell to uncomment, no edit required, no dependency on another notebook's output. That includes lecture-12, which becomes a runnable notebook, and tutorial 8, which stops depending on tutorial 3's checkpoint (#166).
 - **The torchlingo session does all of it**, including lecture-07-toy-model and lecture-08a, which were previously Cowork's.
 
 ### Rules that apply to every notebook
@@ -182,15 +182,15 @@ Cells are named by their heading or opening words, not by index.
 - Delete "Summary". Keep "Next Steps" as a single line.
 - Ceiling unchanged; it is already brief.
 
-**02-train-tiny-model.**
+**03-train-tiny-model.**
 - Opener: keep the Colab instructions (they are the clearest in the set). Add before them: "Lecture 7's in-class activity was cut from this notebook. This is the library's version: the same tiny corpus, plus saving and loading the model, which A8 needs." "By the end": a Transformer built from a `Config`; trained to a loss well below `ln(V)`; saved and reloaded.
 - Delete "Summary". Keep "Next Steps" as one line.
 
-**03-inference-and-beamsearch.**
-- Standalone (#166): train the toy model inside this notebook (a few seconds, as tutorial 2 shows) or load the pretrained checkpoint the way tutorial 5 does; delete the "Prerequisites: requires the model checkpoint from Tutorial 2" warning.
+**08-inference-and-beamsearch.**
+- Standalone (#166): train the toy model inside this notebook (a few seconds, as tutorial 3 shows) or load the pretrained checkpoint the way tutorial 7 does; delete the "Prerequisites: requires the model checkpoint from Tutorial 3" warning.
 - Fix the Colab text: "Uncomment and run" becomes "Run the next cell. There is nothing to uncomment."
 - Opener in the standard shape, pointed at A9: "By the end": greedy and beam decoding run on the same sentence and compared; the three settings A9 asks you to choose, `beam_size`, `alpha` and `max_decode_length`, seen doing something; a BLEU read with its signature.
-- "A measurement that tells you nothing": cut to one paragraph (under 120 words): five identical rows mean the experiment cannot answer the question, because a model that memorised twelve phrases is certain; a flat sweep tells you about your setup, not the parameter; the real measurement is in Decoding, on the tutorial 5 model. Drop the three-bullet list and the paragraph after it.
+- "A measurement that tells you nothing": cut to one paragraph (under 120 words): five identical rows mean the experiment cannot answer the question, because a model that memorised twelve phrases is certain; a flat sweep tells you about your setup, not the parameter; the real measurement is in Decoding, on the tutorial 7 model. Drop the three-bullet list and the paragraph after it.
 - Closings: delete "Summary" and "Key Takeaways". Keep the numbers (greedy to any beam about +1.2 to 1.6 BLEU; peak at beam 3 to 5; beam 10 loses; `alpha` indistinguishable on this model) as one short paragraph under "What's next", with the link to Decoding.
 - Split the 72-line code cell into a setup cell (rule 4) and the cell the student reads.
 - Ceiling: 1,100 words.
@@ -201,10 +201,10 @@ Cells are named by their heading or opening words, not by index.
 - "Read it against the translation" (Part 8): cut to its two conclusions in under 100 words: attention found the right words (four content words, four correct alignments, from a few minutes of training) and the output is still wrong, because alignment is not translation.
 - Ceiling: 1,200 words total, with Parts 1 to 5 under 900.
 
-**05-real-translations.**
+**07-real-translations.**
 - Keep the opener through the warning.
 - The 710-word closing cell: delete everything from "### How we know that order, and how we got it wrong first" through the `scripts/compare_checkpoints.py` sentence. Move the postmortem, if it is worth keeping, to `concepts/when-it-fails.md`; the notebook does not point at it. Keep the "What would make this better" table (with its "Notice that model size is third" line) and the "Summary" paragraph (rename it "What you saw").
-- The 437-word "First, why is that BLEU lower" cell: cut to the sample-size point (two sentences), the signature point (two sentences, since tutorial 7 owns it) and the +1.6 BLEU result with the link to Decoding. Under 150 words.
+- The 437-word "First, why is that BLEU lower" cell: cut to the sample-size point (two sentences), the signature point (two sentences, since tutorial 2 owns it) and the +1.6 BLEU result with the link to Decoding. Under 150 words.
 - "What's Next": delete the Tutorial 4 line (it points backwards). Keep the four Read links and the retrain line.
 - Ceiling: 1,100 words.
 
@@ -218,7 +218,7 @@ Cells are named by their heading or opening words, not by index.
 - "Try it yourself": keep three of the five (swap src and tgt for half the corpus; the vocabulary built from `train_df` only; detach the encoder output).
 - Ceiling: 1,600 words (five questions, each with a break, a Recognize and a Fix, justify 400 over the tutorial ceiling; the reference table at the end is not counted).
 
-**07-evaluating-translations.**
+**02-evaluating-translations.**
 - Part 3: delete the paragraph beginning "This exact mismatch has already produced two wrong conclusions in this project". The paragraph before it (two libraries, one label, two numbers) already makes the point; "The defence is a signature" follows directly.
 - Part 4: delete the paragraph beginning "This was a real bug in `torchlingo.evaluation`". Replace it with one line: "All three metrics route through one helper, so the reshaping cannot be right in one place and wrong in another:" and keep the code cell.
 - Everything else stays. It already has a "By the end" sentence in the opener; make it the numbered list.
@@ -230,12 +230,12 @@ Cells are named by their heading or opening words, not by index.
 |---|---|---|---|
 | 1 | lecture-08a-a8-kickoff | running now | this week |
 | 2 | 06-diagnosing-failures | reading before Lecture 9 | Lecture 9 |
-| 3 | 03-inference-and-beamsearch (with #166) | reading for Lecture 10, A9 | Lecture 10 |
+| 3 | 08-inference-and-beamsearch (with #166) | reading for Lecture 10, A9 | Lecture 10 |
 | 4 | lecture-10-comet-install | homework after Lecture 10 | Lecture 10 |
-| 5 | 05-real-translations | reading for Lecture 10 | Lecture 10 |
+| 5 | 07-real-translations | reading for Lecture 10 | Lecture 10 |
 | 6 | lecture-12-llm-context (runnable rebuild) | Lecture 12 | Lecture 12; needs the data format from Eric |
 | 7 | 04-attention-and-alignment | already read | when convenient |
-| 8 | 07-evaluating-translations | already read | when convenient |
+| 8 | 02-evaluating-translations | already read | when convenient |
 | 9 | lecture-07-toy-model | Parts B and C still in use this week | when convenient |
 | 10 | lecture-06-mt-evaluation | done | when convenient |
 | 11 | 01, 02, regex | reference | when convenient |
@@ -252,10 +252,10 @@ From the repository session's first pass (nine notebooks merged; Lecture 10's th
 
 - The Lecture 6 activity's 70-line code cell is a data fixture (twenty references and two systems' outputs), not a helper; it stays visible with a "skim it" line. Rule 4 does not apply to fixtures.
 - Tutorial 1's opener: A5's output is two sentence-aligned text files, which go through `parallel_txt_to_dataframe` first; not "exactly what `load_data` expects".
-- Tutorial 7 had a third history passage (Part 2) the directions did not list; removed under rule 5.
+- Tutorial 2 had a third history passage (Part 2) the directions did not list; removed under rule 5.
 - The regex refresher is a fill-in worksheet, which cannot meet "runs end to end with no edits" without a rewrite into worked examples. Left as a worksheet; Eric's call whether to rewrite it.
-- Tutorial 4's Parts 6 to 8: Part 8 is now tutorial 8, Lecture 8b's reading; Part 6 is optional, Part 7 is not (8b starts from it). The direction "Parts 6 to 8 optional" is superseded.
+- Tutorial 4's Parts 6 to 8: Part 8 is now tutorial 5, Lecture 8b's reading; Part 6 is optional, Part 7 is not (8b starts from it). The direction "Parts 6 to 8 optional" is superseded.
 - Rule 6's "the banned word stays banned" is void: "instructor" was never banned, and the check is removed.
 - Notebooks carry no due dates at all, including the purpose cell's "(due at Lecture N)", which is no longer generated. Read the standard opener with that in mind.
 - The lecture-12 direction's reference to `notes/assignments/A12-directions.md` now means `torchlingo-private/notes/assignments/`.
-- Word ceilings were treated as targets, not limits, where what remained was teaching (tutorials 6 and 7 landed above them).
+- Word ceilings were treated as targets, not limits, where what remained was teaching (tutorials 2 and 6 landed above them).

@@ -99,7 +99,7 @@ jobs:
       # It also gates the generated purpose cell each notebook opens with (#146).
       # That cell is what a STUDENT reads, and it is rendered from the same
       # metadata as the map, so the two cannot disagree -- they did for a week,
-      # with the map calling tutorial 2 an activity while the notebook called
+      # with the map calling tutorial 3 an activity while the notebook called
       # itself a tutorial. Failing here is right: a stale student-facing label is
       # a defect on the course path, and the fix is one command.
       - name: Notebook metadata, purpose cells and the roadmap's map
@@ -194,8 +194,8 @@ jobs:
 
       # The docs site does not run these: mkdocs-jupyter is configured with
       # execute: false and allow_errors: true, so a tutorial can rot completely
-      # and neither the build nor a reader will notice. Tutorial 2 once shipped
-      # emitting empty translations for every phrase, and tutorial 3 raised
+      # and neither the build nor a reader will notice. Tutorial 3 once shipped
+      # emitting empty translations for every phrase, and tutorial 8 raised
       # NameError on a clean run. This job is the check that was missing.
       #
       # Covers docs/docs/course/ as well, which was executed by nothing at all

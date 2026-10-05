@@ -874,12 +874,12 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 3 | Introduction to Word Embeddings | `lecture-03-word-embeddings` (activity) | — |
 | 4 | Data Preparation for MT Training | `lecture-04-regex-refresher` (reference) [5], `lecture-04-tmx-cleaning` (activity) | `01-data-and-vocab` (reference) [1] |
 | 5 | Data Preparation for MT Training, Part 2 | `lecture-05-sentence-alignment` (activity) | — |
-| 6 | Automatic and Human MT Evaluation | `lecture-06-mt-evaluation-homework` (homework) [6], `lecture-06-mt-evaluation` (activity) [7] | `07-evaluating-translations` (reading) [4] |
-| 7 | Research Paper Reviews; Intro to Neural Networks | `lecture-07-toy-model` (activity) [8] | `02-train-tiny-model` (reading) [2] |
+| 6 | Automatic and Human MT Evaluation | `lecture-06-mt-evaluation-homework` (homework) [6], `lecture-06-mt-evaluation` (activity) [7] | `02-evaluating-translations` (reading) [2] |
+| 7 | Research Paper Reviews; Intro to Neural Networks | `lecture-07-toy-model` (activity) [8] | `03-train-tiny-model` (reading) [3] |
 | 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | `lecture-08a-a8-kickoff` (activity) [9] | `04-attention-and-alignment` (reading) |
-| 8b | Neural MT: The Transformer | — | `04-attention-and-alignment` (reading), `08-transformer-attention` (reading) |
+| 8b | Neural MT: The Transformer | — | `04-attention-and-alignment` (reading), `05-transformer-attention` (reading) |
 | 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [10] | `01-data-and-vocab` (reference) [1], `06-diagnosing-failures` (reading) |
-| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [11] | `03-inference-and-beamsearch` (reading), `05-real-translations` (reading) [3] |
+| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [11] | `07-real-translations` (reading) [4], `08-inference-and-beamsearch` (reading) |
 | 11 | Neural Quality Estimation and Evaluation | — | — |
 | 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [12] | — |
 | 13 | Strategies for NMT of Low-Resource Languages | — | — |
@@ -899,15 +899,15 @@ Notes on the rows that are not simple:
   Lecture 4's subject from the library side, and its vocabulary half belongs to Lecture 9.
   Lecture 4 has already run this year, so the pairing is retrospective there and genuine
   for a future offering.
-- [2] **`02-train-tiny-model`** — The library's own tutorial. Lecture 7's in-class
+- [2] **`02-evaluating-translations`** — The out-of-class treatment of evaluation.
+  lecture-06-mt-evaluation is the in-class activity and owns the teaching; this one makes
+  the student choose between two systems (Cowork's Q7 call).
+- [3] **`03-train-tiny-model`** — The library's own tutorial. Lecture 7's in-class
   exercise, lecture-07-toy-model, was adapted from it.
-- [3] **`05-real-translations`** — Read at Lecture 10, so it no longer claims A8, which is
+- [4] **`07-real-translations`** — Read at Lecture 10, so it no longer claims A8, which is
   due at Lecture 9. Its substance is evaluating and decoding a real model -- held-out
   BLEU, greedy against beam search -- which is what A11's metric work builds on. It would
   help A8 more if read at 8b; where it sits is Eric's call.
-- [4] **`07-evaluating-translations`** — The out-of-class treatment of evaluation.
-  lecture-06-mt-evaluation is the in-class activity and owns the teaching; this one makes
-  the student choose between two systems (Cowork's Q7 call).
 - [5] **`lecture-04-regex-refresher`** — Fall 2025 material, brought into the repository
   on 2026-09-27. A fifteen-minute tour of Python regular expressions, which is what the
   sixteen cleaning steps are written in. Lecture 4's deck links it twice and Learning
@@ -924,7 +924,7 @@ Notes on the rows that are not simple:
   three-part exercise: Part A in class (install, train the toy model, read the loss curve
   against ln(V)), Part B outside class (hold one phrase out, retrain, score seen against
   unseen with SacreBLEU), Part C a short report handed in as A7 before Lecture 8a. Adapted
-  from tutorial 2, which stays the library's own tutorial. Trains a 64-dimensional model
+  from tutorial 3, which stays the library's own tutorial. Trains a 64-dimensional model
   in seconds, so it runs in CI.
 - [9] **`lecture-08a-a8-kickoff`** — The in-class start of Assignment 8, written
   2026-09-28 for Lecture 8a. Takes a student from their Assignment 5 corpus to a training
@@ -965,7 +965,7 @@ notebook that has not been written cannot declare anything:
 - **Lecture 9 has no notebook and needs one.** That is #121, which carries the dates.
 - **Lecture 14 has no notebook**, and the current handout is a Word document written for
   OpenNMT. That is #99, and #123 is the prior question of whether the code path even works.
-- **Lecture 6 will gain a tutorial it cannot show yet.** Tutorial 7 was written for exactly
+- **Lecture 6 will gain a tutorial it cannot show yet.** Tutorial 2 was written for exactly
   this ground and is not merged (#88). Once it lands it will declare Lecture 6 itself, as
   reading *after* Lecture 8, since Lecture 6 has run.
 - **Twelve of the twenty-three lectures pair with nothing** — 1, 2, 11 to 18, 20 and 21. Which
@@ -1016,7 +1016,7 @@ Part 6, not at it, and Part 6 — Bahdanau versus Luong — is Lecture 8a's mate
 |---|---|---|
 | 1. Data and Vocabulary | `data/sample_train.tsv` | nothing |
 | 2. Train a Tiny Model | `data/example.tsv` | 1 |
-| 3. Inference and Beam Search | tutorial 2's checkpoint | **2, at runtime** |
+| 3. Inference and Beam Search | tutorial 3's checkpoint | **2, at runtime** |
 | 4. Attention and Alignment | synthetic reversal task | 2 |
 | 5. Translating Unseen Sentences | `data/pretrained/` | 1-3 conceptually |
 
@@ -1037,15 +1037,15 @@ Generated into `docs/docs/_generated/`, each from a script, none hand-typed:
 
 Two dependencies are load-bearing and were invisible until this audit.
 
-**Tutorial 3 cannot run without tutorial 2.** It loads the checkpoint tutorial 2 saves.
+**Tutorial 8 cannot run without tutorial 3.** It loads the checkpoint tutorial 3 saves.
 `scripts/execute_notebooks.py` encodes this — it runs the notebooks in one shared working
-directory, in filename order, and lists tutorial 3 as needing the corpus even though it
-never names it. A student who opens tutorial 3 in Colab on its own gets a file-not-found
+directory, in filename order, and lists tutorial 8 as needing the corpus even though it
+never names it. A student who opens tutorial 8 in Colab on its own gets a file-not-found
 error and no explanation.
 
-**Tutorial 3's model is too small to teach what tutorial 3 is about.** Its beam-size
+**Tutorial 8's model is too small to teach what tutorial 8 is about.** Its beam-size
 sweep prints five identical rows because the model is decisive. This is why #40's
-measurement had to be done on tutorial 5's checkpoint instead, and why #50 exists. The
+measurement had to be done on tutorial 7's checkpoint instead, and why #50 exists. The
 sequencing implication is real: *the lesson about beam search requires a model that is
 wrong often enough to be uncertain, and the tutorial that teaches beam search does not
 have one.*
@@ -1065,11 +1065,11 @@ feeds.
 **Tutorial 1.** Load a parallel corpus; explain why a vocabulary needs `<pad>`, `<sos>`,
 `<eos>` and `<unk>`; predict what happens to an out-of-vocabulary word at inference.
 
-**Tutorial 2.** Train a Transformer end to end; read a loss curve well enough to tell
+**Tutorial 3.** Train a Transformer end to end; read a loss curve well enough to tell
 "still learning" from "converged"; recognize that a loss near `ln(vocab_size)` means the
 model has learned nothing.
 
-**Tutorial 3.** Implement greedy and beam search from scratch; state what beam search
+**Tutorial 8.** Implement greedy and beam search from scratch; state what beam search
 buys and what it costs; explain why two implementations of the same algorithm can
 disagree on ties.
 
@@ -1077,7 +1077,7 @@ disagree on ties.
 run an ablation; judge whether attention learned the *right* alignment rather than merely
 a confident one; connect cross-attention to self-attention.
 
-**Tutorial 5.** Distinguish a held-out set that is genuinely held out from one that
+**Tutorial 7.** Distinguish a held-out set that is genuinely held out from one that
 leaks; interpret a BLEU score; compare decoding strategies on a model whose answers
 actually differ.
 
@@ -1145,9 +1145,9 @@ See the correction under Redundancy below, and #34.
 Not necessarily wrong, but currently undeliberate.
 
 **Beam search appears four times**: explained in `concepts/decoding.md`, reimplemented
-from scratch in tutorial 3, visualized via `format_beam_search` (#39), and measured in
+from scratch in tutorial 8, visualized via `format_beam_search` (#39), and measured in
 #40. The reimplementation is defensible — writing it yourself is the lesson — and
-tutorial 3 explicitly reconciles its version against the library's. Worth deciding
+tutorial 8 explicitly reconciles its version against the library's. Worth deciding
 deliberately rather than by accumulation.
 
 **Attention appears three times**: `concepts/models.md`, tutorial 4, and
@@ -1155,7 +1155,7 @@ deliberately rather than by accumulation.
 
 *Corrected 2026-09-18, and this is a gap rather than redundancy.* All three cover the
 **LSTM**. `SimpleTransformer` has no attention-returning path at all, so a student who
-follows the tutorials onto the Transformer — which is what tutorials 2 and 5 train, and
+follows the tutorials onto the Transformer — which is what tutorials 3 and 7 train, and
 what the pretrained checkpoint is — cannot inspect attention on the model they are
 actually using. Tutorial 4 teaches the concept honestly on an LSTM and a synthetic task;
 nothing carries it across. See #34, whose scope was recorded too small for the same
@@ -1171,8 +1171,8 @@ overlap is probably correct.
 
 1. Are the outcomes above the right ones? They are inferred from the material, which
    means they describe what exists rather than what the course needs.
-2. Should tutorial 3 keep its from-scratch implementations, or call the library and spend
+2. Should tutorial 8 keep its from-scratch implementations, or call the library and spend
    the space on diagnosis instead?
 3. ~~Where does the lecture 7 assignment attach?~~ **Answered 2026-09-26: it needs nothing.**
-   Lecture 7 is a paper review, its activity is tutorial 2, and Task #42 is closed.
+   Lecture 7 is a paper review, its activity is tutorial 3, and Task #42 is closed.
 4. Is "why models fail" in scope for this library, or is it lecture material?

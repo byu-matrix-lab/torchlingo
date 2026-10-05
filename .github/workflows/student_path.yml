@@ -2,8 +2,8 @@ name: Notebooks as a student runs them
 
 # Runs every notebook the way a Colab student does: a fresh environment per notebook, the
 # notebook's own install cell pulling torchlingo from PyPI, google.colab faked, no data/ from
-# the checkout. It found what the per-PR notebook run cannot see: tutorials 4 and 5 reading
-# data/ a wheel does not ship, and tutorial 3 needing a checkpoint from another runtime.
+# the checkout. It found what the per-PR notebook run cannot see: tutorials 4 and 7 reading
+# data/ a wheel does not ship, and tutorial 8 needing a checkpoint from another runtime.
 #
 # Not on pull requests: it installs what is RELEASED, so a PR's changes are not what it tests.
 # Weekly, to catch PyPI drift (a dependency's new release breaking a notebook nobody touched),
