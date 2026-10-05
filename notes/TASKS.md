@@ -30,7 +30,7 @@ that only fifteen of sixty-two are critical to a lecture in the next ten days �
 the nearest-looking dates, both on Lecture 6's notebook, belonged to a lecture that had already
 run.
 
-Lecture 7 runs Mon Sep 28 with `lecture-07-toy-model` as its activity, adapted from tutorial 2,
+Lecture 7 runs Mon Sep 28 with `lecture-07-toy-model` as its activity, adapted from tutorial 3,
 which stays `reading`. That notebook's Part C is **A7, the toy-model report, due Wed Sep 30 10:00**,
 completion-graded; Coulson creates it in Learning Suite. Lecture 8 is split into 8a and 8b, both
 decks built, and Task #42 closed on Cowork's word that it needs nothing.
@@ -102,17 +102,17 @@ describes last week will mislead every lecture at once rather than one of them.
 |---|---|---|---|
 | #184 | Lecture 9 notebook: the student writes the count, picks the size, predicts A9 | **L9** | **In review, PR #197 — runs in class Wed Oct 7**; unmerged by then, the class runs the current notebook |
 | #185 | Lecture 7 notebook: the student chooses the held-out phrase, predicts, runs a contrast | **L7** | **In review, PR #198** |
-| #186 | Renumber the tutorials into course order, with redirect stubs | **L10** | Open — Cowork flips decks and Content pages when it merges; **before the Lecture 10 rebuild** |
+| #186 | Renumber the tutorials into course order, with redirect stubs | **L10** | **In review** — Cowork flips decks and Content pages when it merges; **before the Lecture 10 rebuild** |
 | #187 | Remove the tutorial redirect stubs | **hyg** | **After the Fall 2026 term** — not before; students hold the old badges |
-| #188 | Tutorial 8 (to be 5) shows encoder self-attention too | **L8b** | Open — **a candidate, not a commitment**: Cowork's offer, below |
+| #188 | Tutorial 5 shows encoder self-attention too | **L8b** | Open — **a candidate, not a commitment**: Cowork's offer, below |
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28); **no report as of Oct 5** |
-| #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 2's checkpoint; **do with #162, #92 and the audit's tutorial 3 directions** |
+| #166 | Tutorial 8 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 3's checkpoint; **do with #162, #92 and the audit's tutorial 8 directions** |
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
-| #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
+| #175 | Notebook audit: tutorial 7 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
 | #176 | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
 | #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
-| #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 2, 4, 5 moved; the rest listed |
-| #162 | Tutorial 3's Part 5 shrinks to a pointer at tutorial 7 | **L6** | **Unblocked** — tutorial 7 landed in PR #144; **do with #166** |
+| #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
+| #162 | Tutorial 8's Part 5 shrinks to a pointer at tutorial 2 | **L6** | **Unblocked** — tutorial 2 landed in PR #144; **do with #166** |
 | #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
 | #180 | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
@@ -148,7 +148,7 @@ describes last week will mislead every lecture at once rather than one of them.
 | #82 | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
 | #89 | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
-| #92 | Tutorials 3 and 5 bypass the library's own evaluation API | **L10** | Open — **do inside #166 and #175**, which rewrite the same two notebooks |
+| #92 | Tutorials 7 and 8 bypass the library's own evaluation API | **L10** | Open — **do inside #166 and #175**, which rewrite the same two notebooks |
 
 ## The CS 479 pivot
 
@@ -285,12 +285,12 @@ learns nothing from reading belongs in the library; code that *is* the lesson st
 **Done 2026-09-28:** `torchlingo.colab.setup` and `fetch_data`, `preprocessing.split_exact` and
 `diagnostics.padding_report`, released in 0.2.2 (PR #163, with `evaluate_model` finally tested,
 closing #86). The A8 kickoff moved onto them, verified byte-identical in its split files. Lecture
-7 and tutorials 1, 2, 4 and 5 now open with the four-line install and `setup()`.
+7 and tutorials 1, 3, 4 and 7 now open with the four-line install and `setup()`.
 
 **Left:**
 
-- **Tutorial 3**, in the one PR with #166 and #162: all three reshape the same notebook.
-- **Tutorials 6 and 7**: check their opening cells against the rule.
+- **Tutorial 8**, in the one PR with #166 and #162: all three reshape the same notebook.
+- **Tutorials 2 and 6**: check their opening cells against the rule.
 - **Cowork's course notebooks** (Lectures 3, 4, 5, 6, 10, 12) install other packages, not
   TorchLingo, so `setup()` does not replace their installs; check each for plumbing that a
   helper does cover, and ask Cowork before changing their cells.
@@ -298,24 +298,24 @@ closing #86). The A8 kickoff moved onto them, verified byte-identical in its spl
 
 **Done when** no notebook carries plumbing a library helper covers.
 
-### #162 Tutorial 3's Part 5 shrinks to a pointer at tutorial 7
+### #162 Tutorial 8's Part 5 shrinks to a pointer at tutorial 2
 
 **Cowork already decided this** and our list still said "decide". Their Question 7 answer:
 
 - `lecture-06-mt-evaluation` owns the teaching of BLEU and chrF for the course — it is what
   students are sent to in class and in the deck.
-- **Tutorial 7 should land** as the out-of-class treatment, and serves as assigned reading before
+- **Tutorial 2 should land** as the out-of-class treatment, and serves as assigned reading before
   A8 as well.
-- **Tutorial 3's Part 5 shrinks to a pointer** at tutorial 7 rather than teaching BLEU a third
-  time. Tutorial 3 is about decoding; the BLEU section is there because it needed a number.
+- **Tutorial 8's Part 5 shrinks to a pointer** at tutorial 2 rather than teaching BLEU a third
+  time. Tutorial 8 is about decoding; the BLEU section is there because it needed a number.
 
 "One evaluation tutorial, one course activity, and no third copy." So #142 is answered, and **#88,
-the tutorial 7 pull request, is unblocked** — its row said "see #142 first".
+the tutorial 2 pull request, is unblocked** — its row said "see #142 first".
 
 ### #132 Quick Start has no notebook, and its badge opens a different one
 
 `docs/docs/getting-started/quickstart.md` carries a Colab badge, and the badge opens
-`tutorials/02-train-tiny-model.ipynb` — a different document from the one the reader is on.
+`tutorials/03-train-tiny-model.ipynb` — a different document from the one the reader is on.
 
 So the page a newcomer is pointed at first has no runnable form of its own, and the button
 that looks like "run this" runs something else. Whichever way it is fixed — give Quick Start
@@ -382,12 +382,12 @@ the spec; these rows only track which notebooks are done. Eric's test where they
 
 One task per group that shares a deadline, so the "Critical for" column stays honest. Done
 and removed: the 8a kickoff (PR #182), tutorial 6 (PR #184), and Task #177's notebooks already
-read, `lecture-07-toy-model` (PR #185), tutorial 4 (PR #187), and tutorials 1, 2 and 7, the regex
+read, `lecture-07-toy-model` (PR #185), tutorial 4 (PR #187), and tutorials 1, 2 and 3, the regex
 refresher and Lecture 6 (PR #192).
 
-- **Lecture 10's three, in this order** (the audit's): **tutorial 3**, riding with **#166**,
+- **Lecture 10's three, in this order** (the audit's): **tutorial 8**, riding with **#166**,
   #162 and #92, which reshape the same notebook; **#174, `lecture-10-comet-install`**; **#175,
-  tutorial 5**, with #92's half for tutorial 5. #92 routes both tutorials' scoring through
+  tutorial 7**, with #92's half for tutorial 7. #92 routes both tutorials' scoring through
   `torchlingo.evaluation`, so doing it separately would mean re-executing each notebook twice.
   Every one of them follows the no-due-dates rule in `CLAUDE.md`.
 - **#176, `lecture-12-llm-context`** (L12): rebuilt as a runnable notebook on a built-in
@@ -424,7 +424,7 @@ The five one-cell notebooks #186 leaves at the old tutorial paths. **After the F
 not before: bookmarked badges and any Content page not yet flipped point at them. Then search
 the decks' and Learning Suite's links for an old path once more before deleting.
 
-### #188 Tutorial 8 (to be 5) shows encoder self-attention too
+### #188 Tutorial 5 shows encoder self-attention too
 
 Cowork's offer, 2026-10-05, **our call whether it earns a place.** For the 8b deck they captured
 the pretrained model's encoder self-attention on "And that is very useful information.": a
@@ -438,7 +438,7 @@ not interpretable. Natural home: `capture_self_attention` beside `capture_cross_
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 
 Found 2026-09-29 doing Task #173: tutorial 6 had a Colab badge and no install cell, so Run all
-from the badge stopped at `import torchlingo`. **Tutorial 7 had the same defect**, found the same
+from the badge stopped at `import torchlingo`. **Tutorial 2 had the same defect**, found the same
 day by the first student-path run (fixed in PR #192). Every CI gate passed both times, because CI
 runs against the repository's own editable install. `CLAUDE.md` now makes Run-all-from-the-badge
 part of "self-contained", and nothing checks it.
@@ -453,26 +453,26 @@ imports `torchlingo` must have a code cell installing it (the four-line `%pip` c
 prescribes) before its first `torchlingo` import. Notebooks that never import `torchlingo`, such
 as Lectures 3 to 6 with their own packages, are exempt. It runs in the lint job beside the other
 hygiene checks. **Done when** that check exists, with tests that fail on tutorial 6 as it was
-before PR #184 and tutorial 7 as it was before PR #192, and it passes on every notebook as they
+before PR #184 and tutorial 2 as it was before PR #192, and it passes on every notebook as they
 are now.
 
-### #166 Tutorial 3 cannot run from its Colab badge
+### #166 Tutorial 8 cannot run from its Colab badge
 
-Found 2026-09-28 while fixing the commented-out install in tutorials 4 and 5 (PR #149).
-**Tutorial 1 is done** (PR #154). Tutorial 3, Lecture 10's reading, fails twice from Colab:
+Found 2026-09-28 while fixing the commented-out install in tutorials 4 and 7 (PR #149).
+**Tutorial 1 is done** (PR #154). Tutorial 8, Lecture 10's reading, fails twice from Colab:
 
 1. **The same commented-out install**, "uncomment in Google Colab", so running straight through
-   hits `ModuleNotFoundError`. The one-cell fix from tutorial 2.
-2. **It loads `checkpoints/tiny_model.pt`, which tutorial 2 saved.** In Colab each notebook gets
-   its own runtime, so that file is never there, and its "run Tutorial 2 first" error sends the
+   hits `ModuleNotFoundError`. The one-cell fix from tutorial 3.
+2. **It loads `checkpoints/tiny_model.pt`, which tutorial 3 saved.** In Colab each notebook gets
+   its own runtime, so that file is never there, and its "run Tutorial 3 first" error sends the
    student somewhere that cannot help. Fixing (1) alone trades one failure for a misleading one.
    Options: train the tiny model inline when the checkpoint is missing (it takes seconds), or
-   ship a checkpoint and download it as tutorials 4 and 5 do.
+   ship a checkpoint and download it as tutorials 4 and 7 do.
 
 **Do it in one PR with Task #162**, which reshapes the same notebook's Part 5. Re-execute and
 check every output against the committed one: the PR #149 procedure.
 
-**When it closes, tell Cowork**: the Lecture 10 deck's decoding slide dropped tutorial 3's badge
+**When it closes, tell Cowork**: the Lecture 10 deck's decoding slide dropped tutorial 8's badge
 on 2026-09-28 and names the tutorial instead, to be restored once it runs standalone.
 `scripts/student_path.sh` is the check that it does.
 
@@ -542,7 +542,7 @@ model has never seen about a quarter of the data it is meant to represent.
 Nothing is broken — the held-out talks are still whole talks and still held out, since the
 corpus grew by a strict superset. It is stale rather than wrong.
 
-Worth retraining because everything downstream reads off this one checkpoint: tutorial 5
+Worth retraining because everything downstream reads off this one checkpoint: tutorial 7
 shows its translations, the decoding sweep measures on it, and its BLEU is the first number a
 student meets.
 
@@ -1009,17 +1009,17 @@ tree.
 **Done when** every page under `docs/docs/` is either in the nav or on a declared exception
 list, and the build fails when one is neither.
 
-**#92 Tutorials 3 and 5 bypass the library's own evaluation API**
+**#92 Tutorials 7 and 8 bypass the library's own evaluation API**
 
 Both call `sacrebleu` directly rather than `torchlingo.evaluation`. Tutorial 6 and the
-new tutorial 7 use the library. So a student meets two different ways to score, and the
+new tutorial 2 use the library. So a student meets two different ways to score, and the
 library's own evaluation API is the one the earlier tutorials never touch.
 
 This is also part of why the chrF/TER transpose bug survived: nothing in `docs/` or
 `tests/` exercised `compute_chrf` or `compute_ter`, so there was no path along which the
 wrong number could be noticed.
 
-- Route tutorials 3 and 5 through `compute_bleu`, which is the function they are already
+- Route tutorials 7 and 8 through `compute_bleu`, which is the function they are already
   imitating.
 - Worth doing after #58 lands, so the tutorials pick up the signature and the fixed
   reshaping at the same time.
@@ -1027,14 +1027,14 @@ wrong number could be noticed.
 **#53 The notebook gate is weaker than its green check implies**
 
 CI checks out without Git LFS on purpose, so `data/example.tsv` is a pointer and
-`execute_notebooks.py` skips tutorials 2 through 5. **The job passes having run two notebooks
+`execute_notebooks.py` skips what are now tutorials 3, 4, 7 and 8. **The job passes having run two notebooks
 of six**, and the check mark looks identical either way.
 
-Found concretely in #50, which adds an assertion inside tutorial 3 whose whole purpose is to
-fire when the model stops being decisive. It cannot fire in CI, because tutorial 3 does not run
+Found concretely in #50, which adds an assertion inside tutorial 8 whose whole purpose is to
+fire when the model stops being decisive. It cannot fire in CI, because tutorial 8 does not run
 there.
 
-The skip list only grows as tutorials touch real data. It can go the other way: tutorial 7 uses
+The skip list only grows as tutorials touch real data. It can go the other way: tutorial 2 uses
 fixed strings, needs no artifact, and runs — a design lever worth knowing, since a tutorial
 whose subject needs no trained model should not acquire one.
 

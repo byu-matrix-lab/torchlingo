@@ -216,7 +216,7 @@ and the pull request happen here.
 - **New notebooks open with the four-line install, then `torchlingo.colab.setup`.** The install
   runs `%pip` only in Colab and ends with `import torchlingo`, so a failed install stops in that
   cell rather than one later; `setup(gpu=, drive=, data=)` does the device, the Drive mount and
-  the downloads. Copy tutorial 2's first two code cells. Not the old commented-out install,
+  the downloads. Copy tutorial 3's first two code cells. Not the old commented-out install,
   which was the bug, nor the 20-to-60-line cells that replaced it.
 - **Notebooks are self-contained and carry no due dates.** Eric, 2026-09-29: due dates live in
   Learning Suite, and only there. Not "due before Lecture 8a", not "(due at Lecture 9)" in the
@@ -229,7 +229,7 @@ and the pull request happen here.
 **Wrap the plumbing; keep the lesson inline.** Eric, 2026-09-28: large code cells lose a new
 student. So code a student learns nothing from reading (installs, downloads, Drive, file
 loading, exact splits, loader construction, padding arithmetic) belongs in the library, and a
-notebook calls it. Code that *is* the lesson stays written out: tutorial 3's beam search, 8a's
+notebook calls it. Code that *is* the lesson stays written out: tutorial 8's beam search, 8a's
 length cap, dedupe and contamination check. Data fixtures stay visible too. Plumbing that stays
 in a notebook because it serves only that notebook, such as tutorial 6's toy-corpus `Vocab`, opens
 with `# Setup: run this cell, no need to read it.` (Eric, 2026-09-29).
@@ -257,7 +257,7 @@ repository's own install, with `data/` linked in. Students have neither:
 
 | | CI | student | what it missed |
 |---|---|---|---|
-| **environment** | editable install, the checkout's `data/` | PyPI, only what a cell downloads | tutorials 4 and 5 read `data/` a wheel lacks; tutorial 3 needs a checkpoint from another runtime |
+| **environment** | editable install, the checkout's `data/` | PyPI, only what a cell downloads | tutorials 4 and 7 read `data/` a wheel lacks; tutorial 8 needs a checkpoint from another runtime |
 | **hardware** | x86 Linux | Colab GPUs, and Apple Silicon on the lab's Macs | an op unimplemented on MPS made every decoder raise `NotImplementedError` |
 
 For the first, run **`scripts/student_path.sh NOTEBOOK`** before shipping a notebook students open

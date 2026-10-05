@@ -229,8 +229,8 @@ Everything above is about cost. This section is about what you get back, which i
 different question and has a less comfortable answer.
 
 Measured on the pretrained model from
-[Tutorial 5](../tutorials/05-real-translations.ipynb), because the answer depends on
-having a model that is wrong often enough to be interesting. Tutorial 3's toy model is
+[Tutorial 7](../tutorials/07-real-translations.ipynb), because the answer depends on
+having a model that is wrong often enough to be interesting. Tutorial 8's toy model is
 so decisive that every beam size returns the same translation, which is why the sweep
 there teaches nothing.
 
@@ -334,7 +334,7 @@ next section explains why.
     Nothing about the earlier table looked unreliable. It had five seeds, paired
     comparisons and error bars, and it still supported a conclusion the next model
     overturned. "No difference detectable" had meant *this model was too weak to show
-    one* — the same trap as Tutorial 3's five identical beam sizes, one level up.
+    one* — the same trap as Tutorial 8's five identical beam sizes, one level up.
 
     The transferable habit is to state what a result was measured on, and to re-run it
     when that changes. Every number here comes from one checkpoint, one language pair,

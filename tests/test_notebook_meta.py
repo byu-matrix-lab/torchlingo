@@ -68,6 +68,59 @@ class TestEveryNotebookDeclaresItself(unittest.TestCase):
         self.assertEqual(families, {"tutorial", "course"})
 
 
+class TestRedirectStubs(unittest.TestCase):
+    """Task #186: the old tutorial paths stay alive as one-cell stubs for the term."""
+
+    def setUp(self):
+        self.dir = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.dir)
+        target = {"cells": [], "metadata": {"torchlingo": {"family": "tutorial"}}}
+        (self.dir / "03-new.ipynb").write_text(json.dumps(target), encoding="utf-8")
+
+    def stub(
+        self, redirect, text="now [03-new](03-new.ipynb)", name="02-old.ipynb", **meta
+    ):
+        nb = {
+            "cells": [{"cell_type": "markdown", "metadata": {}, "source": [text]}],
+            "metadata": {"torchlingo": {"redirect": redirect, **meta}},
+        }
+        path = self.dir / name
+        path.write_text(json.dumps(nb), encoding="utf-8")
+        return path
+
+    def test_the_real_stubs_are_sound(self):
+        stubs = nm.redirects()
+        self.assertTrue(
+            stubs, "no redirect stubs found; were they removed (Task #187)?"
+        )
+        for path in stubs:
+            self.assertEqual(nm.redirect_problems(path), [], path.name)
+
+    def test_a_stub_is_not_a_notebook(self):
+        """Not on the map, not validated as a lesson, not executed."""
+        self.assertFalse(set(nm.redirects()) & set(nm.notebooks()))
+
+    def test_a_sound_stub_passes(self):
+        self.assertEqual(nm.redirect_problems(self.stub("03-new.ipynb")), [])
+
+    def test_a_missing_target_is_caught(self):
+        found = nm.redirect_problems(self.stub("09-gone.ipynb"))
+        self.assertTrue(any("does not exist" in c for c in found), found)
+
+    def test_a_chain_is_caught(self):
+        self.stub("03-new.ipynb", name="05-middle.ipynb")
+        found = nm.redirect_problems(self.stub("05-middle.ipynb"))
+        self.assertTrue(any("itself a redirect" in c for c in found), found)
+
+    def test_a_cell_without_the_link_is_caught(self):
+        found = nm.redirect_problems(self.stub("03-new.ipynb", text="moved"))
+        self.assertTrue(any("does not link" in c for c in found), found)
+
+    def test_a_stub_carrying_lesson_metadata_is_caught(self):
+        found = nm.redirect_problems(self.stub("03-new.ipynb", family="tutorial"))
+        self.assertTrue(any("holds only 'redirect'" in c for c in found), found)
+
+
 class TestValidatorRejectsBadBlocks(unittest.TestCase):
     """Each field's failure mode, one test each."""
 
@@ -246,12 +299,12 @@ class TestExecuteNotebooksReadsTheSameField(unittest.TestCase):
         The declared list is read rather than restated here. An earlier version
         pinned tutorial 4's exact two entries, which made this test fail when one
         of them was corrected -- reporting a stale expectation as a regression.
-        Tutorial 8 is the fixture now: it took tutorial 4's pretrained-model part,
+        Tutorial 5 is the fixture now: it took tutorial 4's pretrained-model part,
         and the need went with it.
         """
         import execute_notebooks as en
 
-        nb = nm.TUTORIALS / "08-transformer-attention.ipynb"
+        nb = nm.TUTORIALS / "05-transformer-attention.ipynb"
         declared = nm.read_meta(nb)["needs"]
         # Guards the subset assertion below against passing vacuously.
         self.assertTrue(declared, "the fixture notebook declares nothing to need")
@@ -424,12 +477,28 @@ class TestAssignmentsAreParsed(unittest.TestCase):
         self.assertIn(self.due.get("A8"), set(titles) | set(aliases))
 
     def test_two_assignments_in_one_cell_are_both_found(self):
-        """One cell holds A9 and A10, separated by a middot, and both must be found.
+        """One cell holding two assignments, separated by a middot, yields both.
 
-        Asserting that they share a lecture rather than naming which one: the schedule
-        shifted by two lectures on 2026-09-27 and the sharing is what is being tested."""
-        self.assertIsNotNone(self.due.get("A9"))
-        self.assertEqual(self.due.get("A9"), self.due.get("A10"))
+        Built from a real schedule row rather than read off the live roadmap. The live one
+        held A9 and A10 in one cell until roadmap v12 (2026-10-05) moved A9 to its own
+        lecture, and a test that needed that coincidence went red on a schedule change."""
+        original = nm.ROADMAP.read_text(encoding="utf-8")
+        row = next(
+            line
+            for line in original.splitlines()
+            if nm.SCHEDULE_ROW.match(line) and line.count("|") >= 6
+        )
+        columns = row.split("|")
+        columns[4] = " **A98** one · **A99** two "
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        self.addCleanup(setattr, nm, "ROADMAP", nm.ROADMAP)
+        target = tmp / "roadmap.md"
+        target.write_text(original.replace(row, "|".join(columns)), encoding="utf-8")
+        nm.ROADMAP = target
+        due = nm.assignments()
+        self.assertIsNotNone(due.get("A98"))
+        self.assertEqual(due.get("A98"), due.get("A99"))
 
     def test_leads_to_is_validated_against_them(self):
         meta = {**GOOD, "leads_to": ["A8"]}
@@ -482,7 +551,7 @@ class TestPurposeLine(unittest.TestCase):
         """Eric's distinction: out-of-class tutorials versus in-class exercises. A reader who
         cannot tell which they have opened is the thing this line exists to fix."""
         tutorial = nm.purpose_line(
-            nm.read_meta(nm.TUTORIALS / "05-real-translations.ipynb")
+            nm.read_meta(nm.TUTORIALS / "07-real-translations.ipynb")
         )
         course = nm.purpose_line(
             nm.read_meta(nm.COURSE / "lecture-06-mt-evaluation.ipynb")
@@ -493,7 +562,7 @@ class TestPurposeLine(unittest.TestCase):
     def test_assignment_head_start_is_stated_without_a_due_date(self):
         """Eric, 2026-09-29: due dates live in Learning Suite, never in a notebook."""
         meta = {
-            **nm.read_meta(nm.TUTORIALS / "02-train-tiny-model.ipynb"),
+            **nm.read_meta(nm.TUTORIALS / "03-train-tiny-model.ipynb"),
             "leads_to": ["A8"],
         }
         line = nm.purpose_line(meta)
@@ -581,7 +650,7 @@ class TestWritersAreIdempotent(unittest.TestCase):
         self.assertTrue(nm.PURPOSE_MARKER.isascii())
 
     def test_an_updated_block_rewrites_the_cell_in_place(self):
-        path = self.copy(nm.TUTORIALS / "02-train-tiny-model.ipynb")
+        path = self.copy(nm.TUTORIALS / "03-train-tiny-model.ipynb")
         meta = nm.read_meta(path)
         path.write_text(nm.notebook_with_purpose(path, meta), encoding="utf-8")
         count = len(json.loads(path.read_text(encoding="utf-8"))["cells"])
@@ -625,17 +694,17 @@ class TestLateHeadStartsAreReported(unittest.TestCase):
     """
 
     def test_it_finds_one(self):
-        """Read at Lecture 10 while preparing A8, due at Lecture 9: tutorial 5's old shape.
+        """Read at Lecture 10 while preparing A8, due at Lecture 9: tutorial 7's old shape.
 
         Built in a scratch directory, since the repository no longer has a live example
-        (Task #164 fixed tutorial 5), and a test that needs a defect to exist would push
+        (Task #164 fixed tutorial 7), and a test that needs a defect to exist would push
         someone to leave one in.
         """
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
         late_copy = tmp / "99-late-reading.ipynb"
         data = json.loads(
-            (nm.TUTORIALS / "05-real-translations.ipynb").read_text(encoding="utf-8")
+            (nm.TUTORIALS / "07-real-translations.ipynb").read_text(encoding="utf-8")
         )
         data["metadata"]["torchlingo"]["leads_to"] = ["A8"]
         late_copy.write_text(json.dumps(data), encoding="utf-8")
@@ -652,7 +721,7 @@ class TestLateHeadStartsAreReported(unittest.TestCase):
         self.assertFalse(any("06-diagnosing-failures" in line for line in late), late)
 
     def test_an_on_time_head_start_is_not_reported(self):
-        for stem in ("02-train-tiny-model", "lecture-04-tmx-cleaning"):
+        for stem in ("03-train-tiny-model", "lecture-04-tmx-cleaning"):
             self.assertFalse(any(stem in line for line in nm.late_head_starts()), stem)
 
     def test_the_check_reports_without_failing(self):
@@ -709,7 +778,7 @@ class TestNotebookHygiene(unittest.TestCase):
             self.assertEqual(nm.hygiene(path), [], path.name)
 
     def test_the_real_tutorials_are_clean(self):
-        for path in sorted(nm.TUTORIALS.glob("*.ipynb")):
+        for path in [p for p in nm.notebooks() if p.parent == nm.TUTORIALS]:
             self.assertEqual(nm.hygiene(path), [], path.name)
 
     def test_a_committed_output_is_caught_in_a_course_notebook(self):
@@ -728,7 +797,7 @@ class TestNotebookHygiene(unittest.TestCase):
         `docs/mkdocs.yml` sets `execute: false`, so a tutorial's committed outputs are what
         the docs site renders. The first version of this check flagged all six tutorials.
         """
-        for path in sorted(nm.TUTORIALS.glob("*.ipynb")):
+        for path in [p for p in nm.notebooks() if p.parent == nm.TUTORIALS]:
             nb = json.loads(path.read_text(encoding="utf-8"))
             if sum(len(c.get("outputs") or []) for c in nb["cells"]):
                 self.assertEqual(
@@ -814,7 +883,7 @@ class TestNotebookHygiene(unittest.TestCase):
         """The false positive that the first version of this check produced.
 
         `!pip install` inside a `try` block is not Python and is perfectly fine in Jupyter.
-        Tutorial 3 does exactly this and passes CI, so flagging it would have been wrong --
+        Tutorial 8 does exactly this and passes CI, so flagging it would have been wrong --
         and skipping only cells that *begin* with `!` would not have caught the case.
         """
         nb = json.loads(json.dumps(self.base))
@@ -844,22 +913,18 @@ class TestThePurposeCellIsGeneratedAndGated(unittest.TestCase):
 
     The point of generating it is that the sentence a **student** reads and the row the
     roadmap's map shows come from one source. They disagreed for a week: the map called
-    tutorial 2 an activity while the notebook called itself a tutorial.
+    tutorial 3 an activity while the notebook called itself a tutorial.
     """
 
     def test_every_real_notebook_carries_one(self):
-        for path in sorted(nm.TUTORIALS.glob("*.ipynb")) + sorted(
-            nm.COURSE.glob("*.ipynb")
-        ):
+        for path in nm.notebooks():
             self.assertIn(
                 nm.PURPOSE_MARKER, path.read_text(encoding="utf-8"), path.name
             )
 
     def test_every_real_notebook_is_current(self):
         """What is committed must equal what the generator would write."""
-        for path in sorted(nm.TUTORIALS.glob("*.ipynb")) + sorted(
-            nm.COURSE.glob("*.ipynb")
-        ):
+        for path in nm.notebooks():
             self.assertEqual(
                 path.read_text(encoding="utf-8"),
                 nm.notebook_with_purpose(path, nm.read_meta(path)),
@@ -904,7 +969,7 @@ class TestThePurposeCellIsGeneratedAndGated(unittest.TestCase):
 
         # A tutorial carries its H1 and badge together, so the cell after it is index 1.
         nb = json.loads(
-            (nm.TUTORIALS / "02-train-tiny-model.ipynb").read_text(encoding="utf-8")
+            (nm.TUTORIALS / "03-train-tiny-model.ipynb").read_text(encoding="utf-8")
         )
         index = next(
             i
@@ -915,16 +980,15 @@ class TestThePurposeCellIsGeneratedAndGated(unittest.TestCase):
 
     def test_the_cell_id_follows_the_format_version(self):
         """nbformat 4.5 requires a cell id and 4.0 rejects one; both live here."""
-        for directory in (nm.TUTORIALS, nm.COURSE):
-            for path in sorted(directory.glob("*.ipynb")):
-                nb = json.loads(path.read_text(encoding="utf-8"))
-                cell = next(
-                    c for c in nb["cells"] if nm.PURPOSE_MARKER in "".join(c["source"])
-                )
-                if nb.get("nbformat_minor", 0) >= 5:
-                    self.assertEqual(cell.get("id"), "torchlingo-purpose", path.name)
-                else:
-                    self.assertNotIn("id", cell, path.name)
+        for path in nm.notebooks():
+            nb = json.loads(path.read_text(encoding="utf-8"))
+            cell = next(
+                c for c in nb["cells"] if nm.PURPOSE_MARKER in "".join(c["source"])
+            )
+            if nb.get("nbformat_minor", 0) >= 5:
+                self.assertEqual(cell.get("id"), "torchlingo-purpose", path.name)
+            else:
+                self.assertNotIn("id", cell, path.name)
 
     def test_a_stale_cell_is_reported_by_check(self):
         """The gate must fail on drift, since the cell is student-facing text."""
@@ -1006,9 +1070,7 @@ class TestRequiresDeclaresCapabilities(unittest.TestCase):
         self.assertTrue(any("must be a list of strings" in c for c in found), found)
 
     def test_the_real_notebooks_declare_only_known_capabilities(self):
-        for path in sorted(nm.COURSE.glob("*.ipynb")) + sorted(
-            nm.TUTORIALS.glob("*.ipynb")
-        ):
+        for path in nm.notebooks():
             declared = set(nm.read_meta(path).get("requires", []))
             self.assertLessEqual(declared, nm.CAPABILITIES, path.name)
 
@@ -1017,7 +1079,7 @@ class TestStampingKeepsWhatItWasNotAskedToChange(unittest.TestCase):
     """Restamping one field must not delete the others.
 
     A stamp used to rebuild the block from its arguments alone. **That has cost three
-    notes**: tutorials 3 and 4 lost theirs when lecture ids became strings, and tutorial 1
+    notes**: tutorials 4 and 8 lost theirs when lecture ids became strings, and tutorial 1
     lost a four-line note explaining a retrospective pairing while `requires` was being
     added. Every loss was invisible -- the block still validated, and the generated table
     does not render `note`.
@@ -1114,7 +1176,7 @@ class TestTheExecutorSkipsOnCapabilities(unittest.TestCase):
         )
 
     def test_a_notebook_declaring_nothing_is_runnable(self):
-        for path in sorted(nm.TUTORIALS.glob("*.ipynb")):
+        for path in [p for p in nm.notebooks() if p.parent == nm.TUTORIALS]:
             self.assertEqual(self.en.missing_capabilities(path), [], path.name)
 
     def test_the_executor_looks_at_both_families(self):
@@ -1130,7 +1192,7 @@ class TestWriteMetaWhereverTheBlockSits(unittest.TestCase):
     A notebook this tool stamped has the block first. An ``nbformat`` round trip -- which
     re-executing a tutorial is -- sorts the metadata keys and moves it last, and the rewrite
     used to add a comma after it unconditionally: a trailing comma, so invalid JSON.
-    Tutorials 4 and 5 were left in that shape by a re-execution, one restamp from breaking.
+    Tutorials 4 and 7 were left in that shape by a re-execution, one restamp from breaking.
     """
 
     def setUp(self):

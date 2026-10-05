@@ -2,7 +2,7 @@
 
 Let's get you translating in under 5 minutes! :rocket:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/02-train-tiny-model.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/03-train-tiny-model.ipynb)
 
 !!! tip "Run in Google Colab"
     The easiest way to follow along is in Google Colab. Click the badge above to open a notebook, then:
@@ -262,8 +262,8 @@ To go deeper:
 | Topic                              | Link                                       |
 | ---------------------------------- | ------------------------------------------ |
 | Understand what just happened      | [What is NMT?](../concepts/what-is-nmt.md) |
-| Proper training with evaluation    | [Training Tutorial](../tutorials/02-train-tiny-model.ipynb) |
-| Better decoding (beam search)      | [Inference Tutorial](../tutorials/03-inference-and-beamsearch.ipynb) |
+| Proper training with evaluation    | [Training Tutorial](../tutorials/03-train-tiny-model.ipynb) |
+| Better decoding (beam search)      | [Inference Tutorial](../tutorials/08-inference-and-beamsearch.ipynb) |
 | Configuration options              | [Config Reference](../reference/config.md) |
 
 [Your First Translation :material-arrow-right:](first-translation.md){ .md-button .md-button--primary }

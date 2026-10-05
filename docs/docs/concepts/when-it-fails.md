@@ -89,7 +89,7 @@ interesting failures are subtler:
   byte-identical across languages, and training on them teaches copying.
 - **Collapsing to a frequent output.** If most inputs produce the same translation, the
   model has found a shortcut that scores tolerably and stopped.
-- **Memorizing.** Perfect on training sentences, useless on new ones. Tutorial 3 scores
+- **Memorizing.** Perfect on training sentences, useless on new ones. Tutorial 8 scores
   BLEU 100 for this reason and says so.
 
 ### 4. Is the measurement lying?
@@ -118,7 +118,7 @@ suspect the device.
 
 Before believing a result, ask **what would this look like if it were wrong?**
 
-The beam-size sweep in Tutorial 3 returns five identical rows. Read one way, beam size
+The beam-size sweep in Tutorial 8 returns five identical rows. Read one way, beam size
 does not matter. Read properly, the experiment could not have detected an effect if there
 were one, because the model was certain. Same output, opposite conclusions.
 

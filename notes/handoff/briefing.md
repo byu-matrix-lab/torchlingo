@@ -41,8 +41,8 @@ mkdocs-jupyter with `execute: false` and `allow_errors: true`. So a notebook tha
 lands outside that one directory can rot completely, with wrong results or an
 outright exception, and **neither the docs build nor a reader will surface it**.
 
-That is not hypothetical. Tutorial 2 once shipped producing empty translations for
-every phrase while printing a plausible training curve, and tutorial 3 raised
+That is not hypothetical. Tutorial 3 once shipped producing empty translations for
+every phrase while printing a plausible training curve, and tutorial 8 raised
 `NameError` on a clean run. Both went unnoticed. In a teaching library that is the
 worst failure available, because a student cannot tell "the notebook is broken"
 from "I did it wrong."
@@ -79,7 +79,7 @@ BLEU score are publishable even when the corpus that produced them is not.
 **Copy:** the Open-in-Colab badge, pointing at
 `https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/<path>`.
 Five of the six tutorials on `main` have one; **tutorial 6 does not**, and the
-unmerged tutorial 7 did not either until this was written, which is how the
+unmerged tutorial 2 did not either until this was written, which is how the
 omission propagates: nothing checks for it, so each new notebook inherits whatever
 the author happened to remember. Worth adding a check rather than trusting the next
 author, and worth copying the badge deliberately in the meantime.
@@ -88,7 +88,7 @@ author, and worth copying the badge deliberately in the meantime.
 warnings. Re-executing a notebook has twice baked `/Users/...` paths and PyTorch
 deprecation warnings into committed output here.
 
-**Copy:** the setup pattern from tutorial 2, which was rewritten for this and is
+**Copy:** the setup pattern from tutorial 3, which was rewritten for this and is
 now the house convention. Two cells, and both halves matter.
 
 Until today that cell read:
@@ -143,9 +143,9 @@ tutorials do **not** need to line up numerically with lecture numbers. Once the
 notebooks currently in flight land, they will be given stable unique names, and the
 slides refer to them **by name** rather than by an implied number match.
 
-So: cite notebooks in slides by title and filename, never as "tutorial 7 is the
+So: cite notebooks in slides by title and filename, never as "tutorial 2 is the
 Lecture 7 one", because that correspondence is not going to hold and does not need
-to. Tutorial 2 is the Lecture 7 activity today, which is the clearest illustration of
+to. Tutorial 3 is the Lecture 7 activity today, which is the clearest illustration of
 why the numbers were never going to align.
 
 Two practical consequences for you:
@@ -183,9 +183,9 @@ through.
 Two overlaps to avoid, because two copies of one lesson drift and the notebook is
 the copy a student reads:
 
-- **Tutorial 2, "Train a Tiny Model", already is the Lecture 7 activity.** It maps
+- **Tutorial 3, "Train a Tiny Model", already is the Lecture 7 activity.** It maps
   directly onto the OpenNMT Quickstart it replaces.
-- **A new tutorial 7 on evaluation covers Lecture 6 ground.** Written and verified.
+- **A new tutorial 2 on evaluation covers Lecture 6 ground.** Written and verified.
   **No longer blocked:** PR #58 merged and 0.2.0 is on PyPI, so the wrappers it needed
   are published. It teaches BLEU versus chrF versus TER as a decision between two
   systems, no model or corpus required. Its own pull request is still open.
@@ -286,7 +286,7 @@ Assignment 8 is handed out and where the train/dev/test lesson goes. That is mor
 fits. The triage is yours, but the order the repository would defend is: the splits
 lesson first, because A8's deliverable depends on it; then `diagnose_alignment`, because
 it is the one that catches a corpus already broken; then the measurement thread, which
-can be carried by tutorial 7 as homework rather than lecture time; and `check_eval_mode`
+can be carried by tutorial 2 as homework rather than lecture time; and `check_eval_mode`
 last, since nothing breaks until students run real inference after A8.
 
 Six specific suggestions, cheapest first.
@@ -317,7 +317,7 @@ the library now prints one next to every BLEU. The natural hook is now A8's repo
 requirement: ask for the signature next to the score, and the lesson teaches itself when
 two students' numbers turn out not to be comparable.
 
-**5. Move the beam-size discussion after Assignment 8, not before.** Tutorial 3
+**5. Move the beam-size discussion after Assignment 8, not before.** Tutorial 8
 sweeps beam size and every row comes out identical, because a toy model is decisive
 and has nothing to be uncertain about. The sweep only means something on a real
 model, which students first have *after* Assignment 8. `concepts/decoding.md` carries
@@ -489,7 +489,7 @@ publishes. There is also no dry run: `publish` fires on any `v*` tag and attempt
 a real upload. **The first real test is the release itself**, so it is worth
 tagging early enough in the week that a failure is recoverable.
 
-Checked, and reassuring: tutorial 2 imports only `config`, `data_processing`,
+Checked, and reassuring: tutorial 3 imports only `config`, `data_processing`,
 `models`, `training` and `inference`, none of which are on the missing list. So
 Lecture 7 would survive even on the old wheel. The release is a safety margin for
 Monday and a genuine dependency for Assignment 8.

@@ -48,7 +48,7 @@ was the only difference. Re-run with epochs actually matched:
 than the recovered data, and the recovered data bought nothing measurable.
 
 So the published claim was wrong twice: about 88% of the +2.33 was training length, and the
-residual is not significant. The diagnosis in tutorial 5 — "data-starved" — is also wrong.
+residual is not significant. The diagnosis in tutorial 7 — "data-starved" — is also wrong.
 The model was **undertrained**, which has a different fix.
 
 ## Why this is the prior for the learning curve

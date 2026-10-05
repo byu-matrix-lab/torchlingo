@@ -119,7 +119,7 @@ This is the best method if you want to explore the code, run tutorials, or modif
 
     Without Git LFS, `git clone` still succeeds, but those two files arrive as
     three lines of text describing the real file rather than the file itself.
-    Tutorials 2 through 5 then fail with errors that look like bugs in the
+    Tutorials 3, 5, 7 and 8 then fail with errors that look like bugs in the
     library and are not.
 
     Install it once, before cloning:

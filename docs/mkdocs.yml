@@ -131,13 +131,13 @@ nav:
   - Tutorials:
     - tutorials/index.md
     - Data and Vocabulary: tutorials/01-data-and-vocab.ipynb
-    - Training a Tiny Model: tutorials/02-train-tiny-model.ipynb
-    - Inference and Beam Search: tutorials/03-inference-and-beamsearch.ipynb
+    - Evaluating Translations: tutorials/02-evaluating-translations.ipynb
+    - Training a Tiny Model: tutorials/03-train-tiny-model.ipynb
     - Attention and Alignment: tutorials/04-attention-and-alignment.ipynb
-    - Translating Unseen Sentences: tutorials/05-real-translations.ipynb
+    - Attention on a Real Transformer: tutorials/05-transformer-attention.ipynb
     - Diagnosing Failures: tutorials/06-diagnosing-failures.ipynb
-    - Evaluating Translations: tutorials/07-evaluating-translations.ipynb
-    - Attention on a Real Transformer: tutorials/08-transformer-attention.ipynb
+    - Translating Unseen Sentences: tutorials/07-real-translations.ipynb
+    - Inference and Beam Search: tutorials/08-inference-and-beamsearch.ipynb
   # CS 479 in-class notebooks, archived here rather than in Google Drive so the
   # repository is the one copy a deck can link to. Numbered by lecture, which is
   # why they do not line up with the tutorial numbers above.

@@ -6,8 +6,8 @@
 # editable install, with data/ linked in from the checkout. A student has neither: they open
 # a Colab badge, get a runtime with no torchlingo, and depend on the notebook's own install
 # cell pulling from PyPI and on whatever it downloads. On 2026-09-28 this harness found two
-# failures CI could not see: tutorials 4 and 5 read data/ that a pip install does not ship,
-# and tutorial 3 loads a checkpoint that tutorial 2 saved in a different Colab runtime.
+# failures CI could not see: tutorials 4 and 7 read data/ that a pip install does not ship,
+# and tutorial 8 loads a checkpoint that tutorial 3 saved in a different Colab runtime.
 #
 # WHAT IT DOES
 #   - a FRESH virtual environment per run, holding only the notebook runner. A reused one

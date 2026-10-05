@@ -3,9 +3,9 @@
 The docs site does **not** run these. `docs/mkdocs.yml` configures mkdocs-jupyter
 with `execute: false` and `allow_errors: true`, so a tutorial can rot completely
 -- wrong results, or an outright exception -- and neither the docs build nor a
-reader will surface it. That is not hypothetical: tutorial 2 once shipped
+reader will surface it. That is not hypothetical: tutorial 3 once shipped
 producing empty translations for every phrase while printing a training curve,
-and tutorial 3 raised `NameError` on a clean run. Both went unnoticed.
+and tutorial 8 raised `NameError` on a clean run. Both went unnoticed.
 
 A broken tutorial is worse in a teaching library than anywhere else, because a
 student cannot tell "the tutorial is broken" from "I did it wrong."
@@ -15,8 +15,8 @@ Two details this script exists to get right:
 1. **Run in a scratch directory.** The notebooks write `data/` and
    `checkpoints/` relative to their own location, and those paths are only
    gitignored at the repo root. Executing in place litters the docs tree.
-2. **Run in filename order, in one directory.** Tutorial 3 loads the checkpoint
-   tutorial 2 saves, so the order matters and the two must share a working
+2. **Run in filename order, in one directory.** Tutorial 8 loads the checkpoint
+   tutorial 3 saves, so the order matters and the two must share a working
    directory.
 3. **Skip, do not fail, when the data is not there.** The corpus and the
    pretrained checkpoint live in Git LFS and CI checks out without it, so those
@@ -44,7 +44,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from notebook_meta import read_meta
+from notebook_meta import is_redirect, read_meta
 
 TUTORIALS = Path("docs/docs/tutorials")
 COURSE = Path("docs/docs/course")
@@ -60,7 +60,7 @@ STUDENT_CANNOT = {"blanks", "colab", "hf-token"}
 # Failures already filed. Reported, not counted, so a scheduled run stays green on news it
 # already has; an entry that starts passing is reported too, so it gets removed.
 KNOWN_STUDENT_FAILURES = {
-    "03-inference-and-beamsearch.ipynb": "Task #166: loads a checkpoint tutorial 2 "
+    "08-inference-and-beamsearch.ipynb": "Task #166: loads a checkpoint tutorial 3 "
     "saved in a different runtime",
 }
 
@@ -262,11 +262,15 @@ def main() -> int:
     # a clock -- a broken one costs twenty minutes of class rather than a confusing evening.
     # They were executed by nothing at all until this was widened.
     #
-    # Tutorials first and in name order, because tutorial 3 loads the checkpoint tutorial 2
+    # Tutorials first and in name order, because tutorial 8 loads the checkpoint tutorial 3
     # writes. The course notebooks are independent of each other and of the tutorials.
-    notebooks = sorted(args.tutorials.glob("*.ipynb")) + sorted(
-        args.course.glob("*.ipynb")
-    )
+    # Redirect stubs (Task #186) are left out: one Markdown cell, nothing to execute.
+    notebooks = [
+        path
+        for path in sorted(args.tutorials.glob("*.ipynb"))
+        + sorted(args.course.glob("*.ipynb"))
+        if not is_redirect(path)
+    ]
     if not notebooks:
         print(
             f"No notebooks found under {args.tutorials} or {args.course}",
@@ -278,7 +282,7 @@ def main() -> int:
 
     failures = []
     skipped = []
-    # One shared scratch directory: tutorial 3 needs the checkpoint tutorial 2
+    # One shared scratch directory: tutorial 8 needs the checkpoint tutorial 3
     # writes, so they cannot be isolated from each other.
     with tempfile.TemporaryDirectory(prefix="torchlingo-notebooks-") as tmp:
         workdir = Path(tmp)

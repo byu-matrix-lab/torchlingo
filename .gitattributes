@@ -7,7 +7,7 @@
 #
 # Currently tracked:
 #   data/example.tsv           ~17 MB  the parallel corpus
-#   data/pretrained/model.pt   ~10 MB  the checkpoint tutorial 5 loads
+#   data/pretrained/model.pt   ~10 MB  the checkpoint tutorial 7 loads
 #
 # CI deliberately checks out WITHOUT LFS, so these arrive as ~130-byte pointer
 # files there. That is a supported state, not a broken one: the tests that read

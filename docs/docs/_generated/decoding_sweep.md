@@ -2,7 +2,7 @@
 
 Measured on 200 held-out sentences per run, across 5 runs
 (seeds 1, 2, 3, 4, 5), `max_len=60`, torch
-2.13.0, cpu. The model is the tutorial 5 checkpoint, trained on
+2.13.0, cpu. The model is the tutorial 7 checkpoint, trained on
 64,311 real sentence pairs. The held-out references average
 11.62 whitespace tokens.
 
