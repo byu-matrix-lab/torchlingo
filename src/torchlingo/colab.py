@@ -188,7 +188,7 @@ def setup(
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     where = torch.cuda.get_device_name(0) if device.type == "cuda" else device.type
     print(
-        f"TorchLingo {torchlingo.__version__} | PyTorch {torch.__version__} | "
+        f"TorchLingo {torchlingo.version_label()} | PyTorch {torch.__version__} | "
         f"device {where} | {'Colab' if in_colab else 'not in Colab'}"
     )
 

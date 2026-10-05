@@ -226,7 +226,9 @@ and the pull request happen here.
   passed, and only fast-forwards. Never point a notebook at `@main`: a red `main` would break
   every badge at once, and `main` was red the morning this was decided. Promote after merging
   anything students should see; each push to `course` runs the student-path workflow. PyPI
-  releases continue for everyone else.
+  releases continue for everyone else. Since `__version__` no longer identifies the code a
+  student runs, `setup()` prints `torchlingo.version_label()`, e.g. `0.2.5 (course @ 11aa496)`:
+  ask for that line with any bug report.
 - **Notebooks are self-contained and carry no due dates.** Eric, 2026-09-29: due dates live in
   Learning Suite, and only there. Not "due before Lecture 8a", not "(due at Lecture 9)" in the
   purpose cell, not a "when" column keyed to a lecture; and no weekdays or calendar dates at all
