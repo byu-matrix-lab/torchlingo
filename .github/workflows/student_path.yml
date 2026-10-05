@@ -1,19 +1,21 @@
 name: Notebooks as a student runs them
 
 # Runs every notebook the way a Colab student does: a fresh environment per notebook, the
-# notebook's own install cell pulling torchlingo from PyPI, google.colab faked, no data/ from
-# the checkout. It found what the per-PR notebook run cannot see: tutorials 4 and 7 reading
-# data/ a wheel does not ship, and tutorial 8 needing a checkpoint from another runtime.
+# notebook's own install cell pulling torchlingo from the `course` branch on GitHub,
+# google.colab faked, no data/ from the checkout. It found what the per-PR notebook run cannot
+# see: tutorials 4 and 7 reading data/ a wheel does not ship, and tutorial 8 needing a
+# checkpoint from another runtime.
 #
-# Not on pull requests: it installs what is RELEASED, so a PR's changes are not what it tests.
-# Weekly, to catch PyPI drift (a dependency's new release breaking a notebook nobody touched),
-# and on every release tag, to check what was just published. Task #168.
+# Not on pull requests: it installs what students are SERVED, the `course` branch, so a PR's
+# changes are not what it tests. On every push to `course`, to check what students just got;
+# and weekly, to catch drift (a dependency's new release breaking a notebook nobody touched).
+# Task #168; `course` since Task #196.
 
 on:
   schedule:
     - cron: "17 9 * * 1"   # Mondays, 09:17 UTC
   push:
-    tags: ["v*"]
+    branches: [course]
   workflow_dispatch:
 
 permissions:
@@ -21,7 +23,7 @@ permissions:
 
 jobs:
   student-path:
-    name: Notebooks from a PyPI install
+    name: Notebooks from their own install cells
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
@@ -32,20 +34,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      # The tag starts this and the publish job at once, and publishing waits for the test
-      # matrix. So wait until PyPI serves the tagged version, or this tests the previous one.
-      - name: Wait for PyPI to serve the tagged version
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          for attempt in $(seq 1 60); do
-            if curl -fsS "https://pypi.org/pypi/torchlingo/$version/json" > /dev/null; then
-              echo "PyPI serves torchlingo $version"; exit 0
-            fi
-            sleep 60
-          done
-          echo "torchlingo $version never appeared on PyPI"; exit 1
 
       # The CPU build of torch, as the test job uses: the GPU build is gigabytes, and nothing
       # here has a GPU. pip reads this from the environment, including the notebooks' own
