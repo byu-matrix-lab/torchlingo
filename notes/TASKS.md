@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-09-29. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-10-05. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
@@ -19,10 +19,11 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-09-30, early morning:** everything open is here. One Lecture 8a item: **#152**, whose
-last step, a Colab run on a real A5 corpus, Eric has delegated to Coulson and follows up on this
-morning. What remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork) is Lecture 10's
-three (#166, #174, #175) and Lecture 12's rebuild (#176); everything else in it is merged.
+**As of 2026-10-05:** everything open is here. The one item with a clock is **#184**, the Lecture 9
+notebook, which runs in class Wed Oct 7 (PR #197). Then **#185** (Lecture 7, PR #198) and **#186**,
+the tutorial renumbering, which the Lecture 10 deck rebuild is waiting on. **#152** still has no
+report from Coulson's Colab run. What remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from
+Cowork) is Lecture 10's three (#166, #174, #175) and Lecture 12's rebuild (#176).
 
 **Read the "Critical for" column rather than the dates.** Labelling every task by lecture showed
 that only fifteen of sixty-two are critical to a lecture in the next ten days — and that two of
@@ -75,8 +76,8 @@ dates are not lecture-critical, and several with no date are.
 | **L8b** | Neural MT: The Transformer | Mon Oct 5 |
 | **L8a/8b** | both halves of the split | |
 | **L9** | Morphology and Terminology in NMT | Wed Oct 7 · **A8 due, A9 set** |
-| **L10** | Overview of MT Quality Estimation | Mon Oct 12 · A10 set (install COMET) |
-| **L11** | Neural Quality Estimation and Evaluation | Wed Oct 14 · A9, A10 due · A11 set |
+| **L10** | Overview of MT Quality Estimation | Mon Oct 12 · A9 due · A10 set (install COMET) |
+| **L11** | Neural Quality Estimation and Evaluation | Wed Oct 14 · A10 due · A11 set |
 | **L12** | Using LLMs for MT; Expanding Context Awareness | Mon Oct 19 · A11 due · A12 set |
 | **L13** | Strategies for NMT of Low-Resource Languages | Wed Oct 21 · A13 set (back-translation) |
 | **14+** | Lecture 14 onward: multilingual and zero-shot, speech, and later | from Mon Oct 26 |
@@ -99,8 +100,12 @@ describes last week will mislead every lecture at once rather than one of them.
 
 | | Task | Critical for | State |
 |---|---|---|---|
-| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28); **Eric follows up the morning of Sep 30** |
-| #183 | Lecture 8b gets tutorial 8, split out of tutorial 4's Part 8 | **L8b** | PR #193 merged — left: **Cowork** names it on the 8b deck and in the roadmap |
+| #184 | Lecture 9 notebook: the student writes the count, picks the size, predicts A9 | **L9** | **In review, PR #197 — runs in class Wed Oct 7**; unmerged by then, the class runs the current notebook |
+| #185 | Lecture 7 notebook: the student chooses the held-out phrase, predicts, runs a contrast | **L7** | **In review, PR #198** |
+| #186 | Renumber the tutorials into course order, with redirect stubs | **L10** | Open — Cowork flips decks and Content pages when it merges; **before the Lecture 10 rebuild** |
+| #187 | Remove the tutorial redirect stubs | **hyg** | **After the Fall 2026 term** — not before; students hold the old badges |
+| #188 | Tutorial 8 (to be 5) shows encoder self-attention too | **L8b** | Open — **a candidate, not a commitment**: Cowork's offer, below |
+| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28); **no report as of Oct 5** |
 | #166 | Tutorial 3 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 2's checkpoint; **do with #162, #92 and the audit's tutorial 3 directions** |
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | Notebook audit: tutorial 5 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
@@ -393,14 +398,42 @@ Each PR checks the notebook's prose against its ceiling and runs `scripts/studen
 **Done when** every notebook the audit names has had its directions applied; then this section
 and `NOTEBOOK_AUDIT.md` go.
 
-### #183 Lecture 8b gets tutorial 8, split out of tutorial 4's Part 8
+### #184, #185 Students make the choices in Lectures 7 and 9
 
-Eric, 2026-09-29. Tutorial 4's Part 8 (a pretrained Transformer's attention on real text)
-becomes `tutorials/08-transformer-attention.ipynb`, serving 8b. Tutorial 4 keeps Parts 1 to 7 in
-the same file and no longer says Part 7 is optional.
+Eric, 2026-10-05, from roadmap v10's "Learning outcomes, and who does the work": each notebook
+was doing the part that carries the lesson for the student. The specs are Cowork's hand-offs
+`from-cowork/2026-10-05-b-lecture-9-choices.md` and `2026-10-05-lecture-7-held-out-choice.md`,
+applied cell by cell. **Done when** each PR merges; then tell Cowork, who updates the roadmap's
+Lecture 7 and 9 notes and the A7 and A9 Learning Suite texts.
 
-**Left:** PR #193 is merged; Cowork names tutorial 8 on the 8b deck and in the roadmap's 8b
-section (told in the hand-off). **Done when** that is in.
+### #186 Renumber the tutorials into course order, with redirect stubs
+
+Eric, 2026-10-05. Spec: `from-cowork/2026-10-05-c-tutorial-renumbering.md`. Four numbers move
+so the numbers follow the order the course meets the tutorials; lecture alignments do not
+change. 07→02, 02→03, 08→05, 05→07, 03→08. Every cross-reference by number is rewritten, except
+in frozen hand-offs and archives. A one-cell stub stays at each old path (#187). **Done when**
+merged and Cowork is told the final filenames: the course side flips three slides, the Content
+pages and the roadmap in one pass, so students never see two numberings at once.
+
+This answers part of #101 early, by Eric's decision, and the stubs are what make a mid-term
+rename safe for a student holding an old badge.
+
+### #187 Remove the tutorial redirect stubs
+
+The five one-cell notebooks #186 leaves at the old tutorial paths. **After the Fall 2026 term**,
+not before: bookmarked badges and any Content page not yet flipped point at them. Then search
+the decks' and Learning Suite's links for an old path once more before deleting.
+
+### #188 Tutorial 8 (to be 5) shows encoder self-attention too
+
+Cowork's offer, 2026-10-05, **our call whether it earns a place.** For the 8b deck they captured
+the pretrained model's encoder self-attention on "And that is very useful information.": a
+forward pre-hook on each `TransformerEncoderLayer` that re-runs `layer.self_attn(x, x, x,
+need_weights=True, average_attn_weights=...)` on the layer's input. Twelve lines; the weights are
+in the course folder as `Figures/selfattn.json` and `Figures/selfattn_heads.json`. The tutorial
+shows only cross-attention today. A cell with layer 0's four heads side by side would make the
+point the deck makes: head-averaged maps on this model are diffuse, single heads are sharp and
+not interpretable. Natural home: `capture_self_attention` beside `capture_cross_attention`.
 
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 
@@ -519,6 +552,11 @@ student meets.
 - Regenerate `docs/docs/_generated/decoding_sweep.json` afterwards. `--rerender` is not
   enough; the sweep itself must re-run, which takes about an hour.
 - Not urgent, and **not** on the CS 479 critical path: no assignment depends on it.
+- **The decks now quote this checkpoint** (Cowork, 2026-10-05): `d_model` 128, 4 heads, 3 + 3
+  layers, `d_ff` 512, 2,544,056 parameters, 3,000 shared pieces, 64,311 training pairs, 36
+  epochs, 24.3 minutes, train loss 3.73, val 3.70, test 1,889 pairs, on the 8b model slide, 8a's
+  alignment slide and Lecture 5's corpus slide. **A retrain must be announced in a hand-off** so
+  the slides follow, and must keep writing `trained_minutes` and `train_pairs`.
 
 ### #120 The grader now has a source repository
 

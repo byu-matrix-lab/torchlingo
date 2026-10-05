@@ -245,3 +245,17 @@ No change to lecture-03, lecture-04-tmx-cleaning, lecture-05, lecture-06-homewor
 ### The one thing only Eric can supply
 
 The A12 data: one language's files from the shared assignment folder, or a description of their format, so lecture-12's loader is written against the real thing.
+
+## Errata and status, September 30
+
+From the repository session's first pass (nine notebooks merged; Lecture 10's three and lecture-12 remain):
+
+- The Lecture 6 activity's 70-line code cell is a data fixture (twenty references and two systems' outputs), not a helper; it stays visible with a "skim it" line. Rule 4 does not apply to fixtures.
+- Tutorial 1's opener: A5's output is two sentence-aligned text files, which go through `parallel_txt_to_dataframe` first; not "exactly what `load_data` expects".
+- Tutorial 7 had a third history passage (Part 2) the directions did not list; removed under rule 5.
+- The regex refresher is a fill-in worksheet, which cannot meet "runs end to end with no edits" without a rewrite into worked examples. Left as a worksheet; Eric's call whether to rewrite it.
+- Tutorial 4's Parts 6 to 8: Part 8 is now tutorial 8, Lecture 8b's reading; Part 6 is optional, Part 7 is not (8b starts from it). The direction "Parts 6 to 8 optional" is superseded.
+- Rule 6's "the banned word stays banned" is void: "instructor" was never banned, and the check is removed.
+- Notebooks carry no due dates at all, including the purpose cell's "(due at Lecture N)", which is no longer generated. Read the standard opener with that in mind.
+- The lecture-12 direction's reference to `notes/assignments/A12-directions.md` now means `torchlingo-private/notes/assignments/`.
+- Word ceilings were treated as targets, not limits, where what remained was teaching (tutorials 6 and 7 landed above them).
