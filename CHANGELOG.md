@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-10-05
+
 ### Added
 - **`capture_self_attention(encoder, average_heads=True)`**, the encoder's counterpart to
   `capture_cross_attention`: one self-attention map per encoder layer, heads averaged or kept
