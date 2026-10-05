@@ -83,55 +83,61 @@ lecture at all", and those are opposite answers to the question the column asks.
 generated map that has drifted, a gate that reports without blocking, or a task list that
 describes last week will mislead every lecture at once rather than one of them.
 
-| | Task | Critical for | State |
-|---|---|---|---|
-| #187 | Remove the tutorial redirect stubs | **hyg** | **After the Fall 2026 term** — not before; students hold the old badges |
-| #188 | Tutorial 5 shows encoder self-attention too | **L8b** | **Go (Eric, Oct 5).** The tutorial cell waits on release 0.2.5 |
-| #192 | A8: empty translations on languages written without spaces | **L8a** | **Open** — cause reproduced; waiting on Eric: what to tell the two students, and whether to add a library warning |
-| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28); **no report as of Oct 5** — chase it here, not through Eric |
-| #166 | Tutorial 8 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 3's checkpoint; **do with #162, #92 and the audit's tutorial 8 directions** |
-| #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
-| #175 | Notebook audit: tutorial 7 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
-| #176 | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
-| #167 | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
-| #169 | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
-| #162 | Tutorial 8's Part 5 shrinks to a pointer at tutorial 2 | **L6** | **Unblocked** — tutorial 2 landed in PR #144; **do with #166** |
-| #132 | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
-| #149 | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
-| #180 | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
-| #49 | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
-| #120 | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
-| #123 | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
-| #129 | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
-| #102 | Inference cannot resume a long decode | **L13** | **Needed by Mon Oct 19** — largest undone piece |
-| #98 | Back-translation as a documented workflow | **L13** | **Due Mon Oct 26** |
-| #99 | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
-| #160 | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
-| #101 | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
-| #108 | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
-| #170 | Mixed precision for A9's runs, if a Colab GPU shows it pays | **L9** | Open — **measure first**; not a release blocker after all (see below) |
-| #171 | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
-| #8 | Verify Eole claims before syllabus use | **lib** | Open |
-| #9 | `pre-commit install` (still not installed) | **hyg** | Open |
-| #15 | Migrate history-blind `DummyTransformer` tests | **lib** | Open |
-| #22 | `examples/` and `scripts/` are outside the lint gate | **hyg** | Open — **`scripts/notebook_meta.py` is now library code living there** |
-| #36 | CI actions pinned to a deprecated Node runtime | **hyg** | Open |
-| #44 | Gate the sdist on "no Git LFS pointer shipped" | **hyg** | Open |
-| #48 | Audit pedagogical value; write down sequencing and outcomes | **hyg** | In progress — in the roadmap |
-| #51 | The docs gate reports but does not block | **hyg** | Open — repo settings |
-| #52 | Try Moore (2002) if more of the corpus is wanted | **lib** | Open |
-| #53 | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
-| #60 | Nobody is told when main goes red | **hyg** | Open |
-| #66 | Adopt `nltk.translate.gale_church`; split #29 into two jobs | **L5** | Open |
-| #68 | Cite `torcheck` as prior art in the diagnostics docs | **lib** | Open |
-| #71 | Decide whether to report the Joey NMT breakage upstream | **lib** | Open — Eric's call |
-| #74 | Diagnose the 93 docs warnings | **hyg** | Open — **the anchor half shipped** in PR #51 |
-| #79 | An order-dependent test | **hyg** | **Fails on unmodified `main`** — so it blocks nothing; CI cannot see it |
-| #81 | Fail the build on hand-typed generated numbers | **hyg** | Open |
-| #82 | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
-| #89 | Fail the docs build when a page is off-nav | **hyg** | Open |
-| #91 | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
-| #92 | Tutorials 7 and 8 bypass the library's own evaluation API | **L10** | Open — **do inside #166 and #175**, which rewrite the same two notebooks |
+**P1 to P3 rank the work; the table is sorted by it** (Eric, 2026-10-05). **P1**: students are
+blocked now, or a lecture or due date within about three weeks needs it. **P2**: matters this
+term, or guards `main` and the students' path, but nothing near is waiting on it. **P3**:
+library-only, a lecture that has already run, or after the term. Re-rank when the calendar
+moves; "Critical for" says *which* lecture, P says *how soon*.
+
+| | P | Task | Critical for | State |
+|---|---|---|---|---|
+| #192 | **P1** | A8: empty translations on languages written without spaces | **L8a** | **Open** — cause reproduced; waiting on Eric: what to tell the two students, and whether to add a library warning |
+| #166 | **P1** | Tutorial 8 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 3's checkpoint; **do with #162, #92 and the audit's tutorial 8 directions** |
+| #174 | **P1** | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
+| #175 | **P1** | Notebook audit: tutorial 7 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
+| #176 | **P1** | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
+| #162 | **P1** | Tutorial 8's Part 5 shrinks to a pointer at tutorial 2 | **L6** | **Unblocked** — tutorial 2 landed in PR #144; **do with #166** |
+| #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
+| #102 | **P1** | Inference cannot resume a long decode | **L13** | **Needed by Mon Oct 19** — largest undone piece |
+| #98 | **P1** | Back-translation as a documented workflow | **L13** | **Due Mon Oct 26** |
+| #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
+| #92 | **P1** | Tutorials 7 and 8 bypass the library's own evaluation API | **L10** | Open — **do inside #166 and #175**, which rewrite the same two notebooks |
+| #188 | **P2** | Tutorial 5 shows encoder self-attention too | **L8b** | **Go (Eric, Oct 5).** The tutorial cell waits on release 0.2.5 |
+| #152 | **P2** | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28); **no report as of Oct 5** — chase it here, not through Eric |
+| #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
+| #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
+| #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
+| #171 | **P2** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
+| #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
+| #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
+| #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
+| #187 | **P3** | Remove the tutorial redirect stubs | **hyg** | **After the Fall 2026 term** — not before; students hold the old badges |
+| #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
+| #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
+| #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
+| #49 | **P3** | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
+| #120 | **P3** | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
+| #129 | **P3** | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
+| #101 | **P3** | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
+| #108 | **P3** | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
+| #170 | **P3** | Mixed precision for A9's runs, if a Colab GPU shows it pays | **L9** | Open — **measure first**; not a release blocker after all (see below) |
+| #8 | **P3** | Verify Eole claims before syllabus use | **lib** | Open |
+| #9 | **P3** | `pre-commit install` (still not installed) | **hyg** | Open |
+| #15 | **P3** | Migrate history-blind `DummyTransformer` tests | **lib** | Open |
+| #22 | **P3** | `examples/` and `scripts/` are outside the lint gate | **hyg** | Open — **`scripts/notebook_meta.py` is now library code living there** |
+| #36 | **P3** | CI actions pinned to a deprecated Node runtime | **hyg** | Open |
+| #44 | **P3** | Gate the sdist on "no Git LFS pointer shipped" | **hyg** | Open |
+| #48 | **P3** | Audit pedagogical value; write down sequencing and outcomes | **hyg** | In progress — in the roadmap |
+| #51 | **P3** | The docs gate reports but does not block | **hyg** | Open — repo settings |
+| #52 | **P3** | Try Moore (2002) if more of the corpus is wanted | **lib** | Open |
+| #66 | **P3** | Adopt `nltk.translate.gale_church`; split #29 into two jobs | **L5** | Open |
+| #68 | **P3** | Cite `torcheck` as prior art in the diagnostics docs | **lib** | Open |
+| #71 | **P3** | Decide whether to report the Joey NMT breakage upstream | **lib** | Open — Eric's call |
+| #74 | **P3** | Diagnose the 93 docs warnings | **hyg** | Open — **the anchor half shipped** in PR #51 |
+| #79 | **P3** | An order-dependent test | **hyg** | **Fails on unmodified `main`** — so it blocks nothing; CI cannot see it |
+| #81 | **P3** | Fail the build on hand-typed generated numbers | **hyg** | Open |
+| #89 | **P3** | Fail the docs build when a page is off-nav | **hyg** | Open |
+| #91 | **P3** | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
 
 ## The CS 479 pivot
 
