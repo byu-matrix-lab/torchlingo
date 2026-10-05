@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 
 import torch
 
@@ -104,7 +105,8 @@ class SimpleVocabMostlyUnknownWarningTests(unittest.TestCase):
 
     Two A8 students on Asian languages got empty translations: their text has no
     spaces, so each sentence was one "word", nearly none repeated, and the model
-    learned to write <unk>, which decodes to an empty string.
+    learned to write <unk>, which decoding then dropped. It is shown now (see
+    SimpleVocabDecodeKeepsUnknownTests), and this warning comes before training.
     """
 
     UNSPACED = tuple(f"我今天看了第{i}本书。" for i in range(300))
@@ -126,7 +128,7 @@ class SimpleVocabMostlyUnknownWarningTests(unittest.TestCase):
             SimpleVocab(min_freq=2).build_vocab(self.UNSPACED)
         message = str(caught.warning)
         self.assertIn("without spaces", message)
-        self.assertIn("empty translation", message)
+        self.assertIn("translations will be mostly <unk>", message)
         self.assertIn("use_sentencepiece=True", message)
 
     def test_the_warning_matches_what_encoding_does(self):
@@ -136,7 +138,8 @@ class SimpleVocabMostlyUnknownWarningTests(unittest.TestCase):
             vocab.build_vocab(self.UNSPACED)
         ids = vocab.encode(self.UNSPACED[0])
         self.assertEqual(ids, [vocab.sos_idx, vocab.unk_idx, vocab.eos_idx])
-        self.assertEqual(vocab.decode(ids), "")
+        # Shown, not dropped: an empty line hid this from two students.
+        self.assertEqual(vocab.decode(ids), "<unk>")
 
     def test_spaced_but_rare_warns_without_blaming_spaces(self):
         from torchlingo.data_processing.vocab import MostlyUnknownWarning
@@ -196,6 +199,64 @@ class SimpleVocabConversionTests(unittest.TestCase):
         roundtrip = self.vocab.indices_to_tokens(ids)
         self.assertEqual(roundtrip[0], "hello")
         self.assertEqual(roundtrip[2], config.UNK_TOKEN)
+
+
+class SimpleVocabDecodeKeepsUnknownTests(unittest.TestCase):
+    """Decoding drops the framing tokens and shows <unk>.
+
+    Dropping <unk> too made a model that writes nothing but <unk> print empty
+    lines, which is how two A8 students' failure went unexplained.
+    """
+
+    def setUp(self) -> None:
+        self.vocab = SimpleVocab(min_freq=1)
+        self.vocab.build_vocab(["el gato"])
+
+    def test_unknown_is_shown(self):
+        v = self.vocab
+        ids = [v.sos_idx, v.token_to_idx("el"), v.unk_idx, v.eos_idx, v.pad_idx]
+        self.assertEqual(v.decode(ids), "el <unk>")
+
+    def test_all_unknown_is_not_empty(self):
+        v = self.vocab
+        self.assertEqual(
+            v.decode([v.sos_idx, v.unk_idx, v.unk_idx, v.eos_idx]), "<unk> <unk>"
+        )
+
+    def test_without_skipping_everything_is_shown(self):
+        v = self.vocab
+        self.assertEqual(
+            v.decode([v.sos_idx, v.unk_idx, v.eos_idx], skip_special_tokens=False),
+            "<sos> <unk> <eos>",
+        )
+
+
+class SentencePieceVocabDecodeKeepsUnknownTests(unittest.TestCase):
+    """The same for SentencePiece, which would otherwise render <unk> as "⁇"."""
+
+    SPM = Path(__file__).resolve().parents[1] / "data" / "pretrained" / "spm.model"
+
+    def setUp(self) -> None:
+        if not self.SPM.exists():
+            self.skipTest("data/pretrained/spm.model is not present")
+        from torchlingo.data_processing.vocab import SentencePieceVocab
+
+        self.vocab = SentencePieceVocab(str(self.SPM))
+
+    def test_unknown_is_shown_as_the_unknown_token(self):
+        v = self.vocab
+        pieces = v.encode("This is public.", add_special_tokens=False)
+        ids = [v.sos_idx, *pieces[:1], v.unk_idx, *pieces[1:], v.eos_idx]
+        decoded = v.decode(ids)
+        self.assertIn("<unk>", decoded)
+        self.assertNotIn("⁇", decoded)
+        self.assertEqual(
+            decoded.replace("<unk>", "").split(), ["This", "is", "public."]
+        )
+
+    def test_all_unknown_is_not_empty(self):
+        v = self.vocab
+        self.assertEqual(v.decode([v.sos_idx, v.unk_idx, v.eos_idx]), "<unk>")
 
 
 class SimpleVocabEncodeDecodeTests(unittest.TestCase):
