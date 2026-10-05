@@ -12,10 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`MostlyUnknownWarning`): at least half of all word occurrences below `min_freq`, on 200
   sentences or more. The usual cause is a language written without spaces (Chinese, Japanese,
   Thai), where each sentence counts as one word and nearly none repeat; the trained model then
-  writes `<unk>`, which decodes to an empty translation. Two A8 students hit exactly that. The
-  warning names the cause when sentences average under three words, and points at SentencePiece,
-  `JiebaVocab` and `MeCabVocab`. English and Spanish corpora measure 24-28% at 200 sentences,
-  well under the threshold.
+  writes little but `<unk>`. Two A8 students hit exactly that. The warning names the cause when
+  sentences average under three words, and points at SentencePiece, `JiebaVocab` and
+  `MeCabVocab`. English and Spanish corpora measure 24-28% at 200 sentences, well under the
+  threshold.
+
+### Changed
+- **Decoding shows `<unk>` instead of dropping it.** `decode(..., skip_special_tokens=True)`, and
+  so `translate_batch`, now removes only `<pad>`, `<sos>` and `<eos>`, in every vocabulary.
+  `<unk>` is something the model wrote; dropping it made a model that writes nothing else print
+  empty lines, which is how the two A8 students' failure looked. `SentencePieceVocab` shows it as
+  `<unk>` rather than SentencePiece's `⁇`. **BLEU can move slightly** for a model that outputs
+  `<unk>`: the token never matches a reference, and the hypothesis is longer. To compare with a
+  score from an earlier version, re-score the same model; no retraining is needed.
 
 ## [0.2.5] - 2026-10-05
 

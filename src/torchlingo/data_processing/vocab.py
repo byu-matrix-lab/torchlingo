@@ -60,8 +60,8 @@ class MostlyUnknownWarning(UserWarning):
 
     Raised by `SimpleVocab.build_vocab`. The usual cause is a language written without spaces
     between words (Chinese, Japanese, Thai): splitting on whitespace makes each sentence one
-    "word", almost none repeat, and a model trained on the result learns to write ``<unk>``,
-    which decodes to an empty string.
+    "word", almost none repeat, and a model trained on the result learns to write ``<unk>``
+    and little else.
     """
 
 
@@ -200,9 +200,10 @@ class BaseVocab(ABC):
 
         Args:
             indices (IndexInput): 1-D or 2-D sequence of token ids or a tensor.
-            skip_special_tokens (bool, optional): When True, remove any special
-                PAD/SOS/EOS/UNK tokens from the decoded output (useful for
-                displaying model output). Defaults to True.
+            skip_special_tokens (bool, optional): When True, remove the framing
+                tokens PAD/SOS/EOS from the decoded output (useful for
+                displaying model output). UNK is kept and shown as the
+                unknown token: it is something the model wrote. Defaults to True.
 
         Returns:
             DecodedOutput: Decoded text (str) or list of strings.
@@ -446,7 +447,8 @@ class SimpleVocab(BaseVocab):
         warnings.warn(
             f"{share:.0%} of this corpus's words appear fewer than min_freq={self.min_freq} "
             f"times and will become {self.unk_token}. {cause}A model trained on it learns to "
-            f"write {self.unk_token}, which decodes to an empty translation. Use subword "
+            f"write {self.unk_token} and little else, so its translations will be mostly "
+            f"{self.unk_token}. Use subword "
             "pieces instead: train_sentencepiece(...), then create_dataloaders(..., "
             "use_sentencepiece=True, sp_model_path=...). For Chinese or Japanese alone, "
             "JiebaVocab and MeCabVocab segment words first.",
@@ -525,7 +527,8 @@ class SimpleVocab(BaseVocab):
 
         Args:
             indices (Union[Sequence[int], Sequence[Sequence[int]]): 1D indices, 2D nested indices, or tensor.
-            skip_special_tokens (bool, optional): If True, drop PAD/SOS/EOS/UNK tokens.
+            skip_special_tokens (bool, optional): If True, drop PAD/SOS/EOS tokens.
+                UNK is kept, so a model that writes it is seen to.
 
         Returns:
             str | list[str]: Decoded text for each sequence.
@@ -551,7 +554,9 @@ class SimpleVocab(BaseVocab):
         tokens = self.indices_to_tokens(flat)
 
         if skip_special_tokens:
-            specials = {self.pad_token, self.unk_token, self.sos_token, self.eos_token}
+            # <unk> stays: it is the model's output, not framing, and dropping it makes a
+            # model that writes only <unk> look like one that writes nothing.
+            specials = {self.pad_token, self.sos_token, self.eos_token}
             tokens = [tok for tok in tokens if tok not in specials]
 
         return " ".join(tokens)
@@ -703,8 +708,9 @@ class SentencePieceVocab(BaseVocab):
 
         Args:
             indices (list[int], list[list[int]], tensor): 1D/2D indices or tensor.
-            skip_special_tokens (bool, optional): If True, drop PAD/SOS/EOS/UNK
-                tokens before decoding. Defaults to True.
+            skip_special_tokens (bool, optional): If True, drop PAD/SOS/EOS
+                tokens before decoding. UNK is kept, shown as the unknown token
+                rather than SentencePiece's "⁇". Defaults to True.
 
         Returns:
             text (str, list[str]): Decoded string for flat inputs or list of strings for batched inputs.
@@ -720,16 +726,18 @@ class SentencePieceVocab(BaseVocab):
 
         flat: list[int] = list(normalized)  # type: ignore[list-item]
         if skip_special_tokens:
+            # <unk> stays, as in every vocabulary here: it is the model's output, not framing.
             flat = [
                 idx
                 for idx in flat
-                if idx not in (self.pad_idx, self.unk_idx, self.sos_idx, self.eos_idx)
+                if idx not in (self.pad_idx, self.sos_idx, self.eos_idx)
             ]
 
         if not flat:
             return ""
 
-        return self.sp.decode(flat)
+        # SentencePiece renders an unknown piece as "⁇"; show the same <unk> the others do.
+        return self.sp.decode(flat).replace("⁇", self.unk_token).strip()
 
 
 class MeCabVocab(BaseVocab):
@@ -946,8 +954,8 @@ class MeCabVocab(BaseVocab):
 
         Args:
             indices (IndexInput): 1D indices, 2D nested indices, or tensor.
-            skip_special_tokens (bool, optional): If True, drop PAD/SOS/EOS/UNK
-                tokens. Defaults to True.
+            skip_special_tokens (bool, optional): If True, drop PAD/SOS/EOS
+                tokens; UNK is kept. Defaults to True.
 
         Returns:
             DecodedOutput: Decoded text for each sequence.
@@ -972,7 +980,9 @@ class MeCabVocab(BaseVocab):
         tokens = self.indices_to_tokens(flat)
 
         if skip_special_tokens:
-            specials = {self.pad_token, self.unk_token, self.sos_token, self.eos_token}
+            # <unk> stays: it is the model's output, not framing, and dropping it makes a
+            # model that writes only <unk> look like one that writes nothing.
+            specials = {self.pad_token, self.sos_token, self.eos_token}
             tokens = [tok for tok in tokens if tok not in specials]
 
         # Japanese text: join without spaces
@@ -1209,8 +1219,8 @@ class JiebaVocab(BaseVocab):
 
         Args:
             indices (IndexInput): 1D indices, 2D nested indices, or tensor.
-            skip_special_tokens (bool, optional): If True, drop PAD/SOS/EOS/UNK
-                tokens. Defaults to True.
+            skip_special_tokens (bool, optional): If True, drop PAD/SOS/EOS
+                tokens; UNK is kept. Defaults to True.
 
         Returns:
             DecodedOutput: Decoded text for each sequence.
@@ -1235,7 +1245,9 @@ class JiebaVocab(BaseVocab):
         tokens = self.indices_to_tokens(flat)
 
         if skip_special_tokens:
-            specials = {self.pad_token, self.unk_token, self.sos_token, self.eos_token}
+            # <unk> stays: it is the model's output, not framing, and dropping it makes a
+            # model that writes only <unk> look like one that writes nothing.
+            specials = {self.pad_token, self.sos_token, self.eos_token}
             tokens = [tok for tok in tokens if tok not in specials]
 
         # Chinese text: join without spaces
