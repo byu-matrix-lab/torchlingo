@@ -8,6 +8,7 @@ from .batching import BucketBatchSampler, collate_fn, create_dataloaders
 from .dataset import NMTDataset
 from .vocab import (
     BaseVocab,
+    CharVocab,
     JiebaVocab,
     MeCabVocab,
     SentencePieceVocab,
@@ -17,6 +18,7 @@ from .vocab import (
 __all__ = [
     "BaseVocab",
     "BucketBatchSampler",
+    "CharVocab",
     "JiebaVocab",
     "MeCabVocab",
     "NMTDataset",
