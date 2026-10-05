@@ -6,7 +6,8 @@ the point of this file.
 **Reference documents** are current state. They get edited in place, and the latest
 version is the truth.
 
-**Hand-offs** are a conversation. **One file per baton pass**, named `YYYY-MM-DD-slug.md`. It is
+**Hand-offs** are a conversation. **One main file per baton pass**, named `YYYY-MM-DD-slug.md`,
+with any sub-files in `YYYY-MM-DD-slug/` and linked from it. It is
 live, and updated in place, until the other side picks it up; after that it is frozen, and a
 correction goes in the next hand-off, where it is visible. `handoff/README.md` has the convention and why the two append-only logs it replaced
 stopped working at 1,657 lines.
@@ -32,8 +33,8 @@ notes/
   handoff/
     README.md                      the protocol, and the naming convention
     briefing.md                    standing briefing for the Cowork session
-    to-cowork/                     messages out, one file per hand-off
-    from-cowork/                   messages in, one file per hand-off
+    to-cowork/                     messages out, one main file per hand-off
+    from-cowork/                   messages in, one main file per hand-off
     archive/                       the append-only logs this replaced
 ```
 
@@ -75,9 +76,11 @@ channel; `CLAUDE.md` holds the practices.
 
 ### How to use it
 
-**Writing.** One file per baton pass in your outgoing directory, `YYYY-MM-DD-slug.md`.
+**Writing.** One main file per baton pass in your outgoing directory, `YYYY-MM-DD-slug.md`.
 While the baton is still on your side, keep adding to that one file and say when it was
-last updated; do not start a second. Say what you want, and point at a longer document
+last updated; do not start a second. A long spec may go in a sub-file under
+`YYYY-MM-DD-slug/`, linked from the main file, but anything needing an answer stays in the
+main file. Say what you want, and point at a longer document
 rather than restating it. Put anything needing an answer where it cannot be missed.
 
 **Reading.** Read the newest file in the incoming directory, then check your own last
