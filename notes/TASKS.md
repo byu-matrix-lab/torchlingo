@@ -12,33 +12,20 @@ was meant.
 ## This file is the whole list; the session mirror is only what is urgent
 
 **Convention, Eric's, 2026-09-25.** A task stays on the in-session task list only if it
-contributes to **Lecture 7 (Mon Sep 28)** or **Lecture 8 (Wed Sep 30)**. Everything else
-lives here and here alone.
+contributes to one of the next two lectures. Everything else lives here and here alone.
 
 That keeps the working list short enough to be read, without losing anything: this file
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-10-05:** everything open is here. The one item with a clock is **#184**, the Lecture 9
-notebook, which runs in class Wed Oct 7 (PR #197). Then **#185** (Lecture 7, PR #198) and **#186**,
-the tutorial renumbering, which the Lecture 10 deck rebuild is waiting on. **#152** still has no
-report from Coulson's Colab run. What remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from
-Cowork) is Lecture 10's three (#166, #174, #175) and Lecture 12's rebuild (#176).
+**As of 2026-10-05:** everything open is here, and nothing has a clock this week. **#188** has its
+library half in PR #202; the tutorial 5 cell waits for the release that ships it. **#152** still
+has no report from Coulson's Colab run. What remains of the notebook audit (`NOTEBOOK_AUDIT.md`,
+from Cowork) is Lecture 10's three (#166, #174, #175) and Lecture 12's rebuild (#176).
 
-**Read the "Critical for" column rather than the dates.** Labelling every task by lecture showed
-that only fifteen of sixty-two are critical to a lecture in the next ten days — and that two of
-the nearest-looking dates, both on Lecture 6's notebook, belonged to a lecture that had already
-run.
-
-Lecture 7 runs Mon Sep 28 with `lecture-07-toy-model` as its activity, adapted from tutorial 3,
-which stays `reading`. That notebook's Part C is **A7, the toy-model report, due Wed Sep 30 10:00**,
-completion-graded; Coulson creates it in Learning Suite. Lecture 8 is split into 8a and 8b, both
-decks built, and Task #42 closed on Cowork's word that it needs nothing.
-
-The test to apply is *"must this be done for Lecture 7 or Lecture 8 to happen
-correctly?"* — not "is this related to them". #44 failed that test on inspection: it
-gates the sdist against shipping a Git LFS pointer, which sounds release-critical until
-you check, and the installed wheel turns out to carry **no data files at all**.
+**Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
+done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
+lecture-critical and fail that test on inspection.
 
 Everything here is work that can be finished and then deleted. Standing rules live in
 `CLAUDE.md`; decisions and findings live where they apply. `notes/README.md` maps the
@@ -50,11 +37,9 @@ with the Cowork session rebuilding the CS 479 decks.
 "In review" means the work is written and sitting in an open pull request; the task
 is not finished until that PR merges, and only then does the row disappear.
 
-**Tasks #93 to #100 have external deadlines.** They come from
-`notes/CS479_COURSE_ROADMAP.md`: CS 479 is pivoting to TorchLingo *this* semester, and
-twenty-four students hit the library in class on **Mon Sep 28**. Those tasks are dated, they
-are sequenced against a calendar nobody here controls, and they outrank everything else in
-this file until Oct 28. See "The CS 479 pivot" below for the schedule and the reasoning.
+**Tasks #98 and #99 have external deadlines.** They come from
+`notes/CS479_COURSE_ROADMAP.md`, are sequenced against a calendar nobody here controls, and
+outrank everything else in this file until Oct 28. See "The CS 479 pivot" below for the schedule and the reasoning.
 
 ### Reading the "Critical for" column
 
@@ -100,12 +85,9 @@ describes last week will mislead every lecture at once rather than one of them.
 
 | | Task | Critical for | State |
 |---|---|---|---|
-| #184 | Lecture 9 notebook: the student writes the count, picks the size, predicts A9 | **L9** | **In review, PR #197 — runs in class Wed Oct 7**; unmerged by then, the class runs the current notebook |
-| #185 | Lecture 7 notebook: the student chooses the held-out phrase, predicts, runs a contrast | **L7** | **In review, PR #198** |
-| #186 | Renumber the tutorials into course order, with redirect stubs | **L10** | **In review** — Cowork flips decks and Content pages when it merges; **before the Lecture 10 rebuild** |
 | #187 | Remove the tutorial redirect stubs | **hyg** | **After the Fall 2026 term** — not before; students hold the old badges |
-| #188 | Tutorial 5 shows encoder self-attention too | **L8b** | Open — **a candidate, not a commitment**: Cowork's offer, below |
-| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28); **no report as of Oct 5** |
+| #188 | Tutorial 5 shows encoder self-attention too | **L8b** | **Go (Eric, Oct 5).** Library half in review, PR #202; the tutorial cell waits on the next release |
+| #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28); **no report as of Oct 5** — chase it here, not through Eric |
 | #166 | Tutorial 8 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 3's checkpoint; **do with #162, #92 and the audit's tutorial 8 directions** |
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | Notebook audit: tutorial 7 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
@@ -300,17 +282,13 @@ closing #86). The A8 kickoff moved onto them, verified byte-identical in its spl
 
 ### #162 Tutorial 8's Part 5 shrinks to a pointer at tutorial 2
 
-**Cowork already decided this** and our list still said "decide". Their Question 7 answer:
+Cowork's decision: "One evaluation tutorial, one course activity, and no third copy."
 
 - `lecture-06-mt-evaluation` owns the teaching of BLEU and chrF for the course — it is what
   students are sent to in class and in the deck.
-- **Tutorial 2 should land** as the out-of-class treatment, and serves as assigned reading before
-  A8 as well.
+- **Tutorial 2** is the out-of-class treatment, and assigned reading before A8 as well.
 - **Tutorial 8's Part 5 shrinks to a pointer** at tutorial 2 rather than teaching BLEU a third
   time. Tutorial 8 is about decoding; the BLEU section is there because it needed a number.
-
-"One evaluation tutorial, one course activity, and no third copy." So #142 is answered, and **#88,
-the tutorial 2 pull request, is unblocked** — its row said "see #142 first".
 
 ### #132 Quick Start has no notebook, and its badge opens a different one
 
@@ -366,9 +344,9 @@ cell no longer needs `result`, which only exists in the session that trained.
 **Done when it has run once in Colab against a real A5 corpus.** Nothing here can execute a
 Drive mount on a GPU; that run is the only end-to-end test this notebook will get before
 twenty-four students do. **Delegated to Coulson on 2026-09-28**; Eric sent him the note on
-Discord. No report had arrived by the evening of 2026-09-29; **Eric follows up with Coulson on
-the morning of 2026-09-30**, before Lecture 8a. On his report, read it against the note, then
-remove this entry.
+Discord. No report had arrived by 2026-10-05. **Eric, 2026-10-05: this lives here, not in the
+questions put to him.** Raise it with Coulson directly — a PR comment or the Matrix Lab
+Discord. On his report, read it against the note, then remove this entry.
 
 ### #174 to #176 The notebook audit
 
@@ -380,10 +358,7 @@ force), per-notebook directions with replacement text, and an order of work. The
 the spec; these rows only track which notebooks are done. Eric's test where they leave room:
 **the job of each notebook is to teach.**
 
-One task per group that shares a deadline, so the "Critical for" column stays honest. Done
-and removed: the 8a kickoff (PR #182), tutorial 6 (PR #184), and Task #177's notebooks already
-read, `lecture-07-toy-model` (PR #185), tutorial 4 (PR #187), and tutorials 1, 2 and 3, the regex
-refresher and Lecture 6 (PR #192).
+One task per group that shares a deadline, so the "Critical for" column stays honest.
 
 - **Lecture 10's three, in this order** (the audit's): **tutorial 8**, riding with **#166**,
   #162 and #92, which reshape the same notebook; **#174, `lecture-10-comet-install`**; **#175,
@@ -398,42 +373,28 @@ Each PR checks the notebook's prose against its ceiling and runs `scripts/studen
 **Done when** every notebook the audit names has had its directions applied; then this section
 and `NOTEBOOK_AUDIT.md` go.
 
-### #184, #185 Students make the choices in Lectures 7 and 9
-
-Eric, 2026-10-05, from roadmap v10's "Learning outcomes, and who does the work": each notebook
-was doing the part that carries the lesson for the student. The specs are Cowork's hand-offs
-`from-cowork/2026-10-05-b-lecture-9-choices.md` and `2026-10-05-lecture-7-held-out-choice.md`,
-applied cell by cell. **Done when** each PR merges; then tell Cowork, who updates the roadmap's
-Lecture 7 and 9 notes and the A7 and A9 Learning Suite texts.
-
-### #186 Renumber the tutorials into course order, with redirect stubs
-
-Eric, 2026-10-05. Spec: `from-cowork/2026-10-05-c-tutorial-renumbering.md`. Four numbers move
-so the numbers follow the order the course meets the tutorials; lecture alignments do not
-change. 07→02, 02→03, 08→05, 05→07, 03→08. Every cross-reference by number is rewritten, except
-in frozen hand-offs and archives. A one-cell stub stays at each old path (#187). **Done when**
-merged and Cowork is told the final filenames: the course side flips three slides, the Content
-pages and the roadmap in one pass, so students never see two numberings at once.
-
-This answers part of #101 early, by Eric's decision, and the stubs are what make a mid-term
-rename safe for a student holding an old badge.
-
 ### #187 Remove the tutorial redirect stubs
 
-The five one-cell notebooks #186 leaves at the old tutorial paths. **After the Fall 2026 term**,
+The five one-cell notebooks the renumbering (PR #201) left at the old tutorial paths, marked
+`{"redirect": ...}` and validated by `notebook_meta.py`. **After the Fall 2026 term**,
 not before: bookmarked badges and any Content page not yet flipped point at them. Then search
 the decks' and Learning Suite's links for an old path once more before deleting.
 
 ### #188 Tutorial 5 shows encoder self-attention too
 
-Cowork's offer, 2026-10-05, **our call whether it earns a place.** For the 8b deck they captured
-the pretrained model's encoder self-attention on "And that is very useful information.": a
-forward pre-hook on each `TransformerEncoderLayer` that re-runs `layer.self_attn(x, x, x,
-need_weights=True, average_attn_weights=...)` on the layer's input. Twelve lines; the weights are
-in the course folder as `Figures/selfattn.json` and `Figures/selfattn_heads.json`. The tutorial
-shows only cross-attention today. A cell with layer 0's four heads side by side would make the
-point the deck makes: head-averaged maps on this model are diffuse, single heads are sharp and
-not interpretable. Natural home: `capture_self_attention` beside `capture_cross_attention`.
+Cowork's offer, 2026-10-05; **Eric said go the same day.** The point the 8b deck makes:
+head-averaged maps on this model are diffuse, single heads are sharp and not interpretable.
+
+Two halves, deliberately separate:
+
+- **Library: PR #202.** `capture_self_attention` beside `capture_cross_attention`, a forward
+  pre-hook per encoder layer (the fused fast path under `no_grad` never calls `self_attn`, so
+  the decoder's wrap-the-forward trick records nothing there). Tested exact against the slow path.
+- **Tutorial 5's cell: local branch `tutorial-5-self-attention`, not yet a PR.** First layer's
+  four heads, their average, and a per-layer sharpness line, executed on the pretrained model.
+  Its install pin is `torchlingo>=0.2.5`, so it **cannot merge before a release ships the
+  function**: a Colab student would get an ImportError. **Done when** PR #202 merges, a
+  release ships it, and the cell's PR merges after `scripts/student_path.sh` passes on it.
 
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 
@@ -656,17 +617,6 @@ necessarily harder to read than the 85-line version — index bookkeeping across
 `(batch x beam)`, cache invalidation, ragged completion. Folding that into the one
 implementation trades away the thing the repo is for, to buy speed that only matters at
 scales students often are not working at anyway.
-
-*What this unlocks:* #3 (KV cache) was previously marked "decide whether to do it at all,
-since it may compromise readability." That constraint is gone. The fast path can be as
-dense as it needs to be, because the readable path is preserved. #3 moves from
-questionable to straightforwardly worth doing.
-
-> **Superseded 2026-09-22.** This paragraph answered "may we build it?" and read the
-> answer as "so we should." The descope decision above answers the question that was
-> never asked: *should* we, given that it duplicates CTranslate2 and Marian and teaches
-> nothing a student can read. The side-by-side design remains correct for the code that
-> already exists — it is only the conclusion about #3 that is withdrawn.
 
 *What this demands:* two implementations silently diverging is the obvious failure mode.
 `tests/test_decoding_equivalence.py` already covers this — it was written as a
