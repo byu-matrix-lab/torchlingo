@@ -33,6 +33,7 @@ Note:
 
 from __future__ import annotations
 
+import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
@@ -43,6 +44,25 @@ from ..config import Config, get_default_config
 
 IndexInput = Sequence[int] | Sequence[Sequence[int]] | torch.Tensor
 DecodedOutput = str | list[str]
+
+# Warn when at least this share of a corpus's word occurrences fall below min_freq and become
+# <unk>. Real corpora sit well under it: English and Spanish TED talks measured 24-28% at 200
+# sentences and 3-4% at 86,000. Text written without spaces sits above 90%.
+UNKNOWN_SHARE_WARNING = 0.5
+# Below this many sentences any word-level vocabulary is mostly rare words, so stay quiet.
+UNKNOWN_WARNING_MIN_SENTENCES = 200
+# A corpus averaging fewer words per sentence than this is almost certainly not space-separated.
+UNSPACED_WORDS_PER_SENTENCE = 3.0
+
+
+class MostlyUnknownWarning(UserWarning):
+    """A word-level vocabulary will turn most of its corpus into ``<unk>``.
+
+    Raised by `SimpleVocab.build_vocab`. The usual cause is a language written without spaces
+    between words (Chinese, Japanese, Thai): splitting on whitespace makes each sentence one
+    "word", almost none repeat, and a model trained on the result learns to write ``<unk>``,
+    which decodes to an empty string.
+    """
 
 
 class BaseVocab(ABC):
@@ -375,13 +395,20 @@ class SimpleVocab(BaseVocab):
             sentences (list[str]): List of raw sentences to build vocabulary from.
                 Each sentence is assumed to be whitespace-separated tokens.
 
+        Warns:
+            MostlyUnknownWarning: If at least half of the corpus's word occurrences
+                fall below ``min_freq`` and so will encode as ``<unk>``, on a corpus of
+                200 sentences or more. See `MostlyUnknownWarning`.
+
         Notes:
             - Modifies self.token_freqs and self.token2idx in place.
             - Special tokens (PAD, UNK, SOS, EOS) are not overwritten.
             - Tokens are assigned indices in order of appearance in the iteration.
         """
 
+        n_sentences = 0
         for sentence in sentences:
+            n_sentences += 1
             for token in sentence.split():
                 self.token_freqs[token] = self.token_freqs.get(token, 0) + 1
 
@@ -390,6 +417,42 @@ class SimpleVocab(BaseVocab):
                 idx = len(self.token2idx)
                 self.token2idx[token] = idx
                 self.idx2token[idx] = token
+
+        self._warn_if_mostly_unknown(n_sentences)
+
+    def _warn_if_mostly_unknown(self, n_sentences: int) -> None:
+        """Warn when most of the corpus will encode as ``<unk>``.
+
+        Args:
+            n_sentences (int): Sentences in the corpus just counted.
+        """
+        total = sum(self.token_freqs.values())
+        if n_sentences < UNKNOWN_WARNING_MIN_SENTENCES or total == 0:
+            return
+        rare = [t for t, f in self.token_freqs.items() if f < self.min_freq]
+        share = sum(self.token_freqs[t] for t in rare) / total
+        if share < UNKNOWN_SHARE_WARNING:
+            return
+
+        words_per_sentence = total / n_sentences
+        if words_per_sentence < UNSPACED_WORDS_PER_SENTENCE:
+            cause = (
+                f"Sentences average {words_per_sentence:.1f} words, so this text is probably "
+                "written without spaces between words (Chinese, Japanese, Thai): each sentence "
+                f"counts as one word, for example {rare[0]!r}. "
+            )
+        else:
+            cause = ""
+        warnings.warn(
+            f"{share:.0%} of this corpus's words appear fewer than min_freq={self.min_freq} "
+            f"times and will become {self.unk_token}. {cause}A model trained on it learns to "
+            f"write {self.unk_token}, which decodes to an empty translation. Use subword "
+            "pieces instead: train_sentencepiece(...), then create_dataloaders(..., "
+            "use_sentencepiece=True, sp_model_path=...). For Chinese or Japanese alone, "
+            "JiebaVocab and MeCabVocab segment words first.",
+            MostlyUnknownWarning,
+            stacklevel=3,
+        )
 
     def token_to_idx(self, token: str) -> int:
         """Convert a single token string to its vocabulary index.

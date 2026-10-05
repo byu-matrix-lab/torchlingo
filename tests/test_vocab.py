@@ -99,6 +99,76 @@ class SimpleVocabBuildTests(unittest.TestCase):
         self.assertEqual(len(vocab), 4)
 
 
+class SimpleVocabMostlyUnknownWarningTests(unittest.TestCase):
+    """A vocabulary that turns most of its corpus into <unk> says so.
+
+    Two A8 students on Asian languages got empty translations: their text has no
+    spaces, so each sentence was one "word", nearly none repeated, and the model
+    learned to write <unk>, which decodes to an empty string.
+    """
+
+    UNSPACED = tuple(f"我今天看了第{i}本书。" for i in range(300))
+    SPACED_RARE = tuple(f"w{i} x{i} y{i} z{i}" for i in range(300))
+
+    @staticmethod
+    def _ordinary(n: int = 300) -> list[str]:
+        """Space-separated sentences over a small vocabulary, so words repeat."""
+        import random
+
+        rng = random.Random(0)
+        words = [f"word{k}" for k in range(50)]
+        return [" ".join(rng.choices(words, k=8)) for _ in range(n)]
+
+    def test_unspaced_text_warns_and_names_the_cause(self):
+        from torchlingo.data_processing.vocab import MostlyUnknownWarning
+
+        with self.assertWarns(MostlyUnknownWarning) as caught:
+            SimpleVocab(min_freq=2).build_vocab(self.UNSPACED)
+        message = str(caught.warning)
+        self.assertIn("without spaces", message)
+        self.assertIn("empty translation", message)
+        self.assertIn("use_sentencepiece=True", message)
+
+    def test_the_warning_matches_what_encoding_does(self):
+        """The failure it warns about: a training sentence encodes to <unk> alone."""
+        vocab = SimpleVocab(min_freq=2)
+        with self.assertWarns(UserWarning):
+            vocab.build_vocab(self.UNSPACED)
+        ids = vocab.encode(self.UNSPACED[0])
+        self.assertEqual(ids, [vocab.sos_idx, vocab.unk_idx, vocab.eos_idx])
+        self.assertEqual(vocab.decode(ids), "")
+
+    def test_spaced_but_rare_warns_without_blaming_spaces(self):
+        from torchlingo.data_processing.vocab import MostlyUnknownWarning
+
+        with self.assertWarns(MostlyUnknownWarning) as caught:
+            SimpleVocab(min_freq=2).build_vocab(self.SPACED_RARE)
+        self.assertNotIn("without spaces", str(caught.warning))
+
+    def test_ordinary_text_is_quiet(self):
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            SimpleVocab(min_freq=2).build_vocab(self._ordinary())
+
+    def test_small_corpus_is_quiet(self):
+        """Toy corpora are mostly rare words by nature; tutorials must not warn."""
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            SimpleVocab(min_freq=2).build_vocab(self.UNSPACED[:199])
+
+    def test_min_freq_one_is_quiet(self):
+        """Nothing falls below min_freq=1, so nothing becomes <unk>."""
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            SimpleVocab(min_freq=1).build_vocab(self.UNSPACED)
+
+
 class SimpleVocabConversionTests(unittest.TestCase):
     """Token/index conversion helpers including unknown handling."""
 
