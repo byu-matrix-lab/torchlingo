@@ -424,12 +424,28 @@ class TestAssignmentsAreParsed(unittest.TestCase):
         self.assertIn(self.due.get("A8"), set(titles) | set(aliases))
 
     def test_two_assignments_in_one_cell_are_both_found(self):
-        """One cell holds A9 and A10, separated by a middot, and both must be found.
+        """One cell holding two assignments, separated by a middot, yields both.
 
-        Asserting that they share a lecture rather than naming which one: the schedule
-        shifted by two lectures on 2026-09-27 and the sharing is what is being tested."""
-        self.assertIsNotNone(self.due.get("A9"))
-        self.assertEqual(self.due.get("A9"), self.due.get("A10"))
+        Built from a real schedule row rather than read off the live roadmap. The live one
+        held A9 and A10 in one cell until roadmap v12 (2026-10-05) moved A9 to its own
+        lecture, and a test that needed that coincidence went red on a schedule change."""
+        original = nm.ROADMAP.read_text(encoding="utf-8")
+        row = next(
+            line
+            for line in original.splitlines()
+            if nm.SCHEDULE_ROW.match(line) and line.count("|") >= 6
+        )
+        columns = row.split("|")
+        columns[4] = " **A98** one · **A99** two "
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        self.addCleanup(setattr, nm, "ROADMAP", nm.ROADMAP)
+        target = tmp / "roadmap.md"
+        target.write_text(original.replace(row, "|".join(columns)), encoding="utf-8")
+        nm.ROADMAP = target
+        due = nm.assignments()
+        self.assertIsNotNone(due.get("A98"))
+        self.assertEqual(due.get("A98"), due.get("A99"))
 
     def test_leads_to_is_validated_against_them(self):
         meta = {**GOOD, "leads_to": ["A8"]}
