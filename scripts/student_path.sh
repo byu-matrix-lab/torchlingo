@@ -5,7 +5,8 @@
 # WHY THIS EXISTS. scripts/execute_notebooks.py runs notebooks against the repository's own
 # editable install, with data/ linked in from the checkout. A student has neither: they open
 # a Colab badge, get a runtime with no torchlingo, and depend on the notebook's own install
-# cell pulling from PyPI and on whatever it downloads. On 2026-09-28 this harness found two
+# cell (from the repository's `course` branch since 2026-10-05; from PyPI before that) and on
+# whatever it downloads. On 2026-09-28 this harness found two
 # failures CI could not see: tutorials 4 and 7 read data/ that a pip install does not ship,
 # and tutorial 8 loads a checkpoint that tutorial 3 saved in a different Colab runtime.
 #
@@ -23,8 +24,8 @@
 #
 # WHAT IT CANNOT DO. Google's Drive authorization dialog, a GPU, and Colab's own network. Of
 # Colab's preinstalled packages it provides only numpy, pandas and matplotlib; a notebook
-# relying on any other must install it. A PASS here means "runs from a clean PyPI install",
-# not "runs in Colab".
+# relying on any other must install it. A PASS here means "runs from a clean install of what
+# the notebook's install cell names", not "runs in Colab".
 #
 # Usage:
 #   scripts/student_path.sh NOTEBOOK...

@@ -26,12 +26,13 @@ Two details this script exists to get right:
 
 Run:
     python scripts/execute_notebooks.py
-    python scripts/execute_notebooks.py --as-student   # PyPI install, Colab faked
+    python scripts/execute_notebooks.py --as-student   # notebook's own install, Colab faked
 
 ``--as-student`` runs each notebook through ``scripts/student_path.sh`` instead:
 a fresh environment *per notebook*, the notebook's own install cell pulling
-from PyPI, no ``data/`` linked in. It tests what is released, not what is
-checked out, so it runs on a schedule rather than on pull requests.
+from the repository's ``course`` branch, no ``data/`` linked in. It tests what
+students are served, not what is checked out, so it runs when ``course`` moves
+and on a schedule rather than on pull requests.
 
 Exits non-zero if any notebook fails, so CI can gate on it.
 """
@@ -236,7 +237,7 @@ def main_as_student(notebooks: list[Path]) -> int:
             print(output, file=sys.stderr, flush=True)
 
     ran = len(notebooks) - len(skipped) - len(known)
-    print(f"\n{ran - len(failures)}/{ran} notebooks ran cleanly from a PyPI install")
+    print(f"\n{ran - len(failures)}/{ran} notebooks ran cleanly from their own install cells")
     if known:
         print(f"{len(known)} known failures, not counted: " + ", ".join(known))
     if failures:
@@ -254,7 +255,7 @@ def main() -> int:
     parser.add_argument(
         "--as-student",
         action="store_true",
-        help="install from PyPI and fake Colab, one fresh environment per notebook",
+        help="use each notebook's own install cell and fake Colab, one fresh environment each",
     )
     args = parser.parse_args()
 

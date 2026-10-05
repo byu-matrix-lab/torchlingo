@@ -218,6 +218,15 @@ and the pull request happen here.
   cell rather than one later; `setup(gpu=, drive=, data=)` does the device, the Drive mount and
   the downloads. Copy tutorial 3's first two code cells. Not the old commented-out install,
   which was the bug, nor the 20-to-60-line cells that replaced it.
+- **Notebooks install from the `course` branch, not PyPI.** Eric, 2026-10-05: `%pip install
+  "torchlingo @ git+https://github.com/byu-matrix-lab/torchlingo@course"`. A notebook and the
+  library code it calls then reach students together, with no release in between; tutorial 5's
+  self-attention cell waited on a release for exactly that reason. **`course` moves only through
+  `scripts/promote_course.sh`**, which refuses a commit whose checks on `main` have not all
+  passed, and only fast-forwards. Never point a notebook at `@main`: a red `main` would break
+  every badge at once, and `main` was red the morning this was decided. Promote after merging
+  anything students should see; each push to `course` runs the student-path workflow. PyPI
+  releases continue for everyone else.
 - **Notebooks are self-contained and carry no due dates.** Eric, 2026-09-29: due dates live in
   Learning Suite, and only there. Not "due before Lecture 8a", not "(due at Lecture 9)" in the
   purpose cell, not a "when" column keyed to a lecture; and no weekdays or calendar dates at all
@@ -257,13 +266,15 @@ repository's own install, with `data/` linked in. Students have neither:
 
 | | CI | student | what it missed |
 |---|---|---|---|
-| **environment** | editable install, the checkout's `data/` | PyPI, only what a cell downloads | tutorials 4 and 7 read `data/` a wheel lacks; tutorial 8 needs a checkpoint from another runtime |
+| **environment** | editable install, the checkout's `data/` | the `course` branch, only what a cell downloads | tutorials 4 and 7 read `data/` a wheel lacks; tutorial 8 needs a checkpoint from another runtime |
 | **hardware** | x86 Linux | Colab GPUs, and Apple Silicon on the lab's Macs | an op unimplemented on MPS made every decoder raise `NotImplementedError` |
 
 For the first, run **`scripts/student_path.sh NOTEBOOK`** before shipping a notebook students open
-from a badge: a fresh environment, the notebook's own install from PyPI, Colab faked. The
-scheduled workflow `student_path.yml` runs every notebook that way, weekly and on each release tag,
-through `execute_notebooks.py --as-student`; it tests what is released, so it is not a PR check.
+from a badge: a fresh environment, the notebook's own install cell, Colab faked. It installs
+what `course` holds, so to test a change before promoting it, run it after the change is on
+`course` — or edit the install cell's `@course` locally to your branch name. The workflow
+`student_path.yml` runs every notebook that way on each push to `course` and weekly, through
+`execute_notebooks.py --as-student`; it tests what students are served, so it is not a PR check.
 For the second there is no CI answer; a device-specific bug shows up on a Mac or in Colab or not
 at all.
 

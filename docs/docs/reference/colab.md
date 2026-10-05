@@ -23,12 +23,17 @@ library is installed:
 # kernel" does not apply to a first install; if the install fails, the import below stops here.
 import sys
 if "google.colab" in sys.modules:
-    %pip install --quiet "torchlingo>=0.2.2"
+    %pip install --quiet "torchlingo @ git+https://github.com/byu-matrix-lab/torchlingo@course"
 import torchlingo
 ```
 
 The last line is the point: `%pip` reports a failure but does not stop the cell, so without
 the import a failed install would surface one cell later as a confusing `ModuleNotFoundError`.
+
+The course notebooks install from the repository's `course` branch rather than from PyPI, so
+a notebook and the library code it calls reach students together, without waiting for a
+release. `course` only ever moves to a commit of `main` whose checks have passed. Outside the
+course, `pip install torchlingo` installs the latest release as usual.
 
 Then:
 
