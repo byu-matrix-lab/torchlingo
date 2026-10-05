@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`SimpleVocab.build_vocab` warns when most of a corpus will become `<unk>`**
+  (`MostlyUnknownWarning`): at least half of all word occurrences below `min_freq`, on 200
+  sentences or more. The usual cause is a language written without spaces (Chinese, Japanese,
+  Thai), where each sentence counts as one word and nearly none repeat; the trained model then
+  writes `<unk>`, which decodes to an empty translation. Two A8 students hit exactly that. The
+  warning names the cause when sentences average under three words, and points at SentencePiece,
+  `JiebaVocab` and `MeCabVocab`. English and Spanish corpora measure 24-28% at 200 sentences,
+  well under the threshold.
+
 ## [0.2.5] - 2026-10-05
 
 ### Added
