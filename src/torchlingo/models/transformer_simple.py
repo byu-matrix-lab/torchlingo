@@ -22,6 +22,7 @@ References:
 
 import math
 import warnings
+from collections.abc import Iterator
 from contextlib import contextmanager
 
 import torch
@@ -32,7 +33,9 @@ from .positional import SinusoidalPositionalEncoding
 
 
 @contextmanager
-def capture_cross_attention(decoder: nn.TransformerDecoder):
+def capture_cross_attention(
+    decoder: nn.TransformerDecoder,
+) -> Iterator[list[torch.Tensor]]:
     """Temporarily make a PyTorch decoder hand back its cross-attention weights.
 
     Getting these out of `nn.Transformer` is harder than it should be, and the
@@ -111,6 +114,74 @@ def capture_cross_attention(decoder: nn.TransformerDecoder):
                 attn.forward = original
             else:
                 del attn.forward
+
+
+@contextmanager
+def capture_self_attention(
+    encoder: nn.TransformerEncoder, average_heads: bool = True
+) -> Iterator[list[torch.Tensor]]:
+    """Temporarily record a PyTorch encoder's self-attention weights.
+
+    The encoder's counterpart to `capture_cross_attention`, and it has to work
+    differently. In eval mode under `torch.no_grad()`, which is exactly when you
+    would inspect a trained model, `TransformerEncoderLayer` takes a fused fast
+    path that never calls `self_attn.forward` at all, so wrapping that method,
+    as `capture_cross_attention` does on the decoder, would record nothing.
+
+    Instead, a forward pre-hook on each layer sees the layer's input and masks
+    before either path runs, and repeats the layer's self-attention call with
+    `need_weights=True`. The repeat is an extra computation, but an exact one:
+    same input, same weights, same masks, and for a pre-norm layer the same
+    `norm1` applied first. The layer's own output is untouched.
+
+    Args:
+        encoder (nn.TransformerEncoder): The encoder whose layers to instrument.
+        average_heads (bool): True for one map per layer, the heads averaged;
+            False to keep each head separately. Defaults to True.
+
+    Yields:
+        list[torch.Tensor]: Filled on exit with one tensor per encoder layer, in
+            layer order, each of shape ``(batch, src_len, src_len)`` with the
+            heads averaged, or ``(batch, n_heads, src_len, src_len)`` without.
+
+    Example:
+        >>> import torch
+        >>> model = SimpleTransformer(src_vocab_size=20, tgt_vocab_size=20,
+        ...                           d_model=16, n_heads=2,
+        ...                           num_encoder_layers=1, num_decoder_layers=1)
+        >>> src = torch.tensor([[2, 5, 3]])
+        >>> with capture_self_attention(model.transformer.encoder,
+        ...                             average_heads=False) as weights:
+        ...     _ = model.encode(src)
+        >>> weights[0].shape
+        torch.Size([1, 2, 3, 3])
+    """
+    captured: list[torch.Tensor] = []
+    handles = []
+
+    def hook(layer, args, kwargs):
+        x = args[0] if args else kwargs["src"]
+        if layer.norm_first:
+            x = layer.norm1(x)
+        _, weights = layer.self_attn(
+            x,
+            x,
+            x,
+            attn_mask=kwargs.get("src_mask"),
+            key_padding_mask=kwargs.get("src_key_padding_mask"),
+            need_weights=True,
+            average_attn_weights=average_heads,
+        )
+        captured.append(weights.detach())
+
+    for layer in encoder.layers:
+        handles.append(layer.register_forward_pre_hook(hook, with_kwargs=True))
+
+    try:
+        yield captured
+    finally:
+        for handle in handles:
+            handle.remove()
 
 
 class SimpleTransformer(nn.Module):
