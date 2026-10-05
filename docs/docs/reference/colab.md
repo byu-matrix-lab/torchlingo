@@ -35,13 +35,18 @@ a notebook and the library code it calls reach students together, without waitin
 release. `course` only ever moves to a commit of `main` whose checks have passed. Outside the
 course, `pip install torchlingo` installs the latest release as usual.
 
+Because `course` moves between releases, the version number alone no longer says which code is
+installed, so `setup()` prints `torchlingo.version_label()`: the release, plus the branch and
+commit for an install from GitHub (`0.2.5 (course @ 11aa496)`). Quote that line when reporting a
+problem.
+
 Then:
 
 ```python
 from torchlingo.colab import setup
 
 env = setup(gpu=True, drive=True, data=["data/pretrained/model.pt"])
-# TorchLingo 0.2.2 | PyTorch 2.x | device Tesla T4 | Colab
+# TorchLingo 0.2.5 (course @ 11aa496) | PyTorch 2.x | device Tesla T4 | Colab
 # Drive: /content/drive/MyDrive
 #   data/pretrained/model.pt    10.2 MB
 

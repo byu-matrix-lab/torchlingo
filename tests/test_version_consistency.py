@@ -103,5 +103,51 @@ class VersionConsistencyTests(unittest.TestCase):
         )
 
 
+class VersionLabelTests(unittest.TestCase):
+    """``version_label()`` says which code is installed, not only which release.
+
+    The course notebooks install from the ``course`` branch, which moves between
+    releases, so ``__version__`` alone stopped identifying what a student runs. The
+    label reads pip's own record of where the install came from (``direct_url.json``).
+    """
+
+    @staticmethod
+    def _installed_from(record):
+        """Patch the distribution so its direct_url.json reads ``record``."""
+        from unittest import mock
+
+        fake = mock.Mock()
+        fake.read_text.return_value = record
+        return mock.patch("torchlingo.distribution", return_value=fake)
+
+    def test_git_install_names_the_branch_and_commit(self):
+        record = (
+            '{"url": "https://github.com/byu-matrix-lab/torchlingo", "vcs_info": '
+            '{"vcs": "git", "requested_revision": "course", '
+            '"commit_id": "11aa496ff5a85addc05dcdbcb6da365b23140742"}}'
+        )
+        with self._installed_from(record):
+            label = torchlingo.version_label()
+        self.assertEqual(label, f"{torchlingo.__version__} (course @ 11aa496)")
+
+    def test_editable_checkout_says_so(self):
+        record = '{"url": "file:///repo", "dir_info": {"editable": true}}'
+        with self._installed_from(record):
+            label = torchlingo.version_label()
+        self.assertEqual(label, f"{torchlingo.__version__} (editable checkout)")
+
+    def test_pypi_install_is_the_release_alone(self):
+        """A wheel from an index writes no direct_url.json."""
+        with self._installed_from(None):
+            self.assertEqual(torchlingo.version_label(), torchlingo.__version__)
+
+    def test_unreadable_record_falls_back_to_the_release(self):
+        with self._installed_from("not json"):
+            self.assertEqual(torchlingo.version_label(), torchlingo.__version__)
+
+    def test_the_real_install_starts_with_the_release(self):
+        self.assertTrue(torchlingo.version_label().startswith(torchlingo.__version__))
+
+
 if __name__ == "__main__":
     unittest.main()
