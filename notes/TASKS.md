@@ -18,8 +18,8 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-10-05:** everything open is here, and nothing has a clock this week. **#188** has its
-library half in PR #202; the tutorial 5 cell waits for the release that ships it. **#152** still
+**As of 2026-10-05:** everything open is here. **#192** has students waiting: two A8 students on
+Asian languages get empty translations. **#188**'s tutorial 5 cell waits for release 0.2.5. **#152** still
 has no report from Coulson's Colab run. What remains of the notebook audit (`NOTEBOOK_AUDIT.md`,
 from Cowork) is Lecture 10's three (#166, #174, #175) and Lecture 12's rebuild (#176).
 
@@ -86,7 +86,8 @@ describes last week will mislead every lecture at once rather than one of them.
 | | Task | Critical for | State |
 |---|---|---|---|
 | #187 | Remove the tutorial redirect stubs | **hyg** | **After the Fall 2026 term** — not before; students hold the old badges |
-| #188 | Tutorial 5 shows encoder self-attention too | **L8b** | **Go (Eric, Oct 5).** Library half in review, PR #202; the tutorial cell waits on the next release |
+| #188 | Tutorial 5 shows encoder self-attention too | **L8b** | **Go (Eric, Oct 5).** The tutorial cell waits on release 0.2.5 |
+| #192 | A8: empty translations on languages written without spaces | **L8a** | **Open** — cause reproduced; waiting on Eric: what to tell the two students, and whether to add a library warning |
 | #152 | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28); **no report as of Oct 5** — chase it here, not through Eric |
 | #166 | Tutorial 8 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 3's checkpoint; **do with #162, #92 and the audit's tutorial 8 directions** |
 | #174 | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
@@ -380,21 +381,37 @@ The five one-cell notebooks the renumbering (PR #201) left at the old tutorial p
 not before: bookmarked badges and any Content page not yet flipped point at them. Then search
 the decks' and Learning Suite's links for an old path once more before deleting.
 
+### #192 A8: empty translations on languages written without spaces
+
+Eric, 2026-10-05: two students doing A8 on Asian languages get empty translation output. The
+A8 kickoff notebook calls `create_dataloaders` with its default `SimpleVocab`, which splits on
+whitespace, keeps words seen at least twice (`min_freq=2`), and drops `<unk>` when decoding.
+Chinese, Japanese and Thai put no spaces between words, so each sentence is one "word", almost
+none repeat, and the target vocabulary is nearly empty. The model learns to emit `<unk>`, which
+decodes to `''`. Reproduced on a small Chinese sample: a training sentence encodes to
+`<sos> <unk> <eos>` and decodes to the empty string.
+
+**To confirm for each student:** the language and direction (empty output means the unspaced
+language is the target), and the `Source vocab ... target vocab ...` line Step 6 prints; a
+target vocabulary of a handful of entries is the tell.
+
+**Fix, Eric's call:** tell the students to switch A8 to SentencePiece
+(`create_dataloaders(..., use_sentencepiece=True, ...)`, what A9 teaches), and/or make the
+library say so loudly: a warning when a built vocabulary maps most of the corpus to `<unk>`, and
+a line in the A8 kickoff notebook. **Done when** the students are unblocked and the warning is
+merged or declined.
+
 ### #188 Tutorial 5 shows encoder self-attention too
 
 Cowork's offer, 2026-10-05; **Eric said go the same day.** The point the 8b deck makes:
 head-averaged maps on this model are diffuse, single heads are sharp and not interpretable.
 
-Two halves, deliberately separate:
-
-- **Library: PR #202.** `capture_self_attention` beside `capture_cross_attention`, a forward
-  pre-hook per encoder layer (the fused fast path under `no_grad` never calls `self_attn`, so
-  the decoder's wrap-the-forward trick records nothing there). Tested exact against the slow path.
-- **Tutorial 5's cell: local branch `tutorial-5-self-attention`, not yet a PR.** First layer's
-  four heads, their average, and a per-layer sharpness line, executed on the pretrained model.
-  Its install pin is `torchlingo>=0.2.5`, so it **cannot merge before a release ships the
-  function**: a Colab student would get an ImportError. **Done when** PR #202 merges, a
-  release ships it, and the cell's PR merges after `scripts/student_path.sh` passes on it.
+**Left: tutorial 5's cell**, on the local branch `tutorial-5-self-attention`, not yet a PR. The
+first layer's four heads, their average, and a per-layer sharpness line, executed on the
+pretrained model, calling `capture_self_attention`. That function is on `main` but in no
+release, and the cell's install pin is `torchlingo>=0.2.5`, so it **cannot merge before 0.2.5
+is on PyPI**: a Colab student would get an ImportError. **Done when** the release is out and the
+cell's PR merges after `scripts/student_path.sh` passes on it.
 
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 
