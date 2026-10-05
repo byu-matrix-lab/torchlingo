@@ -9,6 +9,9 @@ Provides vocabulary interfaces and implementations for encoding and decoding tex
    between tokens and integer indices. Useful for small vocabularies or when
    you control the preprocessing pipeline.
 
+   **CharVocab**, a `SimpleVocab` whose tokens are single characters, for languages
+   written without spaces between words.
+
 3. **SentencePieceVocab**: Wrapper around pre-trained SentencePiece models
    for subword tokenization. Handles language-specific preprocessing and
    handles rare characters gracefully.
@@ -448,8 +451,9 @@ class SimpleVocab(BaseVocab):
             f"{share:.0%} of this corpus's words appear fewer than min_freq={self.min_freq} "
             f"times and will become {self.unk_token}. {cause}A model trained on it learns to "
             f"write {self.unk_token} and little else, so its translations will be mostly "
-            f"{self.unk_token}. Use subword "
-            "pieces instead: train_sentencepiece(...), then create_dataloaders(..., "
+            f"{self.unk_token}. The simplest fix is characters: "
+            'create_dataloaders(..., target_units="characters"). Subword pieces usually do '
+            "better: train_sentencepiece(...), then create_dataloaders(..., "
             "use_sentencepiece=True, sp_model_path=...). For Chinese or Japanese alone, "
             "JiebaVocab and MeCabVocab segment words first.",
             MostlyUnknownWarning,
@@ -560,6 +564,79 @@ class SimpleVocab(BaseVocab):
             tokens = [tok for tok in tokens if tok not in specials]
 
         return " ".join(tokens)
+
+
+class CharVocab(SimpleVocab):
+    """A vocabulary of characters: every character of a sentence is one token.
+
+    For languages written without spaces between words (Chinese, Japanese, Thai), where
+    `SimpleVocab`'s whitespace split makes each whole sentence one "word". It is
+    `SimpleVocab` handed each sentence with a space between every character, and the
+    spaces taken out again on decoding. A real space becomes ``SPACE`` ("▁"), so it
+    survives the round trip. ``min_freq`` applies as usual: a character seen fewer times
+    becomes ``<unk>``, as a rare word does in a word vocabulary.
+
+    Characters are the simplest unit that works for such a language; subword pieces
+    (`SentencePieceVocab`) usually work better, and are what Assignment 9 compares
+    them with.
+
+    Examples:
+        >>> vocab = CharVocab(min_freq=1)
+        >>> vocab.build_vocab(["我喜欢猫。", "我 喜欢"])
+        >>> vocab.encode("我喜欢", add_special_tokens=False) == [
+        ...     vocab.token_to_idx(c) for c in "我喜欢"]
+        True
+        >>> vocab.decode(vocab.encode("我 喜欢"))
+        '我 喜欢'
+    """
+
+    SPACE = "▁"
+
+    def spaced(self, sentence: str) -> str:
+        """Return the sentence as space-separated characters, real spaces marked."""
+        return " ".join(sentence.strip().replace(" ", self.SPACE))
+
+    def build_vocab(self, sentences: Sequence[str]) -> None:
+        """Build the vocabulary from raw sentences, one token per character.
+
+        Args:
+            sentences (list[str]): Raw sentences, spaced or not.
+        """
+        super().build_vocab([self.spaced(s) for s in sentences])
+
+    def encode(self, sentence: str, add_special_tokens: bool = True) -> list[int]:
+        """Encode a raw sentence as one index per character.
+
+        Args:
+            sentence (str): The raw sentence.
+            add_special_tokens (bool, optional): Add SOS/EOS. Defaults to True.
+
+        Returns:
+            list[int]: One index per character, plus SOS/EOS if requested.
+        """
+        return super().encode(self.spaced(sentence), add_special_tokens)
+
+    def decode(
+        self, indices: IndexInput, skip_special_tokens: bool = True
+    ) -> DecodedOutput:
+        """Decode indices back to text, with the characters joined and real spaces restored.
+
+        Args:
+            indices (IndexInput): 1-D or 2-D indices, or a tensor.
+            skip_special_tokens (bool, optional): Drop PAD/SOS/EOS; UNK is kept.
+                Defaults to True.
+
+        Returns:
+            str | list[str]: The decoded text, or one string per sequence.
+        """
+        text = super().decode(indices, skip_special_tokens)
+        if isinstance(text, list):
+            return [self._unspace(t) for t in text]
+        return self._unspace(text)
+
+    def _unspace(self, text: str) -> str:
+        """Join space-separated characters, and turn the space marker back into spaces."""
+        return text.replace(" ", "").replace(self.SPACE, " ")
 
 
 class SentencePieceVocab(BaseVocab):
