@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`capture_self_attention(encoder, average_heads=True)`**, the encoder's counterpart to
+  `capture_cross_attention`: one self-attention map per encoder layer, heads averaged or kept
+  separate. It needs a different mechanism, because in eval mode under `torch.no_grad()`
+  PyTorch's encoder layers take a fused path that never calls `self_attn`, so a pre-hook repeats
+  each layer's attention call on the same input. Tested exact against the slow path, pre- and
+  post-norm, with padding.
+
+### Fixed
+- The visualization reference page now renders `capture_cross_attention`, which it linked to
+  but never showed.
+
 ## [0.2.4] - 2026-09-30
 
 ### Fixed

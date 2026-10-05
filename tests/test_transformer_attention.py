@@ -18,7 +18,10 @@ import unittest
 import torch
 
 from torchlingo.models import SimpleTransformer
-from torchlingo.models.transformer_simple import capture_cross_attention
+from torchlingo.models.transformer_simple import (
+    capture_cross_attention,
+    capture_self_attention,
+)
 
 
 def _model(layers: int = 2, **kwargs) -> SimpleTransformer:
@@ -214,6 +217,129 @@ class ArchitectureParityTests(unittest.TestCase):
                 logits, weights = model(SRC, TGT, return_attention=True)
             self.assertEqual(logits.shape[:2], (1, TGT.size(1)))
             self.assertEqual(weights.shape, (1, TGT.size(1), SRC.size(1)))
+
+
+def _encoder_model(norm_first: bool = False) -> SimpleTransformer:
+    """A small model with two encoder layers, in eval mode."""
+    torch.manual_seed(0)
+    model = SimpleTransformer(
+        src_vocab_size=20,
+        tgt_vocab_size=20,
+        d_model=16,
+        n_heads=2,
+        num_encoder_layers=2,
+        num_decoder_layers=1,
+        d_ff=32,
+        norm_first=norm_first,
+    )
+    model.eval()
+    return model
+
+
+def _weights_the_layers_computed(model, src, pad_mask=None):
+    """Each encoder layer's own self-attention weights, by the slow path.
+
+    With gradients enabled the encoder layers skip their fused fast path and
+    call `self_attn`, so wrapping it records what each layer really computed:
+    the reference `capture_self_attention` has to agree with.
+    """
+    captured = []
+    for layer in model.transformer.encoder.layers:
+        original = layer.self_attn.forward
+
+        def wrapped(*args, _original=original, **kwargs):
+            kwargs["need_weights"] = True
+            kwargs["average_attn_weights"] = False
+            output, weights = _original(*args, **kwargs)
+            captured.append(weights.detach())
+            return output, weights
+
+        layer.self_attn.forward = wrapped
+    try:
+        model.encode(src, pad_mask)
+    finally:
+        for layer in model.transformer.encoder.layers:
+            del layer.self_attn.forward
+    return captured
+
+
+class CaptureSelfAttentionTests(unittest.TestCase):
+    """The encoder's self-attention, which needs a different mechanism."""
+
+    def test_one_map_per_layer(self):
+        model = _encoder_model()
+        with (
+            capture_self_attention(model.transformer.encoder) as weights,
+            torch.no_grad(),
+        ):
+            model.encode(SRC)
+        self.assertEqual(len(weights), 2)
+        for layer_weights in weights:
+            self.assertEqual(layer_weights.shape, (1, SRC.size(1), SRC.size(1)))
+
+    def test_per_head_maps(self):
+        model = _encoder_model()
+        with (
+            capture_self_attention(
+                model.transformer.encoder, average_heads=False
+            ) as weights,
+            torch.no_grad(),
+        ):
+            model.encode(SRC)
+        self.assertEqual(weights[0].shape, (1, 2, SRC.size(1), SRC.size(1)))
+
+    def test_matches_what_each_layer_computed(self):
+        """Exact against the slow path, on the fast path, pre- and post-norm.
+
+        Under `no_grad` in eval mode the layers take the fused fast path, which
+        is why wrapping `self_attn.forward` cannot be the mechanism. The hook's
+        repeat of the call has to land on the same numbers anyway.
+        """
+        for norm_first in (False, True):
+            with self.subTest(norm_first=norm_first):
+                model = _encoder_model(norm_first=norm_first)
+                expected = _weights_the_layers_computed(model, SRC)
+                with (
+                    capture_self_attention(
+                        model.transformer.encoder, average_heads=False
+                    ) as weights,
+                    torch.no_grad(),
+                ):
+                    model.encode(SRC)
+                self.assertEqual(len(weights), len(expected))
+                for got, want in zip(weights, expected):
+                    self.assertTrue(torch.allclose(got, want, atol=1e-6))
+
+    def test_padding_gets_no_attention(self):
+        """The padding mask reaches the repeat, so pad columns stay at zero."""
+        model = _encoder_model()
+        src = torch.tensor([[2, 5, 9, 3, model.pad_idx, model.pad_idx]])
+        pad_mask = src == model.pad_idx
+        expected = _weights_the_layers_computed(model, src, pad_mask)
+        with (
+            capture_self_attention(model.transformer.encoder) as weights,
+            torch.no_grad(),
+        ):
+            model.encode(src, pad_mask)
+        for layer_weights in weights:
+            self.assertTrue(torch.all(layer_weights[0, :, 4:] == 0))
+        self.assertTrue(torch.allclose(weights[0], expected[0].mean(dim=1), atol=1e-6))
+
+    def test_hooks_are_removed_and_output_is_unchanged(self):
+        """Even after a raise, and the encoder's own output is left alone."""
+        model = _encoder_model()
+        with torch.no_grad():
+            before = model.encode(SRC)
+        with capture_self_attention(model.transformer.encoder), torch.no_grad():
+            during = model.encode(SRC)
+        with (
+            self.assertRaises(RuntimeError),
+            capture_self_attention(model.transformer.encoder),
+        ):
+            raise RuntimeError("boom")
+        for layer in model.transformer.encoder.layers:
+            self.assertEqual(len(layer._forward_pre_hooks), 0)
+        self.assertTrue(torch.allclose(before, during, atol=1e-6))
 
 
 if __name__ == "__main__":

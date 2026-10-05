@@ -92,6 +92,14 @@ directly.
     framework will not give me X" often means "X is never computed on the path
     you are taking."
 
+    The encoder goes further. In eval mode under `torch.no_grad()`, each
+    `TransformerEncoderLayer` runs one fused kernel that never calls
+    `self_attn` at all, so replacing its `forward` records nothing.
+    [`capture_self_attention`](#torchlingo.models.transformer_simple.capture_self_attention)
+    instead hooks each layer *before* it runs and repeats its self-attention
+    call on the same input with `need_weights=True`. Pass
+    `average_heads=False` for one map per head.
+
 ### Attention for the translation the model actually produced
 
 `model(src, tgt, return_attention=True)` tells you where attention went while
@@ -279,3 +287,11 @@ that line ever dips below other filled points.
         - plot_attention
         - format_beam_search
         - plot_beam_search
+
+::: torchlingo.models.transformer_simple.capture_cross_attention
+    options:
+      show_source: true
+
+::: torchlingo.models.transformer_simple.capture_self_attention
+    options:
+      show_source: true
