@@ -225,7 +225,8 @@ and the pull request happen here.
   `scripts/promote_course.sh`**, which refuses a commit whose checks on `main` have not all
   passed, and only fast-forwards. Never point a notebook at `@main`: a red `main` would break
   every badge at once, and `main` was red the morning this was decided. Promote after merging
-  anything students should see; each push to `course` runs the student-path workflow. PyPI
+  anything students should see, with `scripts/promote_course.sh --await` to wait for the merge's
+  checks rather than refuse while they run; each push to `course` runs the student-path workflow. PyPI
   releases continue for everyone else. Since `__version__` no longer identifies the code a
   student runs, `setup()` prints `torchlingo.version_label()`, e.g. `0.2.5 (course @ 11aa496)`:
   ask for that line with any bug report.
