@@ -231,6 +231,53 @@ class SimpleVocabDecodeKeepsUnknownTests(unittest.TestCase):
         )
 
 
+class CharVocabTests(unittest.TestCase):
+    """One token per character, for languages written without spaces between words."""
+
+    def setUp(self) -> None:
+        from torchlingo.data_processing.vocab import CharVocab
+
+        self.vocab = CharVocab(min_freq=1)
+        self.vocab.build_vocab(["我今天 想要船。", "ฉันไป โรงเรียน"])
+
+    def test_round_trip_keeps_real_spaces(self):
+        for sentence in ("我今天 想要船。", "ฉันไป โรงเรียน"):
+            self.assertEqual(self.vocab.decode(self.vocab.encode(sentence)), sentence)
+
+    def test_one_token_per_character(self):
+        ids = self.vocab.encode("我今天", add_special_tokens=False)
+        self.assertEqual(len(ids), 3)
+        self.assertNotIn(self.vocab.unk_idx, ids)
+
+    def test_an_unseen_character_is_unknown_and_shown(self):
+        # 要 was seen (in 想要船); 鱼 was not.
+        self.assertEqual(self.vocab.decode(self.vocab.encode("我要鱼")), "我要<unk>")
+
+    def test_batches_decode_to_a_list(self):
+        batch = [self.vocab.encode("我今天"), self.vocab.encode("想要船")]
+        self.assertEqual(self.vocab.decode(batch), ["我今天", "想要船"])
+
+    def test_min_freq_applies_to_characters(self):
+        from torchlingo.data_processing.vocab import CharVocab
+
+        vocab = CharVocab(min_freq=2)
+        vocab.build_vocab(["我我", "你"])
+        self.assertNotEqual(vocab.token_to_idx("我"), vocab.unk_idx)
+        self.assertEqual(vocab.token_to_idx("你"), vocab.unk_idx)
+
+    def test_unspaced_text_does_not_trigger_the_unknown_warning(self):
+        """The fix for MostlyUnknownWarning's usual cause must not raise it."""
+        import warnings
+
+        from torchlingo.data_processing.vocab import CharVocab
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            CharVocab(min_freq=2).build_vocab(
+                SimpleVocabMostlyUnknownWarningTests.UNSPACED
+            )
+
+
 class SentencePieceVocabDecodeKeepsUnknownTests(unittest.TestCase):
     """The same for SentencePiece, which would otherwise render <unk> as "⁇"."""
 

@@ -403,6 +403,58 @@ class TestCreateDataloaders(unittest.TestCase):
         self.assertIs(tgt_vocab, train_ds.tgt_vocab)
 
 
+class TestCreateDataloadersTargetUnits(unittest.TestCase):
+    """``target_units="characters"`` for a target language written without spaces."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.train_file = Path(self.temp_dir.name) / "train.tsv"
+        objects = [("cat", "猫"), ("dog", "狗"), ("book", "书"), ("tea", "茶")]
+        rows = [
+            (f"I like the {e} {when}", f"我{z}喜欢{z}。")
+            for e, z in objects
+            for when in ("today", "now", "here")
+        ] * 20
+        pd.DataFrame(rows, columns=["src", "tgt"]).to_csv(
+            self.train_file, sep="\t", index=False
+        )
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_characters_build_a_char_vocab_for_the_target_only(self):
+        import warnings
+
+        from torchlingo.data_processing.vocab import CharVocab, SimpleVocab
+
+        with warnings.catch_warnings():
+            # Not built as words first: that would warn the corpus is mostly <unk>.
+            warnings.simplefilter("error")
+            loader, _, src_vocab, tgt_vocab = create_dataloaders(
+                self.train_file, batch_size=4, num_workers=0, target_units="characters"
+            )
+        self.assertIsInstance(tgt_vocab, CharVocab)
+        self.assertNotIsInstance(src_vocab, CharVocab)
+        self.assertIsInstance(src_vocab, SimpleVocab)
+        self.assertEqual(
+            tgt_vocab.decode(tgt_vocab.encode("我猫喜欢猫。")), "我猫喜欢猫。"
+        )
+        src_batch, tgt_batch = next(iter(loader))
+        self.assertEqual(src_batch.size(0), 4)
+
+    def test_words_is_the_default(self):
+        from torchlingo.data_processing.vocab import CharVocab
+
+        _, _, _, tgt_vocab = create_dataloaders(
+            self.train_file, batch_size=4, num_workers=0
+        )
+        self.assertNotIsInstance(tgt_vocab, CharVocab)
+
+    def test_an_unknown_unit_is_refused(self):
+        with self.assertRaises(ValueError):
+            create_dataloaders(self.train_file, num_workers=0, target_units="syllables")
+
+
 class TestCreateDataloadersSentencePiece(unittest.TestCase):
     """An explicit ``sp_model_path`` serves both sides unless a target model is also given.
 
@@ -450,6 +502,20 @@ class TestCreateDataloadersSentencePiece(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.temp_dir.cleanup()
+
+    def test_sentencepiece_overrides_target_units(self):
+        """A9's settings switch a character-level A8 call to pieces just by being added."""
+        from torchlingo.data_processing.vocab import SentencePieceVocab
+
+        _, _, src_vocab, tgt_vocab = create_dataloaders(
+            self.train_file,
+            use_sentencepiece=True,
+            sp_model_path=self.model,
+            num_workers=0,
+            target_units="characters",
+        )
+        self.assertIsInstance(src_vocab, SentencePieceVocab)
+        self.assertIsInstance(tgt_vocab, SentencePieceVocab)
 
     def test_sp_model_path_alone_serves_both_sides(self):
         _, _, src_vocab, tgt_vocab = create_dataloaders(

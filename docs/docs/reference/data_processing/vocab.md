@@ -84,6 +84,22 @@ indices = zh_vocab.encode("我是学生")
         - encode
         - decode
 
+### CharVocab
+
+One token per character, for a language written without spaces between words, where a
+`SimpleVocab` would make each sentence one "word". `create_dataloaders(...,
+target_units="characters")` uses it for the target side; adding the SentencePiece settings to
+the same call replaces it with subword pieces.
+
+::: torchlingo.data_processing.vocab.CharVocab
+    options:
+      show_source: true
+      members:
+        - build_vocab
+        - encode
+        - decode
+        - spaced
+
 ### SentencePieceVocab
 
 ::: torchlingo.data_processing.vocab.SentencePieceVocab

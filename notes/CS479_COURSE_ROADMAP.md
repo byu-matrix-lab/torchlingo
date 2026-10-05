@@ -1,6 +1,6 @@
 # CS 479 Fall 2026: Course Roadmap
 
-*Repository copy of `CS479 Fall 2026 Roadmap_v12.md` (course-side roadmap v12), refreshed 2026-10-05. Everything above "## Which notebook serves which lecture" is regenerated from the desktop file by the course-side session; edit it there. Everything from that heading down is written in this repository and is preserved by the refresh.*
+*Repository copy of `CS479 Fall 2026 Roadmap_v13.md` (course-side roadmap v13), refreshed 2026-10-05. Everything above "## Which notebook serves which lecture" is regenerated from the desktop file by the course-side session; edit it there. Everything from that heading down is written in this repository and is preserved by the refresh.*
 
 ---
 
@@ -10,7 +10,7 @@ Introduction to Machine Translation, BYU. Monday and Wednesday, 11:00 to 12:15.
 serve it and what each one is for, what assignment it sets and when that is due. One document,
 current as of its date. What changed and why is in the Decisions log at the end, not inline.
 
-**v12, Oct 5, evening.** No schedule change. The 8b deck is 35 slides, adopted after class: reading reports, four tutorial-4 recap slides, the quiz review, real self-attention and multi-head maps from the pretrained model, a model-context slide, a capacity-experiment slide, acknowledgments, and a closing reminder slide. Two standing deck rules from Eric, applied at every rebuild from here: a Reading Reports slide after the quiz review, and a closing before-next-time slide in step with Learning Suite; and one quiz rule: every attendance quiz asks one question per required reading or tutorial (2 / 1 / 0). v11 (Oct 5): no schedule change. Three decisions by Eric, each handed to the repository and pending its merge: the Lecture 7 notebook makes the held-out phrase the student's choice with a prediction and a required contrast; the Lecture 9 notebook makes the `<unk>` count the student's function, the vocabulary size the student's choice, and asks for an A9 prediction before the settings print; and the tutorials are renumbered into course order (07→02, 02→03, 08→05, 05→07, 03→08; 01, 04, 06 unchanged; lecture alignments unchanged). Tutorial 5 stays at Lecture 10, which closes that open question. Until the merges land, the scope notes below describe the notebooks as they are and say what is coming; the notebook index shows both numbers. Also: 8a is 30 slides (a learned-alignment heatmap slide added Oct 1), and the paper sign-up sheet holds 24 papers. v10 (Oct 1): no schedule change. A new section, "Learning outcomes, and who does the work", states what each lecture and each notebook is for as what the student can do afterwards, rates every notebook on whether the student or the notebook does the work, and flags four places where a notebook does enough that the assignment can be completed on auto-pilot (the A8 kickoff, A9 as a paste, the Lecture 7 toy model, and the A13/A14 scaffolds still to be built), with proposals; the decisions are Eric's and sit on the task list. v9 (Sep 30): two schedule decisions (Eric and Coulson): A9 is due Mon Oct 12, the day of the
+**v13, Oct 5, late.** No schedule change. The 8b deck, reviewed after class for flow and per-slide load, is now `_v3` (28 slides shown, 4 hidden at the end): the three borrowed figures that remained (Wikipedia's softmax, Serrano's layer, the AMTA copy of Figure 1) are redrawn in the deck's own format, the model-context slide sits beside the first map, notation is √d_k throughout, the Residual Stream and Decoder Block slides lost their heaviest paragraphs to speaker notes, and the Three Attentions slide carries its why in two sentences per panel. Positional encoding, deployment, pros and cons and the two capacity slides are in the Lecture 9 deck, parked for its rebuild, so the 8b description below replaces v12's. Awaiting Eric's adoption. v12 (Oct 5, evening): No schedule change. The 8b deck is 35 slides, adopted after class: reading reports, four tutorial-4 recap slides, the quiz review, real self-attention and multi-head maps from the pretrained model, a model-context slide, a capacity-experiment slide, acknowledgments, and a closing reminder slide. Two standing deck rules from Eric, applied at every rebuild from here: a Reading Reports slide after the quiz review, and a closing before-next-time slide in step with Learning Suite; and one quiz rule: every attendance quiz asks one question per required reading or tutorial (2 / 1 / 0). v11 (Oct 5): no schedule change. Three decisions by Eric, each handed to the repository and pending its merge: the Lecture 7 notebook makes the held-out phrase the student's choice with a prediction and a required contrast; the Lecture 9 notebook makes the `<unk>` count the student's function, the vocabulary size the student's choice, and asks for an A9 prediction before the settings print; and the tutorials are renumbered into course order (07→02, 02→03, 08→05, 05→07, 03→08; 01, 04, 06 unchanged; lecture alignments unchanged). Tutorial 5 stays at Lecture 10, which closes that open question. Until the merges land, the scope notes below describe the notebooks as they are and say what is coming; the notebook index shows both numbers. Also: 8a is 30 slides (a learned-alignment heatmap slide added Oct 1), and the paper sign-up sheet holds 24 papers. v10 (Oct 1): no schedule change. A new section, "Learning outcomes, and who does the work", states what each lecture and each notebook is for as what the student can do afterwards, rates every notebook on whether the student or the notebook does the work, and flags four places where a notebook does enough that the assignment can be completed on auto-pilot (the A8 kickoff, A9 as a paste, the Lecture 7 toy model, and the A13/A14 scaffolds still to be built), with proposals; the decisions are Eric's and sit on the task list. v9 (Sep 30): two schedule decisions (Eric and Coulson): A9 is due Mon Oct 12, the day of the
 next lecture, not Oct 14 with A10; the proposal week is one day of outline reviews and two of
 presentations, days pending in Learning Suite. Learning Suite now carries the shifted lecture
 rows, the assignment due dates and the quiz names (Coulson), so it and this file agree again.
@@ -179,8 +179,8 @@ lecture; the scope notes below carry the content, this carries the point.
 | 6 | Evaluation | Rank translations by hand before seeing a score; compute BLEU from its parts and explain a zero; use chrF; say where a metric and a human disagree and what the metric was rewarding. | A6 |
 | 7 | Paper reviews; neural networks | Review a paper to the course template; explain neuron, activation, forward pass, loss and gradient; read a loss curve against ln V; tell memorisation from translation with a held-out item. | A7 report; paper reviews |
 | 8a | Encoder-decoder and attention | Describe the encoder-decoder and its bottleneck; explain attention as a learned soft alignment and read an alignment matrix; split and verify a corpus and say why the dedupe is source-side; read training against validation loss; start, checkpoint and resume a long run. | A8 |
-| 8b | The Transformer | Describe self-attention (query, key, value, scaled dot product, softmax), how order gets in, multi-head attention, the encoder block and residual stream, and the decoder's masked self-attention and cross-attention; say what capacity buys and when. | Quiz 8b |
-| 9 | Morphology, subwords, terminology | Explain the fixed-vocabulary problem; measure `<unk>` before and after SentencePiece; retrain with one variable changed and attribute the BLEU difference to it. | A9 comparison |
+| 8b | The Transformer | Describe self-attention (query, key, value, scaled dot product, softmax) and compute one step by hand; say why there are three attentions and what each is for; read a tensor shape; describe multi-head attention, the encoder block and residual stream, and the decoder's masked self-attention and cross-attention. | Quiz 8b |
+| 9 | Morphology, subwords, terminology | Say how order gets into a model with no recurrence; place their own A8 BLEU on the measured capacity curve and say what capacity buys and when; explain the fixed-vocabulary problem; measure `<unk>` before and after SentencePiece; retrain with one variable changed and attribute the BLEU difference to it. | A9 comparison |
 | 10 | Quality estimation | Distinguish evaluation from estimation; say what COMET and COMET-QE score and what the number means; explain greedy against beam search and why a comparison must pin decoding. | A10; Quiz 10 |
 | 11 | Neural QE and toolkits | Run COMET and COMET-QE on their own A6 data; reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and its system- against segment-level caveat. | A11 |
 | 12 | LLMs for MT; context | Prompt a decoder-only model to translate with in-context examples; measure what context buys and where it stops; name the document-level problems (pronouns, consistency). | A12 chart and analysis |
@@ -440,29 +440,40 @@ a firm range; the trainer keeps the best checkpoint by validation loss, so runni
 time, not quality); an A100, L4 or G4 runtime, not a T4; checkpoint to Drive; SacreBLEU over
 the whole test set; state your decoding strategy.
 
-### 8b. Neural MT: The Transformer (F2026, 35 slides)
-Its own quiz. Reading Reports (the first two of the semester); a Quiz 8a review; a
-"Where We Left Off" recap; four recap slides on tutorial 4 (the bottleneck as a discarded
-variable, the reversal task and the ablation with measured numbers, reading the alignment map,
-Part 7's code-to-formula bridge), added because the reading cannot be assumed internalised;
-"The Model Behind Today's Maps" (the pretrained English-to-Spanish SimpleTransformer, 2.5M
-parameters, 64,311 TED-talk pairs, BLEU about 7); "Welcome to the Birthplace of the Transformer"; self-attention and
-its diagrams; softmax, now a recap of Lecture 7 and placed before it is used; "Attention,
-Mechanically: Query, Key, Value" with the scaled dot-product formula as editable text; the
-Transformer replaces recurrence; "No Recurrence. So How Does It
-Know the Order?" (positional encoding); multi-head attention; "What Is Actually Inside One
-Encoder Block"; "The Residual Stream", the 2021 reading of the same diagram, with the pre-norm
-caveat and the note that TorchLingo defaults to the paper's post-norm and offers both; **"The
-Decoder Block: Where Translation Happens"**, masked self-attention over the target so far (the
-mask is teacher forcing mechanically), cross-attention over the encoder (8a's attention,
-the only place the two sentences meet), feed-forward, then the softmax over V that produces
-Lecture 7's p(y_t | y_<t, x); the full architecture; pros and cons; "What Capacity Buys, and When", the measured 11.7M-against-56M
-crossover with its caveats on the slide, preceded by "The Models Behind the Capacity Table"
-(the German-to-English sweep's data, models and controls, from `notes/reports/a8-benchmark.md`); an A8 reminder pointing at tutorial 6, with the
-Colab clock (two to five hours for 35 epochs on an A100 before bucketing, and not a T4); the
-Koehn references; Acknowledgments (Koehn's JHU 2020 slides, Munteanu's AMTA 2018 tutorial,
-Serrano.Academy, Omniscien, Wikipedia; the papers); "Before Wednesday" (A8, Quiz 8b, tutorials
-6 and 8, the next presenters).
+### 8b. Neural MT: The Transformer (F2026 `_v3`, 32 slides: 28 shown, 4 hidden in an appendix)
+Its own quiz. Reading Reports (the first two of the semester); a Quiz 8a review; objectives
+(five main bullets, no sub-lines); "Reading a Shape: (1, 7, 64)", tensor notation introduced
+before it is used; "Where We Left Off: The Bottleneck, and the Fix" (the 8a recap, drawn, with
+the `encode_source` line and the three panels); "Welcome to the Birthplace of the Transformer";
+"Three Attentions, Three Questions" (encoder self-attention for representation, masked decoder
+self-attention for fluency, cross-attention for adequacy; drawn with arcs; the why before the
+how); "Softmax: Scores into Weights" (the rule, a three-score example at 4 / 2 / 0 and the same
+scores scaled by √d_k = 2, as bars); "Attention, Mechanically: Query, Key, Value" with the scaled
+dot-product formula as editable text and the cross-attention framing (queries from the decoder,
+keys and values from the encoder); the in-class activity "One Attention Step, By Hand" (three
+words, two dimensions; score, scale, softmax, context vector, each with the type of its result;
+answers 0.14 / 0.28 / 0.58 and (0.86, 1.14)); "Self-Attention: A Different Take" (adapted from
+Koehn; the bank-of-the-river strip); "The Model Behind Today's Maps" (the pretrained
+English-to-Spanish SimpleTransformer, 2.5M parameters, 64,311 TED-talk pairs, BLEU about 7),
+placed just before the first map; "Self-Attention, Seen: One Word, Two Senses" ("like" as a verb
+and as a preposition, layer 3 head 2); "Self-Attention, Formally" (the H Hᵀ pipeline, √d_k
+throughout, adapted from Koehn); "The Self-Attention Layer, Piece by Piece" (Serrano's layout
+redrawn with a shape on every block: X n × d, the three W matrices, Q / K / V, scores n × n,
+weights, weights × V); "Replacing the Recurrence with Self-Attention" (drawn chain against fan);
+"Multi-Head Attention" (four real heads); "The Whole Transformer, as the Paper Draws It"
+(Figure 1 redrawn, with callouts to the block slides, to cross-attention, and to positional
+encoding, which Lecture 9 opens with); "What Is Actually Inside One Encoder Block" (drawn, with
+the residual skips); "The Residual Stream" (the 2021 reading; the pre-norm caveat and
+TorchLingo's `norm_first` in the notes); "The Decoder Block: Where Translation Happens" (masked
+self-attention, cross-attention, feed-forward, then the softmax over V that produces Lecture 7's
+p(y_t | y_<t, x); teacher forcing in the notes); "Assignment 8 Is Due Wednesday" (the Colab
+clock, the split check, the length cap with the (64, 100, 512) batch shape, checkpointing,
+tutorial 6); "Before Wednesday" (A8, Quiz 8b, tutorials 6 and 8, the next presenters);
+appendices: Going Deeper (Koehn) and Acknowledgments (Koehn's JHU 2020 slides, Vaswani's
+Figure 1, Serrano.Academy's layout; the papers). Hidden at the end, kept for reference: three
+tutorial-4 recap slides (the reversal task and its ablation, reading the map, Part 7's
+code-to-formula bridge) and Koehn's encoder figure. Positional encoding, deployment, pros and
+cons, and the two capacity slides moved to the Lecture 9 deck on Oct 5.
 **Notebooks:** `04-attention-and-alignment` Part 7 ("You have already seen the Transformer's
 mechanism") is where this session starts; kept in one notebook with 8a's parts on purpose.
 `08-transformer-attention` (reading, this week): a pretrained Transformer's attention on real

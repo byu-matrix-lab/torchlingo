@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the install came from, e.g. `0.2.5 (course @ 11aa496)` for the course notebooks' install from
   the `course` branch, `0.2.5 (editable checkout)`, or `0.2.5` alone from PyPI. It reads pip's
   `direct_url.json`. `__version__` is unchanged.
+- **`CharVocab`, and `create_dataloaders(..., target_units="characters")`**: one target token
+  per character, for languages written without spaces between words. The source side stays
+  words. `use_sentencepiece=True` overrides `target_units`, so adding the SentencePiece
+  settings to a character-level call switches it to subword pieces: Assignment 9's settings
+  work unchanged on a character-level A8 notebook.
 - **`SimpleVocab.build_vocab` warns when most of a corpus will become `<unk>`**
   (`MostlyUnknownWarning`): at least half of all word occurrences below `min_freq`, on 200
   sentences or more. The usual cause is a language written without spaces (Chinese, Japanese,

@@ -28,7 +28,7 @@ from torch.utils.data import DataLoader, Sampler
 
 from ..config import Config, get_default_config
 from .dataset import NMTDataset
-from .vocab import BaseVocab, SentencePieceVocab
+from .vocab import BaseVocab, CharVocab, SentencePieceVocab
 
 
 def collate_fn(
@@ -277,6 +277,7 @@ def create_dataloaders(
     device: str | None = None,
     pad_idx: int | None = None,
     config: Config | None = None,
+    target_units: str = "words",
 ) -> tuple[DataLoader, DataLoader | None, BaseVocab, BaseVocab]:
     """Create PyTorch DataLoaders for training and validation.
 
@@ -320,6 +321,14 @@ def create_dataloaders(
         pad_idx (int, optional): Padding index value. Defaults to config.pad_idx.
         config (Config, optional): Configuration object. Defaults to
             get_default_config().
+        target_units (str, optional): What a target-side token is when SentencePiece
+            is off: ``"words"`` (split at spaces, `SimpleVocab`) or ``"characters"``
+            (`CharVocab`, for languages written without spaces between words). The
+            source side is always words. **``use_sentencepiece=True`` overrides it**:
+            subword pieces then replace words or characters on both sides, so adding
+            the SentencePiece settings to a call is enough to switch to them. Ignored
+            when prebuilt datasets are passed, since they carry their vocabularies.
+            Defaults to ``"words"``.
 
     Returns:
         tuple: A 4-tuple containing:
@@ -331,6 +340,7 @@ def create_dataloaders(
 
     Raises:
         AssertionError: If use_sentencepiece=True but sp_model_path is None.
+        ValueError: If target_units is neither "words" nor "characters".
         ValueError: If data files have incorrect format or missing columns.
         ValueError: If the training loader would yield 0 batches, e.g. when
             use_bucketing=True and batch_size is larger than every length
@@ -377,6 +387,11 @@ def create_dataloaders(
     device = device if device is not None else cfg.device
     pad_idx = pad_idx if pad_idx is not None else cfg.pad_idx
 
+    if target_units not in ("words", "characters"):
+        raise ValueError(
+            f'target_units must be "words" or "characters", not {target_units!r}'
+        )
+
     # Create collate function with resolved pad_idx
     collate = partial(collate_fn, pad_idx=pad_idx)
 
@@ -413,6 +428,14 @@ def create_dataloaders(
                 tgt_vocab = SentencePieceVocab(sp_tgt_model_path)
             else:
                 tgt_vocab = src_vocab
+        elif target_units == "characters":
+            # Built here rather than by NMTDataset, which would build a word vocabulary
+            # for the target first, and warn that it is mostly <unk>.
+            tmp = NMTDataset(train_data, tgt_vocab=CharVocab(), config=config)
+            tmp.tgt_vocab.build_vocab(tmp.tgt_texts)
+            src_vocab = tmp.src_vocab
+            tgt_vocab = tmp.tgt_vocab
+            assert src_vocab is not None and tgt_vocab is not None
         else:
             tmp = NMTDataset(train_data, config=config)
             src_vocab = tmp.src_vocab
