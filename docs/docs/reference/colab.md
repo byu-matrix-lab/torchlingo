@@ -24,8 +24,17 @@ library is installed:
 import sys
 if "google.colab" in sys.modules:
     %pip install --quiet "torchlingo @ git+https://github.com/byu-matrix-lab/torchlingo@course"
+    # pip keeps a TorchLingo already in this session when its version number matches, even if
+    # it is older code; this swaps in the course branch's, leaving the dependencies alone.
+    %pip install --quiet --force-reinstall --no-deps "torchlingo @ git+https://github.com/byu-matrix-lab/torchlingo@course"
 import torchlingo
 ```
+
+The second `%pip` line matters more than it looks. The `course` branch and the PyPI release
+can carry the same version number, and pip treats an installed TorchLingo of that number as
+already satisfying the first line, so a session that installed TorchLingo earlier (another
+notebook, or before `course` moved) would keep its older code. Reinstalling TorchLingo alone,
+without its dependencies, takes a few seconds and leaves torch untouched.
 
 The last line is the point: `%pip` reports a failure but does not stop the cell, so without
 the import a failed install would surface one cell later as a confusing `ModuleNotFoundError`.

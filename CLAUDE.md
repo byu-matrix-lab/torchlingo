@@ -213,9 +213,11 @@ and the pull request happen here.
   **Drive copies are never deleted while students are in them**; only the copies on Eric's desktop
   are Cowork's to remove. Deleting what a student is working in is the hazard; editing the source
   is not.
-- **New notebooks open with the four-line install, then `torchlingo.colab.setup`.** The install
-  runs `%pip` only in Colab and ends with `import torchlingo`, so a failed install stops in that
-  cell rather than one later; `setup(gpu=, drive=, data=)` does the device, the Drive mount and
+- **New notebooks open with the standard install cell, then `torchlingo.colab.setup`.** The
+  install runs `%pip` only in Colab and ends with `import torchlingo`, so a failed install stops
+  in that cell rather than one later. Its second `%pip` line, `--force-reinstall --no-deps`, is
+  not optional: pip treats an installed TorchLingo with the same version number as satisfying
+  the first, so a session that already had one kept older code (found 2026-10-05); `setup(gpu=, drive=, data=)` does the device, the Drive mount and
   the downloads. Copy tutorial 3's first two code cells. Not the old commented-out install,
   which was the bug, nor the 20-to-60-line cells that replaced it.
 - **Notebooks install from the `course` branch, not PyPI.** Eric, 2026-10-05: `%pip install

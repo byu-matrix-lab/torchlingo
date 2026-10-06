@@ -58,7 +58,8 @@ if [ ! -x venv/bin/python ]; then
   venv/bin/pip install --quiet nbclient nbformat ipykernel numpy pandas matplotlib
 fi
 if venv/bin/python -c "import torchlingo" 2>/dev/null; then
-  echo "NOTE: torchlingo is already in $STUDENT_DIR/venv, so install cells will not be exercised."
+  echo "NOTE: torchlingo is already in $STUDENT_DIR/venv, so a first install is not exercised;"
+  echo "      the install cell's forced reinstall still replaces it with the course branch."
 fi
 
 # The kernel inherits this, so a notebook's `!pip install` finds the venv's pip, as it finds
