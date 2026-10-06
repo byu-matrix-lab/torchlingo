@@ -88,44 +88,41 @@ author, and worth copying the badge deliberately in the meantime.
 warnings. Re-executing a notebook has twice baked `/Users/...` paths and PyTorch
 deprecation warnings into committed output here.
 
-**Copy:** the setup pattern from tutorial 3, which was rewritten for this and is
-now the house convention. Two cells, and both halves matter.
-
-Until today that cell read:
+**Copy:** the first two code cells of tutorial 3, the house convention. Every
+course notebook that uses TorchLingo opens with them, word for word:
 
 ```python
-# Install TorchLingo (uncomment in Google Colab)
-# %pip install torchlingo
+# Install TorchLingo in Colab. Nothing to uncomment. Pip's "you may need to restart the
+# kernel" does not apply to a first install; if the install fails, the import below stops here.
+import sys
+if "google.colab" in sys.modules:
+    %pip install --quiet "torchlingo @ git+https://github.com/byu-matrix-lab/torchlingo@course"
+    # pip keeps a TorchLingo already in this session when its version number matches, even if
+    # it is older code; this swaps in the course branch's, leaving the dependencies alone.
+    %pip install --quiet --force-reinstall --no-deps "torchlingo @ git+https://github.com/byu-matrix-lab/torchlingo@course"
+import torchlingo
 ```
 
-Commented out. A student runs it, it *succeeds* by doing nothing, the next cell
-raises `ModuleNotFoundError`, and they cannot tell whether the library is broken or
-they missed a step. In a twenty-minute activity on twenty-four laptops that is the most
-expensive possible failure.
+then `from torchlingo.colab import setup` and `env = setup(...)`, which does the device,
+the Drive mount and any downloads, and prints a first line such as
+`TorchLingo 0.2.6 (course @ a46495b) | PyTorch ... | device ...`.
 
-What replaced it, and why each choice is the way it is:
+Why each part is the way it is:
 
-1. **Detect Colab and install unconditionally.** Nothing to uncomment, because a
-   step a student must remember is a step some students will not.
-2. **Use `subprocess`, not the `%pip` magic**, so behaviour does not depend on the
-   magic surviving a conditional.
-3. **Raise on a failed install, do not print.** A failure that only prints leaves
-   the student debugging an `ImportError` ten cells later instead of a pip error
-   where it happened.
-4. **Follow it with a verification cell that imports every module the series uses**
-   and raises with the upgrade command if any is missing.
+1. **It installs from the repository's `course` branch, not PyPI** (Eric, 2026-10-05). A
+   notebook and the library code it calls reach students together, with no release in
+   between. `course` only moves forward, to commits whose checks passed, through
+   `scripts/promote_course.sh` on this side.
+2. **The second `%pip` line is not optional.** pip treats an installed TorchLingo with the
+   same version number as already satisfying the first line, so a session that already had
+   one kept its older code. Reinstalling TorchLingo alone takes seconds and leaves torch alone.
+3. **Nothing to uncomment, and it ends with `import torchlingo`**, so a failed install stops
+   in that cell rather than surfacing ten cells later as a confusing `ModuleNotFoundError`.
+4. **The setup line names the exact code**, branch and commit included. Ask for it with any
+   student's bug report: the version number alone no longer identifies what they ran.
 
-That fourth point has a non-obvious reason worth knowing, because it was found by
-testing rather than assumed. `torchlingo/__init__.py` imports its submodules
-**eagerly**, so an incomplete install fails wholesale at `import torchlingo`. There
-is no such thing as a partly working install, and a setup cell that probes only the
-modules it happens to need reports nothing a blanket check would not. A first draft
-of that cell had a "warn about later modules" branch which was therefore unreachable
-dead code.
-
-The second half of the argument is pedagogical: a student whose install cannot run
-Tutorial 6 should discover that on Monday, in a room with an instructor in it, and
-not alone in week four. The fix is one command either way.
+A notebook that never imports TorchLingo (Lectures 3 to 6 with their own packages) needs none
+of this.
 
 ### 5. Just drop the files in; git is handled on this side
 
