@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-10-05
+
 ### Added
 - **`torchlingo.version_label()`**, printed by `colab.setup()`: the release number plus where
   the install came from, e.g. `0.2.5 (course @ 11aa496)` for the course notebooks' install from
