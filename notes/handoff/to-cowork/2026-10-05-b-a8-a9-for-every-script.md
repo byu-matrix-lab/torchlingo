@@ -1,6 +1,7 @@
 # A8 and A9 now work for languages written without spaces; notebooks install from `course`
 
-**Baton to you, 2026-10-05, late.** A second pass the same day, after
+**Baton to you, 2026-10-05, late; last updated the same night** (task numbers replaced with
+names; request 1 now says what A8 students submit). A second pass the same day, after
 `2026-10-05-three-decisions-taken-in.md`. Nothing new came from your side since your Oct 5 files;
 your roadmap v13 and its later edit (the 8b symbols slide) are committed. Two students on Asian
 languages got empty A8 translations this afternoon, and most of today followed from that.
@@ -9,15 +10,48 @@ ours.**
 
 ## Requests
 
-**1. The A8 handout: one paragraph for languages written without spaces.** The A8 notebook says
-the handout governs, and the notebook now has an exception the handout does not mention. Proposed
-text, yours to word:
+**1. The A8 handout: what to submit, made unambiguous after today.** A8 is due Wednesday at 10:00,
+and today changed four things a student's submission depends on. Eric wants the handout to be
+clear about what is submitted. First, a check only you can make: the transcript in
+`torchlingo-private` (Sep 29) says Learning Suite still carried last year's OpenNMT text, while
+the 8a deck had the current list. If Learning Suite still says OpenNMT, it needs the deck's list
+regardless of what follows.
 
-> *If your language is written without spaces between words (Chinese, Japanese, Thai, Lao, Khmer,
-> Burmese), set `NO_SPACES = True` in Step 0 of the A8 notebook. Your language is then split into
-> characters instead of words; English stays in words. Your BLEU is spBLEU (sacreBLEU's
+The deck's "What To Submit" list stands. Proposed additions, yours to word:
+
+> **To your subfolder in the shared folder:**
+> - *The three splits, source and target, six files: `train`, `val` and `test`, each `.src` and
+>   `.tgt`, exactly as the A8 notebook's Step 5 wrote them to `CS479/assignment8` in your Drive.*
+> - *Your model's output on the test set: the `test.hyp` file the notebook's scoring cell writes,
+>   from the same run as the score you report. Leave any `<unk>` in it; do not delete or replace
+>   them.*
+> - *Ten random test pairs with the MT output and a back-translation of that output into English
+>   (any MT system will do).*
+>
+> **To Learning Suite:**
+> - *Your score over all 2,000 test sentences, and which BLEU it is: SacreBLEU's default, or
+>   spBLEU if your language is written without spaces (below).*
+> - *Your process: epochs trained, tokenization (words, or characters if you set `NO_SPACES`),
+>   decoding strategy (the notebook decodes greedily), architecture settings, and how long data
+>   preparation, training and translating the test set each took.*
+> - *Your opinion of the output quality and what you think is limiting it. If your output contains
+>   `<unk>`, say roughly how often; it is the problem Lecture 9 takes up.*
+>
+> **If your language is written without spaces between words** (Chinese, Japanese, Thai, Lao,
+> Khmer, Burmese): *set `NO_SPACES = True` in Step 0 of the A8 notebook. Your language is then
+> split into characters instead of words; English stays in words. Your score is spBLEU (sacreBLEU's
 > `flores200` tokenizer), because ordinary BLEU finds words at spaces and scores such text near
-> zero. Say so in your write-up.*
+> zero. Because the length cap then counts characters, your split changes slightly: submit the new
+> split files.*
+>
+> **If you scored your model again after Oct 5** (TorchLingo now shows `<unk>` in translations
+> instead of dropping it, so the score can move slightly): *submit the score and `test.hyp` from
+> the same run, and say which run it was.*
+
+Two facts behind those lines, so your text matches what students see: the scoring cell prints the
+score but not sacreBLEU's signature line, so asking for "the signature" would ask for something the
+notebook does not show; and since tonight the setup cell's first line reads, for example,
+`TorchLingo 0.2.6`, which tells you which behaviour a student's run had.
 
 **2. The A9 instructions: three names, and one scoring rule.** Run unchanged, A9 reuses A8's
 training-run name, its `best/` folder and its `test.hyp`, so it **overwrites the A8 model and
