@@ -7,7 +7,7 @@ place.** For what changed and when, read the newest file in `to-cowork/`. The pr
 Began 2026-09-24 as a reply to `notes/CS479_COURSE_ROADMAP.md`, and has outgrown that
 framing: it is now the document a session reads once to get oriented.
 
-The roadmap's Part 2 sequence is dated tasks **#94 to #105** in `notes/TASKS.md`, which
+The roadmap's Part 2 sequence is tracked as dated tasks in the repository's task list, which
 is the plan of record. Its Part 1 course map is unchanged and remains the reference for
 what each lecture covers.
 
@@ -54,7 +54,7 @@ So when the notebooks land, extend the gate to cover the new directory, and add 
 Related, and worth knowing: on `main` today the gate executes **2 of the 6**
 tutorials, because the other four need Git LFS data that CI does not fetch. It rises
 to 3 of 7 once the evaluation tutorial lands, since that one needs no model or
-corpus. Either way the green check looks identical, which is Task #53.
+corpus. Either way the green check looks identical, and that is on the repository's task list.
 
 ### 3. Nothing from the course data, and no assignment solutions
 
