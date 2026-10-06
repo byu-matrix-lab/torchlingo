@@ -18,10 +18,10 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-10-05:** everything open is here. **#192** has students waiting: two A8 students on
-Asian languages get empty translations. **#188**'s tutorial 5 cell waits for release 0.2.5. **#152** still
-has no report from Coulson's Colab run. What remains of the notebook audit (`NOTEBOOK_AUDIT.md`,
-from Cowork) is Lecture 10's three (#166, #174, #175) and Lecture 12's rebuild (#176).
+**As of 2026-10-05, late:** everything open is here. **#166** (tutorial 8, with #162 and #92) is
+paused while A8 is being got into shape (Eric); its work so far is on a local branch. What
+remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork) is Lecture 10's three (#166, #174,
+#175) and Lecture 12's rebuild (#176).
 
 **Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
 done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
@@ -91,8 +91,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #192 | **P1** | A8: empty translations on languages written without spaces | **L8a** | **Open** — cause reproduced; waiting on Eric: what to tell the two students, and whether to add a library warning |
-| #166 | **P1** | Tutorial 8 cannot run from its Colab badge | **L10** | Open — **first of the L10 three**; commented-out install, and it needs tutorial 3's checkpoint; **do with #162, #92 and the audit's tutorial 8 directions** |
+| #166 | **P1** | Tutorial 8 cannot run from its Colab badge | **L10** | **Paused (Eric, Oct 5: A8 first)** — work so far on local branch `tutorial-8-standalone`; **do with #162, #92 and the audit's tutorial 8 directions** |
 | #174 | **P1** | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | **P1** | Notebook audit: tutorial 7 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
 | #176 | **P1** | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
@@ -102,8 +101,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #98 | **P1** | Back-translation as a documented workflow | **L13** | **Due Mon Oct 26** |
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
 | #92 | **P1** | Tutorials 7 and 8 bypass the library's own evaluation API | **L10** | Open — **do inside #166 and #175**, which rewrite the same two notebooks |
-| #188 | **P2** | Tutorial 5 shows encoder self-attention too | **L8b** | **Go (Eric, Oct 5).** The tutorial cell waits on release 0.2.5 |
-| #152 | **P2** | **A8 kickoff notebook for Lecture 8a** | **L8a** | Merged, PR #140 — only the **Colab run** on a real A5 corpus remains, **delegated to Coulson** (Sep 28); **no report as of Oct 5** — chase it here, not through Eric |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
@@ -112,7 +109,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
 | #187 | **P3** | Remove the tutorial redirect stubs | **hyg** | **After the Fall 2026 term** — not before; students hold the old badges |
-| #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Mostly done** 2026-09-28 — left: `myles_testing` (ask Myles), ~70 old local branches |
+| #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
 | #49 | **P3** | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
@@ -215,14 +212,21 @@ Both are deletions, so **ask Eric first**. Worktrees: `git worktree remove`. Bra
 whose PR is MERGED, checked per branch, never by pattern. **Done when** `git worktree list` shows
 only the main checkout and no merged PR's branch remains on `origin`.
 
-**Done 2026-09-28, with Eric's permission:** four scratch worktrees removed (each clean, each PR
-merged), and 31 branches deleted from `origin` and locally, each checked individually: PR MERGED
-*and* branch tip equal to the commit that PR merged, so nothing pushed after a merge was lost.
-**Left, deliberately:** `myles_testing` passes both checks but is Myles's, so ask him; `coulson`
-has no merged PR; and about seventy local-only branches from earlier sessions, whose `origin`
-copies are already gone and which were mostly squash-merged, so each needs the same per-branch
-check before `git branch -D`. The `pr/*` refs in `git branch -r` are GitHub's read-only
-pull-request refs fetched by this clone's config, not branches; leave them.
+**The check, per branch:** PR MERGED *and* branch tip equal to the commit that PR merged, so
+nothing pushed after a merge is lost. Record each deleted name and commit first
+(`.git/deleted-branches-*.txt`), so any can be restored with `git branch <name> <commit>`.
+
+**Left, deliberately:**
+
+- `myles_testing` passes both checks but is Myles's, so ask him.
+- `coulson` (on `origin`) has no PR.
+- Four local branches have commits whose content is not in `main` and no PR:
+  `docs/evaluation-tutorial`, `feat/signatures-for-chrf-and-ter`, `feat/split-lectures-8a-8b`,
+  `notes/crash-audit-tasks`. Each was probably superseded, but that has to be read, not assumed.
+- The `backup/...` branch is a backup; keep it.
+
+The `pr/*` refs in `git branch -r` are GitHub's read-only pull-request refs fetched by this
+clone's config, not branches; leave them.
 
 ### #170 Mixed precision for A9's runs, if a Colab GPU shows it pays
 
@@ -271,19 +275,12 @@ question is answered.
 Eric, 2026-09-28: large code cells lose a new student. The rule is in `CLAUDE.md`: code a student
 learns nothing from reading belongs in the library; code that *is* the lesson stays written out.
 
-**Done 2026-09-28:** `torchlingo.colab.setup` and `fetch_data`, `preprocessing.split_exact` and
-`diagnostics.padding_report`, released in 0.2.2 (PR #163, with `evaluate_model` finally tested,
-closing #86). The A8 kickoff moved onto them, verified byte-identical in its split files. Lecture
-7 and tutorials 1, 3, 4 and 7 now open with the four-line install and `setup()`.
-
 **Left:**
 
 - **Tutorial 8**, in the one PR with #166 and #162: all three reshape the same notebook.
-- **Tutorials 2 and 6**: check their opening cells against the rule.
 - **Cowork's course notebooks** (Lectures 3, 4, 5, 6, 10, 12) install other packages, not
   TorchLingo, so `setup()` does not replace their installs; check each for plumbing that a
   helper does cover, and ask Cowork before changing their cells.
-- **Every new notebook** is written this way from the first draft, as Lecture 9's was.
 
 **Done when** no notebook carries plumbing a library helper covers.
 
@@ -335,26 +332,6 @@ have been an error.
 
 Worth checking `scripts/collect_ladder.py` for the same pattern while in there.
 
-### #152 A8 kickoff notebook for Lecture 8a
-
-**Written by Cowork and merged 2026-09-28 as PR #140**, as
-`docs/docs/course/lecture-08a-a8-kickoff.ipynb`. All eleven suggestions from here are in it.
-
-**Checked here as far as anything here can check it.** A CPU copy ran end to end against a
-synthetic corpus — cap, dedupe, seeded split, contamination check, nine files, training with the
-checkpointer and `save_dir`, reload, greedy decode, BLEU — and a fresh kernel scoring from the
-Drive checkpoint reproduced the in-session BLEU exactly. Every API it calls exists in PyPI 0.2.0,
-which is what its Colab cell installs. Two fixes were made in the PR: the first-loss wording
-(`log_every` is a mean over N steps, and the first line sits *above* `ln(V)`), and the scoring
-cell no longer needs `result`, which only exists in the session that trained.
-
-**Done when it has run once in Colab against a real A5 corpus.** Nothing here can execute a
-Drive mount on a GPU; that run is the only end-to-end test this notebook will get before
-twenty-four students do. **Delegated to Coulson on 2026-09-28**; Eric sent him the note on
-Discord. No report had arrived by 2026-10-05. **Eric, 2026-10-05: this lives here, not in the
-questions put to him.** Raise it with Coulson directly — a PR comment or the Matrix Lab
-Discord. On his report, read it against the note, then remove this entry.
-
 ### #174 to #176 The notebook audit
 
 Cowork audited all eighteen notebooks from a student's seat at Eric's request (2026-09-29):
@@ -387,38 +364,6 @@ The five one-cell notebooks the renumbering (PR #201) left at the old tutorial p
 not before: bookmarked badges and any Content page not yet flipped point at them. Then search
 the decks' and Learning Suite's links for an old path once more before deleting.
 
-### #192 A8: empty translations on languages written without spaces
-
-Eric, 2026-10-05: two students doing A8 on Asian languages get empty translation output. The
-A8 kickoff notebook calls `create_dataloaders` with its default `SimpleVocab`, which splits on
-whitespace, keeps words seen at least twice (`min_freq=2`), and drops `<unk>` when decoding.
-Chinese, Japanese and Thai put no spaces between words, so each sentence is one "word", almost
-none repeat, and the target vocabulary is nearly empty. The model learns to emit `<unk>`, which
-decodes to `''`. Reproduced on a small Chinese sample: a training sentence encodes to
-`<sos> <unk> <eos>` and decodes to the empty string.
-
-**To confirm for each student:** the language and direction (empty output means the unspaced
-language is the target), and the `Source vocab ... target vocab ...` line Step 6 prints; a
-target vocabulary of a handful of entries is the tell.
-
-**Fix, Eric's call:** tell the students to switch A8 to SentencePiece
-(`create_dataloaders(..., use_sentencepiece=True, ...)`, what A9 teaches), and/or make the
-library say so loudly: a warning when a built vocabulary maps most of the corpus to `<unk>`, and
-a line in the A8 kickoff notebook. **Done when** the students are unblocked and the warning is
-merged or declined.
-
-### #188 Tutorial 5 shows encoder self-attention too
-
-Cowork's offer, 2026-10-05; **Eric said go the same day.** The point the 8b deck makes:
-head-averaged maps on this model are diffuse, single heads are sharp and not interpretable.
-
-**Left: tutorial 5's cell**, on the local branch `tutorial-5-self-attention`, not yet a PR. The
-first layer's four heads, their average, and a per-layer sharpness line, executed on the
-pretrained model, calling `capture_self_attention`. That function is on `main` but in no
-release, and the cell's install pin is `torchlingo>=0.2.5`, so it **cannot merge before 0.2.5
-is on PyPI**: a Colab student would get an ImportError. **Done when** the release is out and the
-cell's PR merges after `scripts/student_path.sh` passes on it.
-
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 
 Found 2026-09-29 doing Task #173: tutorial 6 had a Colab badge and no install cell, so Run all
@@ -433,7 +378,7 @@ but it runs on Mondays and on release tags, so it reports only after the defect 
 had not yet run at all when this was found. A static check blocks the PR.
 
 **Extend `hygiene()` in `notebook_meta.py`**, no new tool: a notebook with a Colab badge that
-imports `torchlingo` must have a code cell installing it (the four-line `%pip` cell `CLAUDE.md`
+imports `torchlingo` must have a code cell installing it (the standard install cell `CLAUDE.md`
 prescribes) before its first `torchlingo` import. Notebooks that never import `torchlingo`, such
 as Lectures 3 to 6 with their own packages, are exempt. It runs in the lint job beside the other
 hygiene checks. **Done when** that check exists, with tests that fail on tutorial 6 as it was
@@ -455,6 +400,14 @@ Found 2026-09-28 while fixing the commented-out install in tutorials 4 and 7 (PR
 
 **Do it in one PR with Task #162**, which reshapes the same notebook's Part 5. Re-execute and
 check every output against the committed one: the PR #149 procedure.
+
+**Paused by Eric on 2026-10-05, until A8 is in shape.** The work so far is one local commit on
+`tutorial-8-standalone`: the opener pointed at A9's decoding settings, the standard install cell,
+tutorial 3's tiny model trained inline (a marked setup cell), and `max_len` shown cutting a
+translation short. Left: split the 72-line beam-search cell under 40 lines; Part 5 to a pointer at
+tutorial 2 (#162) with the score through `torchlingo.evaluation` (#92; `compute_chrf`, since the
+phrases are too short for 4-gram BLEU); drop the project-history note; one closing section;
+re-execute and `scripts/student_path.sh`. Eric, 2026-10-05: no word ceiling for this notebook.
 
 **When it closes, tell Cowork**: the Lecture 10 deck's decoding slide dropped tutorial 8's badge
 on 2026-09-28 and names the tutorial instead, to be restored once it runs standalone.
