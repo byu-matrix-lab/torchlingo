@@ -69,14 +69,13 @@ which installs from the `course` branch with a forced reinstall. Never a `torchl
 
 ## Which tasks moved
 
-`notes/TASKS.md` was reconciled in PR #220 (merged).
+The repository's task list is reconciled.
 
 | | |
 |---|---|
-| **#192** | closed: empty A8 translations, fixed and released; students told |
-| **#188** | closed: tutorial 5's self-attention section is merged |
-| **#152** | closed: students run the A8 notebook in Colab successfully (Eric) |
-| **#166** | paused (Eric): tutorial 8, with #162 and #92; no word ceiling for it (Eric) |
-| **#167** | branch cleanup done except `myles_testing`, `coulson` and four unmerged local branches |
+| **Empty A8 translations on languages without spaces** | closed: fixed, released, and both groups of students told |
+| **Tutorial 5's encoder self-attention section** | closed: merged, and live from its badge |
+| **A first real Colab run of the A8 notebook** | closed: students are running it successfully (Eric) |
+| **Tutorial 8's rewrite** (it standing alone, its BLEU section becoming a pointer to tutorial 2, its scoring going through the library) | paused until A8 is in shape (Eric); no word limit for it (Eric) |
 
 No questions for you this time; the four requests above are the ask.

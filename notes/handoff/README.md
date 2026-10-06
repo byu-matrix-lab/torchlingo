@@ -68,6 +68,12 @@ than the error. The correction was announced in the next entry rather than made 
 hand-off is precisely when the lists go stale and the only moment both sides know what
 changed. `CLAUDE.md` has the argument and the evidence for it.
 
+**Name tasks in words, never by number, in anything written for Cowork.** Eric, 2026-10-05:
+Cowork does not work from `notes/TASKS.md`, so "#166" means nothing to it; "tutorial 8's
+rewrite" does. The same goes for PR numbers, since Cowork does not run git. The "which tasks
+moved" part of a reply is still written, as descriptions. Before committing a `to-cowork/`
+file, search it for `#` followed by a digit.
+
 **The Cowork session does not run git.** Changes arrive as requests in `from-cowork/`, and
 committing, nav entries and pull requests happen here.
 
