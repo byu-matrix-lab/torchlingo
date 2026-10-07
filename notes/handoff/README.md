@@ -56,6 +56,13 @@ Sibling files with `-b`, `-c` and `-d` suffixes for one pass, the last of them a
 what this rule replaces: the suffix means a *new pass*, and a reader cannot tell which sibling
 is the message.
 
+**Draft under a `draft` name; rename to hand off.** Eric, 2026-10-07: while a hand-off is
+being written, its file carries `draft` in its name (`2026-10-07-draft-part-b-is-on-course.md`),
+and it moves to its final name only at the moment of handing off. Both sessions read this
+directory, and a file sitting under a final name reads as a message sent. So the rename is the
+send: until then, the other side ignores anything named `draft`. On 2026-10-07 a hand-off sat
+in `to-cowork/` under its final name while this side went on to run and fix what it described.
+
 **Course notebooks arrive as edits in the tree, not as specs.** Eric, 2026-10-07: Cowork edits
 `docs/docs/course/` directly in the working tree, without git, and hands off; this side reviews
 the edit against the library, runs the checks, commits, pushes and promotes `course`. Tutorials
