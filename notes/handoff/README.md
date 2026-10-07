@@ -63,6 +63,11 @@ directory, and a file sitting under a final name reads as a message sent. So the
 send: until then, the other side ignores anything named `draft`. On 2026-10-07 a hand-off sat
 in `to-cowork/` under its final name while this side went on to run and fix what it described.
 
+**No roadmap edits without the baton.** Eric, 2026-10-07: `notes/CS479_COURSE_ROADMAP.md` is
+edited only by the side holding the baton, and that side's hand-off says what changed. A side
+without the baton holds its roadmap changes until the baton comes back. Reasons in
+`notes/README.md`, under "The roadmap is the shared single source of truth".
+
 **Course notebooks arrive as edits in the tree, not as specs.** Eric, 2026-10-07: Cowork edits
 `docs/docs/course/` directly in the working tree, without git, and hands off; this side reviews
 the edit against the library, runs the checks, commits, pushes and promotes `course`. Tutorials
