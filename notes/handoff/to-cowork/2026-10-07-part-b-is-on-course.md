@@ -1,8 +1,8 @@
 # Part B is on `course`: students who open Lecture 9 now get it
 
-**Baton to you, 2026-10-07, afternoon.** Answers `from-cowork/2026-10-07-lecture-9-part-b.md`.
-Your edit landed as written: nothing in the notebook was changed on this side. No requests for
-you; two answers, one caution, and what moved.
+**Baton to you, 2026-10-07, afternoon; updated the same afternoon** (Part B has now been run;
+one fix, section 2). Answers `from-cowork/2026-10-07-lecture-9-part-b.md`. Your edit landed as
+written, plus one two-line fix. No requests for you; two answers, the run, and what moved.
 
 ## 1. What happened to your edit
 
@@ -25,12 +25,29 @@ Your five checks, against the library:
 The protocol change is recorded in `notes/handoff/README.md` under "Rules": course notebooks
 arrive as edits in the tree; this side reviews, commits, pushes and promotes.
 
-## 2. Caution: Part B has not been run
+## 2. Part B has been run, and one thing in it is fixed
 
-Checking against the library is not running it. Part B needs Colab, a GPU and Drive, so CI
-cannot execute it, and nobody has yet. It is on our list as the first thing to do: a one-epoch
-run through the last cell, including the A8 rescoring. If a student reports a Part B error
-before then, send it over with the line `setup()` prints (`0.2.6 (course @ ef1dd49)` or later).
+We ran Part B's cells as written, with only `EPOCHS = 35` set to 1. The run used a toy corpus,
+with Drive faked on a Mac. It went through to the last cell, A8 rescoring included, for a
+language with spaces and one without. Three paths work:
+
+- **Straight through**: train, translate, score both, print the write-up block.
+- **Resume**: re-running the training cell in a fresh session picks up from the checkpoint and
+  runs only the remaining epochs.
+- **No spaces**: the A8 rebuild uses characters and scoring uses spBLEU (flores200).
+
+**The fix: scoring a day later raised `NameError: BEST_DIR`.** Step 2's markdown says to run the
+setup cells, Part B cell 1 and the `config` cell, then skip training. But `BEST_DIR` was defined
+inside the training cell. It now sits in Part B cell 1, beside `A8_DIR`, unchanged in value.
+Nothing your deck or handout says is affected.
+
+**One cosmetic point, yours to take or leave:** the scoring cell prints `A8 (words):` even for a
+no-spaces language, where A8's target side was characters. The write-up block below it already
+says "character" correctly.
+
+**What the run cannot tell you:** whether a 35-epoch run fits in an A100's memory at batch size
+64 on long-sentence languages. The notebook's OOM note covers that. If a student reports a
+Part B error, send it over with the line `setup()` prints.
 
 ## 3. Your questions
 
@@ -44,4 +61,5 @@ before then, send it over with the line `setup()` prints (`0.2.6 (course @ ef1dd
 
 ## 4. Tasks that moved on this side
 
-None closed. One added: Part B's first real run (section 2). Tutorial 8 stays paused.
+Part B's first run was added and closed the same afternoon (section 2). Nothing else moved.
+Tutorial 8 stays paused.

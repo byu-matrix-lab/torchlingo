@@ -18,8 +18,8 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-10-07:** everything open is here. Lecture 9's Part B (Assignment 9) is on `course`;
-**#203** is its first real run. **#166** (tutorial 8, with #162 and #92) is
+**As of 2026-10-07:** everything open is here. Lecture 9's Part B (Assignment 9) is on `course`.
+**#166** (tutorial 8, with #162 and #92) is
 paused while A8 is being got into shape (Eric); its work so far is on a local branch. What
 remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork) is Lecture 10's three (#166, #174,
 #175) and Lecture 12's rebuild (#176).
@@ -92,7 +92,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #203 | **P1** | Lecture 9's Part B has never been executed | **L10** | Open — Colab and Drive only, so CI cannot; a GPU smoke run with `EPOCHS = 1` through the last cell, including the A8 rescoring. Students are in it now |
 | #166 | **P1** | Tutorial 8 cannot run from its Colab badge | **L10** | **Paused (Eric, Oct 5: A8 first)** — work so far on local branch `tutorial-8-standalone`; **do with #162, #92 and the audit's tutorial 8 directions** |
 | #174 | **P1** | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | **P1** | Notebook audit: tutorial 7 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
