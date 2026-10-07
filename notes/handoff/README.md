@@ -56,6 +56,12 @@ Sibling files with `-b`, `-c` and `-d` suffixes for one pass, the last of them a
 what this rule replaces: the suffix means a *new pass*, and a reader cannot tell which sibling
 is the message.
 
+**Course notebooks arrive as edits in the tree, not as specs.** Eric, 2026-10-07: Cowork edits
+`docs/docs/course/` directly in the working tree, without git, and hands off; this side reviews
+the edit against the library, runs the checks, commits, pushes and promotes `course`. Tutorials
+and the library stay with this side. A cell-level spec in a hand-off file is no longer the
+default; it cost a day on 2026-10-05.
+
 **Once the other side has picked it up, the file is frozen.** Do not edit it after that; if
 something in it turns out to be wrong, say so in the next one. A correction to something the
 reader has already acted on is dishonest as a silent edit.

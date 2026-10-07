@@ -1,6 +1,6 @@
 # CS 479 Fall 2026: Course Roadmap
 
-*Repository copy of `CS479 Fall 2026 Roadmap_v13.md` (course-side roadmap v13), refreshed 2026-10-06. Everything above "## Which notebook serves which lecture" is regenerated from the desktop file by the course-side session; edit it there. Everything from that heading down is written in this repository and is preserved by the refresh.*
+*Repository copy of `CS479 Fall 2026 Roadmap_v15.md` (course-side roadmap v15), refreshed 2026-10-07. Everything above "## Which notebook serves which lecture" is regenerated from the desktop file by the course-side session; edit it there. Everything from that heading down is written in this repository and is preserved by the refresh.*
 
 ---
 
@@ -10,13 +10,13 @@ Introduction to Machine Translation, BYU. Monday and Wednesday, 11:00 to 12:15.
 serve it and what each one is for, what assignment it sets and when that is due. One document,
 current as of its date. What changed and why is in the Decisions log at the end, not inline.
 
-**v13, Oct 5, late.** No schedule change. The 8b deck, reviewed after class for flow and per-slide load, is now `_v3` (29 slides shown, 4 hidden at the end): the three borrowed figures that remained (Wikipedia's softmax, Serrano's layer, the AMTA copy of Figure 1) are redrawn in the deck's own format, the model-context slide sits beside the first map, notation is √d_k throughout, the Residual Stream and Decoder Block slides lost their heaviest paragraphs to speaker notes, and the Three Attentions slide carries its why in two sentences per panel. Positional encoding, deployment, pros and cons and the two capacity slides are in the Lecture 9 deck, parked for its rebuild, so the 8b description below replaces v12's. Awaiting Eric's adoption. v12 (Oct 5, evening): No schedule change. The 8b deck is 35 slides, adopted after class: reading reports, four tutorial-4 recap slides, the quiz review, real self-attention and multi-head maps from the pretrained model, a model-context slide, a capacity-experiment slide, acknowledgments, and a closing reminder slide. Two standing deck rules from Eric, applied at every rebuild from here: a Reading Reports slide after the quiz review, and a closing before-next-time slide in step with Learning Suite; and one quiz rule: every attendance quiz asks one question per required reading or tutorial (2 / 1 / 0). v11 (Oct 5): no schedule change. Three decisions by Eric, each handed to the repository and pending its merge: the Lecture 7 notebook makes the held-out phrase the student's choice with a prediction and a required contrast; the Lecture 9 notebook makes the `<unk>` count the student's function, the vocabulary size the student's choice, and asks for an A9 prediction before the settings print; and the tutorials are renumbered into course order (07→02, 02→03, 08→05, 05→07, 03→08; 01, 04, 06 unchanged; lecture alignments unchanged). Tutorial 5 stays at Lecture 10, which closes that open question. Until the merges land, the scope notes below describe the notebooks as they are and say what is coming; the notebook index shows both numbers. Also: 8a is 30 slides (a learned-alignment heatmap slide added Oct 1), and the paper sign-up sheet holds 24 papers. v10 (Oct 1): no schedule change. A new section, "Learning outcomes, and who does the work", states what each lecture and each notebook is for as what the student can do afterwards, rates every notebook on whether the student or the notebook does the work, and flags four places where a notebook does enough that the assignment can be completed on auto-pilot (the A8 kickoff, A9 as a paste, the Lecture 7 toy model, and the A13/A14 scaffolds still to be built), with proposals; the decisions are Eric's and sit on the task list. v9 (Sep 30): two schedule decisions (Eric and Coulson): A9 is due Mon Oct 12, the day of the
+**v15, Oct 6; amended Oct 7.** No schedule change. Oct 7: the Lecture 9 notebook gains Part B (A9 in the same notebook; protocol change: the course side now edits lecture notebooks in the tree, the repository commits). The Lecture 9 deck is rebuilt (`_v2`, section 9 below describes it; awaiting adoption): the A8 debrief around the capacity table, the five slides parked from 8b placed, the OpenNMT slides replaced by the Lecture 9 notebook, the A9 slide carrying the new write-up questions and A9's own run names, Reading Reports and Before Monday, the pretrained model's SentencePiece shown on real sentences. The Lecture 9 Content page is current; Attendance Quiz 9 asks about tutorials 6 and 5; the A8 handout's submission section is posted; the A9 text waits on Eric. v14 (Oct 6, early): No schedule change. The repository merged all three Oct 5 decisions (Lecture 9 notebook, PR #197; Lecture 7 notebook, PR #198, with no assert on the prediction: the report shows the gap; the tutorial renumbering, PR #201, redirect stubs at the old paths for the term), so the course-side tutorial numbers flip here and in the decks (8a slide 19, 8b, Lecture 10's decoding slide; the Lecture 7 deck's notebook link now points at `lecture-07-toy-model`): tutorial 2 evaluating, 3 train-tiny, 4 attention and alignment, 5 Transformer attention, 6 diagnosing, 7 real translations, 8 inference and beam search. Also from that baton: notebooks install TorchLingo from the `course` branch, not PyPI; decoding shows `<unk>` instead of dropping it; the A8 notebook has a `NO_SPACES` switch (characters for the target, spBLEU) for languages written without spaces, and A9 keeps A8's model and translations under its own names (`assignment-9`, `best-a9`, `test-a9.hyp`); tutorial 5 shows encoder self-attention head by head; tutorial 8's rewrite is paused until A8 is in shape. The A8 and A9 Learning Suite text follows (task list). v13 (Oct 5, late): No schedule change. The 8b deck, reviewed after class for flow and per-slide load, is now `_v3` (29 slides shown, 4 hidden at the end): the three borrowed figures that remained (Wikipedia's softmax, Serrano's layer, the AMTA copy of Figure 1) are redrawn in the deck's own format, the model-context slide sits beside the first map, notation is √d_k throughout, the Residual Stream and Decoder Block slides lost their heaviest paragraphs to speaker notes, and the Three Attentions slide carries its why in two sentences per panel. Positional encoding, deployment, pros and cons and the two capacity slides are in the Lecture 9 deck, parked for its rebuild, so the 8b description below replaces v12's. Awaiting Eric's adoption. v12 (Oct 5, evening): No schedule change. The 8b deck is 35 slides, adopted after class: reading reports, four tutorial-4 recap slides, the quiz review, real self-attention and multi-head maps from the pretrained model, a model-context slide, a capacity-experiment slide, acknowledgments, and a closing reminder slide. Two standing deck rules from Eric, applied at every rebuild from here: a Reading Reports slide after the quiz review, and a closing before-next-time slide in step with Learning Suite; and one quiz rule: every attendance quiz asks one question per required reading or tutorial (2 / 1 / 0). Oct 6: slides never state a quiz's question count, so quizzes stay flexible. Oct 7: six de-noise rules for every deck (subtitles state the claim; no slide-to-slide pointers; cross-references only where the student acts; day words only on logistics slides; stage directions and morals to speaker notes; provenance once per deck plus short credits), applied to Lecture 9 first. v11 (Oct 5): no schedule change. Three decisions by Eric, each handed to the repository and pending its merge: the Lecture 7 notebook makes the held-out phrase the student's choice with a prediction and a required contrast; the Lecture 9 notebook makes the `<unk>` count the student's function, the vocabulary size the student's choice, and asks for an A9 prediction before the settings print; and the tutorials are renumbered into course order (07→02, 02→03, 08→05, 05→07, 03→08; 01, 04, 06 unchanged; lecture alignments unchanged). Tutorial 5 stays at Lecture 10, which closes that open question. Until the merges land, the scope notes below describe the notebooks as they are and say what is coming; the notebook index shows both numbers. Also: 8a is 30 slides (a learned-alignment heatmap slide added Oct 1), and the paper sign-up sheet holds 24 papers. v10 (Oct 1): no schedule change. A new section, "Learning outcomes, and who does the work", states what each lecture and each notebook is for as what the student can do afterwards, rates every notebook on whether the student or the notebook does the work, and flags four places where a notebook does enough that the assignment can be completed on auto-pilot (the A8 kickoff, A9 as a paste, the Lecture 7 toy model, and the A13/A14 scaffolds still to be built), with proposals; the decisions are Eric's and sit on the task list. v9 (Sep 30): two schedule decisions (Eric and Coulson): A9 is due Mon Oct 12, the day of the
 next lecture, not Oct 14 with A10; the proposal week is one day of outline reviews and two of
 presentations, days pending in Learning Suite. Learning Suite now carries the shifted lecture
 rows, the assignment due dates and the quiz names (Coulson), so it and this file agree again.
 v8 (Sep 30, earlier): corrections after the repository's Sep 30 hand-off, no schedule change: the
 assignment transcripts live in `torchlingo-private`; tutorial 4 is Parts 1 to 7 and tutorial 8
-is 8b's reading; A9's printout passes the subword model twice; TorchLingo 0.2.4 is current; the
+(now 5) is 8b's reading; A9's printout passes the subword model twice; TorchLingo 0.2.4 is current; the
 A8 slide caps before it splits; notebooks carry no due dates. v7 (Sep 29) was a coherence pass
 over v6 after Lecture 7 ran and the A8 decisions landed: A8's model and epoch count, A9's shape
 (same files, three settings), the Lecture 9 notebook, LLM-as-judge at Lecture 11, the paper
@@ -210,18 +210,18 @@ steps.
 | `lecture-05-sentence-alignment` | length can align sentences and cannot see a deletion | change the priors and watch it fail, upload their A4 files, report c | aligner, scoring, the c and s² formulas | low |
 | `lecture-06-mt-evaluation` | what BLEU and chrF count | predict before each of three runs, three talk-it-over answers | the scoring | low |
 | `lecture-06-mt-evaluation-homework` | the metrics on their own data | upload, sample, translate ten by hand, rank before re-reading the scores | three scoring calls | low; A6's substance is MTEval and the analysis |
-| `07-evaluating-translations` (reading) | which metric to believe when they disagree | decide before scoring; four "Your turn" exercises | the examples | low |
-| `lecture-07-toy-model` | a model can score perfectly on what it memorised and know nothing | run Parts A and B, report back in class, write A7's two sentences; the held-out phrase is fixed and the second held-out experiment is optional | corpus, model, training, both scorings, the resume demonstration, the report printout | **watch** |
-| `02-train-tiny-model` (reading) | the library's plain version of the above | read | everything | low, as reading |
+| `02-evaluating-translations` (reading; was 07) | which metric to believe when they disagree | decide before scoring; four "Your turn" exercises | the examples | low |
+| `lecture-07-toy-model` | a model can score perfectly on what it memorised and know nothing | choose the held-out phrase, predict, run Parts A and B, report back in class, write A7's two sentences; a contrast phrase runs as well | corpus, model, training, both scorings, the resume demonstration, the report printout | low since Oct 5 (was watch) |
+| `03-train-tiny-model` (reading; was 02) | the library's plain version of the above | read | everything | low, as reading |
 | `lecture-08a-a8-kickoff` | from cleaned corpus to a running, checkpointed model | type two file names; raise `EPOCHS` if validation loss is still falling | cap, dedupe, split, verification, nine files, the configuration, the training call, the resume, the scoring | **high** |
 | `04-attention-and-alignment` (reading) | attention is measurable alignment | read Parts 1 to 5 and 7; run them | the ablation and the alignment accuracy | low, as reading |
-| `08-transformer-attention` (reading) | attention can find the right words and the decoder still write the wrong ones | read one worked example | everything | low, as reading |
-| `lecture-09-subword-tokenization` | a fixed vocabulary cannot say unseen words; subwords can | run it; read the `<unk>` counts | the counts, the SentencePiece training, the round trip, and the three A9 settings printed ready to paste | **watch**, and **high** in combination with A9 (below) |
+| `05-transformer-attention` (reading; was 08) | attention can find the right words and the decoder still write the wrong ones | read one worked example | everything | low, as reading |
+| `lecture-09-subword-tokenization` | a fixed vocabulary cannot say unseen words; subwords can | write the `<unk>` counter, pick the vocabulary size with a reason, predict A9's BLEU, report back | the SentencePiece training, the round trip, and the three A9 settings printed ready to paste | low since Oct 5 (was watch); A9 itself is still the paste, see below |
 | `06-diagnosing-failures` (reading) | a procedure for a model that is not working | read once, then look symptoms up | five planted bugs and their checks | low; it is a lookup table |
 | `01-data-and-vocab` (reference) | the library's view of a corpus | read | everything | low, as reference |
 | `lecture-10-comet-install` | install COMET, set up a token | the install and the token | a worked `comet-score` | low; it is an install. A11 has no scaffold and needs none |
-| `03-inference-and-beamsearch` (reading) | greedy and beam search, and a null result | read | two decoders written to be read | low, as reading |
-| `05-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
+| `08-inference-and-beamsearch` (reading; was 03) | greedy and beam search, and a null result | read | two decoders written to be read | low, as reading |
+| `07-real-translations` (reading; was 05) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
 | `lecture-12-llm-context` | in-context examples and what they buy | everything: six TODO cells and no scaffold | nothing | low; the opposite risk, that a student stalls, is the one to watch here |
 
 ### Where the line is crossed
@@ -352,7 +352,7 @@ derivation, an activity and the largest handout of the first half.
 own data and shows BLEU returning zero on ten short sentences; runs in CI.
 `lecture-06-mt-evaluation-homework` (homework): the former Part 4, split out Sep 27 because it
 uploads the student's A5 corpus and is the assignment's scaffold rather than the session's.
-`07-evaluating-translations` (reading): the library's out-of-class treatment of evaluation,
+`02-evaluating-translations` (reading; tutorial 2 since Oct 5): the library's out-of-class treatment of evaluation,
 leading to A6 and A8; the in-class notebook keeps the teaching.
 **Sets:** A6 (due Mon Sep 28): 500+ sentences through two MT systems, human ranking of 50 in
 MTEval before seeing any score, SacreBLEU and chrF over the whole sample, a written analysis of
@@ -379,7 +379,7 @@ tutorial outright (`_v2`, 41 slides: the activation function elaborated, backpro
 weight at a time, the spine slide) is in `Archive/` with its comparison PDF and change notes;
 it is the source if the block is ever rebuilt again.
 **Notebooks:** `lecture-07-toy-model` (activity; on `main` since Sep 28, PR #140, and the
-deck's Part A links its Colab badge): a three-part exercise adapted from tutorial 2.
+deck's Part A links its Colab badge): a three-part exercise adapted from tutorial 3 (train-tiny, tutorial 2 until Oct 5).
 Part A in class: install, train the twelve-phrase toy model, read the loss curve against ln(V),
 which the notebook prints beside the vocabulary size and parameter count the slides point at;
 then Part A's last step, added by the repository: mount Google Drive, create `MyDrive/CS479`,
@@ -391,14 +391,15 @@ Part B outside class: hold "The dog sleeps" out, retrain on eleven, and score se
 unseen; the seen phrases come back 11/11 and the unseen one comes back *El perro corre*, the
 verb it saw next to *perro*. BLEU is 0.0 on both, because three-word sentences have no
 4-grams, which is Lecture 6's lesson arriving on cue; the notebook reports chrF and exact match
-and says why. Part C: the report. **Pending (Eric, Oct 5; hand-off
-`from-cowork/2026-10-05-lecture-7-held-out-choice.md`):** the student chooses the held-out
-phrase, writes a prediction the cell requires, and a second phrase of the other kind ("Good
-night", or "The dog sleeps" if they chose a word-sharing phrase) runs as a required contrast; the
-report prints the prediction and both results, and question 1 becomes "Was your prediction
-right?". The deck's Part B slide already says so. Executed end to end on Sep 28, thirty seconds on a CPU, and
-by the repository's CI on every pull request since.
-`02-train-tiny-model` (reading): the library's own tutorial this was adapted from, for anyone
+and says why. Part C: the report. **Since Oct 5 (Eric; merged as PR #198):** the student chooses the held-out
+phrase and writes a prediction; the cell asks for it and the report shows the gap if it is
+missing (no assert, so the notebook still runs unedited from its badge and in CI); a second
+phrase of the other kind ("Good night", or "The dog sleeps" if they chose a word-sharing phrase)
+runs as a required contrast; the report prints the prediction and both results, and question 1
+becomes "Was your prediction right?" (A7's Learning Suite text at the next offering). The deck's Part B slide
+says so. Executed unedited in 28 seconds: *The dog sleeps* came out *El perro corre* (chrF 44.7), *Good night*
+came out *Buenos días* (chrF 24.8), the seen lines 11/11.
+`03-train-tiny-model` (reading; tutorial 3 since Oct 5): the library's own tutorial this was adapted from, for anyone
 who wants the plain version.
 **Sets:** A7 (due Wed Sep 30, 10:00): the notebook's printed report plus two sentences, on what
 the seen/unseen gap says about what the model learned and what they will do differently on A8.
@@ -470,7 +471,7 @@ TorchLingo's `norm_first` in the notes); "The Decoder Block: Where Translation H
 self-attention, cross-attention, feed-forward, then the softmax over V that produces Lecture 7's
 p(y_t | y_<t, x); teacher forcing in the notes); "Assignment 8 Is Due Wednesday" (the Colab
 clock, the split check, the length cap with the (64, 100, 512) batch shape, checkpointing,
-tutorial 6); "Before Wednesday" (A8, Quiz 8b, tutorials 6 and 8, the next presenters);
+tutorial 6); "Before Wednesday" (A8, Quiz 8b, tutorials 6 and 5, the next presenters);
 appendices: Going Deeper (Koehn) and Acknowledgments (Koehn's JHU 2020 slides, Vaswani's
 Figure 1, Serrano.Academy's layout; the papers). Hidden at the end, kept for reference: three
 tutorial-4 recap slides (the reversal task and its ablation, reading the map, Part 7's
@@ -478,33 +479,62 @@ code-to-formula bridge) and Koehn's encoder figure. Positional encoding, deploym
 cons, and the two capacity slides moved to the Lecture 9 deck on Oct 5.
 **Notebooks:** `04-attention-and-alignment` Part 7 ("You have already seen the Transformer's
 mechanism") is where this session starts; kept in one notebook with 8a's parts on purpose.
-`08-transformer-attention` (reading, this week): a pretrained Transformer's attention on real
-text, split out of tutorial 4's old Part 8 because it alone needed the 11 MB model download.
+`05-transformer-attention` (reading, this week; tutorial 8 until Oct 5): a pretrained Transformer's attention on real
+text, split out of tutorial 4's old Part 8 because it alone needed the 11 MB model download; since Oct 5 it also
+shows the encoder's self-attention head by head (each head sharp, 0.90 to 1.00; their average 0.40), the 8b slides' point in numbers.
 **Sets:** nothing of its own. A8 is due two days later.
 
-### 9. Handling Morphology and Terminology in NMT (F2026 corrected, 27 slides)
-Morphological preprocessing, byte-pair encoding, SentencePiece, and approaches to injecting
-terminology. A8 is submitted at 10:00 the morning this runs.
-**Corrections applied:** the assignment dates (A8 was showing Mon Oct 6, A9 Wed Oct 8; now Wed
-Oct 7 and Mon Oct 12, the latter still to be applied to the deck at the rebuild, in titles and body); the decoding rule stated on the A9 slide, where the
-assignment is set; and **"Your Model Has a Fixed Vocabulary"**, a bridge slide before Morphology
-that gives the lecture its reason: the output is a distribution over a fixed V, every unseen
-form is `<unk>`, inflected languages make that worse, subwords are the fix, and the fix changes
-which pairs the length cap excludes. **Still last year's, and blocking Oct 7:** the
-SentencePiece handout slide (OpenNMT-specific) and the in-class activity slide, which points at
-an OpenNMT notebook; both become the subword notebook below at the rebuild, and the A9 slide
-becomes the three settings.
+### 9. Handling Morphology and Terminology in NMT (F2026 `_v2`, 39 slides: 29 shown, 10 hidden)
+Rebuilt Oct 6 for Oct 7, awaiting Eric's adoption. Its own quiz (Attendance Quiz 9 asks about
+tutorials 6 and 5). Order: Thought and Prayer; Attendance Quiz 9; Reading Reports (Rachel White on
+Attention Is All You Need, Daniel Lambert on Sennrich et al. 2016; footer names Monday's two);
+Quiz 8b Review (sparse, filled the morning of); objectives (six main bullets); Monday's by-hand
+attention exercise repeated, then "The Solution, Step by Step" (the four blocks in a row with the
+arithmetic under each: s = (0, 1, 2), scaled (0, 0.7, 1.4), w = (0.14, 0.28, 0.58), context
+(0.86, 1.14)); "Pros and Cons of
+NMT" as the opener (its first con is the fixed vocabulary); "Deployment Challenges, 2017 and Now";
+**the A8 debrief**: "Assignment 8: What You Just Built" (the configuration is one cell of the
+measured table; three numbers to bring: BLEU and which BLEU, how much of test.hyp is `<unk>`,
+the longest sentence against the cap; hands in the room), then "The Models Behind the Capacity
+Table" and "What Capacity Buys, and When" with the amber 100K row as A8's own floor; "No
+Recurrence. So How Does It Know the Order?" (the 8b loose end, the bridge from position into
+tokens); "Your Model Has a Fixed Vocabulary"; "Morphology: Why One Word Has Many Forms"
+(inflection, derivation, compounding and affixes; *evlerimizden* in four morphemes); "Why
+Vocabularies Explode, and What It Costs" (morphology, compounding, names; Koehn's WMT 2013
+unknown-word rates; why 2% is a lot); "Byte-Pair Encoding: Merge Until V Is Big Enough" (the toy
+sentence through four merges, drawn; the algorithm; the one choice, k); "What Pieces Look Like:
+The Small Model's 3,000" (the pretrained model's SentencePiece on held-out sentences, ▁ shown;
+frequent words whole, rare ones shattered, pieces are not morphemes; measured 1.70 / 1.79 pieces
+per word, longest 25 words → 63 pieces); "SentencePiece: The Tool You Will Use" (raw text, ▁,
+reversible, language independent; BPE or unigram inside; one shared model trained on the
+training split, `train_sentencepiece`, `SentencePieceVocab`); "The Other Extreme: Characters"
+(alphabet vocabulary, five-to-six-times-longer sequences, the no-spaces case A8's `NO_SPACES`
+switch already took, where subwords sit; Koehn's character-based word models); "What Changes in
+Your Model, in Shapes" (|V| to 8,000 and ln |V| to 9.0, n up 1.7 to 1.8x and `max_decode_length`
+with it, what stays fixed: the split, size, epochs, test set, greedy); **"In Class: The Lecture 9
+Notebook"** (what the student writes: `unknown_rate`, the guess, `VOCAB_SIZE` with `WHY`, the
+BLEU prediction; what it does; the report-back table); "Terminology: When the Right Word Is
+Required" (glossaries, term bases, the Church's English-Chinese glossary excerpt kept); "Getting
+Terms Into a Neural System" (substitution, rule-based inflection, WMT 2021 and PROMT's two
+systems, the LLM question for Lecture 12); "Assignment 9: Subwords, Due Monday at 10:00" (the
+four steps including A9's own run names and score-both-the-same-way; what to submit; the
+no-spaces note; matches the A9 Learning Suite draft awaiting Eric); "Before Monday" (A9, Quiz 9
+with the BPE paper, tutorials 7 and 8, Monday's presenters); appendices Going Deeper and
+Acknowledgments. Hidden at the end: the ten Koehn screenshot slides of the old deck, for
+reference. The old text slides (OpenNMT activity and handout, the old A8 and A9, Quiz 9 note,
+Morphology, BPE and SentencePiece bullets) are gone; the original deck is in `Archive/`.
+The Lecture 9 Content page was rewritten the same day (tutorials 6 and 5 as reading, the
+notebook's Colab link, the BPE paper kept for Quiz 9).
 **Notebooks:** `lecture-09-subword-tokenization` (activity; merged Sep 28, PR #174): closes
 this lecture and starts A9. On a CPU, from the student's A8 split in Drive: counts the test
 tokens the word vocabulary cannot represent; trains SentencePiece at 8,000 pieces on the
 training split only; shows the pieces; counts `<unk>` again under subwords (zero unless a
 character never appears in training); round-trips ten sentences; and prints the three A9
-settings for that student's data. Retrains nothing. **Pending (Eric, Oct 5; hand-off
-`from-cowork/2026-10-05-b-lecture-9-choices.md`):** the counting function becomes the student's
+settings for that student's data. Retrains nothing. **Since Oct 7 (Eric; edited in the tree by the course side, awaiting the repository's commit): Part B of the same notebook is Assignment 9**, run on a GPU outside class: it trains with the pieces under A9's own names, re-scores the saved A8 model with the same code, and prints the write-up numbers; Step 6 saves its settings to Drive (`a9-settings.json`) instead of printing lines to paste, so nothing sends a student back to the A8 notebook. **Since Oct 5 (Eric; merged as PR #197, before Wednesday's class):** the counting function is the student's
 four lines with a known-answer check and a written guess at the target-side rate; the vocabulary
 size is the student's choice from 4K, 8K or 16K with a reason; an A9 BLEU prediction is written
-before the settings print; and a Report back section is added. The printed settings are
-unchanged. The A9 write-up then asks for the prediction back with a reconciling sentence, the two
+before the settings print; and a Report back section is added; the asserts are hard, since the notebook is Colab only. The printed settings are
+unchanged, except that A9 now runs under its own names (`experiment_name="assignment-9"`, `best-a9/`, `test-a9.hyp`) so it no longer overwrites the A8 model and translations it is compared against; students with `NO_SPACES = True` are detected from their split and compare characters against pieces, with spBLEU on both sides. The A9 write-up then asks for the prediction back with a reconciling sentence, the two
 target-side `<unk>` rates and the piece-per-word ratio, the size and why, and one differing
 sentence with an opinion (course side, at the Lecture 9 rebuild). `06-diagnosing-failures` (reading): five
 questions to ask of a model that is not working, each with a planted bug; paired here by
@@ -534,11 +564,11 @@ which a locally worse first token wins on total log probability, and the rule th
 must pin decoding, closing back to Lecture 6 and forward into what a quality number can claim.
 Decoding was taught nowhere in the course before this.
 **Notebooks:** `lecture-10-comet-install` (homework): installs COMET, scores a worked example,
-sets up the HuggingFace token through Colab Secrets; A10's own scaffold. `03-inference-and-
-beamsearch` (reading): greedy and beam search side by side, checked against the library, both
+sets up the HuggingFace token through Colab Secrets; A10's own scaffold. `08-inference-and-
+beamsearch` (reading; tutorial 3 until Oct 5): greedy and beam search side by side, checked against the library, both
 scored with SacreBLEU; **it cannot yet run from its Colab badge** (it loads the model tutorial
-2 saved, which a fresh runtime never has; repository task #166), so the deck names it without
-linking it. `05-real-translations` (reading; becomes tutorial 7): a trained model's output on
+3 saved, which a fresh runtime never has; its rewrite is paused until A8 is in shape, Eric, Oct 5), so the deck names it without
+linking it. `07-real-translations` (reading; tutorial 5 until Oct 5): a trained model's output on
 real sentences, greedy against beam on a model that is actually unsure, and what undertrained
 looks like; it stays here (Eric, Oct 5: 8b was getting too much) beside the decoding block, and
 points at A11.
@@ -640,18 +670,18 @@ table, and the two are kept in agreement by hand at every hand-off.
 | `lecture-05-sentence-alignment` | 5 | activity | A5 | estimate Gale-Church parameters on your language | yes |
 | `lecture-06-mt-evaluation` | 6 | activity | A6 | BLEU and chrF on your data; BLEU returns zero on ten short sentences | yes |
 | `lecture-06-mt-evaluation-homework` | 6 | homework | A6 | the assignment's scaffold over your uploaded A5 corpus | Colab only |
-| `07-evaluating-translations` (becomes `02-`) | 6 | reading | A6, A8 | the library's out-of-class treatment of evaluation | yes |
-| `lecture-07-toy-model` | 7 | activity | A7 | the three-part toy-model exercise; hold one phrase out and score seen against unseen; resume demo. Pending: the student's choice of phrase, a prediction, a required contrast | yes |
-| `02-train-tiny-model` (becomes `03-`) | 7 | reading | A8 | the library's own tiny-model tutorial, which the exercise above was adapted from | yes |
+| `02-evaluating-translations` (was `07-`) | 6 | reading | A6, A8 | the library's out-of-class treatment of evaluation | yes |
+| `lecture-07-toy-model` | 7 | activity | A7 | the three-part toy-model exercise; the student picks the held-out phrase, predicts, and a contrast phrase runs; resume demo | yes |
+| `03-train-tiny-model` (was `02-`) | 7 | reading | A8 | the library's own tiny-model tutorial, which the exercise above was adapted from | yes |
 | `lecture-08a-a8-kickoff` | 8a | activity | A8 | from your A5 corpus to a running, checkpointed, bucketed training job | Colab only |
 | `04-attention-and-alignment` | 8a, 8b | reading | | with and without attention; did it learn the right alignment; Part 7 is the Transformer | yes |
-| `08-transformer-attention` (becomes `05-`) | 8b | reading | A8 | a pretrained Transformer's attention on real text; tutorial 4's old Part 8 | needs download |
-| `lecture-09-subword-tokenization` | 9 | activity | A9 | `<unk>` before and after SentencePiece, a round trip, and the three A9 settings printed. Pending: the student writes the count, picks the size, predicts A9 | Colab only |
+| `05-transformer-attention` (was `08-`) | 8b | reading | A8 | a pretrained Transformer's attention on real text, cross- and (since Oct 5) self-attention; tutorial 4's old Part 8 | needs download |
+| `lecture-09-subword-tokenization` | 9 | activity | A9 | `<unk>` before and after SentencePiece (the student's counter), a round trip, the student's vocabulary size and A9 prediction, and the three A9 settings printed under A9's own run names | Colab only |
 | `06-diagnosing-failures` | 9 | reading | A8 | five questions to ask of a model that is not working | yes |
 | `01-data-and-vocab` | 4, 9 | reference | A5 | the library's view of corpus loading; word-level vocab, stops at `<unk>` | yes |
 | `lecture-10-comet-install` | 10 | homework | A10 | install COMET, score an example, set up the HF token | needs token |
-| `03-inference-and-beamsearch` (becomes `08-`) | 10 | reading | A9 | greedy against beam, checked against the library, both scored; badge not yet runnable (#166) | yes |
-| `05-real-translations` (becomes `07-`) | 10 | reading | A11 | a trained model on real sentences; stays at 10 (Oct 5) | yes |
+| `08-inference-and-beamsearch` (was `03-`) | 10 | reading | A9 | greedy against beam, checked against the library, both scored; badge not yet runnable; rewrite paused until A8 is in shape | yes |
+| `07-real-translations` (was `05-`) | 10 | reading | A11 | a trained model on real sentences; stays at 10 (Oct 5) | yes |
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples; all TODOs | pip |
 
 **Tutorial numbers (Eric, Oct 5):** renumbered into course order, 01 data, 02 evaluating, 03
@@ -944,12 +974,15 @@ Notes on the rows that are not simple:
   run that is already going when class ends. The handout is the authority; this is the
   executable path through it, and every threshold is quoted from the handout in one cell.
   Cannot run in CI: it mounts Drive and needs a GPU.
-- [10] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity, written
-  2026-09-28 to the scope Cowork set: SentencePiece fit on the student's A8 training
-  split, word-level against subword unknown counts on their test set, a round trip, and
-  the three settings A9 needs (use_sentencepiece, sp_model_path, and a max_decode_length
-  measured on their data). Retrains nothing. Reads the A8 split from Drive, so it cannot
-  run in CI.
+- [10] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity and, in Part
+  B, Assignment 9 itself. Part A (CPU, in class): SentencePiece fit on the student's A8
+  training split, the student's own unknown-token counter under words and under pieces, a
+  round trip, a vocabulary size chosen with a reason, an A9 BLEU prediction, and the
+  settings Part B needs saved to Drive (a9-settings.json). Part B (GPU, outside class):
+  retrains the A8 model with the pieces under its own run names (assignment-9, best-a9/,
+  test-a9.hyp), re-scores the saved A8 model with the same code, and prints the write-up
+  numbers. Reads the A8 split from Drive, so it cannot run in CI. Part B added so that A9
+  never sends a student back to the A8 notebook.
 - [11] **`lecture-10-comet-install`** — Fall 2025 material, brought into the repository on
   2026-09-26. Installs unbabel-comet, scores a worked example, and sets up the HuggingFace
   token through Colab Secrets, which the reference-free models require. It is Lecture 10's
