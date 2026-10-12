@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-10-05. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-10-12. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
@@ -18,9 +18,9 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-10-07:** everything open is here. Lecture 9's Part B (Assignment 9) is on `course`.
-**#166** (tutorial 8, with #162 and #92) is
-paused while A8 is being got into shape (Eric); its work so far is on a local branch. What
+**As of 2026-10-12:** everything open is here. Roadmap v16 shifted Lecture 9 onward by one
+session (8c is the new Oct 7). **#166** (tutorial 8, with #162 and #92) is resumed (Eric,
+Oct 12), aiming at Lecture 10 on Wed Oct 14; its work so far is on a local branch. What
 remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork) is Lecture 10's three (#166, #174,
 #175) and Lecture 12's rebuild (#176).
 
@@ -40,7 +40,7 @@ is not finished until that PR merges, and only then does the row disappear.
 
 **Tasks #98 and #99 have external deadlines.** They come from
 `notes/CS479_COURSE_ROADMAP.md`, are sequenced against a calendar nobody here controls, and
-outrank everything else in this file until Oct 28. See "The CS 479 pivot" below for the schedule and the reasoning.
+outrank everything else in this file until Nov 2. See "The CS 479 pivot" below for the schedule and the reasoning.
 
 ### Reading the "Critical for" column
 
@@ -57,16 +57,20 @@ dates are not lecture-critical, and several with no date are.
 | **L5** | Data Preparation for MT Training, Part 2 — **has already run** | Mon Sep 21 · A4 due |
 | **L4/L5** | both data-preparation lectures | |
 | **L6** | Human and Automatic MT Evaluation — **has already run** | Wed Sep 23 · A5 due; A6 due Mon Sep 28 |
-| **L7** | Research Paper Reviews; Intro to Neural Networks | Mon Sep 28 · A6 due, **A7 set** |
-| **L8a** | Neural MT: Encoder-Decoder, and Why Attention Was Invented | Wed Sep 30 · A7 due, **A8 introduced** |
-| **L8b** | Neural MT: The Transformer | Mon Oct 5 |
-| **L8a/8b** | both halves of the split | |
-| **L9** | Morphology and Terminology in NMT | Wed Oct 7 · **A8 due, A9 set** |
-| **L10** | Overview of MT Quality Estimation | Mon Oct 12 · A9 due · A10 set (install COMET) |
-| **L11** | Neural Quality Estimation and Evaluation | Wed Oct 14 · A10 due · A11 set |
-| **L12** | Using LLMs for MT; Expanding Context Awareness | Mon Oct 19 · A11 due · A12 set |
-| **L13** | Strategies for NMT of Low-Resource Languages | Wed Oct 21 · A13 set (back-translation) |
-| **14+** | Lecture 14 onward: multilingual and zero-shot, speech, and later | from Mon Oct 26 |
+| **L7** | Research Paper Reviews; Intro to Neural Networks — **has already run** | Mon Sep 28 · A6 due, **A7 set** |
+| **L8a** | Neural MT: Encoder-Decoder, and Why Attention Was Invented — **has already run** | Wed Sep 30 · A7 due, **A8 introduced** |
+| **L8b** | Neural MT: The Transformer — **has already run** | Mon Oct 5 |
+| **L8c** | Finishing the Transformer, the A8 Debrief, and the Subword Activity — **has already run** | Wed Oct 7 · **A8 due, A9 set** |
+| **L8a/8b** | the halves of the split | |
+| **L9** | Morphology and Terminology in NMT — **has already run** | Mon Oct 12 |
+| **L10** | Overview of MT Quality Estimation | Wed Oct 14 · A9 due · A10 set (install COMET) |
+| **L11** | Neural Quality Estimation and Evaluation | Mon Oct 19 · A10 due · A11 set |
+| **L12** | Using LLMs for MT; Expanding Context Awareness | Wed Oct 21 · A12 set |
+| **L13** | Strategies for NMT of Low-Resource Languages | Mon Oct 26 · A11 due · A13 set (back-translation) |
+| **14+** | Lecture 14 onward: multilingual and zero-shot, speech, and later | from Wed Oct 28 |
+
+Since roadmap v16 (Oct 7) everything from Lecture 9 on sits one session later than it did, and
+the dates in the task rows below were shifted with it.
 | **lib** | library, tooling or docs work **no lecture depends on** | |
 | **hyg** | roadmap and process integrity — **critical, but not to one lecture** | |
 
@@ -92,15 +96,15 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #166 | **P1** | Tutorial 8 cannot run from its Colab badge | **L10** | **Paused (Eric, Oct 5: A8 first)** — work so far on local branch `tutorial-8-standalone`; **do with #162, #92 and the audit's tutorial 8 directions** |
+| #166 | **P1** | Tutorial 8 cannot run from its Colab badge | **L10** | **Resumed (Eric, Oct 12)** for Wed Oct 14 — work so far on local branch `tutorial-8-standalone`; **do with #162, #92 and the audit's tutorial 8 directions** |
 | #174 | **P1** | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | **P1** | Notebook audit: tutorial 7 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
 | #176 | **P1** | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
 | #162 | **P1** | Tutorial 8's Part 5 shrinks to a pointer at tutorial 2 | **L6** | **Unblocked** — tutorial 2 landed in PR #144; **do with #166** |
-| #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
-| #102 | **P1** | Inference cannot resume a long decode | **L13** | **Needed by Mon Oct 19** — largest undone piece |
-| #98 | **P1** | Back-translation as a documented workflow | **L13** | **Due Mon Oct 26** |
-| #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
+| #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Mon Nov 2 |
+| #102 | **P1** | Inference cannot resume a long decode | **L13** | **Needed by Wed Oct 21** — largest undone piece |
+| #98 | **P1** | Back-translation as a documented workflow | **L13** | **Due Wed Oct 28** |
+| #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
 | #92 | **P1** | Tutorials 7 and 8 bypass the library's own evaluation API | **L10** | Open — **do inside #166 and #175**, which rewrite the same two notebooks |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
@@ -186,7 +190,7 @@ it asks no discipline of them — or **decode in explicit shards**, cheaper to b
 on the student following the workflow.
 
 **Done when** an interrupted bulk decode can be restarted without redoing finished work.
-Needed for Assignment 13's material, due in class **Mon Oct 19**.
+Needed for Assignment 13's material, due in class **Wed Oct 21**.
 
 
 ### #108 Nothing releases the device allocator's cache
@@ -402,7 +406,7 @@ Found 2026-09-28 while fixing the commented-out install in tutorials 4 and 7 (PR
 **Do it in one PR with Task #162**, which reshapes the same notebook's Part 5. Re-execute and
 check every output against the committed one: the PR #149 procedure.
 
-**Paused by Eric on 2026-10-05, until A8 is in shape.** The work so far is one local commit on
+**Paused by Eric on 2026-10-05, until A8 is in shape; resumed 2026-10-12.** The work so far is one local commit on
 `tutorial-8-standalone`: the opener pointed at A9's decoding settings, the standard install cell,
 tutorial 3's tiny model trained inline (a marked setup cell), and `max_len` shown cutting a
 translation short. Left: split the 72-line beam-search cell under 40 lines; Part 5 to a pointer at
@@ -535,7 +539,7 @@ deadline.
 
 ### #123 A14's two-directions case has never been run
 
-**Due Wed Oct 28. Lowest risk by date, highest uncertainty by evidence.**
+**Due Mon Nov 2. Lowest risk by date, highest uncertainty by evidence.**
 
 `preprocessing.multilingual` has never been exercised at "two directions, intermingled,
 separate test sets per direction", which is precisely what Assignment 14 asks for. Lecture

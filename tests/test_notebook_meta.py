@@ -715,10 +715,31 @@ class TestLateHeadStartsAreReported(unittest.TestCase):
         self.assertTrue(any("99-late-reading" in line for line in late), late)
 
     def test_a_same_lecture_head_start_is_not_late(self):
-        """Tutorial 6 is read at Lecture 9 and A8 is due at Lecture 9. Tight, not late --
-        a student can still read it while the assignment is open."""
+        """Read at the lecture an assignment is due. Tight, not late -- a student can still
+        read it while the assignment is open.
+
+        Built in a scratch directory from whichever assignment the live schedule has due at
+        a lecture. This used tutorial 6 against A8 until roadmap v16 (2026-10-07) moved A8
+        to Lecture 8c, one session before tutorial 6 is read, and made the live case late.
+        """
+        due = nm.assignments()
+        assignment, lecture = next(
+            (a, lec) for a, lec in due.items() if lec is not None
+        )
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        same_day = tmp / "99-same-day-reading.ipynb"
+        data = json.loads(
+            (nm.TUTORIALS / "06-diagnosing-failures.ipynb").read_text(encoding="utf-8")
+        )
+        data["metadata"]["torchlingo"]["leads_to"] = [assignment]
+        data["metadata"]["torchlingo"]["serves_lectures"] = [lecture]
+        same_day.write_text(json.dumps(data), encoding="utf-8")
+        self.addCleanup(setattr, nm, "TUTORIALS", nm.TUTORIALS)
+        nm.TUTORIALS = tmp
+
         late = nm.late_head_starts()
-        self.assertFalse(any("06-diagnosing-failures" in line for line in late), late)
+        self.assertFalse(any("99-same-day-reading" in line for line in late), late)
 
     def test_an_on_time_head_start_is_not_reported(self):
         for stem in ("03-train-tiny-model", "lecture-04-tmx-cleaning"):
