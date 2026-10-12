@@ -49,6 +49,14 @@ repository-side part is this session's, and whoever holds the baton edits it and
 changed in `handoff/`. It was previously a verbatim mirror, so the rule that matters is:
 **never paste over it wholesale** — that would delete the half the other session wrote.
 
+**Only the baton holder edits it, and no one else, in either half.** Eric, 2026-10-07. A side
+without the baton keeps its roadmap changes in its own notes and applies them when the baton
+arrives, in the same sitting as the hand-off that describes them. The reason is the working
+tree: on 2026-10-07 the course side refreshed the roadmap after passing the baton, while this
+side held it. No hand-off described the edit, and it sat uncommitted in the tree through three
+of this side's pull requests, each of which had to leave it out by hand. Any one of them could
+have committed it by accident or lost it.
+
 ## The handoff protocol, and why it exists
 
 Two Claude sessions work on CS 479: **this one**, in the TorchLingo repository, and a

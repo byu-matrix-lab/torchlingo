@@ -256,8 +256,12 @@ no course notebook used them.
 "runnable in CI" — the opposite of what whoever wrote it meant. `needs` is repo-relative *paths*;
 `requires` is *capabilities*; they are not interchangeable.
 
-**A notebook declaring nothing gets executed in CI**, which is the only way a course notebook is
-ever checked by running it. `lecture-10-comet-install` shipped `else:` followed by an unindented
+**A notebook declaring nothing gets executed in CI**, and one declaring `colab` does not. For a
+`colab` notebook, write a test with `tests/notebook_cells.py`. It runs the notebook's own cells
+in-process with Drive faked and the GPU requirement lifted, and shrinks sizes only by
+substitutions that must match. `tests/test_lecture_09_part_b.py` is the example: Part B's first
+run found a `NameError` that students would have hit the next day.
+`lecture-10-comet-install` shipped `else:` followed by an unindented
 `drive` — a bare SyntaxError in Lecture 10's own assignment notebook, unnoticed because nothing
 executed this directory. A student would have hit it in the room.
 

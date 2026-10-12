@@ -56,6 +56,24 @@ Sibling files with `-b`, `-c` and `-d` suffixes for one pass, the last of them a
 what this rule replaces: the suffix means a *new pass*, and a reader cannot tell which sibling
 is the message.
 
+**Draft under a `draft` name; rename to hand off.** Eric, 2026-10-07: while a hand-off is
+being written, its file carries `draft` in its name (`2026-10-07-draft-part-b-is-on-course.md`),
+and it moves to its final name only at the moment of handing off. Both sessions read this
+directory, and a file sitting under a final name reads as a message sent. So the rename is the
+send: until then, the other side ignores anything named `draft`. On 2026-10-07 a hand-off sat
+in `to-cowork/` under its final name while this side went on to run and fix what it described.
+
+**No roadmap edits without the baton.** Eric, 2026-10-07: `notes/CS479_COURSE_ROADMAP.md` is
+edited only by the side holding the baton, and that side's hand-off says what changed. A side
+without the baton holds its roadmap changes until the baton comes back. Reasons in
+`notes/README.md`, under "The roadmap is the shared single source of truth".
+
+**Course notebooks arrive as edits in the tree, not as specs.** Eric, 2026-10-07: Cowork edits
+`docs/docs/course/` directly in the working tree, without git, and hands off; this side reviews
+the edit against the library, runs the checks, commits, pushes and promotes `course`. Tutorials
+and the library stay with this side. A cell-level spec in a hand-off file is no longer the
+default; it cost a day on 2026-10-05.
+
 **Once the other side has picked it up, the file is frozen.** Do not edit it after that; if
 something in it turns out to be wrong, say so in the next one. A correction to something the
 reader has already acted on is dishonest as a silent edit.
@@ -67,6 +85,12 @@ than the error. The correction was announced in the next entry rather than made 
 **Reconcile `notes/TASKS.md` in the same sitting as any hand-off, in either direction.** A
 hand-off is precisely when the lists go stale and the only moment both sides know what
 changed. `CLAUDE.md` has the argument and the evidence for it.
+
+**Name tasks in words, never by number, in anything written for Cowork.** Eric, 2026-10-05:
+Cowork does not work from `notes/TASKS.md`, so "#166" means nothing to it; "tutorial 8's
+rewrite" does. The same goes for PR numbers, since Cowork does not run git. The "which tasks
+moved" part of a reply is still written, as descriptions. Before committing a `to-cowork/`
+file, search it for `#` followed by a digit.
 
 **The Cowork session does not run git.** Changes arrive as requests in `from-cowork/`, and
 committing, nav entries and pull requests happen here.
