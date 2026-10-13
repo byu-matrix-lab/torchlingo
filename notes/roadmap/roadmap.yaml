@@ -477,11 +477,12 @@ notebooks:
     notebook_does: everything
     rating: low, as reading
   lecture-12-llm-context:
-    purpose: in-context translation with 0 to 20 examples; all TODOs
+    purpose: in-context translation with 0 to 20 examples; runnable, on a built-in sample
     lesson: in-context examples and what they buy
-    student_must: 'everything: six TODO cells and no scaffold'
-    notebook_does: nothing
-    rating: low; the opposite risk, that a student stalls, is the one to watch here
+    student_must: point it at their language, predict the best context size before the loop
+      runs, and reconcile the prediction with the curve in the write-up
+    notebook_does: the split, the prompt, the LLM, the loop, BLEU, the chart and the upload files
+    rating: low, if the prediction is written; the report prints "(none written)" when it is not
 
 # The "Tooling the semester depends on" table.
 tooling:
