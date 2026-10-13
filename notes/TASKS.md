@@ -465,6 +465,10 @@ separate test sets per direction", which is precisely what Assignment 14 asks fo
 Distinct from **#99**, which is the tutorial. This is the question of whether the code path
 works at all, and it should be answered before a notebook is written on top of it.
 
+The notebook starts from A9 (Eric, Oct 13: every assignment after A9 does): its split,
+SentencePiece model and configuration, as `lecture-13-back-translation` does. A9's shared
+SentencePiece model already covers both languages, so two directions need no new vocabulary.
+
 ## Code — decoding performance
 
 ### Decision (2026-09-22): #2, #3 and #6 are descoped
