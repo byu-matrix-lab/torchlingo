@@ -73,15 +73,19 @@ pivot" below; SacreBLEU over the whole test set; the decoding strategy stated.
 Tensor shapes; the three attentions and what each is for; softmax; query, key and value, with
 one attention step by hand; self-attention on a real model's maps; replacing recurrence. The
 multi-head and block slides were not reached, and are taught in 8c and 9.
-**Notebooks:** `04-attention-and-alignment` Part 7; `05-transformer-attention` (reading): a
-pretrained Transformer's cross- and self-attention, head by head.
+**Notebooks:** `lecture-08b-cross-attention` (activity): the student writes the attention step,
+shown to be the trained model's in every head, then predicts and reads cross-attention against a
+wrong translation. `04-attention-and-alignment` Part 7 (reading); `05-transformer-attention`
+(reference): this notebook and 8c's in one worked example, without the exercises.
 **Sets:** nothing; A8 is due two days later.
 
 ### 8c. Finishing the Transformer, the A8 Debrief, and the Subword Activity (F2026, 22 slides)
 The by-hand solution; multi-head attention, the whole Transformer, the encoder block, the
 residual stream and the decoder block; pros and cons of NMT; the A8 debrief around the capacity
 table; Part A of the Lecture 9 notebook, in class.
-**Notebooks:** `lecture-09-subword-tokenization` Part A (activity); `06-diagnosing-failures`
+**Notebooks:** `lecture-08c-attention-heads` (activity): the student splits the projections into
+heads, shown to be the model's in every encoder layer, and measures how averaging and depth blur
+attention. `lecture-09-subword-tokenization` Part A (activity); `06-diagnosing-failures`
 (reading): five questions to ask of a model that is not working.
 **Sets:** A9.
 

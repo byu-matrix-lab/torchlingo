@@ -150,6 +150,8 @@ nav:
     - MT Evaluation Homework (Lecture 6): course/lecture-06-mt-evaluation-homework.ipynb
     - Your First Model (Lecture 7): course/lecture-07-toy-model.ipynb
     - Assignment 8 Kickoff (Lecture 8a): course/lecture-08a-a8-kickoff.ipynb
+    - Cross-Attention (Lecture 8b): course/lecture-08b-cross-attention.ipynb
+    - Attention Heads (Lecture 8c): course/lecture-08c-attention-heads.ipynb
     - Subword Tokenization (Lecture 9): course/lecture-09-subword-tokenization.ipynb
     - Installing COMET (Lecture 10): course/lecture-10-comet-install.ipynb
     - COMET on Your A6 Sentences (Lecture 11): course/lecture-11-comet-on-a6.ipynb

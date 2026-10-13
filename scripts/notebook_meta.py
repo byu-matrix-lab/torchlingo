@@ -102,7 +102,9 @@ ROLES = {"activity", "reading", "homework", "reference"}
 #   hf-token   a HuggingFace token, which CI does not have and should not be given
 #   blanks     a worksheet whose code cells are deliberately incomplete, so they do not
 #              parse until a student fills them in. What CI lacks is the student.
-CAPABILITIES = {"pip", "download", "colab", "hf-token", "blanks"}
+#   exercises  parses, but stops at its first `raise NotImplementedError` until a student
+#              writes the function; a tests/test_lecture_*.py module runs it with answers in.
+CAPABILITIES = {"pip", "download", "colab", "hf-token", "blanks", "exercises"}
 
 # Which collection a notebook belongs to. This says where it lives, not how it is used --
 # a distinction worth keeping separate, because they come apart: tutorial 3 lives in the
