@@ -72,6 +72,10 @@ dev = [
     "build>=1.0",
     "twine>=4.0",
     "pre-commit>=3.0",
+    # scripts/render_roadmap.py reads notes/roadmap/roadmap.yaml, and notebook_meta.py reads
+    # the schedule through it. Declared rather than left to arrive transitively through
+    # pre-commit or mkdocs, so CI's lint job can install exactly this spec.
+    "pyyaml>=6.0",
 ]
 japanese = ["fugashi>=1.3", "unidic-lite>=1.0"]
 chinese = ["jieba>=0.42"]

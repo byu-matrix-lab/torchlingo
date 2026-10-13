@@ -10,6 +10,11 @@ on:
       # Tutorials live here and are executed by the `notebooks` job. Without
       # this path, a notebook change triggers no workflow at all.
       - 'docs/**'
+      # The roadmap and its sources. Without these, a hand edit to the generated
+      # roadmap -- the thing the lint job's render_roadmap.py --check exists to
+      # catch -- would trigger no workflow, and the gate would never run.
+      - 'notes/roadmap/**'
+      - 'notes/CS479_COURSE_ROADMAP.md'
       - 'pyproject.toml'
       - 'MANIFEST.in'
       - '.pre-commit-config.yaml'
@@ -33,6 +38,9 @@ on:
       # Tutorials live here and are executed by the `notebooks` job. Without
       # this path, a notebook change triggers no workflow at all.
       - 'docs/**'
+      # The roadmap and its sources; see the push trigger above.
+      - 'notes/roadmap/**'
+      - 'notes/CS479_COURSE_ROADMAP.md'
       - 'pyproject.toml'
       - 'MANIFEST.in'
       - '.pre-commit-config.yaml'
@@ -89,12 +97,34 @@ jobs:
       - name: Reports match their JSON
         run: python scripts/render_report.py --check
 
+      # The roadmap is generated too, since 2026-10-12: notes/CS479_COURSE_ROADMAP.md is
+      # rendered from notes/roadmap/ (the facts in roadmap.yaml, the prose in sections/),
+      # and this fails if the Markdown was edited by hand or the sources moved without a
+      # re-render. It needs PyYAML, the one dependency of this job beyond ruff, and the
+      # notebook-metadata step below needs it too, because the schedule it validates
+      # against is read from the same file. The spec is read from the dev extra, like
+      # ruff's, so the two cannot drift.
+      - name: Install PyYAML for the roadmap
+        run: |
+          YAML_SPEC=$(python -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              dev = tomllib.load(f)['project']['optional-dependencies']['dev']
+          print(next(d for d in dev if d.lower().startswith('pyyaml')))
+          ")
+          echo "Installing $YAML_SPEC"
+          pip install "$YAML_SPEC"
+
+      - name: Roadmap matches its sources
+        run: python scripts/render_roadmap.py --check
+
       # Same argument, applied to the notebook map. Each notebook declares which
       # lecture it serves and what it needs; the roadmap's table and
       # execute_notebooks.py's skip logic both read those declarations. This is
       # what stops the table from drifting back into being hand-maintained, and
       # it also validates the metadata itself -- a typo'd key would otherwise
-      # silently drop a row. Standard library only, like the check above.
+      # silently drop a row. Standard library plus PyYAML, installed above for the
+      # schedule in roadmap.yaml.
       #
       # It also gates the generated purpose cell each notebook opens with (#146).
       # That cell is what a STUDENT reads, and it is rendered from the same

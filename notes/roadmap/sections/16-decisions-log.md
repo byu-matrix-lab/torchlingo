@@ -1,0 +1,108 @@
+## Decisions log
+
+Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
+place, with who made it.
+
+- **Oct 8.** Assignments renamed "Assignment N" and the grade category "Assignments" (Eric). The SLT
+  pipeline is A15, set at Lecture 15 and still due Wed Nov 11, so the numbering has no gap and Lecture
+  16 sets nothing. A10 gains a 3-point rubric and counts in the grade. Every hand-in list mirrors its
+  rubric (A5 fixed after a student's report).
+- **Oct 7, late.** Content pages never name reading-report presenters (Eric): the sign-up sheet is the
+  official schedule, and a page that names students is a second copy to maintain. Pages link the
+  sheet instead. Decks still name presenters, since they are built the morning of from the sheet.
+- **Oct 7, evening, later.** Content pages carry the reading for the *next* lecture, not the day's
+  (student feedback relayed by Eric: advance warning is the point). Each page: slides; "Before
+  <next session>" with the reading, the assignment due, the quiz and the reading reports, mirroring
+  the deck's before-next-time slide; then any in-class material; then, at the end, the reading that
+  prepared the lecture. Applied to the 8c and 9 pages; every page from here follows.
+- **Oct 7, evening.** Lecture 9 as taught becomes Lecture 8c and Lecture 9 moves to Mon Oct 12
+  (Eric, after walking the Oct 7 deck slide by slide): 8c keeps the by-hand solution, the rest of
+  8b, pros and cons, the A8 debrief and the subword activity; 9 takes deployment, positional
+  encoding, the fixed vocabulary, subwords and terminology. Everything after shifts one session;
+  Lectures 19 and 20 merge on Nov 30 to pay for it (Eric, on this side's recommendation). A9 due
+  Wed Oct 14 (Eric). A10 Oct 19, A12 Oct 28, A13 Nov 2, A14 Nov 4, A16 Nov 11 follow the shift;
+  A11 Oct 26 keeps a seven-day window (this side's call). Proposal week Nov 9, 11, 16.
+  Reading-report dates stand. Today's attendance quiz and Content page are 8c.
+- **Oct 7, after Lecture 9's rebuild.** Eric walked the 8b deck slide by slide, marking each
+  discussed or not on Oct 5. Five were not reached (Multi-Head Attention, The Whole Transformer,
+  Inside One Encoder Block, The Residual Stream, The Decoder Block): they move to the Lecture 9
+  deck after the by-hand solution, preceded by a copy of the self-attention map slide; 8b `_v4`
+  hides them and its objectives shrink to the three things taught. Rule implied for future
+  passes: what a session did not reach moves forward rather than being assumed.
+- **Oct 7.** Six de-noise rules for every deck (Eric; the header lists them), applied to
+  Lecture 9, 8b `_v4` and decks 3 to 8a the same day. Protocol change: the course side edits the
+  course notebooks directly in the repository tree and the repository session reviews, commits,
+  pushes and promotes; first use, the Lecture 9 notebook's Part B (A9 in the same notebook).
+- **Oct 6.** Slides never state how many questions a quiz has (Eric). A9's Learning Suite text
+  follows the one-notebook design; the transcript changes in the same pass.
+- **Oct 5, evening.** Two standing deck rules and one quiz rule (Eric): every deck carries a
+  Reading Reports slide and a closing before-next-time slide synced to Learning Suite; every
+  attendance quiz asks one question per required reading or tutorial, scored 2 / 1 / 0. The 8b
+  `_v2` deck adopted (35 slides). Tutorial-4 recap slides added because the reading cannot be
+  assumed internalised; the same will hold for Lecture 9's reading.
+- **Oct 5.** Three decisions (Eric), all handed to the repository: the Lecture 7 notebook's
+  held-out phrase becomes the student's choice with a required prediction and contrast; the
+  Lecture 9 notebook makes `unknown_rate` the student's, the vocabulary size a reasoned choice,
+  and asks for an A9 prediction before the settings print, plus a Report back; the tutorials are
+  renumbered into course order (07→02, 02→03, 08→05, 05→07, 03→08) with redirect stubs for the
+  term. Tutorial 5 stays at Lecture 10 and becomes tutorial 7, closing its open question. The
+  Lecture 7 deck's Part B slide and the task list were updated the same day; other course-side
+  references flip when the merges land.
+- **Oct 1.** Learning-outcomes section added after Eric asked whether the notebooks do so much that learning by doing drops off. Four flags with proposals (the A8 write-up questions, the A9 prediction and `unknown_rate` TODO, the Lecture 7 held-out choice, the A13/A14 scaffold rule); nothing changes in a notebook or an assignment until Eric decides.
+- **Sep 30, late.** A9 due Mon Oct 12, not Oct 14: an assignment is due on the day of the next
+  lecture, and A9 and A10 do not share a day (Eric, to Coulson). Proposal week is one day of
+  outline reviews and two of presentations, because of the class size (Coulson proposed, Eric
+  agreed); days pending. Learning Suite now carries the shifted lecture rows, all assignment due
+  dates, the quiz renames and a cleaned Lecture 7 page (Coulson). Remaining there: Quiz 8b's
+  questions, the 8b, 9 and 10 Content pages, the A9, A13 and A14 texts, the proposal sign-up
+  sheet.
+- **Sep 30.** The A8 "What To Do" slide caps sentence length before the split, matching the
+  kickoff; capping after the split shrinks a training set already sized to the floor
+  (repository found it; course-side fixed it). Tutorial 4's Part 8 becomes tutorial 8, 8b's
+  reading (Eric; repository PR #193). A9's call as first handed over failed on every Colab
+  runtime; fixed in 0.2.4 and the notebook prints the model path twice (repository). Notebooks
+  carry no due dates at all, not even in purpose cells (Eric). "Instructor" is not a banned
+  word; the notebook check for it is removed (Eric). The assignment transcripts belong in
+  `torchlingo-private` (Eric). Notebook audit: the job of each notebook is to teach; every
+  notebook runs end to end; no project history in notebooks (Eric); nine of the audit's
+  changes merged, Lecture 10's three and lecture-12 remain (repository).
+- **Sep 29.** Lecture 7 taught from the SDL tic-tac-toe block with six transfer slides; the
+  full rebuild archived (Eric). Every assignment description transcribed from Learning Suite
+  (Eric asked; course-side), since moved to `torchlingo-private/notes/assignments/`. The repository's copy of
+  this file is now regenerated header and all by the course-side refresh script.
+- **Sep 28, evening.** A8's model is the 56.4M configuration, on Coulson's Colab memory
+  measurement (Eric). Epochs: "about 35, and keep going if validation loss is still falling",
+  not a range (Eric). A9 keeps A8's raw files and split and changes three settings
+  (`use_sentencepiece`, `sp_model_path`, `max_decode_length`); the Lecture 9 notebook prints
+  them (repository). Notebooks carry no weekdays or dates (Eric). Tutorial 5 points at A11, not
+  A8 (repository; placement still Eric's). Tutorial 2 stays `reading` with a note (repository).
+- **Sep 28, afternoon.** LLM-as-judge is Lecture 11's, using the five GEMBA slides at the
+  rebuild (Eric). The paper sign-up sheet gains URL and LECTURE TOPIC ALIGNMENT columns, three
+  papers (the contamination study, COMET, Koehn 2003) to reach 23, dates in lecture order with
+  the first on Oct 5 (Eric). The Lecture 7 to 9 run given its spine (Eric, all agreed): the
+  next-token sentence at Lecture 7, attention as learned alignment at 8a, the decoder block at
+  8b, the vocabulary problem at 9; "why a trained model comes out bad" moved to open 8a's
+  practical half; softmax placed before it is used in 8b.
+- **Sep 28, midday.** Lecture 7's activity becomes a three-part exercise with a turn-in, A7, due
+  before 8a (Eric). That makes it a course notebook, so tutorial 2 returns to `reading` and the
+  "one exception" of the same morning is withdrawn: the rule that tutorials are out-of-class
+  holds with no exceptions.
+- **Sep 28, morning.** A12 due Mon Oct 26 and A16 due Mon Nov 9, moved from Oct 21 and Nov 4,
+  after an audit found the schedule shift had left them two-day windows (Eric). Tutorial 2 is
+  Lecture 7's in-class activity, the one exception to the rule that tutorials are out-of-class
+  (Eric; withdrawn by midday). A12's language list is the notebook's, not the old deck's (Eric).
+  The A8 kickoff notebook written, course-side, with the repository session's eleven findings
+  built in. Post-norm confirmed; `norm_first` added as an option (repository).
+- **Sep 27.** Lecture 8 split into 8a and 8b; Lecture 17 takes Nov 16; Lectures 9 to 16 shift
+  one session; A8 holds at Oct 7 (Eric). TAUS report dropped, a 2025 event (Eric). A8 raised
+  from 30-36 to 60-70 epochs on the benchmark (Eric). One quiz each for 8a and 8b (Eric).
+  Tutorial 4 moved from Lecture 19 to 8a/8b, and stays one notebook (Eric; repository).
+  Tutorial 6 moved from Lecture 8 to 9 (Eric). Beam search taught at Lecture 10, tutorial 3
+  moved there from 22 (Eric). OpenNMT removed from all F2026 decks (Eric). The residual-stream
+  reading added to 8b (Eric). Three Fall 2025 notebooks brought into the repository. The A8
+  handout stays complete and is the authority over its kickoff notebook (Eric, via repository
+  task #155).
+- **Sep 26.** Lectures 7 and 8 rebuilt. TorchLingo 0.2.0 on PyPI; Colab resume verified; the
+  units question settled as epochs.
+- **Sep 25.** Dates for Lectures 1 to 8 confirmed against Learning Suite.
+- **Sep 21 to 23.** Lectures 5 and 6 rebuilt; Gale-Church moved forward into Lecture 5.

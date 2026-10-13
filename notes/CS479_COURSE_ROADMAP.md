@@ -1,6 +1,6 @@
 # CS 479 Fall 2026: Course Roadmap
 
-*Repository copy of `CS479 Fall 2026 Roadmap_v16.md` (course-side roadmap v16), refreshed 2026-10-08. Everything above "## Which notebook serves which lecture" is regenerated from the desktop file by the course-side session; edit it there. Everything from that heading down is written in this repository and is preserved by the refresh.*
+*Generated from `notes/roadmap/` by `scripts/render_roadmap.py`: edit there, never here.*
 
 ---
 
@@ -674,25 +674,25 @@ table, and the two are kept in agreement by hand at every hand-off.
 
 | notebook | lecture | role | starts | purpose | CI |
 |---|---|---|---|---|---|
-| `lecture-03-word-embeddings` | 3 | activity | A3 | does the shared multilingual space line up across your languages | needs download |
-| `lecture-04-tmx-cleaning` | 4 | activity | A4 | planted TMX problems, two parsers, a checker that names the cleaning step | yes |
-| `lecture-04-regex-refresher` | 4 | reference | | fifteen-minute regex tour; a worksheet with blanks | blanks |
-| `lecture-05-sentence-alignment` | 5 | activity | A5 | estimate Gale-Church parameters on your language | yes |
-| `lecture-06-mt-evaluation` | 6 | activity | A6 | BLEU and chrF on your data; BLEU returns zero on ten short sentences | yes |
-| `lecture-06-mt-evaluation-homework` | 6 | homework | A6 | the assignment's scaffold over your uploaded A5 corpus | Colab only |
-| `02-evaluating-translations` (was `07-`) | 6 | reading | A6, A8 | the library's out-of-class treatment of evaluation | yes |
-| `lecture-07-toy-model` | 7 | activity | A7 | the three-part toy-model exercise; the student picks the held-out phrase, predicts, and a contrast phrase runs; resume demo | yes |
-| `03-train-tiny-model` (was `02-`) | 7 | reading | A8 | the library's own tiny-model tutorial, which the exercise above was adapted from | yes |
-| `lecture-08a-a8-kickoff` | 8a | activity | A8 | from your A5 corpus to a running, checkpointed, bucketed training job | Colab only |
-| `04-attention-and-alignment` | 8a, 8b | reading | | with and without attention; did it learn the right alignment; Part 7 is the Transformer | yes |
-| `05-transformer-attention` (was `08-`) | 8b | reading | A8 | a pretrained Transformer's attention on real text, cross- and (since Oct 5) self-attention; tutorial 4's old Part 8 | needs download |
-| `lecture-09-subword-tokenization` | 9 | activity | A9 | `<unk>` before and after SentencePiece (the student's counter), a round trip, the student's vocabulary size and A9 prediction, and the three A9 settings printed under A9's own run names | Colab only |
-| `06-diagnosing-failures` | 9 | reading | A8 | five questions to ask of a model that is not working | yes |
+| `lecture-03-word-embeddings` | 3 | activity | A3 | does the shared multilingual space line up across your languages | no: download, pip |
+| `lecture-04-regex-refresher` | 4 | reference | | fifteen-minute regex tour; a worksheet with blanks | no: blanks |
+| `lecture-04-tmx-cleaning` | 4 | activity | A4 | planted TMX problems, two parsers, a checker that names the cleaning step | no: pip |
 | `01-data-and-vocab` | 4, 9 | reference | A5 | the library's view of corpus loading; word-level vocab, stops at `<unk>` | yes |
-| `lecture-10-comet-install` | 10 | homework | A10 | install COMET, score an example, set up the HF token | needs token |
-| `08-inference-and-beamsearch` (was `03-`) | 10 | reading | A9 | greedy against beam, checked against the library, both scored; badge not yet runnable; rewrite paused until A8 is in shape | yes |
-| `07-real-translations` (was `05-`) | 10 | reading | A11 | a trained model on real sentences; stays at 10 (Oct 5) | yes |
-| `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples; all TODOs | pip |
+| `lecture-05-sentence-alignment` | 5 | activity | A5 | estimate Gale-Church parameters on your language | no: pip |
+| `lecture-06-mt-evaluation` | 6 | activity | A6 | BLEU and chrF on your data; BLEU returns zero on ten short sentences | yes |
+| `lecture-06-mt-evaluation-homework` | 6 | homework | A6 | the assignment's scaffold over your uploaded A5 corpus | no: colab |
+| `02-evaluating-translations` | 6 | reading | A6, A8 | the library's out-of-class treatment of evaluation | yes |
+| `lecture-07-toy-model` | 7 | activity | A7 | the three-part toy-model exercise; the student picks the held-out phrase, predicts, and a contrast phrase runs; resume demo | yes |
+| `03-train-tiny-model` | 7 | reading | A8 | the library's own tiny-model tutorial, which the exercise above was adapted from | yes |
+| `lecture-08a-a8-kickoff` | 8a | activity | A8 | from your A5 corpus to a running, checkpointed, bucketed training job | no: colab, pip |
+| `04-attention-and-alignment` | 8a, 8b | reading | | with and without attention; did it learn the right alignment; Part 7 is the Transformer | yes |
+| `05-transformer-attention` | 8b, 8c | reading | A8 | a pretrained Transformer's attention on real text, cross- and (since Oct 5) self-attention; tutorial 4's old Part 8 | yes |
+| `06-diagnosing-failures` | 8c | reading | A8 | five questions to ask of a model that is not working | yes |
+| `lecture-09-subword-tokenization` | 9 | activity | A9 | `<unk>` before and after SentencePiece (the student's counter), a round trip, the student's vocabulary size and A9 prediction, and the three A9 settings printed under A9's own run names | no: colab |
+| `lecture-10-comet-install` | 10 | homework | A10 | install COMET, score an example, set up the HF token | no: colab, hf-token, pip |
+| `07-real-translations` | 10 | reading | A11 | a trained model on real sentences; stays at 10 (Oct 5) | yes |
+| `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, checked against the library, both scored; badge not yet runnable; rewrite paused until A8 is in shape | yes |
+| `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples; all TODOs | no: pip |
 
 **Tutorial numbers (Eric, Oct 5):** renumbered into course order, 01 data, 02 evaluating, 03
 train-tiny, 04 attention, 05 transformer-attention, 06 diagnosing, 07 real-translations, 08

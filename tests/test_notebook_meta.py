@@ -11,6 +11,7 @@ that only ever sees good input is not known to validate anything.
 """
 
 import contextlib
+import datetime
 import io
 import json
 import shutil
@@ -19,14 +20,58 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import yaml
+
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 
 import notebook_meta as nm
+import render_roadmap as rr
+
+REAL_DATA = rr.DATA
+
+
+def scratch_roadmap(test: unittest.TestCase, change) -> Path:
+    """Point the module at a scratch copy of roadmap.yaml, changed by ``change(doc)``.
+
+    The schedule lives in ``notes/roadmap/roadmap.yaml`` since 2026-10-12. These fixtures
+    used to write scratch *Markdown* roadmaps with one schedule row replaced; they now copy
+    the real data and change one entry, which keeps the property that mattered -- a test
+    builds on the live schedule rather than naming a row that a schedule change can delete.
+
+    Args:
+        test (unittest.TestCase): The test, which owns the cleanup.
+        change: Called with the parsed document, to modify it in place.
+
+    Returns:
+        Path: The scratch file, which ``rr.DATA`` now names until the test ends.
+    """
+    tmp = Path(tempfile.mkdtemp())
+    test.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+    test.addCleanup(setattr, rr, "DATA", rr.DATA)
+    # Always from the real file, so a test that builds two scratch copies gets two changes
+    # of the real schedule rather than one change layered on another.
+    doc = rr.load(REAL_DATA)
+    change(doc)
+    target = tmp / "roadmap.yaml"
+    target.write_text(yaml.safe_dump(doc, allow_unicode=True), encoding="utf-8")
+    rr.DATA = target
+    return target
+
+
+def first_lecture_row(doc: dict) -> dict:
+    """The first schedule row that is a lecture, found rather than named.
+
+    Naming one meant that splitting a lecture broke nine tests that had nothing to do with
+    the split.
+    """
+    return next(row for row in doc["lectures"] if row["ids"])
+
 
 # nbformat is a docs extra, not a test dependency, so it is absent in CI's test job. The
 # round-trip test skips there rather than failing -- the same treatment the Git LFS artifacts
-# get. Everything else here is standard library, deliberately.
+# get. Everything else here is standard library, deliberately, apart from PyYAML: the
+# schedule lives in roadmap.yaml, and PyYAML is in the dev extra the test job installs.
 try:
     import nbformat
 except ImportError:
@@ -182,7 +227,8 @@ class TestScheduleIsParsedNotRestated(unittest.TestCase):
 
     These tests exist because the first version of this parser was silently wrong: the
     generated map's own rows have the same shape as the schedule's, so every title came back
-    as a notebook filename. It produced a plausible-looking table.
+    as a notebook filename. It produced a plausible-looking table. The schedule is read from
+    roadmap.yaml now, but the symptom is still the one worth asserting.
     """
 
     def setUp(self):
@@ -190,11 +236,12 @@ class TestScheduleIsParsedNotRestated(unittest.TestCase):
 
     def test_titles_come_from_the_schedule_section(self):
         """A title must appear in the schedule table, not merely somewhere in the file."""
-        schedule = nm.ROADMAP.read_text(encoding="utf-8").split(nm.SCHEDULE_HEADING)[1]
-        schedule = schedule.split("\n## ")[0]
+        schedule = rr.schedule_table(rr.load())
         for number, title in self.titles.items():
             self.assertIn(
-                title, schedule, f"lecture {number}'s title is not the schedule's"
+                f"| {title} |",
+                schedule,
+                f"lecture {number}'s title is not the schedule's",
             )
 
     def test_no_title_is_a_notebook_filename(self):
@@ -214,13 +261,19 @@ class TestScheduleIsParsedNotRestated(unittest.TestCase):
             self.assertNotIn("Final exam", title)
 
     def test_an_unparseable_roadmap_raises(self):
-        original = nm.ROADMAP
+        original = rr.DATA
         try:
-            nm.ROADMAP = Path(__file__)  # a real file with no schedule in it
+            rr.DATA = Path(__file__)  # a real file with no schedule in it
             with self.assertRaises(ValueError):
                 nm.lectures()
         finally:
-            nm.ROADMAP = original
+            rr.DATA = original
+
+    def test_a_roadmap_with_no_schedule_raises(self):
+        """Valid YAML with the schedule missing is the same failure, and as loud."""
+        scratch_roadmap(self, lambda doc: doc.pop("lectures"))
+        with self.assertRaises(ValueError):
+            nm.lectures()
 
 
 class TestGeneratedTable(unittest.TestCase):
@@ -265,21 +318,38 @@ class TestRoadmapIsCurrent(unittest.TestCase):
     """What CI gates on, asserted here too so a local run catches it first."""
 
     def test_roadmap_matches_the_notebooks(self):
-        current = nm.ROADMAP.read_text(encoding="utf-8")
         self.assertEqual(
-            current,
-            nm.roadmap_with_table(current),
+            rr.current(),
+            rr.render(),
             "notes/CS479_COURSE_ROADMAP.md is stale; "
             "run python scripts/notebook_meta.py --write",
         )
 
+    def test_the_map_sits_between_its_markers_once(self):
+        rendered = rr.render()
+        self.assertEqual(rendered.count(nm.BEGIN), 1)
+        self.assertEqual(rendered.count(nm.END), 1)
+        self.assertLess(rendered.index(nm.BEGIN), rendered.index(nm.END))
+        self.assertIn(nm.table(), rendered)
+
+    # The two below guarded the splice that wrote the map into a hand-kept roadmap: it
+    # refused a file whose markers were missing or out of order rather than appending a
+    # second table somewhere harmless-looking. The roadmap is rendered whole now, so the same
+    # refusal lives in the layout, and these assert it there.
+
     def test_missing_markers_raise_rather_than_append(self):
+        """A layout that leaves the map out is refused, not rendered without it."""
+        doc = rr.load()
+        doc["layout"] = [e for e in doc["layout"] if e != {"table": "notebook-map"}]
         with self.assertRaises(ValueError):
-            nm.roadmap_with_table("a roadmap with no markers at all")
+            rr.render(doc)
 
     def test_markers_out_of_order_raise(self):
+        """A layout that places the map twice is refused, not rendered twice."""
+        doc = rr.load()
+        doc["layout"].insert(0, {"table": "notebook-map"})
         with self.assertRaises(ValueError):
-            nm.roadmap_with_table(f"{nm.END}\nbackwards\n{nm.BEGIN}")
+            rr.render(doc)
 
 
 class TestExecuteNotebooksReadsTheSameField(unittest.TestCase):
@@ -335,33 +405,34 @@ class TestUnreadableScheduleRowsAreLoud(unittest.TestCase):
     the generated map, nothing reported anything, and the map still looked complete. Splitting
     a lecture is exactly when an author reaches for one of them, so the failure was waiting
     for the moment it would do most damage.
+
+    The schedule moved from a Markdown table to roadmap.yaml on 2026-10-12. The same forms
+    are now written as a row's `ids`, and are rejected there for the same reason; each test
+    below replaced a Markdown row like ``| 8-9 | Wed Sep 30 | NMT Overview | | F2026 |``.
     """
 
-    def setUp(self):
-        self.original = nm.ROADMAP.read_text(encoding="utf-8")
-        # Find a real schedule row rather than naming one. Naming one meant that splitting a
-        # lecture broke nine tests that had nothing to do with the split.
-        self.real_row = next(
-            line
-            for line in self.original.splitlines()
-            if nm.SCHEDULE_ROW.match(line) and line.count("|") >= 5
-        )
-        self.tmp = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
-        self.addCleanup(setattr, nm, "ROADMAP", nm.ROADMAP)
+    def parse_with(self, *rows):
+        """Parse a schedule whose first real lecture row is replaced by ``rows``.
 
-    def parse_with(self, replacement):
-        """Parse a roadmap whose first real lecture row has been replaced."""
-        target = self.tmp / "roadmap.md"
-        target.write_text(
-            self.original.replace(self.real_row, replacement), encoding="utf-8"
-        )
-        nm.ROADMAP = target
+        Each row is ``(ids, title)``. The first replacement keeps the real row's date and the
+        rest follow it a day apart, so the schedule stays one row per date.
+        """
+
+        def change(doc):
+            real = first_lecture_row(doc)
+            at = doc["lectures"].index(real)
+            built = []
+            for offset, (ids, title) in enumerate(rows):
+                date = real["date"] + datetime.timedelta(days=offset)
+                built.append({"ids": ids, "date": date, "title": title})
+            doc["lectures"][at : at + 1] = built
+
+        scratch_roadmap(self, change)
         return nm.lectures()
 
-    def assertRejects(self, replacement):
+    def assertRejects(self, *rows):
         with self.assertRaises(ValueError) as caught:
-            self.parse_with(replacement)
+            self.parse_with(*rows)
         return str(caught.exception)
 
     def test_letter_suffixes_are_accepted(self):
@@ -379,58 +450,71 @@ class TestUnreadableScheduleRowsAreLoud(unittest.TestCase):
             self.assertTrue(titles[key], f"lecture {key} parsed with no title")
 
     def test_a_range_is_still_rejected(self):
-        self.assertRejects("| 8-9 | Wed Sep 30 | NMT Overview | | **F2026** |")
+        self.assertRejects((["8-9"], "NMT Overview"))
 
     def test_a_parenthetical_is_rejected(self):
-        self.assertRejects("| 8 (part 1) | Wed Sep 30 | NMT Overview | | **F2026** |")
+        self.assertRejects((["8 (part 1)"], "NMT Overview"))
 
     def test_a_typo_is_rejected(self):
         """Not only new schemes: a stray character is caught for free."""
-        self.assertRejects("| 8. | Wed Sep 30 | NMT Overview | | **F2026** |")
+        self.assertRejects((["8."], "NMT Overview"))
 
     def test_a_multi_letter_suffix_is_rejected(self):
         """One letter is a split; two is a typo or a scheme nobody agreed to."""
-        self.assertRejects("| 8ab | Wed Sep 30 | NMT Overview | | **F2026** |")
+        self.assertRejects((["8ab"], "NMT Overview"))
+
+    def test_a_comma_inside_one_id_is_rejected(self):
+        """The Markdown form of a shared session, `22, 23`, written as one id by habit."""
+        self.assertRejects((["22, 23"], "A shared session"))
+
+    def test_an_unquoted_number_is_rejected(self):
+        """YAML reads `ids: [8]` as an integer. Rejected rather than coerced, so that every
+        id is written the one way the message gives, and `08` cannot quietly become 8."""
+        self.assertRejects(([8], "NMT Overview"))
+
+    def test_ids_that_are_not_a_list_are_rejected(self):
+        self.assertRejects(("8", "NMT Overview"))
+
+    def test_a_lecture_listed_twice_is_rejected(self):
+        """Two rows claiming one lecture would leave the map to pick one in silence."""
+        real = first_lecture_row(rr.load())
+        self.assertRejects((real["ids"], "Once"), (real["ids"], "Twice"))
 
     def test_every_bad_row_is_reported_not_just_the_first(self):
         message = self.assertRejects(
-            "| 8-9 | Wed Sep 30 | NMT Overview | | **F2026** |\n"
-            "| 8. | Mon Oct 5 | NMT Architectures | | **F2026** |"
+            (["8-9"], "NMT Overview"), (["8."], "NMT Architectures")
         )
         self.assertIn("2 schedule row(s)", message)
 
     def test_the_message_says_what_is_accepted(self):
         """An error that does not say what to write instead just moves the confusion."""
-        message = self.assertRejects(
-            "| 8-9 | Wed Sep 30 | NMT Overview | | **F2026** |"
-        )
+        message = self.assertRejects((["8-9"], "NMT Overview"))
         self.assertIn("Accepted", message)
-        self.assertIn("22, 23", message)
+        self.assertIn('["22", "23"]', message)
         self.assertIn("#138", message)
+        # And where to fix it, which the Markdown version never needed to say.
+        self.assertIn("roadmap.yaml", message)
 
     def test_valid_forms_still_parse(self):
-        """The unsuffixed and comma forms must keep working, with string keys.
+        """The unsuffixed and shared-session forms must keep working, with string keys.
 
         Asserting `8` as an integer was the version of this that broke: identifiers became
         strings when `8a` arrived, because `8a` has no integer form.
         """
-        titles, aliases = self.parse_with(self.real_row)
+        real = first_lecture_row(rr.load())
+        titles, aliases = self.parse_with((real["ids"], real["title"]))
         self.assertTrue(titles)
         self.assertTrue(all(isinstance(k, str) for k in titles))
 
-        titles, aliases = self.parse_with(
-            "| 90, 91 | Wed Sep 30 | A shared session | | **F2026** |"
-        )
+        titles, aliases = self.parse_with((["90", "91"], "A shared session"))
         self.assertEqual(titles["90"], "A shared session")
         self.assertEqual(aliases["91"], "90")
 
     def test_non_lecture_rows_are_still_skipped_silently(self):
-        """Em-dash rows are deliberate -- no class, project reviews, the final exam -- and
-        making them errors would make the check useless."""
-        titles, _ = self.parse_with(
-            "| — | Wed Sep 30 | **No class**, a made-up holiday | | |"
-        )
-        self.assertNotIn(8, titles)
+        """`ids: []` rows are deliberate -- no class, project reviews, the final exam -- and
+        making them errors would make the check useless. They render as an em dash."""
+        titles, _ = self.parse_with(([], "**No class**, a made-up holiday"))
+        self.assertNotIn("**No class**, a made-up holiday", titles.values())
 
     def test_the_real_schedule_parses(self):
         """The guard must not reject the file as it actually stands."""
@@ -440,14 +524,11 @@ class TestUnreadableScheduleRowsAreLoud(unittest.TestCase):
 
     def test_the_cli_reports_a_message_not_a_traceback(self):
         """The message is the whole value of this check, and a traceback buries it."""
-        target = self.tmp / "roadmap.md"
-        target.write_text(
-            self.original.replace(
-                self.real_row, "| 8-9 | Wed Sep 30 | NMT Overview | | **F2026** |"
-            ),
-            encoding="utf-8",
-        )
-        nm.ROADMAP = target
+
+        def change(doc):
+            first_lecture_row(doc)["ids"] = ["8-9"]
+
+        scratch_roadmap(self, change)
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
             code = nm.main(["--check"])
@@ -457,7 +538,8 @@ class TestUnreadableScheduleRowsAreLoud(unittest.TestCase):
 
 
 class TestAssignmentsAreParsed(unittest.TestCase):
-    """Assignments come from the schedule's own column, like the lecture titles do."""
+    """Assignments come from the data the schedule's column is rendered from, like the
+    lecture titles do."""
 
     def setUp(self):
         self.due = nm.assignments()
@@ -477,28 +559,63 @@ class TestAssignmentsAreParsed(unittest.TestCase):
         self.assertIn(self.due.get("A8"), set(titles) | set(aliases))
 
     def test_two_assignments_in_one_cell_are_both_found(self):
-        """One cell holding two assignments, separated by a middot, yields both.
+        """Two assignments due on one day, which share one schedule cell, yield both.
 
-        Built from a real schedule row rather than read off the live roadmap. The live one
+        Built on a real schedule row rather than read off the live roadmap. The live one
         held A9 and A10 in one cell until roadmap v12 (2026-10-05) moved A9 to its own
         lecture, and a test that needed that coincidence went red on a schedule change."""
-        original = nm.ROADMAP.read_text(encoding="utf-8")
-        row = next(
-            line
-            for line in original.splitlines()
-            if nm.SCHEDULE_ROW.match(line) and line.count("|") >= 6
-        )
-        columns = row.split("|")
-        columns[4] = " **A98** one · **A99** two "
-        tmp = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
-        self.addCleanup(setattr, nm, "ROADMAP", nm.ROADMAP)
-        target = tmp / "roadmap.md"
-        target.write_text(original.replace(row, "|".join(columns)), encoding="utf-8")
-        nm.ROADMAP = target
+
+        def change(doc):
+            date = first_lecture_row(doc)["date"]
+            doc["assignments"] += [
+                {"id": "A98", "label": "**A98** one", "due": date},
+                {"id": "A99", "label": "**A99** two", "due": date},
+            ]
+
+        scratch_roadmap(self, change)
         due = nm.assignments()
         self.assertIsNotNone(due.get("A98"))
         self.assertEqual(due.get("A98"), due.get("A99"))
+        # And the schedule shows them in one cell, the way it always has.
+        row = next(
+            line
+            for line in rr.schedule_table(rr.load()).splitlines()
+            if "**A98** one" in line
+        )
+        self.assertIn("**A98** one · **A99** two", row)
+
+    def assertIdRejected(self, name):
+        """Assert an assignment id is refused, loudly, by ``assignments()``."""
+
+        def change(doc):
+            doc["assignments"].append(
+                {"id": name, "label": name, "due": first_lecture_row(doc)["date"]}
+            )
+
+        scratch_roadmap(self, change)
+        with self.assertRaises(ValueError) as caught:
+            nm.assignments()
+        self.assertIn(repr(name), str(caught.exception))
+
+    def test_an_assignment_due_off_the_schedule_is_rejected(self):
+        """It would be missing from the schedule while notebooks could still name it."""
+
+        def change(doc):
+            doc["assignments"].append(
+                {"id": "A98", "label": "x", "due": datetime.date(2026, 1, 1)}
+            )
+
+        scratch_roadmap(self, change)
+        with self.assertRaises(ValueError):
+            nm.assignments()
+
+    def test_a_deliverable_without_an_id_is_not_an_assignment(self):
+        """The proposal and the paper review are on the schedule but are no notebook's
+        `leads_to`; they carry no id, so they cannot be named by a made-up one."""
+        labels = [a["label"] for a in rr.load()["assignments"] if "id" not in a]
+        self.assertTrue(labels, "the schedule has no unnumbered deliverable to verify")
+        for label in labels:
+            self.assertNotIn(label, nm.assignments())
 
     def test_leads_to_is_validated_against_them(self):
         meta = {**GOOD, "leads_to": ["A8"]}
@@ -512,18 +629,36 @@ class TestAssignmentsAreParsed(unittest.TestCase):
         the old pattern, so it would have been skipped in silence while the schedule plainly
         showed it, and every `leads_to: ["A8a"]` rejected as naming something that does not
         exist. The lecture version of this bug was found after the fact."""
-        self.assertEqual(nm.ASSIGNMENT.findall("**A8a**"), ["A8a"])
-        self.assertEqual(
-            nm.ASSIGNMENT.findall("**A8a** \u00b7 **A8b**"), ["A8a", "A8b"]
-        )
+
+        def change(doc):
+            date = first_lecture_row(doc)["date"]
+            doc["assignments"] += [
+                {"id": "A8a", "label": "**A8a** one", "due": date},
+                {"id": "A8b", "label": "**A8b** two", "due": date},
+            ]
+
+        scratch_roadmap(self, change)
+        due = nm.assignments()
+        self.assertIn("A8a", due)
+        self.assertIn("A8b", due)
 
     def test_a_two_letter_suffix_is_still_rejected(self):
-        """One letter is a split; two is a typo or a scheme nobody agreed to."""
-        self.assertEqual(nm.ASSIGNMENT.findall("**A8ab**"), [])
+        """One letter is a split; two is a typo or a scheme nobody agreed to.
+
+        Rejected loudly now, where the Markdown parse skipped it in silence: an id in the
+        data file is an assignment someone meant to declare."""
+        self.assertIdRejected("A8ab")
+
+    def test_other_malformed_ids_are_rejected(self):
+        for name in ("8", "a8", "A 8", "Assignment 8"):
+            with self.subTest(name=name):
+                self.assertIdRejected(name)
 
     def test_unsuffixed_assignments_still_parse(self):
-        self.assertEqual(nm.ASSIGNMENT.findall("**A8**"), ["A8"])
-        self.assertEqual(nm.ASSIGNMENT.findall("**A10**"), ["A10"])
+        self.assertTrue(nm.ASSIGNMENT_ID.match("A8"))
+        self.assertTrue(nm.ASSIGNMENT_ID.match("A10"))
+        self.assertIn("A8", self.due)
+        self.assertIn("A10", self.due)
 
     def test_leads_to_must_be_a_list_of_strings(self):
         bad = nm.problems(nm.TUTORIALS / "99-x.ipynb", {**GOOD, "leads_to": "A8"})
@@ -1118,16 +1253,20 @@ class TestStampingKeepsWhatItWasNotAskedToChange(unittest.TestCase):
         # entire tutorials column was `—` -- into the real file, while the tests passed.
         # Caught because the CLI's own --check disagreed with a green suite.
         #
-        # So ROADMAP is redirected too, and `test_the_repository_roadmap_is_untouched`
-        # below asserts it, because the failure was invisible from inside the tests.
+        # So the roadmap is redirected too -- render_roadmap.ROADMAP, since that module is
+        # the one writer of the file now -- and tearDown asserts the real one is untouched,
+        # because the failure was invisible from inside the tests. (With one tutorial
+        # visible, the renderer now refuses outright: the notebook index has purposes for
+        # notebooks it cannot see. The redirect stays, since that refusal is not what this
+        # class is testing.)
         self.roadmap_copy = self.tmp / "ROADMAP.md"
-        shutil.copy(nm.ROADMAP, self.roadmap_copy)
-        self.real_roadmap = nm.ROADMAP
-        self.roadmap_before = nm.ROADMAP.read_text(encoding="utf-8")
+        shutil.copy(rr.ROADMAP, self.roadmap_copy)
+        self.real_roadmap = rr.ROADMAP
+        self.roadmap_before = rr.ROADMAP.read_text(encoding="utf-8")
         self.addCleanup(setattr, nm, "TUTORIALS", nm.TUTORIALS)
-        self.addCleanup(setattr, nm, "ROADMAP", nm.ROADMAP)
+        self.addCleanup(setattr, rr, "ROADMAP", rr.ROADMAP)
         nm.TUTORIALS = self.tmp
-        nm.ROADMAP = self.roadmap_copy
+        rr.ROADMAP = self.roadmap_copy
 
     def tearDown(self):
         """Fail loudly if a stamp reached the repository's roadmap."""
@@ -1146,7 +1285,10 @@ class TestStampingKeepsWhatItWasNotAskedToChange(unittest.TestCase):
         Returns:
             dict: The resulting metadata block.
         """
-        with contextlib.redirect_stdout(io.StringIO()):
+        with (
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
             nm.main(
                 [
                     "--stamp",

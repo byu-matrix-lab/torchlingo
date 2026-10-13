@@ -1,0 +1,579 @@
+# The facts behind notes/CS479_COURSE_ROADMAP.md, which scripts/render_roadmap.py generates
+# from this file and the prose in sections/. Edit here, then run
+#     python scripts/render_roadmap.py --write
+# CI runs it with --check and fails if the Markdown was edited by hand.
+#
+# Dates are unquoted (2026-10-14); the weekday is derived, never typed.
+
+# Every row of "Semester at a glance", in order.
+#   ids     lecture identifiers as strings: digits plus at most one lowercase letter ("8c").
+#           A merged session lists several (["19", "20"]); a row that is not a lecture,
+#           such as a no-class day, has ids: [] and renders as an em dash.
+#   deck    the Deck column, verbatim; omitted when empty.
+# Notebooks declare serves_lectures against these ids, and scripts/notebook_meta.py reads
+# them from here.
+lectures:
+- ids: ["1"]
+  date: 2026-09-02
+  title: Course Overview and History of MT
+  deck: F2026
+- ids: ["2"]
+  date: 2026-09-09
+  title: Translation Challenges for MT
+  deck: F2026
+- ids: ["3"]
+  date: 2026-09-14
+  title: Introduction to Word Embeddings
+  deck: F2026
+- ids: ["4"]
+  date: 2026-09-16
+  title: Data Preparation for MT Training
+  deck: F2026
+- ids: ["5"]
+  date: 2026-09-21
+  title: Data Preparation for MT Training, Part 2
+  deck: F2026
+- ids: ["6"]
+  date: 2026-09-23
+  title: Automatic and Human MT Evaluation
+  deck: F2026
+- ids: ["7"]
+  date: 2026-09-28
+  title: Research Paper Reviews; Intro to Neural Networks
+  deck: F2026
+- ids: ["8a"]
+  date: 2026-09-30
+  title: 'Neural MT: Encoder-Decoder, and Why Attention Was Invented'
+  deck: F2026
+- ids: ["8b"]
+  date: 2026-10-05
+  title: 'Neural MT: The Transformer'
+  deck: F2026
+- ids: ["8c"]
+  date: 2026-10-07
+  title: Finishing the Transformer, the A8 Debrief, and the Subword Activity
+  deck: F2026
+- ids: ["9"]
+  date: 2026-10-12
+  title: Handling Morphology and Terminology in NMT
+  deck: F2026
+- ids: ["10"]
+  date: 2026-10-14
+  title: Overview of MT Quality Estimation
+  deck: F2026 corrected
+- ids: ["11"]
+  date: 2026-10-19
+  title: Neural Quality Estimation and Evaluation
+  deck: F2025
+- ids: ["12"]
+  date: 2026-10-21
+  title: Using LLMs for MT; Expanding Context Awareness
+  deck: F2025
+- ids: ["13"]
+  date: 2026-10-26
+  title: Strategies for NMT of Low-Resource Languages
+  deck: F2025
+- ids: ["14"]
+  date: 2026-10-28
+  title: Multilingual NMT and "Zero-shot" NMT
+  deck: F2025
+- ids: ["15"]
+  date: 2026-11-02
+  title: Overview of Speech-to-Speech MT
+  deck: F2025
+- ids: ["16"]
+  date: 2026-11-04
+  title: Automatic Dubbing and Interpretation
+  deck: F2025
+- ids: []
+  date: 2026-11-09
+  title: 'Proposal week: one day of outline reviews with the professor, two days of proposal
+    presentations (Eric and Coulson, Sep 30); which day is which is being set in Learning Suite'
+- ids: []
+  date: 2026-11-11
+  title: (proposal week)
+- ids: []
+  date: 2026-11-16
+  title: (proposal week)
+- ids: ["17"]
+  date: 2026-11-18
+  title: Multimodal NMT
+  deck: F2025
+- ids: ["18"]
+  date: 2026-11-23
+  title: HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation
+  deck: F2025
+- ids: []
+  date: 2026-11-25
+  title: '**No class**, Thanksgiving Eve'
+- ids: ["19", "20"]
+  date: 2026-11-30
+  title: 'Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT,
+    PBSMT, SBSMT'
+  deck: F2025, merged at rebuild
+- ids: []
+  date: 2026-12-02
+  title: Project checkpoint reviews with instructor
+- ids: ["21"]
+  date: 2026-12-07
+  title: Writing Research Articles; MATRIX Lab research
+  deck: F2025
+- ids: ["22", "23"]
+  date: 2026-12-09
+  title: MT Applications and Jobs; Opportunities for Further MT Research
+  deck: F2025
+- ids: []
+  date: 2026-12-10
+  title: Last day of class
+- ids: []
+  date: 2026-12-16
+  title: Final exam, 11:00 to 14:00
+
+# Everything due, in any row of the schedule. The schedule's "Assignment due that day"
+# column is built from these, grouped by due date, so a due date is written once.
+#   id             A<digits>, at most one lowercase letter; what a notebook's leads_to
+#                  names. Deliverables that are not numbered assignments have no id.
+#   label          the schedule cell, verbatim.
+#   due            must be the date of a schedule row.
+#   set_at         the lecture that sets it. Present only for the rows of the table in
+#                  "How the second half was scheduled", whose "set at" date is read off
+#                  that lecture.
+#   emphasize_due  bold the due date in that table.
+#   window         that table's window column, verbatim.
+assignments:
+- id: A1
+  label: '**A1** read the syllabus; MT history'
+  due: 2026-09-02
+- id: A2
+  label: '**A2** rank translation challenges for your language'
+  due: 2026-09-09
+- id: A3
+  label: '**A3** multilingual embedding space'
+  due: 2026-09-14
+- id: A4
+  label: '**A4** initial cleaning steps'
+  due: 2026-09-21
+- id: A5
+  label: '**A5** complete cleaning pipeline'
+  due: 2026-09-23
+- id: A6
+  label: '**A6** human vs. automatic evaluation'
+  due: 2026-09-28
+- id: A7
+  label: '**A7** toy-model report'
+  due: 2026-09-30
+  set_at: "7"
+  window: '2, deliberately: three numbers and two sentences from an exercise started in class'
+- id: A8
+  label: '**A8** create and run an NMT model'
+  due: 2026-10-07
+  set_at: "8a"
+  window: 7 days
+- id: A9
+  label: '**A9** SentencePiece'
+  due: 2026-10-14
+  set_at: "8c"
+  emphasize_due: true
+  window: '7; Eric, Oct 7: one more session, since the subword slides are taught Monday. Part
+    A ran in class on Oct 7, Part B is live'
+- id: A10
+  label: '**A10** install COMET'
+  due: 2026-10-19
+  set_at: "10"
+  window: '5: an install, and A11 needs it done'
+- id: A11
+  label: '**A11** run COMET on the A6 sentences'
+  due: 2026-10-26
+  set_at: "11"
+  emphasize_due: true
+  window: 7; a strict one-session shift gave 2, too short for running COMET on A6's data (this
+    side's call, Oct 7; Eric may pull it back to Oct 21)
+- id: A12
+  label: '**A12** context and LRL translation'
+  due: 2026-10-28
+  set_at: "12"
+  window: '7'
+- id: A13
+  label: '**A13** back-translated data'
+  due: 2026-11-02
+  set_at: "13"
+  window: '7'
+- id: A14
+  label: '**A14** bidirectional MNMT'
+  due: 2026-11-04
+  set_at: "14"
+  window: '7'
+- id: A15
+  label: '**A15** SLT pipeline'
+  due: 2026-11-11
+  set_at: "15"
+  window: '9; was A16 set at Lecture 16 until Oct 8 (Eric): the speech-to-speech pipeline belongs
+    to the speech-to-speech lecture, and the Azure account needs the extra days'
+- label: '**Final project proposal** (date may move with the presentation days)'
+  due: 2026-11-16
+- label: '**Paper review assignment**'
+  due: 2026-12-09
+- label: Final project **presentations, submission, write-up**
+  due: 2026-12-10
+
+# The "Lecture outcomes" table. Its own list because its rows are not the schedule's:
+# Lectures 19 and 20 share a session but have an outcome each, and 21 to 23 share one.
+lecture_outcomes:
+- lecture: "1"
+  topic: Course overview, history
+  can: Place Weaver, Georgetown, ALPAC, SMT and NMT in order and say what each promised and
+    delivered; state the course's rules on quizzes, late work and AI.
+  shown_by: A1, Quiz 1
+- lecture: "2"
+  topic: Translation challenges
+  can: Name the kinds of difficulty (lexical and structural ambiguity, word order, morphology,
+    reference, world knowledge) and rank them for their own language with real examples.
+  shown_by: A2
+- lecture: "3"
+  topic: Word embeddings
+  can: Explain the distributional idea behind word2vec, GloVe and contextual embeddings; test
+    whether a multilingual space lines up for their language pair and read a similarity matrix
+    row by row.
+  shown_by: A3 heat map and analysis
+- lecture: "4"
+  topic: Data preparation
+  can: Read a TMX file through `repr`, find a planted problem with code rather than by eye,
+    write a cleaning step as one function, and say which of the 16 steps fixes which problem.
+  shown_by: 'A4: extraction plus three steps'
+- lecture: "5"
+  topic: Data preparation, part 2
+  can: Run a full cleaning pipeline to a sentence-aligned corpus; explain Gale-Church (length
+    correlation, link types, the cost model, c and s²) and where length-based alignment fails.
+  shown_by: A5, the corpus everything else consumes
+- lecture: "6"
+  topic: Evaluation
+  can: Rank translations by hand before seeing a score; compute BLEU from its parts and explain
+    a zero; use chrF; say where a metric and a human disagree and what the metric was rewarding.
+  shown_by: A6
+- lecture: "7"
+  topic: Paper reviews; neural networks
+  can: Review a paper to the course template; explain neuron, activation, forward pass, loss
+    and gradient; read a loss curve against ln V; tell memorisation from translation with a
+    held-out item.
+  shown_by: A7 report; paper reviews
+- lecture: "8a"
+  topic: Encoder-decoder and attention
+  can: Describe the encoder-decoder and its bottleneck; explain attention as a learned soft
+    alignment and read an alignment matrix; split and verify a corpus and say why the dedupe
+    is source-side; read training against validation loss; start, checkpoint and resume a long
+    run.
+  shown_by: A8
+- lecture: "8b"
+  topic: The Transformer
+  can: 'Describe self-attention (query, key, value, scaled dot product, softmax) and compute
+    one step by hand; say why there are three attentions and what each is for; read a tensor
+    shape. (Multi-head attention, the encoder block and residual stream, and the decoder block
+    moved to Lecture 9 on Oct 7: not reached.)'
+  shown_by: Quiz 8b
+- lecture: "9"
+  topic: Morphology, subwords, terminology
+  can: Describe multi-head attention, the encoder block and residual stream, and the decoder's
+    masked self-attention and cross-attention; say how order gets into a model with no recurrence;
+    place their own A8 BLEU on the measured capacity curve and say what capacity buys and when;
+    explain the fixed-vocabulary problem; measure `<unk>` before and after SentencePiece; retrain
+    with one variable changed and attribute the BLEU difference to it.
+  shown_by: A9 comparison
+- lecture: "10"
+  topic: Quality estimation
+  can: Distinguish evaluation from estimation; say what COMET and COMET-QE score and what the
+    number means; explain greedy against beam search and why a comparison must pin decoding.
+  shown_by: A10; Quiz 10
+- lecture: "11"
+  topic: Neural QE and toolkits
+  can: Run COMET and COMET-QE on their own A6 data; reconcile them with BLEU, chrF and their
+    human ranking; state what LLM-as-judge scores and its system- against segment-level caveat.
+  shown_by: A11
+- lecture: "12"
+  topic: LLMs for MT; context
+  can: Prompt a decoder-only model to translate with in-context examples; measure what context
+    buys and where it stops; name the document-level problems (pronouns, consistency).
+  shown_by: A12 chart and analysis
+- lecture: "13"
+  topic: Low-resource strategies
+  can: Define low-resource beyond pair counts; execute back-translation end to end and measure
+    whether it helped.
+  shown_by: A13
+- lecture: "14"
+  topic: Multilingual and zero-shot
+  can: Explain tagging and why zero-shot works at all; build a bidirectional system from the
+    A8/A9 one and score both directions.
+  shown_by: A14
+- lecture: "15"
+  topic: Speech-to-speech MT
+  can: Contrast cascade and end-to-end systems and say what each loses; build an ASR to MT to
+    TTS pipeline and say where the errors compound.
+  shown_by: A15
+- lecture: "16"
+  topic: Dubbing and interpretation
+  can: Say what dubbing adds to translation (timing, voice, lip sync) and where current systems
+    fail.
+  shown_by: Quiz 16
+- lecture: "17"
+  topic: Multimodal NMT
+  can: Say when visual context helps translation and how to test the claim.
+  shown_by: Quiz 17
+- lecture: "18"
+  topic: HAMT and MAHT
+  can: Measure post-editing with edit distance; explain why post-editing helps some translators
+    and not others; describe adaptive MT.
+  shown_by: In-class activity; Quiz 18
+- lecture: "19"
+  topic: Word alignment
+  can: Work IBM Model 1 by hand on a toy pair; explain EM; relate statistical alignment to the
+    attention alignment of 8a.
+  shown_by: Quiz 19
+- lecture: "20"
+  topic: Previous paradigms
+  can: Place RBMT, EBMT and PBSMT on the Vauquois triangle and say what NMT replaced and what
+    it kept.
+  shown_by: Quiz 20
+- lecture: "21 to 23"
+  topic: Writing, research, careers
+  can: Structure a research article; present a project.
+  shown_by: Final project
+
+# One entry per notebook, keyed by file stem.
+#   purpose   the notebook index's purpose column. Every other column of the index is
+#             read from the notebook's own torchlingo metadata. Required for every
+#             notebook, and an entry for a notebook that does not exist is an error.
+#   aside, lesson, student_must, notebook_does, rating
+#             the "Notebook outcomes, and who does the work" table, in this order; a
+#             notebook without a lesson has no row there. aside follows the name.
+notebooks:
+  lecture-03-word-embeddings:
+    purpose: does the shared multilingual space line up across your languages
+    lesson: a shared multilingual space can be tested, not assumed
+    student_must: pick five words, read the matrix row by row, answer four questions; A3 adds
+      the heat-map code, which is deliberately not given
+    notebook_does: embed and print the matrix
+    rating: low
+  lecture-04-regex-refresher:
+    purpose: fifteen-minute regex tour; a worksheet with blanks
+    lesson: read the patterns the cleaning steps are written in
+    student_must: fill seven blanks
+    notebook_does: check each against an expected output
+    rating: low
+  lecture-04-tmx-cleaning:
+    purpose: planted TMX problems, two parsers, a checker that names the cleaning step
+    lesson: find data problems with code, through `repr`
+    student_must: predict two counts, write the line-break regex, write two cleaners, defend
+      a keep-or-drop call
+    notebook_does: parse, write files, run the checker
+    rating: low. The model for the course
+  lecture-05-sentence-alignment:
+    purpose: estimate Gale-Church parameters on your language
+    lesson: length can align sentences and cannot see a deletion
+    student_must: change the priors and watch it fail, upload their A4 files, report c
+    notebook_does: aligner, scoring, the c and s² formulas
+    rating: low
+  lecture-06-mt-evaluation:
+    purpose: BLEU and chrF on your data; BLEU returns zero on ten short sentences
+    lesson: what BLEU and chrF count
+    student_must: predict before each of three runs, three talk-it-over answers
+    notebook_does: the scoring
+    rating: low
+  lecture-06-mt-evaluation-homework:
+    purpose: the assignment's scaffold over your uploaded A5 corpus
+    lesson: the metrics on their own data
+    student_must: upload, sample, translate ten by hand, rank before re-reading the scores
+    notebook_does: three scoring calls
+    rating: low; A6's substance is MTEval and the analysis
+  02-evaluating-translations:
+    purpose: the library's out-of-class treatment of evaluation
+    aside: (reading; was 07)
+    lesson: which metric to believe when they disagree
+    student_must: decide before scoring; four "Your turn" exercises
+    notebook_does: the examples
+    rating: low
+  lecture-07-toy-model:
+    purpose: the three-part toy-model exercise; the student picks the held-out phrase, predicts,
+      and a contrast phrase runs; resume demo
+    lesson: a model can score perfectly on what it memorised and know nothing
+    student_must: choose the held-out phrase, predict, run Parts A and B, report back in class,
+      write A7's two sentences; a contrast phrase runs as well
+    notebook_does: corpus, model, training, both scorings, the resume demonstration, the report
+      printout
+    rating: low since Oct 5 (was watch)
+  03-train-tiny-model:
+    purpose: the library's own tiny-model tutorial, which the exercise above was adapted from
+    aside: (reading; was 02)
+    lesson: the library's plain version of the above
+    student_must: read
+    notebook_does: everything
+    rating: low, as reading
+  lecture-08a-a8-kickoff:
+    purpose: from your A5 corpus to a running, checkpointed, bucketed training job
+    lesson: from cleaned corpus to a running, checkpointed model
+    student_must: type two file names; raise `EPOCHS` if validation loss is still falling
+    notebook_does: cap, dedupe, split, verification, nine files, the configuration, the training
+      call, the resume, the scoring
+    rating: '**high**'
+  04-attention-and-alignment:
+    purpose: with and without attention; did it learn the right alignment; Part 7 is the Transformer
+    aside: (reading)
+    lesson: attention is measurable alignment
+    student_must: read Parts 1 to 5 and 7; run them
+    notebook_does: the ablation and the alignment accuracy
+    rating: low, as reading
+  05-transformer-attention:
+    purpose: a pretrained Transformer's attention on real text, cross- and (since Oct 5) self-attention;
+      tutorial 4's old Part 8
+    aside: (reading; was 08)
+    lesson: attention can find the right words and the decoder still write the wrong ones
+    student_must: read one worked example
+    notebook_does: everything
+    rating: low, as reading
+  lecture-09-subword-tokenization:
+    purpose: '`<unk>` before and after SentencePiece (the student''s counter), a round trip,
+      the student''s vocabulary size and A9 prediction, and the three A9 settings printed under
+      A9''s own run names'
+    lesson: a fixed vocabulary cannot say unseen words; subwords can
+    student_must: write the `<unk>` counter, pick the vocabulary size with a reason, predict
+      A9's BLEU, report back
+    notebook_does: the SentencePiece training, the round trip, and the three A9 settings printed
+      ready to paste
+    rating: low since Oct 5 (was watch); A9 itself is still the paste, see below
+  06-diagnosing-failures:
+    purpose: five questions to ask of a model that is not working
+    aside: (reading)
+    lesson: a procedure for a model that is not working
+    student_must: read once, then look symptoms up
+    notebook_does: five planted bugs and their checks
+    rating: low; it is a lookup table
+  01-data-and-vocab:
+    purpose: the library's view of corpus loading; word-level vocab, stops at `<unk>`
+    aside: (reference)
+    lesson: the library's view of a corpus
+    student_must: read
+    notebook_does: everything
+    rating: low, as reference
+  lecture-10-comet-install:
+    purpose: install COMET, score an example, set up the HF token
+    lesson: install COMET, set up a token
+    student_must: the install and the token
+    notebook_does: a worked `comet-score`
+    rating: low; it is an install. A11 has no scaffold and needs none
+  08-inference-and-beamsearch:
+    purpose: greedy against beam, checked against the library, both scored; badge not yet runnable;
+      rewrite paused until A8 is in shape
+    aside: (reading; was 03)
+    lesson: greedy and beam search, and a null result
+    student_must: read
+    notebook_does: two decoders written to be read
+    rating: low, as reading
+  07-real-translations:
+    purpose: a trained model on real sentences; stays at 10 (Oct 5)
+    aside: (reading; was 05)
+    lesson: what an undertrained model looks like on unseen text
+    student_must: read; one cell trains a small model
+    notebook_does: everything
+    rating: low, as reading
+  lecture-12-llm-context:
+    purpose: in-context translation with 0 to 20 examples; all TODOs
+    lesson: in-context examples and what they buy
+    student_must: 'everything: six TODO cells and no scaffold'
+    notebook_does: nothing
+    rating: low; the opposite risk, that a student stalls, is the one to watch here
+
+# The "Tooling the semester depends on" table.
+tooling:
+- tool: Google Colab, paid plan
+  first_needed: Lecture 3
+  used_for: every in-class activity and most assignments; the paid plan is required from 8a,
+    where A8 needs an A100, L4 or G4 (a T4 does not hold the course model at long lengths)
+- tool: Python TMX libraries
+  first_needed: Lecture 4
+  used_for: extracting segment pairs
+- tool: TMX editors (Olifant, Heartsome)
+  first_needed: Lecture 4
+  used_for: inspection only, never in the pipeline
+- tool: grader.exe
+  first_needed: Lecture 4
+  used_for: checking cleaned output. Binaries only, no source, no repository; see Open questions
+- tool: MTEval (mteval.matrix.byu.edu)
+  first_needed: Lecture 6
+  used_for: human ranking; students self-register
+- tool: SacreBLEU, chrF
+  first_needed: Lecture 6
+  used_for: automatic scoring, and again in 8, 9, 13, 14
+- tool: TorchLingo
+  first_needed: Lecture 7
+  used_for: 'every model the students train: 7, 8, 9, 13, 14. `pip install torchlingo>=0.2.1`
+    (0.2.4 current): 0.2.1 fixed mid-epoch resume, 0.2.2 added `colab.setup`, 0.2.3 quietened
+    SentencePiece training, 0.2.4 fixed A9''s `sp_model_path` call and made resume restore the
+    random generators and the AMP loss scale'
+- tool: SentencePiece
+  first_needed: Lecture 9
+  used_for: subword tokenization
+- tool: HuggingFace account
+  first_needed: Lecture 10
+  used_for: COMET model downloads; LLMs in Lecture 12
+- tool: COMET / COMET-QE / xCOMET
+  first_needed: Lecture 10
+  used_for: neural evaluation, and again in 13 and 14
+- tool: Azure free tier
+  first_needed: Lecture 16
+  used_for: ASR, MT and TTS for the speech pipeline
+
+# The document, in order, pieces joined by a blank line:
+#   rule            a --- line
+#   notice          the generated file's header line
+#   prose: NAME     sections/NAME.md, verbatim
+#   table: NAME     a generated table; render_roadmap.TABLES lists them
+# Every table and every file in sections/ is used exactly once.
+layout:
+- prose: 00-title
+- notice
+- rule
+- prose: 01-introduction
+- rule
+- prose: 02-schedule-heading
+- table: schedule
+- prose: 03-schedule-notes
+- rule
+- prose: 04-second-half
+- table: assignment-windows
+- prose: 05-second-half-costs
+- rule
+- prose: 06-through-line
+- rule
+- prose: 07-learning-outcomes
+- table: lecture-outcomes
+- prose: 08-notebook-outcomes
+- table: notebook-outcomes
+- prose: 09-where-the-line-is-crossed
+- rule
+- prose: 10-lecture-scope-notes
+- rule
+- prose: 11-notebook-index
+- table: notebook-index
+- prose: 12-notebook-index-notes
+- rule
+- prose: 13-tooling
+- table: tooling
+- rule
+- prose: 14-torchlingo-pivot
+- rule
+- prose: 15-open-questions
+- rule
+- prose: 16-decisions-log
+- rule
+- prose: 17-notebook-map
+- table: notebook-map
+- prose: 18-notebook-map-notes
+- prose: 19-what-exists
+- rule
+- prose: 20-sequencing
+- rule
+- prose: 21-curriculum-outcomes
+- rule
+- prose: 22-gaps
+- rule
+- prose: 23-redundancy
+- rule
+- prose: 24-instructor-questions

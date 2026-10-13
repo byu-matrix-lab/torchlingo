@@ -46,10 +46,16 @@ The roadmap's lecture map is then generated from it, between markers, the same a
 the only thing that writes it, and ``--check`` in CI is what keeps "generated" from being an
 honour system.
 
+Since 2026-10-12 the whole roadmap is generated, by ``scripts/render_roadmap.py`` from
+``notes/roadmap/``, and the map is one of its tables. The lectures and assignments this module
+validates against are read from that data file, ``notes/roadmap/roadmap.yaml``, rather than
+parsed out of the Markdown schedule. And there is one writer of the roadmap: ``--write`` and
+``--check`` here call the renderer, so the two commands cannot produce different files.
+
 Usage:
 
     python scripts/notebook_meta.py --check     validate, and verify the roadmap is current
-    python scripts/notebook_meta.py --write     rewrite the roadmap's map block
+    python scripts/notebook_meta.py --write     validate, then regenerate the roadmap
     python scripts/notebook_meta.py --table     print the map without touching anything
 """
 
@@ -62,9 +68,10 @@ import sys
 import textwrap
 from pathlib import Path
 
+import render_roadmap as rr
+
 TUTORIALS = Path("docs/docs/tutorials")
 COURSE = Path("docs/docs/course")
-ROADMAP = Path("notes/CS479_COURSE_ROADMAP.md")
 
 BEGIN = "<!-- BEGIN generated:notebook-map -->"
 END = "<!-- END generated:notebook-map -->"
@@ -116,14 +123,15 @@ ROLE_PHRASE = {
     "reference": "offered alongside",
 }
 
-# Rows whose lecture column is a lecture identifier, from the "Semester at a glance" table.
-# That includes the letter suffix LECTURE_CELL below accepts. It did not until
-# roadmap v16 (2026-10-07) put A8 on Lecture 8c's row: every assignment due on a lettered
-# lecture, A7 on 8a among them, had been resolving to no lecture at all, unnoticed.
-SCHEDULE_ROW = re.compile(r"^\| (\d+[a-z]?(?:, ?\d+[a-z]?)*) \| [^|]+ \| ([^|]+) \|")
-SCHEDULE_HEADING = "## Semester at a glance"
-
-# What a readable lecture column looks like: one lecture, or several sharing a session.
+# What a readable lecture identifier looks like, in a schedule row's `ids` in
+# notes/roadmap/roadmap.yaml. Several identifiers in one row are one session; `ids: []` is a
+# row that is not a lecture at all -- no class, a project review, the final exam.
+#
+# Until 2026-10-12 these were parsed out of the Markdown schedule's `#` column, and the
+# pattern had to accept `22, 23` as one cell. The lettered form had a bug of its own there:
+# until roadmap v16 (2026-10-07) put A8 on Lecture 8c's row, every assignment due on a lettered
+# lecture, A7 on 8a among them, had been resolving to no lecture at all, unnoticed. A list of
+# identifiers needs no splitting, so that class of bug is gone; the validation is not.
 #
 # A lecture is digits with an optional single lowercase letter -- `8`, `8a`, `8b`. The letter
 # form was added on 2026-09-27, when Eric and the Cowork session split Lecture 8 into 8a
@@ -136,16 +144,12 @@ SCHEDULE_HEADING = "## Semester at a glance"
 #
 # The consequence is that a lecture identifier is a STRING, not an int. `8a` has no integer
 # form, so there is no version of this that keeps numeric keys.
-LECTURE_CELL = re.compile(r"^\d+[a-z]?(?:, ?\d+[a-z]?)*$")
+LECTURE_ID = re.compile(r"^\d+[a-z]?$")
 
-# Cells that are legitimately not lectures, and are skipped rather than reported. An em dash
-# marks a row that is not a lecture at all -- no class, a project review, the final exam --
-# and `#` is the table's own header. Every *other* unreadable cell is an error, because the
-# whole point of parsing this table is that a lecture cannot quietly go missing from the map.
-SKIPPABLE_CELLS = {"—", "–", "-", "#"}
-
-# Assignments as the schedule writes them, in the "Assignment due that day" column:
-# `**A4** initial cleaning steps`, sometimes two in one cell separated by a middot.
+# An assignment's `id` in roadmap.yaml: `A4`, `A10`. The schedule's "Assignment due that day"
+# column is rendered from these entries, two due the same day sharing one cell, separated by a
+# middot. Deliverables that are not numbered assignments -- the final project proposal, the
+# paper review -- carry no `id`, so no notebook can claim to lead to them by a made-up name.
 #
 # A letter suffix is accepted for the same reason lecture identifiers take one: Eric,
 # 2026-09-27, wants one assignment per lecture even when it is a stepping stone to an
@@ -156,7 +160,7 @@ SKIPPABLE_CELLS = {"—", "–", "-", "#"}
 # notebook declaring `leads_to: ["A8a"]` rejected as naming an assignment that does not
 # exist -- while the schedule plainly showed it. The lecture version of this bug was found
 # after the fact; this one was found by asking the question first.
-ASSIGNMENT = re.compile(r"\*\*(A\d+[a-z]?)\*\*")
+ASSIGNMENT_ID = re.compile(r"^A\d+[a-z]?$")
 
 
 def lecture_id(value: int | str) -> str:
@@ -181,14 +185,33 @@ def lecture_id(value: int | str) -> str:
     return f"{digits.lstrip('0') or '0'}{suffix}"
 
 
-def lectures() -> tuple[dict[str, str], dict[str, str]]:
-    """Read the lecture numbers and titles out of the roadmap's own schedule table.
+def _schedule() -> list:
+    """Return the schedule's rows from ``roadmap.yaml``, in order.
 
-    Parsed rather than restated. The task that asked for this named the risk precisely:
-    two tables in one document that must agree, with nothing checking, is the pattern that
-    has already cost this repository three separate defects. A short hand-written copy of
-    the titles here would have been a fourth. So the schedule is the source and the map
-    below is derived from it, which makes disagreement impossible rather than detectable.
+    Raises:
+        ValueError: If the data file cannot be read or holds no schedule.
+    """
+    rows = rr.load().get("lectures")
+    if not isinstance(rows, list) or not rows:
+        raise ValueError(
+            f"{rr.DATA} has no `lectures` list, so there is no schedule to read"
+        )
+    return rows
+
+
+def lectures() -> tuple[dict[str, str], dict[str, str]]:
+    """Read the lecture identifiers and titles from the roadmap's schedule.
+
+    Read rather than restated. The task that asked for this named the risk precisely: two
+    tables in one document that must agree, with nothing checking, is the pattern that has
+    already cost this repository three separate defects. A short hand-written copy of the
+    titles here would have been a fourth. So the schedule is the source and the map is
+    derived from it, which makes disagreement impossible rather than detectable.
+
+    The schedule was parsed out of the roadmap's Markdown until 2026-10-12, which had its own
+    failure: the generated map's rows have the same shape as the schedule's, and the first
+    version of the parser overwrote every title with a notebook filename. It now comes from
+    ``notes/roadmap/roadmap.yaml``, the data the schedule itself is rendered from.
 
     Returns:
         tuple: Titles by lecture identifier, in schedule order, and an alias map folding a
@@ -201,29 +224,19 @@ def lectures() -> tuple[dict[str, str], dict[str, str]]:
         numeric sort would have to be taught the same thing.
 
     Raises:
-        ValueError: If the schedule cannot be found, or if a row in it has a lecture column
-            this cannot read. Both are loud on purpose -- see below.
+        ValueError: If the schedule cannot be found, or if a row in it has lecture ids this
+            cannot read. Both are loud on purpose -- see below.
     """
     titles: dict[str, str] = {}
     aliases: dict[str, str] = {}
     unreadable: list[str] = []
-    # Only within the schedule's own section. Without this the generated map's rows match
-    # the same shape and overwrite every title with a notebook filename -- which is exactly
-    # what happened the first time this ran, and is the kind of quiet wrongness that would
-    # have shipped had the output not been read.
-    inside = False
-    for line in ROADMAP.read_text(encoding="utf-8").splitlines():
-        if line.startswith("## "):
-            inside = line.strip() == SCHEDULE_HEADING
-        if not inside or not line.startswith("|"):
-            continue
+    seen: set[str] = set()
+    for position, entry in enumerate(_schedule(), start=1):
+        entry = entry if isinstance(entry, dict) else {}
+        ids = entry.get("ids")
+        where = f"  row {position}: {entry.get('date')} {str(entry.get('title'))[:70]}"
 
-        columns = line.split("|")
-        if len(columns) < 5:
-            continue
-        cell = columns[1].strip()
-
-        # A row whose lecture column this cannot read is an error, not a row to skip.
+        # A row whose identifiers this cannot read is an error, not a row to skip.
         #
         # Skipping was the original behaviour and it was silently wrong in the worst way: the
         # lecture simply was not in the generated map, nothing reported anything, and the map
@@ -234,40 +247,57 @@ def lectures() -> tuple[dict[str, str], dict[str, str]]:
         # Widening the accepted forms is a separate decision -- which scheme the course uses
         # is the instructors' call, not this script's -- so the message names what is
         # accepted today rather than guessing at what was meant.
-        if cell in SKIPPABLE_CELLS or set(cell) <= set("-: "):
+        if not isinstance(ids, list):
+            unreadable.append(f"{where}\n    ids reads {ids!r}, which is not a list")
             continue
-        if not LECTURE_CELL.match(cell):
+        bad = [i for i in ids if not (isinstance(i, str) and LECTURE_ID.match(i))]
+        if bad:
+            unreadable.append(f"{where}\n    ids reads {ids!r}; cannot read {bad!r}")
+            continue
+        # An empty list is a row that is not a lecture -- no class, a project review, the
+        # final exam -- and is skipped rather than reported.
+        if not ids:
+            continue
+        keys = [lecture_id(i) for i in ids]
+        repeated = [k for k in keys if k in seen]
+        if repeated:
             unreadable.append(
-                f"  {line.strip()[:100]}\n    lecture column reads {cell!r}"
+                f"{where}\n    ids repeats {repeated!r} from an earlier row"
             )
             continue
-
-        ids = cell.replace(" ", "").split(",")
-        titles[ids[0]] = columns[3].strip()
-        for extra in ids[1:]:
-            aliases[extra] = ids[0]
+        if not isinstance(entry.get("title"), str) or not entry["title"].strip():
+            unreadable.append(f"{where}\n    has no title")
+            continue
+        seen.update(keys)
+        titles[keys[0]] = entry["title"]
+        for extra in keys[1:]:
+            aliases[extra] = keys[0]
 
     if unreadable:
         raise ValueError(
-            f"{ROADMAP}: {len(unreadable)} schedule row(s) have a lecture column that "
-            "cannot be read, so they would be missing from the generated map:\n"
+            f"{rr.DATA}: {len(unreadable)} schedule row(s) have lecture ids that cannot be "
+            "read, so they would be missing from the generated map:\n"
             + "\n".join(unreadable)
-            + "\n\n  Accepted: a number (`8`), several sharing one session (`22, 23`), "
-            "or `—` for a row that is not a lecture.\n"
-            "  To use another scheme, widen LECTURE_CELL in scripts/notebook_meta.py "
-            "deliberately -- and note that serves_lectures holds these same numbers, so "
-            "renumbering means re-checking every notebook (Task #138)."
+            + '\n\n  Accepted: a number as a string ("8"), with at most one lowercase '
+            'letter ("8a"); several sharing one session (ids: ["22", "23"]); or ids: [] '
+            "for a row that is not a lecture.\n"
+            f"  Fix the row in {rr.DATA}. To use another scheme, widen LECTURE_ID in "
+            "scripts/notebook_meta.py deliberately -- and note that serves_lectures holds "
+            "these same identifiers, so renumbering means re-checking every notebook "
+            "(Task #138)."
         )
     if not titles:
-        raise ValueError(f"{ROADMAP} has no recognizable schedule table")
+        raise ValueError(f"{rr.DATA}: the schedule has no lecture rows")
     return titles, aliases
 
 
 def assignments() -> dict[str, str | None]:
-    """Read the assignment identifiers out of the schedule, with the lecture each is due on.
+    """Read the assignment identifiers from the roadmap, with the lecture each is due on.
 
-    Parsed for the same reason the lectures are: the schedule already names every assignment,
-    and a second list here would be a second thing to keep in agreement.
+    Read from the same data file as the lectures, for the same reason: the schedule already
+    names every assignment, and a second list here would be a second thing to keep in
+    agreement. The schedule's due column is rendered from these entries, so what this returns
+    is exactly what a reader sees there.
 
     Assignments matter to notebooks because of how the course actually uses them. Eric,
     2026-09-27: an in-class notebook is often a jump start on the *next* assignment, and some
@@ -276,26 +306,46 @@ def assignments() -> dict[str, str | None]:
     lecture is where it is used, the assignment is what it is used *for*.
 
     Returns:
-        dict: Assignment id to the lecture number it is due on, or None when it falls on a
-        row that is not a lecture, such as the last day of class.
+        dict: Assignment id to the lecture identifier it is due on, or None when it falls on
+        a row that is not a lecture, such as the last day of class. Deliverables without an
+        ``id`` -- the project proposal, the paper review -- are not included.
+
+    Raises:
+        ValueError: If an ``id`` is not ``A`` plus digits and at most one lowercase letter,
+            or an assignment is due on a date with no schedule row.
     """
-    due: dict[str, str | None] = {}
-    inside = False
-    for line in ROADMAP.read_text(encoding="utf-8").splitlines():
-        if line.startswith("## "):
-            inside = line.strip() == SCHEDULE_HEADING
-        if not inside or not line.startswith("|"):
-            continue
-        columns = line.split("|")
-        if len(columns) < 5:
-            continue
-        match = SCHEDULE_ROW.match(line)
+    on_date: dict = {}
+    for entry in _schedule():
+        ids = entry.get("ids") if isinstance(entry, dict) else None
         # An identifier, not an int. `int("8a")` raises, and even for unsuffixed rows an int
         # would not compare equal to the string keys `lectures()` returns -- which is how
         # this was caught: every assignment resolved to a lecture that "did not exist".
-        lecture = lecture_id(match.group(1).split(",")[0]) if match else None
-        for found in ASSIGNMENT.findall(columns[4]):
-            due[found] = lecture
+        first = lecture_id(ids[0]) if isinstance(ids, list) and ids else None
+        on_date[entry.get("date") if isinstance(entry, dict) else None] = first
+
+    due: dict[str, str | None] = {}
+    bad: list[str] = []
+    for entry in rr.load().get("assignments") or []:
+        if not isinstance(entry, dict) or "id" not in entry:
+            continue
+        name = entry["id"]
+        if not isinstance(name, str) or not ASSIGNMENT_ID.match(name):
+            bad.append(
+                f"  id {name!r} is not A plus digits and at most one lowercase letter"
+            )
+        elif entry.get("due") not in on_date:
+            bad.append(
+                f"  {name} is due {entry.get('due')!r}, which is no schedule row"
+            )
+        else:
+            due[name] = on_date[entry["due"]]
+    if bad:
+        raise ValueError(
+            f"{rr.DATA}: {len(bad)} assignment(s) cannot be read:\n"
+            + "\n".join(bad)
+            + f"\n\n  Fix them in {rr.DATA}. A deliverable that is not a numbered "
+            "assignment has no id."
+        )
     return due
 
 
@@ -648,7 +698,7 @@ def problems(path: Path, meta: dict) -> list[str]:
             elif lecture_id(n) not in titles and lecture_id(n) not in aliases:
                 found.append(
                     f"{path}: serves_lectures has {n!r}, which is not in "
-                    f"{ROADMAP}'s schedule"
+                    f"the schedule in {rr.DATA}"
                 )
         # A course notebook is named for its lecture, so the two must agree. This is the
         # check that would have caught a lecture-06 notebook claiming to serve Lecture 5.
@@ -699,7 +749,7 @@ def problems(path: Path, meta: dict) -> list[str]:
             if assignment not in known:
                 found.append(
                     f"{path}: leads_to has {assignment!r}, which is not an assignment in "
-                    f"{ROADMAP}'s schedule"
+                    f"the schedule in {rr.DATA}"
                 )
 
     # Reject unknown keys. A typo in an optional field is otherwise invisible: the block
@@ -1005,24 +1055,11 @@ def late_head_starts() -> list[str]:
     return late
 
 
-def roadmap_with_table(current: str) -> str:
-    """Return the roadmap text with the generated block replaced.
-
-    Args:
-        current (str): The roadmap's present contents.
-
-    Returns:
-        str: The same document with a freshly generated map between the markers.
-
-    Raises:
-        ValueError: If the markers are absent or out of order, rather than appending a
-            second table somewhere harmless-looking.
-    """
-    start, end = current.find(BEGIN), current.find(END)
-    if start == -1 or end == -1 or end < start:
-        raise ValueError(f"{ROADMAP} does not contain the map markers in order")
-    head = current[: start + len(BEGIN)]
-    return f"{head}\n\n{table()}\n\n{current[end:]}"
+# There is no roadmap splice here any more. Until 2026-10-12 this module rewrote the text
+# between the map's markers in a hand-kept roadmap, and refused a file whose markers were
+# missing or out of order rather than appending a second table somewhere harmless-looking.
+# The roadmap is now rendered whole by scripts/render_roadmap.py, whose layout must name the
+# map exactly once -- the same refusal, made where the document is assembled.
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1038,7 +1075,9 @@ def main(argv: list[str] | None = None) -> int:
         "--check", action="store_true", help="validate and exit 1 on problems"
     )
     parser.add_argument(
-        "--write", action="store_true", help="rewrite the roadmap's map"
+        "--write",
+        action="store_true",
+        help="validate, then regenerate the roadmap (through render_roadmap.py)",
     )
     parser.add_argument("--table", action="store_true", help="print the lecture map")
     parser.add_argument(
@@ -1103,6 +1142,7 @@ def main(argv: list[str] | None = None) -> int:
     # Python internals, which is where nobody reads.
     try:
         lectures()
+        assignments()
     except ValueError as error:
         print(error, file=sys.stderr)
         return 1
@@ -1239,23 +1279,27 @@ def main(argv: list[str] | None = None) -> int:
 
     # Only reached when the metadata is sound, deliberately: regenerating the roadmap from
     # a block that failed validation would write a table with holes in it.
-    current = ROADMAP.read_text(encoding="utf-8")
-    expected = roadmap_with_table(current)
+    #
+    # The roadmap is rendered by render_roadmap.py, and this calls it rather than holding a
+    # second way to produce the file. Two writers of one file can disagree; one cannot.
+    if not (args.write or args.check):
+        return 0
+    try:
+        expected = rr.render()
+    except ValueError as error:
+        print(error, file=sys.stderr)
+        return 1
     if args.write:
-        if current == expected:
-            print(f"  unchanged  {ROADMAP}")
-        else:
-            ROADMAP.write_text(expected, encoding="utf-8")
-            print(f"  written    {ROADMAP}")
-    elif args.check and current != expected:
+        print(f"  {'written  ' if rr.write(expected) else 'unchanged'}  {rr.ROADMAP}")
+    elif rr.current() != expected:
         print(
-            f"\n{ROADMAP}'s notebook map is out of date with the notebooks.\n"
+            f"\n{rr.ROADMAP} is out of date with the notebooks or with {rr.SOURCE}/.\n"
             "Run: python scripts/notebook_meta.py --write",
             file=sys.stderr,
         )
         return 1
-    elif args.check:
-        print(f"  current    {ROADMAP}")
+    else:
+        print(f"  current    {rr.ROADMAP}")
     return 0
 
 

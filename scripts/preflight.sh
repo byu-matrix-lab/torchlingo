@@ -2,7 +2,7 @@
 #
 # Run exactly what CI runs, locally, fastest gate first.
 #
-# WHY THIS EXISTS. CI gates seven separate things across four jobs. Running them from
+# WHY THIS EXISTS. CI gates eight separate things across four jobs. Running them from
 # memory means running most of them, and the one that gets forgotten is the one that fails:
 # on 2026-09-28 a pull request burned a full CI cycle on `render_report.py --check`, which
 # takes 0.4 seconds here, because a generated report had been hand-edited. A round trip
@@ -14,7 +14,7 @@
 # Usage:
 #   scripts/preflight.sh            everything except notebook execution
 #   scripts/preflight.sh --all      also execute the runnable notebooks (slow: minutes)
-#   scripts/preflight.sh --quick    the four static gates only (~3 seconds)
+#   scripts/preflight.sh --quick    the five static gates only (~3 seconds)
 #
 set -uo pipefail
 
@@ -56,6 +56,7 @@ echo
 run "ruff lint" ruff check src tests || exit 1
 run "ruff format" ruff format --check src tests || exit 1
 run "reports match their JSON" python scripts/render_report.py --check || exit 1
+run "roadmap matches its sources" python scripts/render_roadmap.py --check || exit 1
 run "notebook metadata + purpose" python scripts/notebook_meta.py --check || exit 1
 
 if [[ "$MODE" == "--quick" ]]; then
