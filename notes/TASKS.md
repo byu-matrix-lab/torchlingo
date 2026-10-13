@@ -98,12 +98,11 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files | **L12** | **With Cowork** — the notebook runs end to end (Oct 13); the loader guesses the A12 layout until Cowork confirms it |
+| #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files, and Step 1 says where the A12 shared folder is | **L12** | **With Cowork** — the notebook runs end to end (Oct 13); the loader guesses the A12 layout, and Step 1 names "the A12 shared folder" without saying where it is (a marked seam), until Cowork answers both |
 | #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Mon Nov 2 |
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
 | #227 | **P1** | Roll the new A9 notebook in: rename `lecture-09-subword-tokenization-new` over the live one, fix its badge and the Lecture 9 tests' `NOTEBOOK`, promote | **L9** | **Waits for A9's deadline** (Eric, Oct 13): students mid-assignment keep the notebook they started. The new one reads A8's epoch count from its checkpoint, checks `unknown_rate` on three cases, shows A8's BLEU before the prediction, and says to disconnect the GPU |
 | #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on Cowork** (in the hand-off): the notebook assumes one `.txt` per column and defines average rank as the mean rank per system, 1 best; both need confirming. The prediction stop, why COMET-QE-DA and the LLM-as-judge question are done |
-| #230 | **P1** | A12: where the shared data lives; the loader out of the exercise cell; "only the first line is kept"; the chart uploaded; a document-level question | **L12** | Open — the data location needs Cowork, with #176 |
 | #231 | **P1** | A13: where monolingual text comes from; write-up questions that reconcile the prediction; a write-up that survives a dropped session; `EPOCHS` from A9 | **L13** | Open — the monolingual source is an open question to Eric |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
