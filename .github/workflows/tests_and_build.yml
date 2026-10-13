@@ -10,11 +10,8 @@ on:
       # Tutorials live here and are executed by the `notebooks` job. Without
       # this path, a notebook change triggers no workflow at all.
       - 'docs/**'
-      # The roadmap and its sources. Without these, a hand edit to the generated
-      # roadmap -- the thing the lint job's render_roadmap.py --check exists to
-      # catch -- would trigger no workflow, and the gate would never run.
-      - 'notes/roadmap/**'
-      - 'notes/CS479_COURSE_ROADMAP.md'
+      # Not notes/: a roadmap-only change runs roadmap.yml, the same checks in seconds,
+      # instead of this whole workflow.
       - 'pyproject.toml'
       - 'MANIFEST.in'
       - '.pre-commit-config.yaml'
@@ -38,14 +35,19 @@ on:
       # Tutorials live here and are executed by the `notebooks` job. Without
       # this path, a notebook change triggers no workflow at all.
       - 'docs/**'
-      # The roadmap and its sources; see the push trigger above.
-      - 'notes/roadmap/**'
-      - 'notes/CS479_COURSE_ROADMAP.md'
+      # Not notes/; see the push trigger above.
       - 'pyproject.toml'
       - 'MANIFEST.in'
       - '.pre-commit-config.yaml'
       - '.github/workflows/tests_and_build.yml'
   workflow_dispatch: {}
+
+# A new push to a pull request makes its earlier run moot, so that run is cancelled rather than
+# left holding runners. Pushes to main and tags each run to completion: a release must not be
+# cancelled by the next merge.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
@@ -180,9 +182,12 @@ jobs:
       # and pytest order tests differently. Both are seeded now; this step is what stops
       # the next one from going unnoticed for a month.
       #
-      # It costs a second run of the suite. That is the price of the claim "the tests pass"
-      # meaning the same thing wherever it is made.
+      # It costs a second run of the suite, so it runs on one Python version, not four: the
+      # disagreement it guards against is test ORDER, which is the same on every version.
+      # That keeps the claim "the tests pass" meaning the same under both runners for ~40s
+      # instead of ~160s of runner time (Eric, 2026-10-12: CI was taking too long).
       - name: Run test suite under unittest discover
+        if: matrix.python-version == '3.12'
         run: |
           python -m unittest discover tests
 
@@ -233,9 +238,14 @@ jobs:
       # from its environment -- pip, a download, Colab, a token, or a student to
       # fill in its blanks -- and anything declaring one is skipped rather than
       # accommodated, which keeps this job as light as it was before.
+      #
+      # Four at a time, each in a scratch directory of its own: every notebook is
+      # self-contained, and run one after another this was the slowest job in the
+      # workflow, which everything else waited on (Eric, 2026-10-12). Locally, 217s
+      # one at a time against 112s four at a time.
       - name: Execute notebooks
         run: |
-          python scripts/execute_notebooks.py
+          python scripts/execute_notebooks.py --jobs 4
 
   docs:
     name: Build docs strictly

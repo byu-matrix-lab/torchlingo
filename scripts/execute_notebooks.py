@@ -15,9 +15,11 @@ Two details this script exists to get right:
 1. **Run in a scratch directory.** The notebooks write `data/` and
    `checkpoints/` relative to their own location, and those paths are only
    gitignored at the repo root. Executing in place litters the docs tree.
-2. **Run in filename order, in one directory.** Tutorial 8 loads the checkpoint
-   tutorial 3 saves, so the order matters and the two must share a working
-   directory.
+2. **Run each notebook on its own, several at once.** Every notebook is
+   self-contained -- a CLAUDE.md rule, and true since 2026-10-12, when tutorial 8
+   stopped loading the checkpoint tutorial 3 saved -- so each gets a scratch
+   directory of its own, and ``--jobs`` of them run in parallel. Run one at a
+   time, they were the slowest job in CI by a wide margin.
 3. **Skip, do not fail, when the data is not there.** The corpus and the
    pretrained checkpoint live in Git LFS and CI checks out without it, so those
    tutorials are skipped in CI and exercised in a normal clone. Each notebook
@@ -43,6 +45,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from notebook_meta import is_redirect, read_meta
@@ -60,10 +63,7 @@ STUDENT_CANNOT = {"blanks", "colab", "hf-token"}
 
 # Failures already filed. Reported, not counted, so a scheduled run stays green on news it
 # already has; an entry that starts passing is reported too, so it gets removed.
-KNOWN_STUDENT_FAILURES = {
-    "08-inference-and-beamsearch.ipynb": "Task #166: loads a checkpoint tutorial 3 "
-    "saved in a different runtime",
-}
+KNOWN_STUDENT_FAILURES: dict[str, str] = {}
 
 
 def execute(notebook: Path, workdir: Path, timeout: int) -> tuple[bool, str]:
@@ -253,6 +253,12 @@ def main() -> int:
     parser.add_argument("--course", type=Path, default=COURSE)
     parser.add_argument("--timeout", type=int, default=TIMEOUT_SECONDS)
     parser.add_argument(
+        "--jobs",
+        type=int,
+        default=min(4, os.cpu_count() or 1),
+        help="notebooks to execute at once (default: up to 4)",
+    )
+    parser.add_argument(
         "--as-student",
         action="store_true",
         help="use each notebook's own install cell and fake Colab, one fresh environment each",
@@ -283,38 +289,44 @@ def main() -> int:
 
     failures = []
     skipped = []
-    # One shared scratch directory: tutorial 8 needs the checkpoint tutorial 3
-    # writes, so they cannot be isolated from each other.
-    with tempfile.TemporaryDirectory(prefix="torchlingo-notebooks-") as tmp:
-        workdir = Path(tmp)
-        for notebook in notebooks:
-            shutil.copy(notebook, workdir / notebook.name)
-        link_repo_data(workdir)
+    runnable = []
+    for notebook in notebooks:
+        unavailable = missing_capabilities(notebook)
+        if unavailable:
+            skipped.append(notebook.name)
+            print(
+                f"  SKIP  {notebook.name} (requires {', '.join(unavailable)})",
+                flush=True,
+            )
+            continue
+        absent = missing_requirements(notebook)
+        if absent:
+            skipped.append(notebook.name)
+            print(f"  SKIP  {notebook.name} (needs {', '.join(absent)})", flush=True)
+            continue
+        runnable.append(notebook)
 
-        for notebook in notebooks:
-            unavailable = missing_capabilities(notebook)
-            if unavailable:
-                skipped.append(notebook.name)
-                print(
-                    f"  SKIP  {notebook.name} (requires {', '.join(unavailable)})",
-                    flush=True,
-                )
-                continue
-            absent = missing_requirements(notebook)
-            if absent:
-                skipped.append(notebook.name)
-                print(
-                    f"  SKIP  {notebook.name} (needs {', '.join(absent)})", flush=True
-                )
-                continue
-            print(f"executing {notebook.name} ...", flush=True)
-            ok, output = execute(workdir / notebook.name, workdir, args.timeout)
-            if ok:
-                print(f"  PASS  {notebook.name}", flush=True)
-            else:
-                failures.append(notebook.name)
-                print(f"  FAIL  {notebook.name}", flush=True)
-                print(output, file=sys.stderr, flush=True)
+    def run_alone(notebook: Path) -> tuple[bool, str]:
+        # A scratch directory of its own, so notebooks running side by side cannot see
+        # each other's data/ or checkpoints/.
+        with tempfile.TemporaryDirectory(prefix="torchlingo-notebook-") as tmp:
+            workdir = Path(tmp)
+            shutil.copy(notebook, workdir / notebook.name)
+            link_repo_data(workdir)
+            return execute(workdir / notebook.name, workdir, args.timeout)
+
+    print(f"executing {len(runnable)} notebooks, {args.jobs} at a time ...", flush=True)
+    with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
+        results = list(pool.map(run_alone, runnable))
+
+    # Reported in notebook order, whatever order they finished in.
+    for notebook, (ok, output) in zip(runnable, results):
+        if ok:
+            print(f"  PASS  {notebook.name}", flush=True)
+        else:
+            failures.append(notebook.name)
+            print(f"  FAIL  {notebook.name}", flush=True)
+            print(output, file=sys.stderr, flush=True)
 
     print()
     ran = len(notebooks) - len(skipped)
