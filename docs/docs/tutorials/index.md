@@ -240,16 +240,16 @@ data-starved
 
 ### Tutorial 8: Inference and Beam Search
 
-**Time**: ~15 minutes
+**Time**: ~30 minutes
 
 You'll learn:
 
-- Greedy decoding
-- Beam search decoding
-- Comparing decoding strategies
-- Evaluating with BLEU score
+- Greedy decoding and beam search, each written out
+- What beam size, the length penalty and the maximum length each change
+- Why comparing two models means holding decoding fixed
+- Scoring with `torchlingo.evaluation`, signature included
 
-**Key concepts**: Inference modes, decoding algorithms, evaluation metrics
+**Key concepts**: decoding algorithms, decoding settings, fair comparison
 
 ## Tips for Success
 

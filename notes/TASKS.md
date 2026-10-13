@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-10-05. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-10-12. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
@@ -18,9 +18,9 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-10-07:** everything open is here. Lecture 9's Part B (Assignment 9) is on `course`.
-**#166** (tutorial 8, with #162 and #92) is
-paused while A8 is being got into shape (Eric); its work so far is on a local branch. What
+**As of 2026-10-12:** everything open is here. Roadmap v16 shifted Lecture 9 onward by one
+session (8c is the new Oct 7). **#166** (tutorial 8, with #162 and #92) is resumed (Eric,
+Oct 12), aiming at Lecture 10 on Wed Oct 14; its work so far is on a local branch. What
 remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork) is Lecture 10's three (#166, #174,
 #175) and Lecture 12's rebuild (#176).
 
@@ -40,7 +40,7 @@ is not finished until that PR merges, and only then does the row disappear.
 
 **Tasks #98 and #99 have external deadlines.** They come from
 `notes/CS479_COURSE_ROADMAP.md`, are sequenced against a calendar nobody here controls, and
-outrank everything else in this file until Oct 28. See "The CS 479 pivot" below for the schedule and the reasoning.
+outrank everything else in this file until Nov 2. See "The CS 479 pivot" below for the schedule and the reasoning.
 
 ### Reading the "Critical for" column
 
@@ -57,16 +57,20 @@ dates are not lecture-critical, and several with no date are.
 | **L5** | Data Preparation for MT Training, Part 2 — **has already run** | Mon Sep 21 · A4 due |
 | **L4/L5** | both data-preparation lectures | |
 | **L6** | Human and Automatic MT Evaluation — **has already run** | Wed Sep 23 · A5 due; A6 due Mon Sep 28 |
-| **L7** | Research Paper Reviews; Intro to Neural Networks | Mon Sep 28 · A6 due, **A7 set** |
-| **L8a** | Neural MT: Encoder-Decoder, and Why Attention Was Invented | Wed Sep 30 · A7 due, **A8 introduced** |
-| **L8b** | Neural MT: The Transformer | Mon Oct 5 |
-| **L8a/8b** | both halves of the split | |
-| **L9** | Morphology and Terminology in NMT | Wed Oct 7 · **A8 due, A9 set** |
-| **L10** | Overview of MT Quality Estimation | Mon Oct 12 · A9 due · A10 set (install COMET) |
-| **L11** | Neural Quality Estimation and Evaluation | Wed Oct 14 · A10 due · A11 set |
-| **L12** | Using LLMs for MT; Expanding Context Awareness | Mon Oct 19 · A11 due · A12 set |
-| **L13** | Strategies for NMT of Low-Resource Languages | Wed Oct 21 · A13 set (back-translation) |
-| **14+** | Lecture 14 onward: multilingual and zero-shot, speech, and later | from Mon Oct 26 |
+| **L7** | Research Paper Reviews; Intro to Neural Networks — **has already run** | Mon Sep 28 · A6 due, **A7 set** |
+| **L8a** | Neural MT: Encoder-Decoder, and Why Attention Was Invented — **has already run** | Wed Sep 30 · A7 due, **A8 introduced** |
+| **L8b** | Neural MT: The Transformer — **has already run** | Mon Oct 5 |
+| **L8c** | Finishing the Transformer, the A8 Debrief, and the Subword Activity — **has already run** | Wed Oct 7 · **A8 due, A9 set** |
+| **L8a/8b** | the halves of the split | |
+| **L9** | Morphology and Terminology in NMT — **has already run** | Mon Oct 12 |
+| **L10** | Overview of MT Quality Estimation | Wed Oct 14 · A9 due · A10 set (install COMET) |
+| **L11** | Neural Quality Estimation and Evaluation | Mon Oct 19 · A10 due · A11 set |
+| **L12** | Using LLMs for MT; Expanding Context Awareness | Wed Oct 21 · A12 set |
+| **L13** | Strategies for NMT of Low-Resource Languages | Mon Oct 26 · A11 due · A13 set (back-translation) |
+| **14+** | Lecture 14 onward: multilingual and zero-shot, speech, and later | from Wed Oct 28 |
+
+Since roadmap v16 (Oct 7) everything from Lecture 9 on sits one session later than it did, and
+the dates in the task rows below were shifted with it.
 | **lib** | library, tooling or docs work **no lecture depends on** | |
 | **hyg** | roadmap and process integrity — **critical, but not to one lecture** | |
 
@@ -92,15 +96,17 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #166 | **P1** | Tutorial 8 cannot run from its Colab badge | **L10** | **Paused (Eric, Oct 5: A8 first)** — work so far on local branch `tutorial-8-standalone`; **do with #162, #92 and the audit's tutorial 8 directions** |
+| #166 | **P1** | Tutorial 8 cannot run from its Colab badge | **L10** | **Resumed (Eric, Oct 12)** for Wed Oct 14 — work so far on local branch `tutorial-8-standalone`; **do with #162, #92 and the audit's tutorial 8 directions** |
 | #174 | **P1** | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | **P1** | Notebook audit: tutorial 7 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
+| #214 | **P1** | Tutorial 7 states no learning outcomes | **L10** | Open — Oct 12 audit; **do with #175**, same notebook |
+| #215 | **P1** | Tutorials 5 and 6 are filed under the wrong lecture | **L8c** | Open — Oct 12 audit; metadata only |
 | #176 | **P1** | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
 | #162 | **P1** | Tutorial 8's Part 5 shrinks to a pointer at tutorial 2 | **L6** | **Unblocked** — tutorial 2 landed in PR #144; **do with #166** |
-| #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Oct 28 |
-| #102 | **P1** | Inference cannot resume a long decode | **L13** | **Needed by Mon Oct 19** — largest undone piece |
-| #98 | **P1** | Back-translation as a documented workflow | **L13** | **Due Mon Oct 26** |
-| #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Wed Oct 28** |
+| #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Mon Nov 2 |
+| #102 | **P1** | Inference cannot resume a long decode | **L13** | **Needed by Wed Oct 21** — largest undone piece |
+| #98 | **P1** | Back-translation as a documented workflow | **L13** | **Due Wed Oct 28** |
+| #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
 | #92 | **P1** | Tutorials 7 and 8 bypass the library's own evaluation API | **L10** | Open — **do inside #166 and #175**, which rewrite the same two notebooks |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
@@ -109,6 +115,9 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
+| #216 | **P2** | The roadmap's tutorial sections describe tutorials that no longer exist | **hyg** | Open — Oct 12 audit; this side writes those sections |
+| #217 | **P2** | Tutorial outcomes are experiences, not abilities, and openers differ | **hyg** | Open — Oct 12 audit; every tutorial |
+| #218 | **P2** | Tutorial 3 trains without a checkpointer and never shows `ln(V)` | **L7** | Open — Oct 12 audit; the checkpointer is a `CLAUDE.md` rule |
 | #187 | **P3** | Remove the tutorial redirect stubs | **hyg** | **After the Fall 2026 term** — not before; students hold the old badges |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
@@ -136,6 +145,11 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #81 | **P3** | Fail the build on hand-typed generated numbers | **hyg** | Open |
 | #89 | **P3** | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | **P3** | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
+| #219 | **P3** | Tutorial 1 promises a call it never makes, and claims Lecture 9 without saying why | **L4/L5** | Open — Oct 12 audit |
+| #220 | **P3** | Tutorial 4 never names the third attention | **L8b** | Open — Oct 12 audit; one sentence |
+| #221 | **P3** | Tutorial 2's outcome list omits deciding before scoring | **L6** | Open — Oct 12 audit; one line |
+| #222 | **P3** | `notebook_meta.py --stamp` cannot clear a list field | **lib** | Open — only `--note ''` clears |
+| #223 | **P3** | Tutorial 8 writes its training file into the working directory | **lib** | Open — leaves `tiny_phrases.tsv` untracked in `docs/docs/tutorials/` |
 
 ## The CS 479 pivot
 
@@ -186,7 +200,7 @@ it asks no discipline of them — or **decode in explicit shards**, cheaper to b
 on the student following the workflow.
 
 **Done when** an interrupted bulk decode can be restarted without redoing finished work.
-Needed for Assignment 13's material, due in class **Mon Oct 19**.
+Needed for Assignment 13's material, due in class **Wed Oct 21**.
 
 
 ### #108 Nothing releases the device allocator's cache
@@ -358,6 +372,46 @@ Each PR checks the notebook's prose against its ceiling and runs `scripts/studen
 **Done when** every notebook the audit names has had its directions applied; then this section
 and `NOTEBOOK_AUDIT.md` go.
 
+### #214 to #223 The learning-outcomes audit
+
+Eric, 2026-10-12: does every tutorial state its learning outcomes, and do they line up with the
+lecture notebooks and the lectures? A read-only pass that day answered it. Cowork's audit had
+already put a "By the end" list in every tutorial but 7; what remains is mostly alignment.
+Tutorial 8's finding (it claimed A9 lets students choose decoding settings, when A9 pins
+greedy) was fixed in its rewrite.
+
+- **#214, tutorial 7** (L10): the only tutorial with no stated outcomes. Write three, in Lecture
+  10's terms: held-out against leaked test data, a BLEU you can compare (sample size and
+  signature), greedy against beam with decoding pinned. Its metadata note says "A8, which is due
+  at Lecture 9"; A8 was due at 8c. Same notebook as #175, so one PR.
+- **#215, tutorials 5 and 6** (8c): the deck assigned both for 8c, and Quizzes 8c and 9 ask
+  about them, but their metadata says 8b and 9. Tutorial 6's purpose cell calls it a head start
+  on A8 at a lecture after A8 was due; `notebook_meta.py --check` reports exactly that. Add 8c
+  to `serves_lectures` and regenerate the purpose cells.
+- **#216, the roadmap's tutorial sections** (below "Which notebook serves which lecture", so
+  written on this side): its "Learning outcomes" list for tutorials proposes outcomes that differ
+  from the notebooks' own, and "What exists" and "Sequencing" use the old numbering and still
+  say tutorial 8 needs tutorial 3's checkpoint. Make the notebooks the only home for tutorial
+  outcomes, and point at them.
+- **#217, every tutorial**: outcomes say "you will have seen X"; the roadmap's lecture outcomes
+  say "you can explain X". Write them as abilities, in the lecture's verbs, and name the lecture
+  outcome each serves. Openers also differ: a role line in four tutorials, a time estimate in one,
+  a "Tutorial N:" prefix in five. Predicting before running appears only in tutorial 2.
+- **#218, tutorial 3** (L7): `train_model` runs with no `TrainingCheckpointer`, against the
+  standing rule, and saves with a hand-written `torch.save` rather than the `save_dir` A8 uses.
+  Its outcome "a loss well below `ln(V)`" cannot be checked, since `ln(V)` is never printed. It
+  also never says its quick test is on training phrases, which is Lecture 7's main lesson.
+- **#219, tutorial 1** (L4/L5): the opener promises one call to `parallel_txt_to_dataframe`;
+  the notebook imports it and never calls it. It claims Lecture 9 without a word on subwords;
+  one sentence after the `<unk>` cells would make the link. `leads_to: A5` is backwards, since
+  it uses A5's output.
+- **#220, tutorial 4** (8b): name masked decoder self-attention, the third of 8b's "three
+  attentions".
+- **#221, tutorial 2** (L6): add "decided which system ships before seeing a score" to its list.
+- **#222** and **#223** are tooling friction met while rewriting tutorial 8: `--leads-to` with
+  no values keeps the old list, so clearing it took a hand call to `write_meta`; and executing
+  the notebook leaves `tiny_phrases.tsv` behind, which a temporary directory would avoid.
+
 ### #187 Remove the tutorial redirect stubs
 
 The five one-cell notebooks the renumbering (PR #201) left at the old tutorial paths, marked
@@ -402,7 +456,7 @@ Found 2026-09-28 while fixing the commented-out install in tutorials 4 and 7 (PR
 **Do it in one PR with Task #162**, which reshapes the same notebook's Part 5. Re-execute and
 check every output against the committed one: the PR #149 procedure.
 
-**Paused by Eric on 2026-10-05, until A8 is in shape.** The work so far is one local commit on
+**Paused by Eric on 2026-10-05, until A8 is in shape; resumed 2026-10-12.** The work so far is one local commit on
 `tutorial-8-standalone`: the opener pointed at A9's decoding settings, the standard install cell,
 tutorial 3's tiny model trained inline (a marked setup cell), and `max_len` shown cutting a
 translation short. Left: split the 72-line beam-search cell under 40 lines; Part 5 to a pointer at
@@ -535,7 +589,7 @@ deadline.
 
 ### #123 A14's two-directions case has never been run
 
-**Due Wed Oct 28. Lowest risk by date, highest uncertainty by evidence.**
+**Due Mon Nov 2. Lowest risk by date, highest uncertainty by evidence.**
 
 `preprocessing.multilingual` has never been exercised at "two directions, intermingled,
 separate test sets per direction", which is precisely what Assignment 14 asks for. Lecture
