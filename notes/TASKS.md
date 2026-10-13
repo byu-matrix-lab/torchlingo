@@ -99,6 +99,8 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #166 | **P1** | Tutorial 8 cannot run from its Colab badge | **L10** | **Resumed (Eric, Oct 12)** for Wed Oct 14 — work so far on local branch `tutorial-8-standalone`; **do with #162, #92 and the audit's tutorial 8 directions** |
 | #174 | **P1** | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
 | #175 | **P1** | Notebook audit: tutorial 7 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
+| #214 | **P1** | Tutorial 7 states no learning outcomes | **L10** | Open — Oct 12 audit; **do with #175**, same notebook |
+| #215 | **P1** | Tutorials 5 and 6 are filed under the wrong lecture | **L8c** | Open — Oct 12 audit; metadata only |
 | #176 | **P1** | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
 | #162 | **P1** | Tutorial 8's Part 5 shrinks to a pointer at tutorial 2 | **L6** | **Unblocked** — tutorial 2 landed in PR #144; **do with #166** |
 | #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Mon Nov 2 |
@@ -113,6 +115,9 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
+| #216 | **P2** | The roadmap's tutorial sections describe tutorials that no longer exist | **hyg** | Open — Oct 12 audit; this side writes those sections |
+| #217 | **P2** | Tutorial outcomes are experiences, not abilities, and openers differ | **hyg** | Open — Oct 12 audit; every tutorial |
+| #218 | **P2** | Tutorial 3 trains without a checkpointer and never shows `ln(V)` | **L7** | Open — Oct 12 audit; the checkpointer is a `CLAUDE.md` rule |
 | #187 | **P3** | Remove the tutorial redirect stubs | **hyg** | **After the Fall 2026 term** — not before; students hold the old badges |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
@@ -140,6 +145,11 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #81 | **P3** | Fail the build on hand-typed generated numbers | **hyg** | Open |
 | #89 | **P3** | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | **P3** | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
+| #219 | **P3** | Tutorial 1 promises a call it never makes, and claims Lecture 9 without saying why | **L4/L5** | Open — Oct 12 audit |
+| #220 | **P3** | Tutorial 4 never names the third attention | **L8b** | Open — Oct 12 audit; one sentence |
+| #221 | **P3** | Tutorial 2's outcome list omits deciding before scoring | **L6** | Open — Oct 12 audit; one line |
+| #222 | **P3** | `notebook_meta.py --stamp` cannot clear a list field | **lib** | Open — only `--note ''` clears |
+| #223 | **P3** | Tutorial 8 writes its training file into the working directory | **lib** | Open — leaves `tiny_phrases.tsv` untracked in `docs/docs/tutorials/` |
 
 ## The CS 479 pivot
 
@@ -361,6 +371,46 @@ One task per group that shares a deadline, so the "Critical for" column stays ho
 Each PR checks the notebook's prose against its ceiling and runs `scripts/student_path.sh` on it.
 **Done when** every notebook the audit names has had its directions applied; then this section
 and `NOTEBOOK_AUDIT.md` go.
+
+### #214 to #223 The learning-outcomes audit
+
+Eric, 2026-10-12: does every tutorial state its learning outcomes, and do they line up with the
+lecture notebooks and the lectures? A read-only pass that day answered it. Cowork's audit had
+already put a "By the end" list in every tutorial but 7; what remains is mostly alignment.
+Tutorial 8's finding (it claimed A9 lets students choose decoding settings, when A9 pins
+greedy) was fixed in its rewrite.
+
+- **#214, tutorial 7** (L10): the only tutorial with no stated outcomes. Write three, in Lecture
+  10's terms: held-out against leaked test data, a BLEU you can compare (sample size and
+  signature), greedy against beam with decoding pinned. Its metadata note says "A8, which is due
+  at Lecture 9"; A8 was due at 8c. Same notebook as #175, so one PR.
+- **#215, tutorials 5 and 6** (8c): the deck assigned both for 8c, and Quizzes 8c and 9 ask
+  about them, but their metadata says 8b and 9. Tutorial 6's purpose cell calls it a head start
+  on A8 at a lecture after A8 was due; `notebook_meta.py --check` reports exactly that. Add 8c
+  to `serves_lectures` and regenerate the purpose cells.
+- **#216, the roadmap's tutorial sections** (below "Which notebook serves which lecture", so
+  written on this side): its "Learning outcomes" list for tutorials proposes outcomes that differ
+  from the notebooks' own, and "What exists" and "Sequencing" use the old numbering and still
+  say tutorial 8 needs tutorial 3's checkpoint. Make the notebooks the only home for tutorial
+  outcomes, and point at them.
+- **#217, every tutorial**: outcomes say "you will have seen X"; the roadmap's lecture outcomes
+  say "you can explain X". Write them as abilities, in the lecture's verbs, and name the lecture
+  outcome each serves. Openers also differ: a role line in four tutorials, a time estimate in one,
+  a "Tutorial N:" prefix in five. Predicting before running appears only in tutorial 2.
+- **#218, tutorial 3** (L7): `train_model` runs with no `TrainingCheckpointer`, against the
+  standing rule, and saves with a hand-written `torch.save` rather than the `save_dir` A8 uses.
+  Its outcome "a loss well below `ln(V)`" cannot be checked, since `ln(V)` is never printed. It
+  also never says its quick test is on training phrases, which is Lecture 7's main lesson.
+- **#219, tutorial 1** (L4/L5): the opener promises one call to `parallel_txt_to_dataframe`;
+  the notebook imports it and never calls it. It claims Lecture 9 without a word on subwords;
+  one sentence after the `<unk>` cells would make the link. `leads_to: A5` is backwards, since
+  it uses A5's output.
+- **#220, tutorial 4** (8b): name masked decoder self-attention, the third of 8b's "three
+  attentions".
+- **#221, tutorial 2** (L6): add "decided which system ships before seeing a score" to its list.
+- **#222** and **#223** are tooling friction met while rewriting tutorial 8: `--leads-to` with
+  no values keeps the old list, so clearing it took a hand call to `write_meta`; and executing
+  the notebook leaves `tiny_phrases.tsv` behind, which a temporary directory would avoid.
 
 ### #187 Remove the tutorial redirect stubs
 
