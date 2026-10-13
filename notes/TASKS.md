@@ -37,9 +37,9 @@ with the Cowork session rebuilding the CS 479 decks.
 "In review" means the work is written and sitting in an open pull request; the task
 is not finished until that PR merges, and only then does the row disappear.
 
-**Tasks #98 and #99 have external deadlines.** They come from
-`notes/CS479_COURSE_ROADMAP.md`, are sequenced against a calendar nobody here controls, and
-outrank everything else in this file until Nov 2. See "The CS 479 pivot" below for the schedule and the reasoning.
+**Task #99 has an external deadline.** It comes from
+`notes/CS479_COURSE_ROADMAP.md`, is sequenced against a calendar nobody here controls, and
+outranks everything else in this file until Nov 2. See "The CS 479 pivot" below for the schedule and the reasoning.
 
 ### Reading the "Critical for" column
 
@@ -97,7 +97,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 |---|---|---|---|---|
 | #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files | **L12** | **With Cowork** — the notebook runs end to end (Oct 13); the loader guesses the A12 layout until Cowork confirms it |
 | #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Mon Nov 2 |
-| #98 | **P1** | Back-translation as a documented workflow | **L13** | **Due Wed Oct 28** |
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
@@ -152,12 +151,6 @@ session) and in **`notes/handoff/briefing.md`**. Both are kept current; restatin
 produced two copies that disagreed within days.
 
 What stays below are the dated tasks themselves.
-
-### #98 Back-translation as a documented workflow
-
-Train X-to-English on reversed data, back-translate held-out target sentences, add the
-synthetic pairs, retrain English-to-X, compare. Reversing the direction should be a
-configuration change rather than a second project.
 
 ### #99 Multilingual tagging tutorial
 

@@ -483,6 +483,13 @@ notebooks:
       runs, and reconcile the prediction with the curve in the write-up
     notebook_does: the split, the prompt, the LLM, the loop, BLEU, the chart and the upload files
     rating: low, if the prediction is written; the report prints "(none written)" when it is not
+  lecture-13-back-translation:
+    purpose: back-translation end to end, from the A9 files and the student's own monolingual text
+    lesson: synthetic pairs whose target side is real, and whether they help
+    student_must: find monolingual text new to their split, predict the change before retraining,
+      add Google back-translations to three examples, and explain the result
+    notebook_does: the reversal, both trainings, the back-translation, BLEU, COMET and the upload files
+    rating: low, if the prediction and the analysis are written; finding the text is the student's
 
 # The "Tooling the semester depends on" table.
 tooling:

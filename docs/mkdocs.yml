@@ -153,6 +153,7 @@ nav:
     - Subword Tokenization (Lecture 9): course/lecture-09-subword-tokenization.ipynb
     - Installing COMET (Lecture 10): course/lecture-10-comet-install.ipynb
     - LLMs and Context (Lecture 12): course/lecture-12-llm-context.ipynb
+    - Back-Translation (Lecture 13): course/lecture-13-back-translation.ipynb
   - API Reference:
     - reference/index.md
     - Config: reference/config.md

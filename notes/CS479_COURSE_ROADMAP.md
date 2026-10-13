@@ -226,6 +226,7 @@ steps.
 | `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
 | `lecture-12-llm-context` | in-context examples and what they buy | point it at their language, predict the best context size before the loop runs, and reconcile the prediction with the curve in the write-up | the split, the prompt, the LLM, the loop, BLEU, the chart and the upload files | low, if the prediction is written; the report prints "(none written)" when it is not |
+| `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help | find monolingual text new to their split, predict the change before retraining, add Google back-translations to three examples, and explain the result | the reversal, both trainings, the back-translation, BLEU, COMET and the upload files | low, if the prediction and the analysis are written; finding the text is the student's |
 
 ### Where the line is crossed
 
@@ -693,6 +694,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `07-real-translations` | 10 | reading | A11 | a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding held fixed | yes |
 | `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples; runnable, on a built-in sample | no: colab, download |
+| `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab |
 
 **Tutorial numbers (Eric, Oct 5):** in course order, 01 data, 02 evaluating, 03 checkpoints, 04
 attention, 05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search. The
@@ -962,7 +964,7 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [11] | `07-real-translations` (reading) [4], `08-inference-and-beamsearch` (reading) |
 | 11 | Neural Quality Estimation and Evaluation | — | — |
 | 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [12] | — |
-| 13 | Strategies for NMT of Low-Resource Languages | — | — |
+| 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [13] | — |
 | 14 | Multilingual NMT and "Zero-shot" NMT | — | — |
 | 15 | Overview of Speech-to-Speech MT | — | — |
 | 16 | Automatic Dubbing and Interpretation | — | — |
@@ -1033,6 +1035,14 @@ Notes on the rows that are not simple:
   BLEU and its signature, charts it, and writes the upload files (context-k.tsv, test.tsv,
   bleu-report.tsv) to Drive. Needs a GPU and Drive, so CI does not execute it;
   tests/test_lecture_12.py runs its cells with the model stubbed.
+- [13] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
+  Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, test-a9.hyp) plus
+  the student's monolingual mono.txt. Reverses the split by swapping columns, trains
+  X-to-English with A9's configuration and vocabulary, back-translates with
+  translate_to_file (resumable), retrains English-to-X on the original plus synthetic
+  pairs, scores both systems with A9's BLEU, runs COMET on both, and prints the write-up
+  block. Needs a GPU and Drive, so CI does not execute it; tests/test_lecture_13.py runs
+  its cells at toy size.
 
 <!-- END generated:notebook-map -->
 
