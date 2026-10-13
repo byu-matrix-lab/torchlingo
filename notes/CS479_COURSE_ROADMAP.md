@@ -456,7 +456,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-10-comet-install` | 10 | homework | A10 | install COMET; the student's comet_inputs; two systems scored with and without a reference | no: colab, hf-token, download, pip, exercises |
 | `07-real-translations` | 10 | reading | A11 | a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding held fixed | yes |
 | `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
-| `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMET-QE-DA on the student's A6 sentences, beside BLEU, chrF and their ranking | no: colab, pip |
+| `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMET-QE-DA on the student's A6 sentences, beside BLEU, chrF and their ranking | no: colab, download, pip, exercises |
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download |
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab |
 
@@ -817,9 +817,12 @@ Notes on the rows that are not simple:
 - [15] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMET-QE-DA on the
   student's A6 sentences beside BLEU and chrF. The student pastes comet_inputs from A10
   and writes pairwise_agreement, the sentence-by-sentence measure of whether two metrics
-  prefer the same system, each checked on a known case; a prediction; the report gives
-  system scores, each metric's preferred system against the A6 human average ranks, and
-  agreement counts. tests/test_lecture_11.py runs its cells with COMET stubbed.
+  prefer the same system, each checked on a known case; a prediction, which stops the run
+  while empty; the notebook says why COMET-QE-DA rather than the gated COMETKiwi. The
+  report gives system scores, each metric's preferred system against the A6 human average
+  ranks, and agreement counts; four summary questions follow, the last on LLM-as-judge and
+  system- against segment-level agreement. tests/test_lecture_11.py runs its cells with
+  COMET stubbed.
 - [16] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
   built-in English-Spanish sample from data/example.tsv until the student sets LANGUAGE
   and DATA_DIR. The student writes split_pool_and_test (checked on a known case, then by

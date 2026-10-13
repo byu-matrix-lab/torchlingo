@@ -1,14 +1,15 @@
 """Lecture 11 (Assignment 11), executed from the notebook: Colab faked, COMET stubbed.
 
-The notebook declares ``colab`` and ``pip``, so CI's notebook run skips it, and CI has no
+The notebook declares ``colab``, ``pip``, ``download`` and ``exercises``, so CI's notebook run skips it, and CI has no
 ``unbabel-comet``. These tests run its cells from the notebook file itself on a toy A6 folder in a
 faked Drive: the loading, the two exercises and their checks, the scoring loop with BLEU and chrF
 for real and COMET stubbed, and the report A11's summary is written from.
 
 The stub scores a translation by how many of its words the reference has, or, without a
-reference, by length; what is checked is the path, not COMET. Answers to the two exercises are
-written in, and two further tests check that the notebook as shipped stops at the first, and that
-an agreement count that includes ties is rejected.
+reference, by length; what is checked is the path, not COMET. Answers to the two exercises and a
+prediction are written in, and three further tests check that the notebook as shipped stops at the
+first exercise, that it stops without a prediction, and that an agreement count that includes ties
+is rejected.
 """
 
 import tempfile
@@ -46,6 +47,7 @@ STUB_COMET = {
         'HUMAN_AVERAGE_RANK = {"system 1": 1.4, "system 2": 1.6}'
     ),
 }
+PREDICTED = {'PREDICTION = ""': 'PREDICTION = "COMET agrees with chrF"'}
 
 
 def download_model(name: str) -> str:
@@ -70,9 +72,11 @@ def load_from_checkpoint(path: str) -> _StubModel:
     return _StubModel()
 
 
-def lecture_11_cells(answers: dict) -> list[tuple[int, str]]:
+def lecture_11_cells(answers: dict, predicted: bool = True) -> list[tuple[int, str]]:
     cells = [c for c in code_cells(NOTEBOOK) if not any(m in c[1] for m in SKIPPED)]
-    return substitute(cells, {**STUB_COMET, **answers})
+    return substitute(
+        cells, {**STUB_COMET, **answers, **(PREDICTED if predicted else {})}
+    )
 
 
 class TestLecture11(unittest.TestCase):
@@ -102,9 +106,14 @@ class TestLecture11(unittest.TestCase):
         self.assertIn("=== For the A11 summary ===", printed)
         self.assertIn("COMET and chrF:", printed)
         self.assertIn("human rank", printed)
-        self.assertIn("Your prediction: (none written)", printed)
+        self.assertIn("Your prediction: COMET agrees with chrF", printed)
         for label in ("BLEU", "chrF", "COMET", "COMET-QE-DA"):
             self.assertIn((label, "system 1"), namespace["system_scores"])
+
+    def test_without_a_prediction_it_stops_before_scoring(self):
+        with colab_faked(self.drive), self.assertRaises(AssertionError) as stopped:
+            run_cells(lecture_11_cells(ANSWERS, predicted=False))
+        self.assertIn("Write your prediction", str(stopped.exception))
 
     def test_as_shipped_it_stops_at_the_first_exercise(self):
         with colab_faked(self.drive), self.assertRaises(NotImplementedError) as stopped:
