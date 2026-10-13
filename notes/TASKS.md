@@ -22,7 +22,7 @@ copy of it.
 has the student write the method, with checks; tutorial 5 is the 8b and 8c notebooks. A
 cell-by-cell audit of all fifteen course notebooks (Eric, Oct 13: are the outcomes clear and
 aligned with the roadmap, and does each cell tell the student what to do without doing it for
-them) left one task per notebook, #228 to #240, and the patterns they share, #241. Each
+them) left one task per notebook, #227 to #240, and the patterns they share, #241. Each
 assignment notebook also gains a write-up question for the conceptual half of its lecture
 outcome (Eric, Oct 13).
 
@@ -101,6 +101,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files | **L12** | **With Cowork** — the notebook runs end to end (Oct 13); the loader guesses the A12 layout until Cowork confirms it |
 | #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Mon Nov 2 |
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
+| #227 | **P1** | Roll the new A9 notebook in: rename `lecture-09-subword-tokenization-new` over the live one, fix its badge and the Lecture 9 tests' `NOTEBOOK`, promote | **L9** | **Waits for A9's deadline** (Eric, Oct 13): students mid-assignment keep the notebook they started. The new one reads A8's epoch count from its checkpoint, checks `unknown_rate` on three cases, shows A8's BLEU before the prediction, and says to disconnect the GPU |
 | #228 | **P1** | A10: the step accepting COMETKiwi's terms; a prediction cell that stops while empty; write-up questions, incl. what the score means | **L10** | Open — the gated download fails even with a valid token |
 | #229 | **P1** | A11: which A6 files, in what layout, and what MTEval's average rank is; a prediction cell; why COMET-QE-DA; an LLM-as-judge question | **L11** | Open — the layout needs Cowork (in the hand-off) |
 | #230 | **P1** | A12: where the shared data lives; the loader out of the exercise cell; "only the first line is kept"; the chart uploaded; a document-level question | **L12** | Open — the data location needs Cowork, with #176 |

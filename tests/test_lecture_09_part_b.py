@@ -41,7 +41,10 @@ from torchlingo.preprocessing import split_exact, train_sentencepiece
 from torchlingo.training import train_model
 from torchlingo.training_checkpoint import TrainingCheckpointer
 
-NOTEBOOK = COURSE / "lecture-09-subword-tokenization.ipynb"
+# The version that replaces the live notebook once A9's deadline has passed (Eric, Oct 13); when
+# it is renamed over lecture-09-subword-tokenization.ipynb, so is this. The live notebook is not
+# edited in the meantime, so nothing here runs it.
+NOTEBOOK = COURSE / "lecture-09-subword-tokenization-new.ipynb"
 
 # The kickoff's model is d_model 512, 6 + 6 layers: minutes per epoch on a CPU even at toy size.
 TOY_SIZE = {
