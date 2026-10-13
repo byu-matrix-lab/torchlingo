@@ -8,6 +8,10 @@ the prompt, the loop over context sizes, the BLEU report and the files the assig
 The model cell is left out, and a stand-in ``translate`` takes its place: it returns the
 reference once the prompt holds ten or more examples, and the source otherwise, so BLEU must rise
 with context and the report must show it. What is checked is the path, not an LLM's quality.
+
+Two cells are exercises: ``split_pool_and_test`` and ``build_prompt`` are the student's, and
+raise ``NotImplementedError`` until written. The tests write them in, one straightforward way
+each, and check that the notebook as shipped stops at the first and that a wrong split fails.
 """
 
 import tempfile
@@ -20,13 +24,29 @@ from notebook_cells import COURSE, code_cells, colab_faked, run_cells, substitut
 NOTEBOOK = COURSE / "lecture-12-llm-context.ipynb"
 MODEL_CELL = "AutoModelForCausalLM"
 
+# A student's answers to the two exercises, in place of the line that raises.
+ANSWERS = {
+    'raise NotImplementedError("write split_pool_and_test, then run this cell again")': (
+        "chosen = pairs.sample(pool_size + test_size, random_state=seed)\n"
+        "    return chosen.iloc[:pool_size], chosen.iloc[pool_size:]"
+    ),
+    'raise NotImplementedError("write build_prompt, then run this cell again")': (
+        'lines = [f"Translate the English sentence into {LANGUAGE}.", ""]\n'
+        "    for src, tgt in examples:\n"
+        '        lines += [f"English: {src}", f"{LANGUAGE}: {tgt}", ""]\n'
+        '    return "\\n".join(lines + [f"English: {sentence}", f"{LANGUAGE}:"])'
+    ),
+}
 
-def notebook_cells(data_dir: str | None = None) -> list[tuple[int, str]]:
+
+def notebook_cells(
+    data_dir: str | None = None, answered: bool = True
+) -> list[tuple[int, str]]:
     """Every code cell but the install and the model, pointed at ``data_dir`` if given."""
     cells = [
         c for c in code_cells(NOTEBOOK) if "%pip" not in c[1] and MODEL_CELL not in c[1]
     ]
-    swaps = {"plt.show()": "plt.close()"}
+    swaps = {"plt.show()": "plt.close()", **(ANSWERS if answered else {})}
     if data_dir is not None:
         swaps["DATA_DIR = None"] = f"DATA_DIR = {data_dir!r}"
     return substitute(cells, swaps)
@@ -159,6 +179,46 @@ class TestStudentData(NotebookCase):
         self.assertIn(
             "expected one .tsv file or two .txt files", str(stopped.exception)
         )
+
+
+class TestExercises(unittest.TestCase):
+    """The checks around the two exercises, run on the data cell alone."""
+
+    def data_cell(self, answered: bool = True) -> tuple[int, str]:
+        cells = notebook_cells(str(self.data_dir), answered=answered)
+        return next(c for c in cells if "def split_pool_and_test(" in c[1])
+
+    def setUp(self):
+        scratch = tempfile.TemporaryDirectory()
+        self.addCleanup(scratch.cleanup)
+        self.drive = Path(scratch.name)
+        self.data_dir = self.drive / "a12-data"
+        self.data_dir.mkdir()
+        frame = pd.DataFrame(pairs(80), columns=["english", "pohnpeian"])
+        frame.to_csv(self.data_dir / "pohnpeian.tsv", sep="\t", index=False)
+        self.setup_cell = next(
+            c for c in code_cells(NOTEBOOK) if "setup(gpu=True" in c[1]
+        )
+
+    def test_as_shipped_it_stops_at_the_first_exercise(self):
+        with (
+            colab_faked(self.drive),
+            self.assertRaises(NotImplementedError) as stopped,
+        ):
+            run_cells([self.setup_cell, self.data_cell(answered=False)])
+        self.assertIn("write split_pool_and_test", str(stopped.exception))
+
+    def test_a_split_that_shares_a_sentence_is_rejected(self):
+        """Pool and test drawn independently can overlap; the toy check names the fault."""
+        index, source = self.data_cell()
+        overlapping = source.replace(
+            "return chosen.iloc[:pool_size], chosen.iloc[pool_size:]",
+            "start = pool_size - 1  # one pair off: the right sizes, one sentence shared\n"
+            "    return chosen.iloc[:pool_size], chosen.iloc[start : start + test_size]",
+        )
+        with colab_faked(self.drive), self.assertRaises(AssertionError) as stopped:
+            run_cells([self.setup_cell, (index, overlapping)])
+        self.assertIn("in both the pool and the test set", str(stopped.exception))
 
 
 if __name__ == "__main__":
