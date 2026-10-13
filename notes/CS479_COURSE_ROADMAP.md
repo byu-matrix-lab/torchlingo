@@ -213,18 +213,18 @@ steps.
 | `lecture-05-sentence-alignment` | length can align sentences and cannot see a deletion | change the priors and watch it fail, upload their A4 files, report c | aligner, scoring, the c and s² formulas | low |
 | `lecture-06-mt-evaluation` | what BLEU and chrF count | predict before each of three runs, three talk-it-over answers | the scoring | low |
 | `lecture-06-mt-evaluation-homework` | the metrics on their own data | upload, sample, translate ten by hand, rank before re-reading the scores | three scoring calls | low; A6's substance is MTEval and the analysis |
-| `02-evaluating-translations` (reading; was 07) | which metric to believe when they disagree | decide before scoring; four "Your turn" exercises | the examples | low |
+| `02-evaluating-translations` (reading) | which metric to believe when they disagree | decide before scoring; four "Your turn" exercises | the examples | low |
 | `lecture-07-toy-model` | a model can score perfectly on what it memorised and know nothing | choose the held-out phrase, predict, run Parts A and B, report back in class, write A7's two sentences; a contrast phrase runs as well | corpus, model, training, both scorings, the resume demonstration, the report printout | low since Oct 5 (was watch) |
-| `03-train-tiny-model` (reading; was 02) | the library's plain version of the above | read | everything | low, as reading |
+| `03-train-tiny-model` (reading) | a saved model is weights without a vocabulary, so the vocabulary must be rebuilt exactly | read; run the three rebuilds | everything | low, as reading |
 | `lecture-08a-a8-kickoff` | from cleaned corpus to a running, checkpointed model | type two file names; raise `EPOCHS` if validation loss is still falling | cap, dedupe, split, verification, nine files, the configuration, the training call, the resume, the scoring | **high** |
 | `04-attention-and-alignment` (reading) | attention is measurable alignment | read Parts 1 to 5 and 7; run them | the ablation and the alignment accuracy | low, as reading |
-| `05-transformer-attention` (reading; was 08) | attention can find the right words and the decoder still write the wrong ones | read one worked example | everything | low, as reading |
+| `05-transformer-attention` (reading) | attention can find the right words and the decoder still write the wrong ones | read one worked example | everything | low, as reading |
 | `lecture-09-subword-tokenization` | a fixed vocabulary cannot say unseen words; subwords can | write the `<unk>` counter, pick the vocabulary size with a reason, predict A9's BLEU, report back | the SentencePiece training, the round trip, and the three A9 settings printed ready to paste | low since Oct 5 (was watch); A9 itself is still the paste, see below |
 | `06-diagnosing-failures` (reading) | a procedure for a model that is not working | read once, then look symptoms up | five planted bugs and their checks | low; it is a lookup table |
 | `01-data-and-vocab` (reference) | the library's view of a corpus | read | everything | low, as reference |
 | `lecture-10-comet-install` | install COMET, set up a token | the install and the token | a worked `comet-score` | low; it is an install. A11 has no scaffold and needs none |
-| `08-inference-and-beamsearch` (reading; was 03) | greedy and beam search, and a null result | read | two decoders written to be read | low, as reading |
-| `07-real-translations` (reading; was 05) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
+| `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
+| `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
 | `lecture-12-llm-context` | in-context examples and what they buy | everything: six TODO cells and no scaffold | nothing | low; the opposite risk, that a student stalls, is the one to watch here |
 
 ### Where the line is crossed
@@ -668,46 +668,40 @@ and jobs, opportunities for further research. Final project presentations close 
 
 ## Notebook index
 
-Every notebook in the repository, what it is for, and where it lands. Purposes are in the
-notebooks' own metadata; the repository's generated map is the machine-checked version of this
-table, and the two are kept in agreement by hand at every hand-off.
+Every notebook in the repository, what it is for, and where it lands. Generated: the lecture,
+role, assignment and CI columns come from each notebook's own metadata, and the purpose from
+`notebooks` in `roadmap.yaml`, so the table cannot fall out of step with the notebooks.
 
 | notebook | lecture | role | starts | purpose | CI |
 |---|---|---|---|---|---|
 | `lecture-03-word-embeddings` | 3 | activity | A3 | does the shared multilingual space line up across your languages | no: download, pip |
 | `lecture-04-regex-refresher` | 4 | reference | | fifteen-minute regex tour; a worksheet with blanks | no: blanks |
 | `lecture-04-tmx-cleaning` | 4 | activity | A4 | planted TMX problems, two parsers, a checker that names the cleaning step | no: pip |
-| `01-data-and-vocab` | 4, 9 | reference | A9 | the library's view of corpus loading; word-level vocab, stops at `<unk>` | yes |
+| `01-data-and-vocab` | 4, 9 | reference | A9 | the library's view of corpus loading, from A5's two files; word-level vocab, stops at `<unk>`, which Lecture 9 takes up | yes |
 | `lecture-05-sentence-alignment` | 5 | activity | A5 | estimate Gale-Church parameters on your language | no: pip |
 | `lecture-06-mt-evaluation` | 6 | activity | A6 | BLEU and chrF on your data; BLEU returns zero on ten short sentences | yes |
 | `lecture-06-mt-evaluation-homework` | 6 | homework | A6 | the assignment's scaffold over your uploaded A5 corpus | no: colab |
 | `02-evaluating-translations` | 6 | reading | A6, A8 | the library's out-of-class treatment of evaluation | yes |
 | `lecture-07-toy-model` | 7 | activity | A7 | the three-part toy-model exercise; the student picks the held-out phrase, predicts, and a contrast phrase runs; resume demo | yes |
-| `03-train-tiny-model` | 7 | reading | A8 | the library's own tiny-model tutorial, which the exercise above was adapted from | yes |
+| `03-train-tiny-model` | 7 | reading | A8 | what a checkpoint holds and what it does not; a rebuild that fails loudly, and one that loads cleanly and translates nonsense | yes |
 | `lecture-08a-a8-kickoff` | 8a | activity | A8 | from your A5 corpus to a running, checkpointed, bucketed training job | no: colab, pip |
 | `04-attention-and-alignment` | 8a, 8b | reading | | with and without attention; did it learn the right alignment; Part 7 is the Transformer | yes |
 | `05-transformer-attention` | 8b, 8c | reading | A8 | a pretrained Transformer's attention on real text, cross- and (since Oct 5) self-attention; tutorial 4's old Part 8 | yes |
 | `06-diagnosing-failures` | 8c | reading | A8 | five questions to ask of a model that is not working | yes |
 | `lecture-09-subword-tokenization` | 9 | activity | A9 | `<unk>` before and after SentencePiece (the student's counter), a round trip, the student's vocabulary size and A9 prediction, and the three A9 settings printed under A9's own run names | no: colab |
-| `lecture-10-comet-install` | 10 | homework | A10 | install COMET, score an example, set up the HF token | no: colab, hf-token, pip |
-| `07-real-translations` | 10 | reading | A11 | a trained model on real sentences; stays at 10 (Oct 5) | yes |
-| `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, checked against the library, both scored; badge not yet runnable; rewrite paused until A8 is in shape | yes |
+| `lecture-10-comet-install` | 10 | homework | A10 | install COMET, score two hypotheses with and without a reference, set up the HF token | no: colab, hf-token, pip |
+| `07-real-translations` | 10 | reading | A11 | a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding held fixed | yes |
+| `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples; all TODOs | no: pip |
 
-**Tutorial numbers (Eric, Oct 5):** renumbered into course order, 01 data, 02 evaluating, 03
-train-tiny, 04 attention, 05 transformer-attention, 06 diagnosing, 07 real-translations, 08
-beam search; pending the repository's merge, with redirect stubs at the old paths for the term.
-Course-side references (8a slide 20, 8b "Where We Left Off", Lecture 10's decoding slide, the
-6, 7, 8a and 8b Content pages) flip when it lands.
+**Tutorial numbers (Eric, Oct 5):** in course order, 01 data, 02 evaluating, 03 checkpoints, 04
+attention, 05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search. The
+redirect stubs left at the old paths were removed on Oct 12 (Eric); nothing live linked to them.
 
-Every notebook now opens with the same two cells: a four-line install and
+Every notebook opens with the same two cells: a four-line install and
 `torchlingo.colab.setup(...)`, which prints versions and device, checks the GPU, mounts Drive
-and downloads data. Notebook text carries no weekdays or dates ("before Lecture 8a", never
-"Wednesday"), so the notebooks outlive one term's calendar.
-
-**Nothing serves 11, 13, 14, 15, 16, 17, 18, 19, 20.** Lectures 13 and 14 need notebooks
-because their assignments train models and are still written against OpenNMT; the rest are
-lectures without code.
+and downloads data. Notebook text carries no weekdays, dates or due dates, so the notebooks
+outlive one term's calendar.
 
 ---
 
@@ -1052,24 +1046,24 @@ them, and a Fall 2027 offering should not have to rediscover the mapping. Where 
 The generated table lists notebooks that exist. Absence is the interesting part, and a
 notebook that has not been written cannot declare anything:
 
-- **Lecture 9 has no notebook and needs one.** That is #121, which carries the dates.
-- **Lecture 14 has no notebook**, and the current handout is a Word document written for
-  OpenNMT. That is #99, and #123 is the prior question of whether the code path even works.
-- **Lecture 6 will gain a tutorial it cannot show yet.** Tutorial 2 was written for exactly
-  this ground and is not merged (#88). Once it lands it will declare Lecture 6 itself, as
-  reading *after* Lecture 8, since Lecture 6 has run.
-- **Twelve of the twenty-three lectures pair with nothing** — 1, 2, 11 to 18, 20 and 21. Which
-  is fine: not every lecture wants a notebook, and inventing one to fill a row would be the
-  redundancy this document already warns about.
+- **Lectures 13 and 14 have no notebook and need one**: their assignments, A13's
+  back-translation and A14's two-direction model, train models and are still written against
+  OpenNMT. Lecture 14's handout is a Word document. Tasks #98, #99 and #123 carry them.
+- **Twelve of the sessions pair with nothing**: Lectures 1, 2, 11, 13 to 18, 19 and 20
+  (merged), 21, and 22 and 23 (merged). Apart from 13 and 14 that is fine: not every lecture
+  wants a notebook, and inventing one to fill a row would be the redundancy `CLAUDE.md` rules
+  out.
 
-**Two notebooks declare no `leads_to`, deliberately**, and it is recorded here so nobody reads the
-blank as an oversight and fills it in. Settled 2026-09-28, closing #145.
+**Three notebooks declare no `leads_to`, deliberately**, and it is recorded here so nobody reads
+the blank as an oversight and fills it in. The first two were settled 2026-09-28, closing #145.
 
 - **`04-attention-and-alignment`** explains attention and the Transformer. It gives a student no
   head start on A8's deliverable, which is a trained model on their own corpus — it makes the
   training make sense, which is a different thing.
 - **`lecture-04-regex-refresher`** teaches regular expressions, which A4's cleaning is *written
   in*. A prerequisite skill is not a head start either.
+- **`08-inference-and-beamsearch`** is read at Lecture 10, the day A9 is due, so it cannot give a
+  head start on A9; it explains why A9 holds decoding fixed. Settled 2026-10-12.
 
 The rule both follow is the one #139 established against tutorial 1's Lecture 9 claim: **a notebook
 that teaches the prerequisite should not be recorded as covering the thing.** A visible blank is
@@ -1098,171 +1092,56 @@ have been a one-code-cell notebook. Neither is worth the notebook's best transit
 Two incidental corrections, since #140's own description had them wrong: the seam is *after*
 Part 6, not at it, and Part 6 — Bahdanau versus Luong — is Lecture 8a's material, not 8b's.
 
-## What exists
+## What exists beyond the notebooks
 
-### Tutorials
-
-| | Runs on | Depends on |
-|---|---|---|
-| 1. Data and Vocabulary | `data/sample_train.tsv` | nothing |
-| 2. Train a Tiny Model | `data/example.tsv` | 1 |
-| 3. Inference and Beam Search | tutorial 3's checkpoint | **2, at runtime** |
-| 4. Attention and Alignment | synthetic reversal task | 2 |
-| 5. Translating Unseen Sentences | `data/pretrained/` | 1-3 conceptually |
+The notebooks themselves, what each is for and the lecture it serves, are in the notebook index
+and the map above, both generated from the notebooks' own metadata. Every notebook runs on its
+own, and a course notebook never depends on a tutorial (`CLAUDE.md`).
 
 ### Concept pages
 
 `what-is-nmt.md`, `data-pipeline.md`, `vocabulary.md`, `models.md`, `training.md`,
-`decoding.md`, `when-it-fails.md`.
+`decoding.md`, `evaluation.md`, `when-it-fails.md`.
 
 ### Measured artifacts
 
 Generated into `docs/docs/_generated/`, each from a script, none hand-typed:
-`decode_bench` (#12), `decoding_sweep` (#40), `alignment_diagnosis` (#46),
-`realign_report` (#29).
+`decode_bench`, `decoding_sweep`, `alignment_diagnosis`, `realign_report`,
+`metric_comparison`, `checkpoint_comparison`. Experimental reports, also generated, are in
+`notes/reports/`.
 
 ---
 
-## Sequencing, including the parts nobody wrote down
+## Where learning outcomes live
 
-Two dependencies are load-bearing and were invisible until this audit.
+**A lecture's outcomes** are in "Learning outcomes, and who does the work" above. **A
+notebook's outcomes** are stated in its own opener, under "By the end", and nowhere else, so
+they cannot drift from the notebook they describe. The notebook ratings above say who does the
+work in each.
 
-**Tutorial 8 cannot run without tutorial 3.** It loads the checkpoint tutorial 3 saves.
-`scripts/execute_notebooks.py` encodes this — it runs the notebooks in one shared working
-directory, in filename order, and lists tutorial 8 as needing the corpus even though it
-never names it. A student who opens tutorial 8 in Colab on its own gets a file-not-found
-error and no explanation.
-
-**Tutorial 8's model is too small to teach what tutorial 8 is about.** Its beam-size
-sweep prints five identical rows because the model is decisive. This is why #40's
-measurement had to be done on tutorial 7's checkpoint instead, and why #50 exists. The
-sequencing implication is real: *the lesson about beam search requires a model that is
-wrong often enough to be uncertain, and the tutorial that teaches beam search does not
-have one.*
-
-**Tutorial 4 is independent.** It trains a synthetic reversal task with known ground
-truth, which is what lets it measure alignment accuracy rather than assert it. It could
-be moved without breaking anything.
-
----
-
-## Learning outcomes
-
-Stated as what a student can do afterwards. **These are proposed, not confirmed** — they
-are reverse-engineered from the material, and they need checking against the course this
-feeds.
-
-**Tutorial 1.** Load a parallel corpus; explain why a vocabulary needs `<pad>`, `<sos>`,
-`<eos>` and `<unk>`; predict what happens to an out-of-vocabulary word at inference.
-
-**Tutorial 3.** Train a Transformer end to end; read a loss curve well enough to tell
-"still learning" from "converged"; recognize that a loss near `ln(vocab_size)` means the
-model has learned nothing.
-
-**Tutorial 8.** Implement greedy and beam search from scratch; state what beam search
-buys and what it costs; explain why two implementations of the same algorithm can
-disagree on ties.
-
-**Tutorial 4.** Explain the encoder-decoder bottleneck as a concrete discarded variable;
-run an ablation; judge whether attention learned the *right* alignment rather than merely
-a confident one; connect cross-attention to self-attention.
-
-**Tutorial 7.** Distinguish a held-out set that is genuinely held out from one that
-leaks; interpret a BLEU score; compare decoding strategies on a model whose answers
-actually differ.
-
-**`concepts/decoding.md`.** Recognize beam search as best-first search with a fixed-width
-frontier (#41); read a table with error bars and tell a real difference from sampling
-noise (#40).
-
-**`concepts/data-pipeline.md`.** Check whether a parallel corpus is actually parallel
-(#46); repair one that has drifted, and verify the repair rather than trusting it (#29).
+Two rules from Eric (2026-10-12, in `CLAUDE.md`) govern how notebook outcomes relate: every
+notebook has a purpose and outcome no other notebook shares, judged by how it looks as well as
+by what it teaches; and a course notebook never assumes a tutorial was read.
 
 ---
 
 ## Gaps
 
-Ordered by how much they would cost a student.
+What the material still does not teach, ordered by how much it costs a student. Three gaps
+listed here before are closed: tutorial 6 teaches diagnosis by breaking a model on purpose and
+watching each check fire; tutorial 2 teaches where BLEU misleads; tutorial 5 reads a
+Transformer's attention.
 
-**Why a model fails.** ~~Everything teaches how the machinery works when it works.
-Nothing teaches diagnosis.~~ **First pass written: `concepts/when-it-fails.md`.** A
-diagnostic order — data, then whether the model is learning at all, then whether it is
-learning the wrong thing, then whether the measurement is lying, then the environment —
-with each step's check drawn from a real incident in this repository's history rather
-than invented.
+**Training dynamics.** `concepts/training.md` covers the loop, optimizers, schedulers,
+clipping and early stopping. It does not cover what a student does when training goes wrong:
+batch size against learning rate, or what overfitting looks like on a small corpus.
 
-The table at its head is the part worth keeping: six symptoms, the obvious explanation
-for each, and what it actually turned out to be. Every "looked like" column entry is a
-reasonable first guess and every one is wrong.
+**How much data is enough.** Still open in general. The material has a measured answer to a
+better question, *which lever are you actually pulling?*: at this scale, training longer
+helped and more data did not, and the first attempt to answer it was wrong in a way only a
+control run caught. The numbers are in `notes/reports/training-budget.md`. The episode is worth
+teaching directly.
 
-Still missing, and harder: a *runnable* version. The alignment lesson in #46 works
-because `shuffle_target_side` lets a student break a corpus and watch the check fire.
-The equivalent here would be deliberately breaking a model — freezing a parameter,
-detaching a graph, training one epoch — and watching each diagnostic catch it. That is
-a tutorial, not a page.
-
-**Evaluation beyond BLEU.** BLEU is introduced and used. Its failure modes are not: it
-rewards length-matching, is unusable on single sentences, and is not comparable across
-tokenizations. #40 measured a BLEU difference smaller than its own noise and the docs now
-say so, which is the only place this idea appears.
-
-**Training dynamics.** `concepts/training.md` covers the loop, optimizers, schedulers and
-clipping. It does not cover what a student does when training goes wrong: batch size
-against learning rate, when to stop, what overfitting looks like on a small corpus.
-
-**Data quantity.** ~~#29 added 18% more data and nobody has checked whether it helps.~~
-**Checked, and the answer is no** — at this scale. With training budget held fixed, +20%
-data is worth +0.29 ± 0.22 BLEU, an interval crossing zero, while going from 20 to 36
-epochs on the same data is worth +2.05. See the training-budget section in `TASKS.md`.
-
-"How much data do I need" is still a gap, but the material now has a real answer to a
-better question: *how do you tell which lever you are actually pulling?* The episode is
-worth teaching directly, because the first attempt to answer it got the wrong answer with
-error bars and a paired bootstrap attached, and only a control run caught it.
-
-**Inference cost in practice.** `decoding.md` covers this well for beam search
-specifically. Nothing covers model size against latency, or CPU against GPU, which is
-what a student meets when their Colab session is slow.
-
-**Attention on the architecture students actually use.** Covered for the LSTM in three
-places, and not at all for the Transformer, which cannot return its attention weights.
-See the correction under Redundancy below, and #34.
-
----
-
-## Redundancy
-
-Not necessarily wrong, but currently undeliberate.
-
-**Beam search appears four times**: explained in `concepts/decoding.md`, reimplemented
-from scratch in tutorial 8, visualized via `format_beam_search` (#39), and measured in
-#40. The reimplementation is defensible — writing it yourself is the lesson — and
-tutorial 8 explicitly reconciles its version against the library's. Worth deciding
-deliberately rather than by accumulation.
-
-**Attention appears three times**: `concepts/models.md`, tutorial 4, and
-`reference/visualization.md`.
-
-*Corrected 2026-09-18, and this is a gap rather than redundancy.* All three cover the
-**LSTM**. `SimpleTransformer` has no attention-returning path at all, so a student who
-follows the tutorials onto the Transformer — which is what tutorials 3 and 7 train, and
-what the pretrained checkpoint is — cannot inspect attention on the model they are
-actually using. Tutorial 4 teaches the concept honestly on an LSTM and a synthetic task;
-nothing carries it across. See #34, whose scope was recorded too small for the same
-reason.
-
-**The corpus repair story now appears twice**: `concepts/data-pipeline.md` (#46, #29) and
-`scripts/realign_corpus.py`'s docstring. These are aimed at different readers and the
-overlap is probably correct.
-
----
-
-## Open questions for the instructor
-
-1. Are the outcomes above the right ones? They are inferred from the material, which
-   means they describe what exists rather than what the course needs.
-2. Should tutorial 8 keep its from-scratch implementations, or call the library and spend
-   the space on diagnosis instead?
-3. ~~Where does the lecture 7 assignment attach?~~ **Answered 2026-09-26: it needs nothing.**
-   Lecture 7 is a paper review, its activity is tutorial 3, and Task #42 is closed.
-4. Is "why models fail" in scope for this library, or is it lecture material?
+**Inference cost in practice.** `concepts/decoding.md` covers beam search's cost and why a
+GPU at batch size 1 is mostly overhead. Nothing covers model size against latency, which is
+what a student meets when a Colab session is slow.

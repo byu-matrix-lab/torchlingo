@@ -1,47 +1,20 @@
 ## Gaps
 
-Ordered by how much they would cost a student.
+What the material still does not teach, ordered by how much it costs a student. Three gaps
+listed here before are closed: tutorial 6 teaches diagnosis by breaking a model on purpose and
+watching each check fire; tutorial 2 teaches where BLEU misleads; tutorial 5 reads a
+Transformer's attention.
 
-**Why a model fails.** ~~Everything teaches how the machinery works when it works.
-Nothing teaches diagnosis.~~ **First pass written: `concepts/when-it-fails.md`.** A
-diagnostic order — data, then whether the model is learning at all, then whether it is
-learning the wrong thing, then whether the measurement is lying, then the environment —
-with each step's check drawn from a real incident in this repository's history rather
-than invented.
+**Training dynamics.** `concepts/training.md` covers the loop, optimizers, schedulers,
+clipping and early stopping. It does not cover what a student does when training goes wrong:
+batch size against learning rate, or what overfitting looks like on a small corpus.
 
-The table at its head is the part worth keeping: six symptoms, the obvious explanation
-for each, and what it actually turned out to be. Every "looked like" column entry is a
-reasonable first guess and every one is wrong.
+**How much data is enough.** Still open in general. The material has a measured answer to a
+better question, *which lever are you actually pulling?*: at this scale, training longer
+helped and more data did not, and the first attempt to answer it was wrong in a way only a
+control run caught. The numbers are in `notes/reports/training-budget.md`. The episode is worth
+teaching directly.
 
-Still missing, and harder: a *runnable* version. The alignment lesson in #46 works
-because `shuffle_target_side` lets a student break a corpus and watch the check fire.
-The equivalent here would be deliberately breaking a model — freezing a parameter,
-detaching a graph, training one epoch — and watching each diagnostic catch it. That is
-a tutorial, not a page.
-
-**Evaluation beyond BLEU.** BLEU is introduced and used. Its failure modes are not: it
-rewards length-matching, is unusable on single sentences, and is not comparable across
-tokenizations. #40 measured a BLEU difference smaller than its own noise and the docs now
-say so, which is the only place this idea appears.
-
-**Training dynamics.** `concepts/training.md` covers the loop, optimizers, schedulers and
-clipping. It does not cover what a student does when training goes wrong: batch size
-against learning rate, when to stop, what overfitting looks like on a small corpus.
-
-**Data quantity.** ~~#29 added 18% more data and nobody has checked whether it helps.~~
-**Checked, and the answer is no** — at this scale. With training budget held fixed, +20%
-data is worth +0.29 ± 0.22 BLEU, an interval crossing zero, while going from 20 to 36
-epochs on the same data is worth +2.05. See the training-budget section in `TASKS.md`.
-
-"How much data do I need" is still a gap, but the material now has a real answer to a
-better question: *how do you tell which lever you are actually pulling?* The episode is
-worth teaching directly, because the first attempt to answer it got the wrong answer with
-error bars and a paired bootstrap attached, and only a control run caught it.
-
-**Inference cost in practice.** `decoding.md` covers this well for beam search
-specifically. Nothing covers model size against latency, or CPU against GPU, which is
-what a student meets when their Colab session is slow.
-
-**Attention on the architecture students actually use.** Covered for the LSTM in three
-places, and not at all for the Transformer, which cannot return its attention weights.
-See the correction under Redundancy below, and #34.
+**Inference cost in practice.** `concepts/decoding.md` covers beam search's cost and why a
+GPU at batch size 1 is mostly overhead. Nothing covers model size against latency, which is
+what a student meets when a Colab session is slow.
