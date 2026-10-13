@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.7] - 2026-10-13
+
 ### Added
 - **`torchlingo.inference.translate_to_file`**: a bulk decode that survives an interruption.
   It appends each chunk of translations to the output file as soon as it is decoded, one line
