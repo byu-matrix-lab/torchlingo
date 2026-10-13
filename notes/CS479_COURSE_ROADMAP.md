@@ -457,7 +457,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `07-real-translations` | 10 | reading | A11 | a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding held fixed | yes |
 | `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
 | `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMET-QE-DA on the student's A6 sentences, beside BLEU, chrF and their ranking | no: colab, download, pip, exercises |
-| `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download |
+| `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download, exercises |
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab |
 
 **Tutorial numbers** are in course order: 01 data, 02 evaluating, 03 checkpoints, 04 attention,
@@ -825,13 +825,16 @@ Notes on the rows that are not simple:
   COMET stubbed.
 - [16] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
   built-in English-Spanish sample from data/example.tsv until the student sets LANGUAGE
-  and DATA_DIR. The student writes split_pool_and_test (checked on a known case, then by
-  check_contamination on the real split) and build_prompt (checked on a known case), then
-  writes a prediction; an open instruction-tuned LLM (default Qwen2.5-1.5B-Instruct,
-  greedy) translates 50 test sentences at 0, 5, 10 and 20 in-context examples, scores each
-  with BLEU and its signature, charts it, and writes the upload files (context-k.tsv,
-  test.tsv, bleu-report.tsv) to Drive. Needs a GPU and Drive, so CI does not execute it;
-  tests/test_lecture_12.py runs its cells with the model stubbed.
+  and DATA_DIR, together. The student writes split_pool_and_test (checked on the alphabet,
+  including that a different seed gives a different split, then by check_contamination on
+  the real split) and build_prompt (checked on a known case), then a prediction, which
+  stops the notebook while empty; an open instruction-tuned LLM (default
+  Qwen2.5-1.5B-Instruct, greedy) translates 50 test sentences at 0, 5, 10 and 20
+  in-context examples, scores each with BLEU and its signature, charts it, and writes the
+  upload files (context-k.tsv, test.tsv, bleu-report.tsv, bleu-by-context.png) to Drive.
+  The write-up adds the document-level problems no example pair fixes. Needs a GPU and
+  Drive, so CI does not execute it; tests/test_lecture_12.py runs its cells with the model
+  stubbed.
 - [17] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
   Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, test-a9.hyp) plus
   the student's monolingual mono.txt. The student writes reverse, which turns the split

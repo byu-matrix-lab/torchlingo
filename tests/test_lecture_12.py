@@ -11,7 +11,9 @@ with context and the report must show it. What is checked is the path, not an LL
 
 Two cells are exercises: ``split_pool_and_test`` and ``build_prompt`` are the student's, and
 raise ``NotImplementedError`` until written. The tests write them in, one straightforward way
-each, and check that the notebook as shipped stops at the first and that a wrong split fails.
+each, and a prediction, and check that the notebook as shipped stops at the first, that it stops
+without a prediction, that a split sharing a sentence or ignoring the seed fails, and that
+``LANGUAGE`` and ``DATA_DIR`` must be set together.
 """
 
 import tempfile
@@ -37,18 +39,31 @@ ANSWERS = {
         '    return "\\n".join(lines + [f"English: {sentence}", f"{LANGUAGE}:"])'
     ),
 }
+PREDICTED = {'PREDICTION = ""': 'PREDICTION = "context helps up to 10"'}
 
 
 def notebook_cells(
-    data_dir: str | None = None, answered: bool = True
+    data_dir: str | None = None,
+    answered: bool = True,
+    predicted: bool = True,
+    language: str | None = "Pohnpeian",
 ) -> list[tuple[int, str]]:
-    """Every code cell but the install and the model, pointed at ``data_dir`` if given."""
+    """Every code cell but the install and the model, pointed at ``data_dir`` if given.
+
+    With ``data_dir``, ``LANGUAGE`` is set to ``language`` too, unless that is None.
+    """
     cells = [
         c for c in code_cells(NOTEBOOK) if "%pip" not in c[1] and MODEL_CELL not in c[1]
     ]
-    swaps = {"plt.show()": "plt.close()", **(ANSWERS if answered else {})}
+    swaps = {
+        "plt.show()": "plt.close()",
+        **(ANSWERS if answered else {}),
+        **(PREDICTED if predicted else {}),
+    }
     if data_dir is not None:
         swaps["DATA_DIR = None"] = f"DATA_DIR = {data_dir!r}"
+        if language is not None:
+            swaps['LANGUAGE = "Spanish"'] = f"LANGUAGE = {language!r}"
     return substitute(cells, swaps)
 
 
@@ -79,8 +94,11 @@ def stub_namespace(namespace: dict) -> dict:
 
 
 class NotebookCase(unittest.TestCase):
-    def run_notebook(self, data_dir_contents=None):
-        """Run the cells in a fresh faked Drive; return (namespace, printed, output dir)."""
+    def run_notebook(self, data_dir_contents=None, **cell_options):
+        """Run the cells in a fresh faked Drive; return (namespace, printed, output dir).
+
+        ``cell_options`` go to ``notebook_cells``.
+        """
         scratch = tempfile.TemporaryDirectory()
         self.addCleanup(scratch.cleanup)
         drive = Path(scratch.name)
@@ -92,12 +110,12 @@ class NotebookCase(unittest.TestCase):
             pd.DataFrame(rows, columns=["src", "tgt", "talk", "kind"]).to_csv(
                 drive / "data" / "example.tsv", sep="\t", index=False
             )
-            cells = notebook_cells()
+            cells = notebook_cells(**cell_options)
         else:
             data_dir = drive / "a12-data"
             data_dir.mkdir()
             data_dir_contents(data_dir)
-            cells = notebook_cells(str(data_dir))
+            cells = notebook_cells(str(data_dir), **cell_options)
         model_at = next(i for i, src in code_cells(NOTEBOOK) if MODEL_CELL in src)
         before = [c for c in cells if c[0] < model_at]
         after = [c for c in cells if c[0] > model_at]
@@ -117,8 +135,8 @@ class TestBuiltInSample(NotebookCase):
         uploads |= {f"hyp-{k}.txt" for k in (0, 5, 10, 20)}
         self.assertEqual({p.name for p in out.iterdir()}, uploads)
 
-        # Run all with no prediction still runs, and the report says it is missing
-        self.assertIn("your prediction: (none written)", printed)
+        self.assertIn("your prediction: context helps up to 10", printed)
+        self.assertIn("bleu-by-context.png.", printed)
 
         # Fifty test pairs; each context file holds exactly k pairs, nested; none is a test pair
         test = pd.read_csv(out / "test.tsv", sep="\t", dtype=str, keep_default_na=False)
@@ -144,6 +162,11 @@ class TestBuiltInSample(NotebookCase):
         self.assertTrue(report.signature.str.contains("nrefs:1").all())
         self.assertLess(report.bleu[0], report.bleu[2])
         self.assertEqual(report.bleu[3], 100.0)
+
+    def test_without_a_prediction_it_stops_before_translating(self):
+        with self.assertRaises(AssertionError) as stopped:
+            self.run_notebook(predicted=False)
+        self.assertIn("Write your prediction", str(stopped.exception))
 
 
 class TestStudentData(NotebookCase):
@@ -180,13 +203,40 @@ class TestStudentData(NotebookCase):
             "expected one .tsv file or two .txt files", str(stopped.exception)
         )
 
+    def test_data_dir_without_language_stops(self):
+        """Otherwise the prompt asks for Spanish while the data is Pohnpeian."""
+
+        def write(data_dir):
+            frame = pd.DataFrame(pairs(80), columns=["english", "pohnpeian"])
+            frame.to_csv(data_dir / "pohnpeian.tsv", sep="\t", index=False)
+
+        with self.assertRaises(SystemExit) as stopped:
+            self.run_notebook(write, language=None)
+        self.assertIn("Set LANGUAGE and DATA_DIR together", str(stopped.exception))
+
 
 class TestExercises(unittest.TestCase):
-    """The checks around the two exercises, run on the data cell alone."""
+    """The checks around the two exercises, run on the cells up to the split alone."""
 
-    def data_cell(self, answered: bool = True) -> tuple[int, str]:
+    def cells_to_split(self, answered: bool = True) -> list[tuple[int, str]]:
+        """The settings and loader cells, then the split cell last."""
         cells = notebook_cells(str(self.data_dir), answered=answered)
-        return next(c for c in cells if "def split_pool_and_test(" in c[1])
+        split_at = next(i for i, src in cells if "def split_pool_and_test(" in src)
+        before = [c for c in cells if self.setup_cell[0] < c[0] <= split_at]
+        return [self.setup_cell, *before]
+
+    def rejected(self, answer: str) -> str:
+        """Run the split cell with ``answer`` as its body; return the failed check's message."""
+        *before, (index, source) = self.cells_to_split()
+        wrong = source.replace(
+            ANSWERS[
+                'raise NotImplementedError("write split_pool_and_test, then run this cell again")'
+            ],
+            answer,
+        )
+        with colab_faked(self.drive), self.assertRaises(AssertionError) as stopped:
+            run_cells([*before, (index, wrong)])
+        return str(stopped.exception)
 
     def setUp(self):
         scratch = tempfile.TemporaryDirectory()
@@ -205,20 +255,24 @@ class TestExercises(unittest.TestCase):
             colab_faked(self.drive),
             self.assertRaises(NotImplementedError) as stopped,
         ):
-            run_cells([self.setup_cell, self.data_cell(answered=False)])
+            run_cells(self.cells_to_split(answered=False))
         self.assertIn("write split_pool_and_test", str(stopped.exception))
 
     def test_a_split_that_shares_a_sentence_is_rejected(self):
-        """Pool and test drawn independently can overlap; the toy check names the fault."""
-        index, source = self.data_cell()
-        overlapping = source.replace(
-            "return chosen.iloc[:pool_size], chosen.iloc[pool_size:]",
-            "start = pool_size - 1  # one pair off: the right sizes, one sentence shared\n"
-            "    return chosen.iloc[:pool_size], chosen.iloc[start : start + test_size]",
+        """One pair off: the right sizes, one sentence in both."""
+        message = self.rejected(
+            "chosen = pairs.sample(pool_size + test_size, random_state=seed)\n"
+            "    start = pool_size - 1\n"
+            "    return chosen.iloc[:pool_size], chosen.iloc[start : start + test_size]"
         )
-        with colab_faked(self.drive), self.assertRaises(AssertionError) as stopped:
-            run_cells([self.setup_cell, (index, overlapping)])
-        self.assertIn("in both the pool and the test set", str(stopped.exception))
+        self.assertIn("in both the pool and the test set", message)
+
+    def test_a_split_that_ignores_the_seed_is_rejected(self):
+        """The first rows, not a random draw: sizes and overlap are right, the seed does nothing."""
+        message = self.rejected(
+            "return pairs.iloc[:pool_size], pairs.iloc[pool_size : pool_size + test_size]"
+        )
+        self.assertIn("a different seed must give a different split", message)
 
 
 if __name__ == "__main__":
