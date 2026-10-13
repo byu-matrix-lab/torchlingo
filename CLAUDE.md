@@ -203,9 +203,14 @@ checkout and anything destructive, and read it.
 
 ## `docs/docs/course/` belongs to this repository
 
-The CS 479 in-class notebooks live here. The Cowork session writes their content but does **not**
-run git: changes arrive as requests in `notes/handoff/from-cowork/`, and committing, the nav entry
-and the pull request happen here.
+The CS 479 course notebooks live here, and **both sessions write them, together**. Eric,
+2026-10-13: *"both Claude Code agent and cowork agent can collaborate on these, as we're doing."*
+Neither side owns a notebook: whoever holds the baton edits, and the hand-off says what changed
+and what is asked of the other side. What each brings differs. Cowork knows the decks, Learning
+Suite, the assignment texts and the course folder's data; this side knows the library and can
+run and test the notebooks. So a notebook built here asks Cowork for what only the course side
+knows, and one Cowork edits is reviewed here against the library. Cowork does **not** run git:
+committing, the checks, the nav entry, the pull request and promotion to `course` happen here.
 
 - **Instructor notebooks never go public.** Lectures 3 and 4 have separate INSTRUCTOR notebooks
   carrying worked solutions. They stay out of this tree.
