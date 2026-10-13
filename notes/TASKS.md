@@ -139,7 +139,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #219 | **P3** | Tutorial 1 promises a call it never makes, and claims Lecture 9 without saying why | **L4/L5** | Open — Oct 12 audit |
 | #220 | **P3** | Tutorial 4 never names the third attention | **L8b** | Open — Oct 12 audit; one sentence |
 | #221 | **P3** | Tutorial 2's outcome list omits deciding before scoring | **L6** | Open — Oct 12 audit; one line |
-| #222 | **P3** | `notebook_meta.py --stamp` cannot clear a list field | **lib** | Open — only `--note ''` clears |
 | #223 | **P3** | Tutorial 8 writes its training file into the working directory | **lib** | Open — leaves `tiny_phrases.tsv` untracked in `docs/docs/tutorials/` |
 
 ## The CS 479 pivot
@@ -368,9 +367,8 @@ for Lecture 10.
 - **#220, tutorial 4** (8b): name masked decoder self-attention, the third of 8b's "three
   attentions".
 - **#221, tutorial 2** (L6): add "decided which system ships before seeing a score" to its list.
-- **#222** and **#223** are tooling friction met while rewriting tutorial 8: `--leads-to` with
-  no values keeps the old list, so clearing it took a hand call to `write_meta`; and executing
-  the notebook leaves `tiny_phrases.tsv` behind, which a temporary directory would avoid.
+- **#223** is tooling friction met while rewriting tutorial 8: executing the notebook leaves
+  `tiny_phrases.tsv` behind, which a temporary directory would avoid.
 
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 

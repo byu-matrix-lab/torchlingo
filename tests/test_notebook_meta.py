@@ -1321,6 +1321,26 @@ class TestStampingKeepsWhatItWasNotAskedToChange(unittest.TestCase):
         """Preserving by default must not make clearing impossible."""
         self.assertNotIn("note", self.stamp("--note", ""))
 
+    def test_an_empty_leads_to_clears_the_field(self):
+        """Task #222: `--leads-to` with nothing after it clears, as `--note ''` does.
+
+        It used to keep the old list, because "not mentioned" and "mentioned empty" both
+        arrived as []. Clearing tutorial 8's link to A9 took a hand call to write_meta.
+        """
+        self.stamp("--leads-to", "A5")
+        self.assertNotIn("leads_to", self.stamp("--leads-to"))
+
+    def test_an_empty_requires_clears_the_field(self):
+        self.stamp("--requires", "pip")
+        self.assertNotIn("requires", self.stamp("--requires"))
+
+    def test_clearing_one_list_keeps_the_other(self):
+        """Clearing is per field: the rest are still carried forward."""
+        self.stamp("--leads-to", "A5", "--requires", "pip")
+        meta = self.stamp("--leads-to")
+        self.assertNotIn("leads_to", meta)
+        self.assertEqual(meta["requires"], ["pip"])
+
 
 class TestTheExecutorSkipsOnCapabilities(unittest.TestCase):
     """Task #154's second half: the gate that decides what CI runs."""

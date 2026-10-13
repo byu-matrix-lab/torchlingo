@@ -1113,7 +1113,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--requires",
         nargs="*",
-        default=[],
+        default=None,
         metavar="CAPABILITY",
         choices=sorted(CAPABILITIES),
         help=(
@@ -1125,9 +1125,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--leads-to",
         nargs="*",
-        default=[],
+        default=None,
         metavar="ASSIGNMENT",
-        help="with --stamp: assignment(s) this notebook gives a head start on, e.g. A6",
+        help=(
+            "with --stamp: assignment(s) this notebook gives a head start on, e.g. A6. "
+            "Given with no assignments, it clears the field"
+        ),
     )
     args = parser.parse_args(argv)
 
@@ -1184,17 +1187,23 @@ def main(argv: list[str] | None = None) -> int:
         # while this very field was being added. Each loss was invisible -- the block still
         # validated, and the generated table does not show `note`.
         #
-        # Passing the field explicitly still overrides it, and `--note ''` still clears it,
+        # Passing the field explicitly still overrides it, and an explicitly empty value
+        # clears it -- `--note ''`, or `--leads-to` / `--requires` with nothing after them --
         # so nothing becomes unreachable. Preserved fields are reported, because silently
         # keeping data is its own small surprise.
+        #
+        # The list flags default to None, not [], so that "not mentioned" (None: carry the
+        # old value) and "mentioned with nothing" ([]: clear it) stay distinguishable. They
+        # did not until Task #222: clearing tutorial 8's leads_to on 2026-10-12 printed
+        # "kept leads_to" and took a hand call to write_meta.
         previous = read_meta(args.stamp)
         carried = []
         for field, supplied in (
-            ("requires", list(args.requires) if args.requires else None),
+            ("requires", args.requires),
             ("note", args.note),
-            ("leads_to", list(args.leads_to) if args.leads_to else None),
+            ("leads_to", args.leads_to),
         ):
-            if supplied == "":
+            if supplied == "" or supplied == []:
                 # An explicit empty value clears the field rather than storing a blank.
                 continue
             if supplied is not None:
