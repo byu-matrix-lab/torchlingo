@@ -75,16 +75,23 @@ files directly, the way it edits course notebooks, and never the generated file;
 copy is retired. This side renders, runs the checks and commits. The baton rule above applies
 to `notes/roadmap/` unchanged.
 
-**Course notebooks arrive as edits in the tree, not as specs.** Eric, 2026-10-07: Cowork edits
-`docs/docs/course/` directly in the working tree, without git, and hands off; this side reviews
-the edit against the library, runs the checks, commits, pushes and promotes `course`. A
-cell-level spec in a hand-off file is no longer the default; it cost a day on 2026-10-05.
-
 **Both sides write course notebooks.** Eric, 2026-10-13: the two sessions collaborate on them,
 neither owns one, and the baton decides who edits. A notebook either side builds asks the other,
 in the hand-off, for what only the other knows: the course side for data, assignment texts and
 last year's materials; this side for library behaviour and a run that proves the notebook
 works. Tutorials and the library stay with this side.
+
+**Edits arrive in the tree, not as specs.** Eric, 2026-10-07: Cowork edits `docs/docs/course/`
+directly in the working tree, without git, and hands off; this side runs the checks, commits,
+pushes and promotes `course`. A cell-level spec in a hand-off file is no longer the default; it
+cost a day on 2026-10-05.
+
+**Go as far as you can before handing off.** Eric, 2026-10-13: *"Each agent should go as far as
+it can before handing off so that the number of hand-offs are minimized for any given task or
+notebook."* Build everything that does not wait on the other side and leave one marked seam for
+what does; ask every question the task will need in the same pass; when an edit arrives for
+review, fix what you can yourself and say what you changed rather than sending it back.
+`CLAUDE.md`, under "Handing the baton", has the full rule.
 
 **Once the other side has picked it up, the file is frozen.** Do not edit it after that; if
 something in it turns out to be wrong, say so in the next one. A correction to something the
