@@ -19,10 +19,9 @@ is authoritative and always has every task. The mirror is a filter over it, not 
 copy of it.
 
 **As of 2026-10-12:** everything open is here. Roadmap v16 shifted Lecture 9 onward by one
-session (8c is the new Oct 7). **#166** (tutorial 8, with #162 and #92) is resumed (Eric,
-Oct 12), aiming at Lecture 10 on Wed Oct 14; its work so far is on a local branch. What
-remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork) is Lecture 10's three (#166, #174,
-#175) and Lecture 12's rebuild (#176).
+session (8c is the new Oct 7). Lecture 10's three notebooks are on `course` (tutorials 7 and
+8, the COMET install). What remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork)
+is Lecture 12's rebuild (#176); the learning-outcomes audit left #216 to #223.
 
 **Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
 done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
@@ -96,18 +95,11 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #166 | **P1** | Tutorial 8 cannot run from its Colab badge | **L10** | **Resumed (Eric, Oct 12)** for Wed Oct 14 — work so far on local branch `tutorial-8-standalone`; **do with #162, #92 and the audit's tutorial 8 directions** |
-| #174 | **P1** | Notebook audit: `lecture-10-comet-install` gets a goal | **L10** | Open — second of the L10 three; ceiling 400 words |
-| #175 | **P1** | Notebook audit: tutorial 7 loses its postmortem | **L10** | Open — third of the L10 three; ceiling 1,100 words; **do with #92** |
-| #214 | **P1** | Tutorial 7 states no learning outcomes | **L10** | Open — Oct 12 audit; **do with #175**, same notebook |
-| #215 | **P1** | Tutorials 5 and 6 are filed under the wrong lecture | **L8c** | Open — Oct 12 audit; metadata only |
 | #176 | **P1** | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
-| #162 | **P1** | Tutorial 8's Part 5 shrinks to a pointer at tutorial 2 | **L6** | **Unblocked** — tutorial 2 landed in PR #144; **do with #166** |
 | #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Mon Nov 2 |
 | #102 | **P1** | Inference cannot resume a long decode | **L13** | **Needed by Wed Oct 21** — largest undone piece |
 | #98 | **P1** | Back-translation as a documented workflow | **L13** | **Due Wed Oct 28** |
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
-| #92 | **P1** | Tutorials 7 and 8 bypass the library's own evaluation API | **L10** | Open — **do inside #166 and #175**, which rewrite the same two notebooks |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
@@ -292,22 +284,11 @@ learns nothing from reading belongs in the library; code that *is* the lesson st
 
 **Left:**
 
-- **Tutorial 8**, in the one PR with #166 and #162: all three reshape the same notebook.
 - **Cowork's course notebooks** (Lectures 3, 4, 5, 6, 10, 12) install other packages, not
   TorchLingo, so `setup()` does not replace their installs; check each for plumbing that a
   helper does cover, and ask Cowork before changing their cells.
 
 **Done when** no notebook carries plumbing a library helper covers.
-
-### #162 Tutorial 8's Part 5 shrinks to a pointer at tutorial 2
-
-Cowork's decision: "One evaluation tutorial, one course activity, and no third copy."
-
-- `lecture-06-mt-evaluation` owns the teaching of BLEU and chrF for the course — it is what
-  students are sent to in class and in the deck.
-- **Tutorial 2** is the out-of-class treatment, and assigned reading before A8 as well.
-- **Tutorial 8's Part 5 shrinks to a pointer** at tutorial 2 rather than teaching BLEU a third
-  time. Tutorial 8 is about decoding; the BLEU section is there because it needed a number.
 
 ### #132 Quick Start has no notebook, and its badge opens a different one
 
@@ -347,7 +328,7 @@ have been an error.
 
 Worth checking `scripts/collect_ladder.py` for the same pattern while in there.
 
-### #174 to #176 The notebook audit
+### #176 The notebook audit
 
 Cowork audited all eighteen notebooks from a student's seat at Eric's request (2026-09-29):
 [`NOTEBOOK_AUDIT.md`](NOTEBOOK_AUDIT.md). Its second half, "Implementation directions", is
@@ -359,11 +340,6 @@ the spec; these rows only track which notebooks are done. Eric's test where they
 
 One task per group that shares a deadline, so the "Critical for" column stays honest.
 
-- **Lecture 10's three, in this order** (the audit's): **tutorial 8**, riding with **#166**,
-  #162 and #92, which reshape the same notebook; **#174, `lecture-10-comet-install`**; **#175,
-  tutorial 7**, with #92's half for tutorial 7. #92 routes both tutorials' scoring through
-  `torchlingo.evaluation`, so doing it separately would mean re-executing each notebook twice.
-  Every one of them follows the no-due-dates rule in `CLAUDE.md`.
 - **#176, `lecture-12-llm-context`** (L12): rebuilt as a runnable notebook on a built-in
   English-Spanish sample. **Blocked on Eric**: the loader must be written against one A12
   language's real files, or their format.
@@ -372,22 +348,14 @@ Each PR checks the notebook's prose against its ceiling and runs `scripts/studen
 **Done when** every notebook the audit names has had its directions applied; then this section
 and `NOTEBOOK_AUDIT.md` go.
 
-### #214 to #223 The learning-outcomes audit
+### #216 to #223 The learning-outcomes audit
 
 Eric, 2026-10-12: does every tutorial state its learning outcomes, and do they line up with the
 lecture notebooks and the lectures? A read-only pass that day answered it. Cowork's audit had
 already put a "By the end" list in every tutorial but 7; what remains is mostly alignment.
-Tutorial 8's finding (it claimed A9 lets students choose decoding settings, when A9 pins
-greedy) was fixed in its rewrite.
+Its urgent findings, tutorials 7 and 8 and the lecture placement of tutorials 5 and 6, shipped
+for Lecture 10.
 
-- **#214, tutorial 7** (L10): the only tutorial with no stated outcomes. Write three, in Lecture
-  10's terms: held-out against leaked test data, a BLEU you can compare (sample size and
-  signature), greedy against beam with decoding pinned. Its metadata note says "A8, which is due
-  at Lecture 9"; A8 was due at 8c. Same notebook as #175, so one PR.
-- **#215, tutorials 5 and 6** (8c): the deck assigned both for 8c, and Quizzes 8c and 9 ask
-  about them, but their metadata says 8b and 9. Tutorial 6's purpose cell calls it a head start
-  on A8 at a lecture after A8 was due; `notebook_meta.py --check` reports exactly that. Add 8c
-  to `serves_lectures` and regenerate the purpose cells.
 - **#216, the roadmap's tutorial sections** (below "Which notebook serves which lecture", so
   written on this side): its "Learning outcomes" list for tutorials proposes outcomes that differ
   from the notebooks' own, and "What exists" and "Sequencing" use the old numbering and still
@@ -439,34 +407,6 @@ as Lectures 3 to 6 with their own packages, are exempt. It runs in the lint job 
 hygiene checks. **Done when** that check exists, with tests that fail on tutorial 6 as it was
 before PR #184 and tutorial 2 as it was before PR #192, and it passes on every notebook as they
 are now.
-
-### #166 Tutorial 8 cannot run from its Colab badge
-
-Found 2026-09-28 while fixing the commented-out install in tutorials 4 and 7 (PR #149).
-**Tutorial 1 is done** (PR #154). Tutorial 8, Lecture 10's reading, fails twice from Colab:
-
-1. **The same commented-out install**, "uncomment in Google Colab", so running straight through
-   hits `ModuleNotFoundError`. The one-cell fix from tutorial 3.
-2. **It loads `checkpoints/tiny_model.pt`, which tutorial 3 saved.** In Colab each notebook gets
-   its own runtime, so that file is never there, and its "run Tutorial 3 first" error sends the
-   student somewhere that cannot help. Fixing (1) alone trades one failure for a misleading one.
-   Options: train the tiny model inline when the checkpoint is missing (it takes seconds), or
-   ship a checkpoint and download it as tutorials 4 and 7 do.
-
-**Do it in one PR with Task #162**, which reshapes the same notebook's Part 5. Re-execute and
-check every output against the committed one: the PR #149 procedure.
-
-**Paused by Eric on 2026-10-05, until A8 is in shape; resumed 2026-10-12.** The work so far is one local commit on
-`tutorial-8-standalone`: the opener pointed at A9's decoding settings, the standard install cell,
-tutorial 3's tiny model trained inline (a marked setup cell), and `max_len` shown cutting a
-translation short. Left: split the 72-line beam-search cell under 40 lines; Part 5 to a pointer at
-tutorial 2 (#162) with the score through `torchlingo.evaluation` (#92; `compute_chrf`, since the
-phrases are too short for 4-gram BLEU); drop the project-history note; one closing section;
-re-execute and `scripts/student_path.sh`. Eric, 2026-10-05: no word ceiling for this notebook.
-
-**When it closes, tell Cowork**: the Lecture 10 deck's decoding slide dropped tutorial 8's badge
-on 2026-09-28 and names the tutorial instead, to be restored once it runs standalone.
-`scripts/student_path.sh` is the check that it does.
 
 ### #160 An NLLB spotlight lecture — data, architecture **and** curriculum
 
@@ -989,21 +929,6 @@ tree.
 
 **Done when** every page under `docs/docs/` is either in the nav or on a declared exception
 list, and the build fails when one is neither.
-
-**#92 Tutorials 7 and 8 bypass the library's own evaluation API**
-
-Both call `sacrebleu` directly rather than `torchlingo.evaluation`. Tutorial 6 and the
-new tutorial 2 use the library. So a student meets two different ways to score, and the
-library's own evaluation API is the one the earlier tutorials never touch.
-
-This is also part of why the chrF/TER transpose bug survived: nothing in `docs/` or
-`tests/` exercised `compute_chrf` or `compute_ter`, so there was no path along which the
-wrong number could be noticed.
-
-- Route tutorials 7 and 8 through `compute_bleu`, which is the function they are already
-  imitating.
-- Worth doing after #58 lands, so the tutorials pick up the signature and the fixed
-  reshaping at the same time.
 
 **#53 The notebook gate is weaker than its green check implies**
 
