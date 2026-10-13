@@ -253,8 +253,20 @@ TorchLingo. A tutorial (`docs/docs/tutorials/`) is where they understand a mecha
 data with committed outputs, and it doubles as the library's documentation. When two notebooks
 teach the same thing, one keeps it and the other links: the course notebook if an assignment
 needs it in class, the tutorial otherwise. The case that prompted this: tutorial 3 and
-`lecture-07-toy-model` both trained the same twelve-phrase model. Lecture 7 keeps the loss curve
-and the held-out test; tutorial 3 became making a long run survive, on real data.
+`lecture-07-toy-model` both trained the same twelve-phrase model. Lecture 7 keeps the loss
+curve, the held-out test and resuming a run; the A8 notebook keeps `save_dir` and reloading; and
+tutorial 3 became what a checkpoint does not hold, the vocabulary, and the two ways a rebuild
+goes wrong. Its first rewrite, making a run survive, repeated Lecture 7's Part B: check the
+course notebooks themselves, not only their look, before giving a tutorial its purpose.
+
+**A course notebook stands on its own; it never assumes a tutorial was read.** Eric,
+2026-10-12: *"some students don't 'read the textbook' or do the tutorials, so the Lecture
+notebooks can't assume all of the lessons from the tutorial notebooks."* So dependency runs one
+way. A course notebook may assume earlier course notebooks and the lectures, never a tutorial:
+anything it needs a student to understand, it explains at first use, in a sentence or two, and a
+link to a tutorial is for depth, not a prerequisite. A tutorial may assume the course notebooks.
+This is also what decides the tie in the rule above: a lesson an assignment needs lives in the
+course notebook.
 
 **Wrap the plumbing; keep the lesson inline.** Eric, 2026-09-28: large code cells lose a new
 student. So code a student learns nothing from reading (installs, downloads, Drive, file

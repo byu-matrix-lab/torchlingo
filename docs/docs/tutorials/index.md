@@ -10,7 +10,7 @@ The easiest way to run these tutorials is in **Google Colab**—no installation 
 |----------|-------------|---------------|
 | **1. Data and Vocabulary** | Load data, build vocabularies | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/01-data-and-vocab.ipynb) |
 | **2. Evaluating Translations** | Watch the default metric pick the worse system | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/02-evaluating-translations.ipynb) |
-| **3. Making a Long Training Run Survive** | Save, resume and rebuild a training run | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/03-train-tiny-model.ipynb) |
+| **3. What a Checkpoint Holds** | Rebuild a saved model, and the two ways it goes wrong | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/03-train-tiny-model.ipynb) |
 | **4. Attention and Alignment** | Measure what attention learns | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/04-attention-and-alignment.ipynb) |
 | **5. Attention on a Real Transformer** | Read a pretrained model's alignment on unseen text | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/05-transformer-attention.ipynb) |
 | **6. Diagnosing Failures** | Break a model on purpose; watch each check fire | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/06-diagnosing-failures.ipynb) |
@@ -44,11 +44,11 @@ Follow these tutorials in order for the best learning experience:
 
     [:octicons-arrow-right-24: Start Tutorial](02-evaluating-translations.ipynb)
 
--   :material-numeric-3-circle:{ .lg .middle } **Making a Long Training Run Survive**
+-   :material-numeric-3-circle:{ .lg .middle } **What a Checkpoint Holds**
 
     ---
 
-    Train so that a dead session costs nothing: resume an interrupted run, and rebuild the saved model the next day.
+    A saved model is weights without a vocabulary. Rebuild one right, then watch it fail loudly, and then silently.
 
     [:octicons-arrow-right-24: Start Tutorial](03-train-tiny-model.ipynb)
 
@@ -157,17 +157,17 @@ You'll learn:
 
 **Key functions covered**: `compute_bleu`, `compute_chrf`, `compute_ter`
 
-### Tutorial 3: Making a Long Training Run Survive
+### Tutorial 3: What a Checkpoint Holds, and What It Doesn't
 
 **Time**: ~15 minutes
 
 You'll learn:
 
-- Training with a validation split, keeping the best model with `save_dir`
-- Resuming an interrupted run with a `TrainingCheckpointer`
-- Rebuilding a saved model in a fresh session, and checking it is the same model
+- What a checkpoint file contains: weights and config, but not a word vocabulary
+- Rebuilding a saved model so that it is the model you trained
+- The loud failure (a size mismatch) and the silent one (a reordered vocabulary)
 
-**Key classes covered**: `train_model`, `TrainingCheckpointer`, `load_checkpoint`
+**Key functions covered**: `save_checkpoint`, `load_checkpoint`
 
 ### Tutorial 4: Attention and Alignment
 
