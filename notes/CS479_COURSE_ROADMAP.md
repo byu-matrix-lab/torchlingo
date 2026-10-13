@@ -987,10 +987,11 @@ Notes on the rows that are not simple:
 - [2] **`02-evaluating-translations`** — The out-of-class treatment of evaluation.
   lecture-06-mt-evaluation is the in-class activity and owns the teaching; this one makes
   the student choose between two systems (Cowork's Q7 call).
-- [3] **`03-train-tiny-model`** — Making a long training run survive: train_model with a
-  TrainingCheckpointer and save_dir, resuming an interrupted run, rebuilding the saved
-  model. On a slice of real data so it does not look like Lecture 7's twelve-phrase model,
-  which owns the loss curve and the held-out test.
+- [3] **`03-train-tiny-model`** — What a checkpoint holds and what it does not: weights
+  and config, not a word vocabulary. Rebuilds a saved model right, then shows the loud
+  failure (one more word, a size mismatch) and the silent one (the same sentences
+  reordered, which loads and translates nonsense). Lecture 7 owns resuming a run and the
+  A8 notebook owns save_dir and reloading; this is the mechanism behind them.
 - [4] **`07-real-translations`** — Read at Lecture 10, after A8 (due at 8c). Its substance
   is evaluating and decoding a real model -- held-out BLEU, greedy against beam search --
   which Lecture 10's decoding outcome and A11's metric work build on.
@@ -1009,9 +1010,9 @@ Notes on the rows that are not simple:
 - [8] **`lecture-07-toy-model`** — Lecture 7's in-class activity, written 2026-09-28 as a
   three-part exercise: Part A in class (install, train the toy model, read the loss curve
   against ln(V)), Part B outside class (hold one phrase out, retrain, score seen against
-  unseen with SacreBLEU), Part C a short report handed in as A7 before Lecture 8a. Adapted
-  from tutorial 3, which stays the library's own tutorial. Trains a 64-dimensional model
-  in seconds, so it runs in CI.
+  unseen with SacreBLEU; watch a run resume after a faked disconnect), Part C a short
+  report handed in as A7 before Lecture 8a. Trains a 64-dimensional model in seconds, so
+  it runs in CI.
 - [9] **`lecture-08a-a8-kickoff`** — The in-class start of Assignment 8, written
   2026-09-28 for Lecture 8a. Takes a student from their Assignment 5 corpus to a training
   run that is already going when class ends. The handout is the authority; this is the

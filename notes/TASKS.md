@@ -108,6 +108,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
 | #216 | **P2** | The roadmap's tutorial sections describe tutorials that no longer exist | **hyg** | Open — Oct 12 audit; this side writes those sections |
+| #225 | **P2** | Lecture notebooks use six terms only a tutorial explains | **L7** | Open — Eric's rule of Oct 12: course notebooks never assume a tutorial was read; fixes in hand |
 | #224 | **P2** | Tutorial 8 trains the same twelve phrases as Lecture 7's notebook | **L10** | Open — Eric's rule of Oct 12 in `CLAUDE.md`: students skip what looks like a repeat |
 | #217 | **P2** | Tutorial outcomes are experiences, not abilities, and openers differ | **hyg** | Open — Oct 12 audit; every tutorial |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
@@ -364,6 +365,23 @@ for Lecture 10.
   say "you can explain X". Write them as abilities, in the lecture's verbs, and name the lecture
   outcome each serves. Openers also differ: a role line in four tutorials, a time estimate in one,
   a "Tutorial N:" prefix in five. Predicting before running appears only in tutorial 2.
+- **#225, course notebooks that lean on tutorials** (L7, L8a, L9). A read-only check on Oct 12
+  found seven of the eleven clean, and six dependencies in the other four, each fixable with a
+  sentence or two at first use:
+  - Lecture 7 cell 8: "vocabulary" and "token" undefined, and cell 20's "cannot come out right
+    at all" never says why (the word is not in the vocabulary). Part C asks the student to
+    explain exactly that. **The one that matters most.**
+  - Lecture 7 cell 13: `greedy` decoding undefined at first use.
+  - A8 kickoff cell 7: `<unk>` undefined, though students choosing `NO_SPACES` decide on it.
+  - A8 kickoff cell 25: "say you decoded greedily; Lecture 10 explains why" — Lecture 10's
+    notebook does not; explain it in place. Lecture 9 cells 24 and 27 lean on the same thing.
+  - A8 kickoff cell 26: "the silent mistake Lecture 6 warned about" — neither Lecture 6
+    notebook does; say what the mistake is. `tokenize="13a"` is unexplained in the same cell.
+  - Lecture 9 cell 5: `add_special_tokens=False` with "special tokens" undefined.
+
+  Also noticed: TER (Lecture 6 homework, cell 12) is explained nowhere; and Lecture 9 calls the
+  word vocabulary "every word in the training split" where the A8 kickoff says words seen at
+  least twice. Lecture 9 is Cowork's to edit in the tree; Lecture 7 and the A8 kickoff are ours.
 - **#224, tutorial 8** (L10): its setup cell trains the same twelve phrases as
   `lecture-07-toy-model`, so by Eric's rule (`CLAUDE.md`, "Every notebook has its own specific
   purpose") it reads as a repeat. Its lesson needs a model that is certain, which a memorized
