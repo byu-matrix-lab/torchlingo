@@ -259,6 +259,13 @@ def main() -> int:
         help="notebooks to execute at once (default: up to 4)",
     )
     parser.add_argument(
+        "--exclude",
+        nargs="*",
+        default=[],
+        metavar="STEM",
+        help="notebooks to leave out, by file stem (CI leaves out the slowest on pull requests)",
+    )
+    parser.add_argument(
         "--as-student",
         action="store_true",
         help="use each notebook's own install cell and fake Colab, one fresh environment each",
@@ -278,6 +285,16 @@ def main() -> int:
         + sorted(args.course.glob("*.ipynb"))
         if not is_redirect(path)
     ]
+    unknown = sorted(set(args.exclude) - {path.stem for path in notebooks})
+    if unknown:
+        # A typo here would silently run the notebook it meant to leave out, or worse, a
+        # renamed notebook would leave nothing out while the workflow still claims it does.
+        print(f"--exclude names no notebook: {', '.join(unknown)}", file=sys.stderr)
+        return 1
+    for path in notebooks:
+        if path.stem in args.exclude:
+            print(f"  LEFT OUT  {path.name} (--exclude)", flush=True)
+    notebooks = [path for path in notebooks if path.stem not in args.exclude]
     if not notebooks:
         print(
             f"No notebooks found under {args.tutorials} or {args.course}",
