@@ -21,7 +21,7 @@ copy of it.
 **As of 2026-10-12:** everything open is here. Roadmap v16 shifted Lecture 9 onward by one
 session (8c is the new Oct 7). Lecture 10's three notebooks are on `course` (tutorials 7 and
 8, the COMET install). What remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork)
-is Lecture 12's rebuild (#176); the learning-outcomes audit left #225.
+is Lecture 12's rebuild (#176); the learning-outcomes audit left nothing open.
 
 **Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
 done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
@@ -107,7 +107,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
 | #226 | **P2** | Audit the roadmap for clarity and simplicity | **hyg** | Open — Eric, Oct 13; report findings before editing |
-| #225 | **P2** | Lecture 9's notebook uses terms only a tutorial explains | **L9** | **With Cowork** — the Lecture 7 and A8 fixes landed Oct 13; Lecture 9's three are in the hand-off |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
@@ -319,26 +318,6 @@ One task per group that shares a deadline, so the "Critical for" column stays ho
 Each PR checks the notebook's prose against its ceiling and runs `scripts/student_path.sh` on it.
 **Done when** every notebook the audit names has had its directions applied; then this section
 and `NOTEBOOK_AUDIT.md` go.
-
-### #225 What the Oct 12 learning-outcomes audit left
-
-Eric, 2026-10-12: does every tutorial state its learning outcomes, and do they line up with the
-lecture notebooks and the lectures? A read-only pass that day answered it. Cowork's audit had
-already put a "By the end" list in every tutorial but 7; what remains is mostly alignment.
-Its urgent findings, tutorials 7 and 8 and the lecture placement of tutorials 5 and 6, shipped
-for Lecture 10.
-
-- **#225, Lecture 9's notebook leans on tutorials** (L9). A read-only check on Oct 12 found seven
-  of the eleven course notebooks clean and six dependencies in four. Lecture 7's and the A8
-  kickoff's were fixed on Oct 13 (vocabulary, token and `<unk>` defined at first use, greedy
-  decoding explained, the false Lecture 6 pointer replaced). Left, all in Lecture 9, which is
-  Cowork's to edit and is asked for in the hand-off:
-  - cell 5: `add_special_tokens=False`, with "special tokens" undefined;
-  - cells 24 and 27: "both greedy", with no word on why decoding must match;
-  - cells 1 and 5: the word vocabulary is "every word in the training split", but it keeps
-    only words seen at least twice.
-
-  Also noticed, and ours: TER (Lecture 6 homework, cell 12) is explained nowhere.
 
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 
