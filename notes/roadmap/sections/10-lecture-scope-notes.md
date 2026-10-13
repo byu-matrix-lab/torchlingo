@@ -101,7 +101,8 @@ scored the same way; the write-up reconciles the prediction with the result.
 Evaluation against estimation, QE features and shared tasks, COMET and COMET-QE and how to read a
 score; and the decoding block: greedy, beam search with a worked example, and why a comparison
 must pin decoding.
-**Notebooks:** `lecture-10-comet-install` (homework, A10). `08-inference-and-beamsearch`
+**Notebooks:** `lecture-10-comet-install` (homework, A10): the student writes `comet_inputs`,
+predicts, and scores two systems with and without a reference. `08-inference-and-beamsearch`
 (reading): greedy and beam search written out, and why a comparison holds decoding fixed.
 `07-real-translations` (reading): a trained model on unseen text, greedy against beam.
 **Sets:** A10, install COMET and run the notebook end to end; two papers for the quiz.
@@ -109,7 +110,9 @@ must pin decoding.
 ### 11. Neural Quality Estimation and Evaluation Toolkits (F2025, 19 slides)
 COMET and COMET-QE in depth, HTER, partial-input baselines, xCOMET, and LLM-as-judge (the
 rebuild uses the five GEMBA slides of the combined May 2025 deck).
-**Notebooks:** A11's, being built.
+**Notebooks:** `lecture-11-comet-on-a6` (homework, A11): COMET and COMET-QE-DA on the student's
+A6 sentences beside BLEU and chrF; the student writes `pairwise_agreement`, which counts how
+often two metrics prefer the same system, sentence by sentence.
 **Sets:** A11: the default COMET model and COMET-QE-DA on the A6 outputs, compared with the BLEU,
 chrF and human-ranking numbers already collected; one page. Extra credit for xCOMET.
 

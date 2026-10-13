@@ -8,8 +8,8 @@ would have improved a past lecture it is marked `reference` rather than dropped.
 
 The table lists notebooks that exist; a notebook not yet written cannot declare anything.
 
-- **Lectures 11 and 14 need notebooks**: A11 runs COMET on the A6 outputs, and A14 builds a
-  two-direction model from A9. Both are built to the rule in "Where the line is crossed".
+- **Lecture 14 needs a notebook**: A14 builds a two-direction model from A9, to the rule in
+  "Where the line is crossed".
 - **Ten sessions pair with nothing else**: Lectures 1, 2, 15 to 18, 19 and 20 (merged), 21, and 22
   and 23 (merged). Not every lecture wants a notebook, and inventing one to fill a row would be
   the redundancy `CLAUDE.md` rules out.
