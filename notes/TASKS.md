@@ -110,7 +110,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #216 | **P2** | The roadmap's tutorial sections describe tutorials that no longer exist | **hyg** | Open — Oct 12 audit; this side writes those sections |
 | #217 | **P2** | Tutorial outcomes are experiences, not abilities, and openers differ | **hyg** | Open — Oct 12 audit; every tutorial |
 | #218 | **P2** | Tutorial 3 trains without a checkpointer and never shows `ln(V)` | **L7** | Open — Oct 12 audit; the checkpointer is a `CLAUDE.md` rule |
-| #187 | **P3** | Remove the tutorial redirect stubs | **hyg** | **After the Fall 2026 term** — not before; students hold the old badges |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
@@ -379,13 +378,6 @@ for Lecture 10.
 - **#222** and **#223** are tooling friction met while rewriting tutorial 8: `--leads-to` with
   no values keeps the old list, so clearing it took a hand call to `write_meta`; and executing
   the notebook leaves `tiny_phrases.tsv` behind, which a temporary directory would avoid.
-
-### #187 Remove the tutorial redirect stubs
-
-The five one-cell notebooks the renumbering (PR #201) left at the old tutorial paths, marked
-`{"redirect": ...}` and validated by `notebook_meta.py`. **After the Fall 2026 term**,
-not before: bookmarked badges and any Content page not yet flipped point at them. Then search
-the decks' and Learning Suite's links for an old path once more before deleting.
 
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 

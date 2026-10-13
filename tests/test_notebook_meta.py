@@ -69,7 +69,11 @@ class TestEveryNotebookDeclaresItself(unittest.TestCase):
 
 
 class TestRedirectStubs(unittest.TestCase):
-    """Task #186: the old tutorial paths stay alive as one-cell stubs for the term."""
+    """A renamed notebook can leave a one-cell stub at its old path (Task #186).
+
+    The repository has none at present: the stubs from the Oct 5 renumbering were removed on
+    Oct 12 (Eric). These tests build their own, so the check stays ready for the next rename.
+    """
 
     def setUp(self):
         self.dir = Path(tempfile.mkdtemp())
@@ -89,11 +93,7 @@ class TestRedirectStubs(unittest.TestCase):
         return path
 
     def test_the_real_stubs_are_sound(self):
-        stubs = nm.redirects()
-        self.assertTrue(
-            stubs, "no redirect stubs found; were they removed (Task #187)?"
-        )
-        for path in stubs:
+        for path in nm.redirects():
             self.assertEqual(nm.redirect_problems(path), [], path.name)
 
     def test_a_stub_is_not_a_notebook(self):
