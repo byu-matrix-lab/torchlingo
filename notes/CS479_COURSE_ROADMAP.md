@@ -987,8 +987,10 @@ Notes on the rows that are not simple:
 - [2] **`02-evaluating-translations`** — The out-of-class treatment of evaluation.
   lecture-06-mt-evaluation is the in-class activity and owns the teaching; this one makes
   the student choose between two systems (Cowork's Q7 call).
-- [3] **`03-train-tiny-model`** — The library's own tutorial. Lecture 7's in-class
-  exercise, lecture-07-toy-model, was adapted from it.
+- [3] **`03-train-tiny-model`** — Making a long training run survive: train_model with a
+  TrainingCheckpointer and save_dir, resuming an interrupted run, rebuilding the saved
+  model. On a slice of real data so it does not look like Lecture 7's twelve-phrase model,
+  which owns the loss curve and the held-out test.
 - [4] **`07-real-translations`** — Read at Lecture 10, after A8 (due at 8c). Its substance
   is evaluating and decoding a real model -- held-out BLEU, greedy against beam search --
   which Lecture 10's decoding outcome and A11's metric work build on.

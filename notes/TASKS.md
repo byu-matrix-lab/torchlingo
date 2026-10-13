@@ -108,8 +108,8 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
 | #216 | **P2** | The roadmap's tutorial sections describe tutorials that no longer exist | **hyg** | Open — Oct 12 audit; this side writes those sections |
+| #224 | **P2** | Tutorial 8 trains the same twelve phrases as Lecture 7's notebook | **L10** | Open — Eric's rule of Oct 12 in `CLAUDE.md`: students skip what looks like a repeat |
 | #217 | **P2** | Tutorial outcomes are experiences, not abilities, and openers differ | **hyg** | Open — Oct 12 audit; every tutorial |
-| #218 | **P2** | Tutorial 3 trains without a checkpointer and never shows `ln(V)` | **L7** | Open — Oct 12 audit; the checkpointer is a `CLAUDE.md` rule |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
@@ -364,10 +364,12 @@ for Lecture 10.
   say "you can explain X". Write them as abilities, in the lecture's verbs, and name the lecture
   outcome each serves. Openers also differ: a role line in four tutorials, a time estimate in one,
   a "Tutorial N:" prefix in five. Predicting before running appears only in tutorial 2.
-- **#218, tutorial 3** (L7): `train_model` runs with no `TrainingCheckpointer`, against the
-  standing rule, and saves with a hand-written `torch.save` rather than the `save_dir` A8 uses.
-  Its outcome "a loss well below `ln(V)`" cannot be checked, since `ln(V)` is never printed. It
-  also never says its quick test is on training phrases, which is Lecture 7's main lesson.
+- **#224, tutorial 8** (L10): its setup cell trains the same twelve phrases as
+  `lecture-07-toy-model`, so by Eric's rule (`CLAUDE.md`, "Every notebook has its own specific
+  purpose") it reads as a repeat. Its lesson needs a model that is certain, which a memorized
+  corpus gives; a different tiny corpus would do the same without looking like Lecture 7's.
+  Every other notebook should get the same check: a corpus, model or opening shared with
+  another notebook.
 - **#219, tutorial 1** (L4/L5): the opener promises one call to `parallel_txt_to_dataframe`;
   the notebook imports it and never calls it. It claims Lecture 9 without a word on subwords;
   one sentence after the `<unk>` cells would make the link. `leads_to: A5` is backwards, since

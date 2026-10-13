@@ -262,7 +262,7 @@ To go deeper:
 | Topic                              | Link                                       |
 | ---------------------------------- | ------------------------------------------ |
 | Understand what just happened      | [What is NMT?](../concepts/what-is-nmt.md) |
-| Proper training with evaluation    | [Training Tutorial](../tutorials/03-train-tiny-model.ipynb) |
+| Training that survives a disconnect | [Training Tutorial](../tutorials/03-train-tiny-model.ipynb) |
 | Better decoding (beam search)      | [Inference Tutorial](../tutorials/08-inference-and-beamsearch.ipynb) |
 | Configuration options              | [Config Reference](../reference/config.md) |
 
