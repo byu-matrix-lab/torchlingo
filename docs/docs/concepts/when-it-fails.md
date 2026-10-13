@@ -90,7 +90,7 @@ interesting failures are subtler:
 - **Collapsing to a frequent output.** If most inputs produce the same translation, the
   model has found a shortcut that scores tolerably and stopped.
 - **Memorizing.** Perfect on training sentences, useless on new ones. Tutorial 8 scores
-  BLEU 100 for this reason and says so.
+  chrF 100 for this reason and says so.
 
 ### 4. Is the measurement lying?
 

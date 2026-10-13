@@ -116,8 +116,11 @@ ROLE_PHRASE = {
     "reference": "offered alongside",
 }
 
-# Rows whose lecture column is a number, from the "Semester at a glance" table.
-SCHEDULE_ROW = re.compile(r"^\| (\d+(?:, ?\d+)*) \| [^|]+ \| ([^|]+) \|")
+# Rows whose lecture column is a lecture identifier, from the "Semester at a glance" table.
+# That includes the letter suffix LECTURE_CELL below accepts. It did not until
+# roadmap v16 (2026-10-07) put A8 on Lecture 8c's row: every assignment due on a lettered
+# lecture, A7 on 8a among them, had been resolving to no lecture at all, unnoticed.
+SCHEDULE_ROW = re.compile(r"^\| (\d+[a-z]?(?:, ?\d+[a-z]?)*) \| [^|]+ \| ([^|]+) \|")
 SCHEDULE_HEADING = "## Semester at a glance"
 
 # What a readable lecture column looks like: one lecture, or several sharing a session.

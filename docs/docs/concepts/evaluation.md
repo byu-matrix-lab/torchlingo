@@ -27,8 +27,9 @@ score collapses no matter how good the translations are.
 
 **BLEU is a corpus-level metric.** On a handful of short sentences it is not
 merely noisy, it is meaningless. That is not a bug in sacreBLEU; it is what the
-formula says. It is also why Tutorial 8's BLEU of 100 was the broken
-measurement and Tutorial 7's 7 was the working one.
+formula says. It is also why Tutorial 8 scores its short phrases with chrF, and why
+even its chrF of 100 measures memorization, where Tutorial 7's BLEU of 7 measures
+translation.
 
 ## Three metrics, one set of translations
 
