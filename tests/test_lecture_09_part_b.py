@@ -39,8 +39,12 @@ from torchlingo.data_processing.vocab import SentencePieceVocab
 from torchlingo.models import SimpleTransformer
 from torchlingo.preprocessing import split_exact, train_sentencepiece
 from torchlingo.training import train_model
+from torchlingo.training_checkpoint import TrainingCheckpointer
 
-NOTEBOOK = COURSE / "lecture-09-subword-tokenization.ipynb"
+# The version that replaces the live notebook once A9's deadline has passed (Eric, Oct 13); when
+# it is renamed over lecture-09-subword-tokenization.ipynb, so is this. The live notebook is not
+# edited in the meantime, so nothing here runs it.
+NOTEBOOK = COURSE / "lecture-09-subword-tokenization-new.ipynb"
 
 # The kickoff's model is d_model 512, 6 + 6 layers: minutes per epoch on a CPU even at toy size.
 TOY_SIZE = {
@@ -64,18 +68,34 @@ TOY_CONFIG = {
 CELL_1 = "# Part B, cell 1"
 CONFIG_CELL = "max_decode_length=MAX_DECODE"
 TRAINING_CELL = "result = train_model("
-SCORING_CELL = "corpus_bleu"
+SCORING_CELL = "hyp_a9 = translate_all("
 WRITE_UP_CELL = "=== For the A9 write-up ==="
 
 
-def part_b(*markers: str, epochs: int = 1) -> list[tuple[int, str]]:
-    """The named Part B cells, in notebook order, at toy size and ``epochs``."""
+# A8's run trains this many epochs in the fixture; Part B must read it from A8's checkpoint.
+A8_EPOCHS = 2
+READ_EPOCHS = 'EPOCHS = len(a8_state["train_losses"])'
+
+
+def part_b(*markers: str, epochs: int | None = None) -> list[tuple[int, str]]:
+    """The named Part B cells, in notebook order, at toy size.
+
+    ``epochs``, when given, replaces the count Part B reads from A8's checkpoint.
+    """
     cells = sorted(cell_containing(code_cells(NOTEBOOK), m) for m in markers)
-    return substitute(cells, {**TOY_SIZE, "EPOCHS = 35": f"EPOCHS = {epochs}"})
+    swaps = dict(TOY_SIZE)
+    if epochs is not None:
+        swaps[READ_EPOCHS] = f"EPOCHS = {epochs}"
+    return substitute(cells, swaps)
 
 
 def write_a8_and_part_a(a8_dir: Path, no_spaces: bool) -> int:
-    """Write what A8 and Part A leave on Drive; return the number of test pairs."""
+    """Write what A8 and Part A leave on Drive; return the number of test pairs.
+
+    A8's run keeps a checkpoint under the name ``assignment-8``, as the kickoff's does. Outside
+    Colab that lives in ``checkpoints/`` under the working directory, which ``colab_faked``
+    makes the faked Drive, two levels above ``a8_dir``.
+    """
     a8_dir.mkdir(parents=True)
     corpus = toy_corpus(600, seed=0)
     if no_spaces:
@@ -116,14 +136,20 @@ def write_a8_and_part_a(a8_dir: Path, no_spaces: bool) -> int:
     model = SimpleTransformer(
         src_vocab_size=len(src_vocab), tgt_vocab_size=len(tgt_vocab), config=config
     )
+    drive = a8_dir.parents[1]
     train_model(
         model,
         train_loader,
         val_loader=val_loader,
-        num_epochs=1,
+        num_epochs=A8_EPOCHS,
         config=config,
         save_dir=a8_dir / "best",
         log_every=0,
+        checkpointer=TrainingCheckpointer(
+            experiment_name="assignment-8",
+            checkpoint_dir=drive / "checkpoints" / "assignment-8",
+            verbose=False,
+        ),
     )
     return len(test)
 
@@ -168,6 +194,11 @@ class PartBStraightThrough:
         self.assertIn("=== For the A9 write-up ===", self.printed)
         self.assertIn("A8 BLEU:", self.printed)
 
+    def test_trains_for_as_many_epochs_as_a8(self):
+        """Read from A8's checkpoint: a student who raised A8's epochs gets the same for A9."""
+        self.assertEqual(self.ns["EPOCHS"], A8_EPOCHS)
+        self.assertEqual(len(self.ns["result"].train_losses), A8_EPOCHS)
+
 
 class TestPartB(PartBStraightThrough, unittest.TestCase):
     """A language written with spaces, and the two ways back into Part B in a new session."""
@@ -182,10 +213,19 @@ class TestPartB(PartBStraightThrough, unittest.TestCase):
         """A dropped session: the training cell, run again, continues from the checkpoint."""
         with colab_faked(self.drive):
             ns, printed = run_cells(
-                part_b(CELL_1, CONFIG_CELL, TRAINING_CELL, epochs=2)
+                part_b(CELL_1, CONFIG_CELL, TRAINING_CELL, epochs=A8_EPOCHS + 1)
             )
         self.assertIn("resumed from epoch", printed)
-        self.assertEqual(len(ns["result"].train_losses), 2)
+        self.assertEqual(len(ns["result"].train_losses), A8_EPOCHS + 1)
+
+    def test_without_an_a8_checkpoint_it_asks_for_the_epochs(self):
+        cells = substitute(
+            [cell_containing(code_cells(NOTEBOOK), CELL_1)],
+            {'experiment_name="assignment-8"': 'experiment_name="no-such-run"'},
+        )
+        with colab_faked(self.drive), self.assertRaises(AssertionError) as stopped:
+            run_cells(cells)
+        self.assertIn("No A8 checkpoint", str(stopped.exception))
 
 
 class TestPartBWithoutSpaces(PartBStraightThrough, unittest.TestCase):
