@@ -10,7 +10,9 @@ Third-party use of the library is a later concern.
 That is a tie-breaker, not a slogan: when a choice could serve either a CS 479 student or a
 general newcomer, it serves the student, and a gap only matters if a lecture or an assignment
 walks into it. **`notes/CS479_COURSE_ROADMAP.md` is the single source of truth** for what the
-course needs, and where that judgement gets made.
+course needs, and where that judgement gets made. It is generated: edit its sources in
+`notes/roadmap/` (facts in `roadmap.yaml`, prose in `sections/`) and run
+`scripts/render_roadmap.py --write`, never the Markdown itself.
 
 It is still a clean, documented PyTorch NMT library with Transformer and LSTM implementations —
 that is *how* it serves the course, and it keeps the general-audience option open for later
@@ -117,16 +119,16 @@ sampler shuffles with.
 
 ```bash
 scripts/preflight.sh            # ~50s: static gates, both test runners, doctests, docs
-scripts/preflight.sh --quick    # ~1s:  the four static gates only
+scripts/preflight.sh --quick    # ~1s:  the five static gates only
 scripts/preflight.sh --all      # also executes the runnable notebooks (minutes)
 ```
 
 It runs exactly what CI runs, cheapest gate first, stopping at the first failure: `ruff check`,
-`ruff format --check`, `render_report.py --check`, `notebook_meta.py --check`, the suite under
-**both** pytest and `unittest discover`, `--doctest-modules`, `mkdocs build --strict`, and
-optionally `execute_notebooks.py`.
+`ruff format --check`, `render_report.py --check`, `render_roadmap.py --check`,
+`notebook_meta.py --check`, the suite under **both** pytest and `unittest discover`,
+`--doctest-modules`, `mkdocs build --strict`, and optionally `execute_notebooks.py`.
 
-**CI gates seven things across four jobs, and running them from memory means running most of
+**CI gates eight things across four jobs, and running them from memory means running most of
 them.** The forgotten one is the one that fails: on 2026-09-28 a PR burned a full cycle on
 `render_report.py --check` — 0.4s locally — because a generated report had been hand-edited. A
 GitHub round trip is four to six minutes.
