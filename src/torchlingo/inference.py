@@ -27,9 +27,13 @@ break ties differently and silently change output.
 
 from __future__ import annotations
 
+import hashlib
+import json
+import os
 import warnings
 from collections.abc import Sequence
 from dataclasses import dataclass
+from pathlib import Path
 
 import torch
 import torch.nn.functional as F
@@ -767,8 +771,184 @@ def translate_batch(
     return decoded
 
 
+# A bulk decode is resumable because its output file is its own progress record: one
+# translation per line, appended a chunk at a time. Rerunning the same call counts the complete
+# lines already there and decodes only the rest. Task #102, 2026-10-12: Assignment 13
+# back-translates 100,000 sentences or more, and a decode that dies at hour two used to start
+# again from zero, which is the failure training's checkpointer already prevents one level up.
+#
+# The sidecar records what the lines are translations OF. Without it, rerunning with a
+# different input file, a different model's settings or a reordered corpus would append to a
+# file whose first lines belong to another job, and the result would be misaligned in a way
+# no score would reveal.
+_PROGRESS_SUFFIX = ".progress.json"
+
+
+def _fingerprint(sentences: Sequence[str], settings: dict) -> dict:
+    """Describe a decoding job precisely enough to tell whether a file belongs to it."""
+    digest = hashlib.sha256()
+    for sentence in sentences:
+        digest.update(sentence.encode("utf-8"))
+        digest.update(b"\n")
+    return {"inputs_sha256": digest.hexdigest(), "inputs": len(sentences), **settings}
+
+
+def _complete_lines(path: Path) -> int:
+    """Count the finished lines in ``path``, cutting off a partly written last line.
+
+    A crash in the middle of a write can leave a final line with no newline. That line is a
+    fragment, not a translation, so it is removed and decoded again.
+    """
+    data = path.read_bytes()
+    keep = data.rfind(b"\n") + 1
+    if keep < len(data):
+        os.truncate(path, keep)
+    return data.count(b"\n", 0, keep)
+
+
+def translate_to_file(
+    model: nn.Module,
+    sentences: Sequence[str],
+    src_vocab: BaseVocab,
+    tgt_vocab: BaseVocab,
+    output_path: str | Path,
+    decode_strategy: str = "greedy",
+    beam_size: int = 5,
+    max_len: int | None = None,
+    device: torch.device | None = None,
+    config: Config | None = None,
+    chunk_size: int = 512,
+    overwrite: bool = False,
+    verbose: bool = True,
+) -> list[str]:
+    """Translate many sentences into a file, resuming where an interrupted run stopped.
+
+    Writes one translation per line to ``output_path``, aligned with ``sentences``, appending
+    each chunk as soon as it is decoded. If the run dies, call this again with the same
+    arguments: it counts the lines already written and decodes only the sentences after them.
+    A file from a *different* job (other sentences, or other decoding settings) is refused
+    rather than appended to.
+
+    Decoding goes through :func:`torchlingo.inference_fast.translate_batch`, whose output is
+    identical to :func:`translate_batch`'s and much faster for beam search.
+
+    Args:
+        model: Seq2seq model (Transformer or LSTM).
+        sentences: Every source sentence of the job, in order. Pass the same list on a rerun.
+        src_vocab: Source vocabulary.
+        tgt_vocab: Target vocabulary.
+        output_path: The file to write, one translation per line. Put it on Google Drive in
+            Colab, so a disconnect does not take it with the runtime.
+        decode_strategy: "greedy" or "beam".
+        beam_size: Beam width when decode_strategy == "beam".
+        max_len: Maximum generation length. Defaults to ``config.max_decode_length``.
+        device: Torch device. Defaults to the model's.
+        config: TorchLingo Config.
+        chunk_size: Sentences decoded between writes. Work lost to an interruption is at most
+            one chunk.
+        overwrite: Start again from the first sentence, discarding an existing output file.
+        verbose: Print progress after each chunk.
+
+    Returns:
+        All ``len(sentences)`` translations, read back from the file.
+
+    Raises:
+        ValueError: If ``output_path`` holds lines from a different job, or more lines than
+            there are sentences, and ``overwrite`` is False.
+
+    Example:
+        >>> import tempfile, torch
+        >>> from torchlingo.data_processing.vocab import SimpleVocab
+        >>> from torchlingo.models import SimpleTransformer
+        >>> vocab = SimpleVocab(min_freq=1)
+        >>> vocab.build_vocab(["hola mundo", "hello world"])
+        >>> model = SimpleTransformer(len(vocab), len(vocab), d_model=16, n_heads=2,
+        ...                           num_encoder_layers=1, num_decoder_layers=1, d_ff=32)
+        >>> out = tempfile.mkdtemp() + "/test.hyp"
+        >>> lines = translate_to_file(model, ["hello world"] * 3, vocab, vocab, out,
+        ...                           max_len=4, chunk_size=2, verbose=False)
+        >>> len(lines)
+        3
+    """
+    from .inference_fast import translate_batch as fast_translate_batch
+
+    cfg = config if config is not None else get_default_config()
+    max_len = max_len if max_len is not None else cfg.max_decode_length
+    output_path = Path(output_path)
+    progress_path = output_path.with_name(output_path.name + _PROGRESS_SUFFIX)
+    settings = {
+        "decode_strategy": decode_strategy,
+        "beam_size": beam_size if decode_strategy == "beam" else None,
+        "max_len": max_len,
+    }
+    job = _fingerprint(sentences, settings)
+
+    done = 0
+    if output_path.exists() and not overwrite:
+        recorded = None
+        if progress_path.exists():
+            recorded = json.loads(progress_path.read_text(encoding="utf-8"))
+        if recorded != job:
+            raise ValueError(
+                f"{output_path} already exists, and its "
+                + (
+                    "translations are of a different job: other sentences, or other "
+                    "decoding settings."
+                    if recorded is not None
+                    else f"record of what it translated ({progress_path.name}) is missing."
+                )
+                + " Appending would misalign it with your sentences. Pass overwrite=True "
+                "to start again, or choose a different output_path."
+            )
+        done = _complete_lines(output_path)
+        if done > len(sentences):
+            raise ValueError(
+                f"{output_path} has {done} lines but there are only {len(sentences)} "
+                "sentences. Pass overwrite=True to start again."
+            )
+        if verbose:
+            print(f"Resuming: {done:,} of {len(sentences):,} already translated.")
+    else:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text("", encoding="utf-8")
+
+    progress_path.write_text(json.dumps(job, indent=2) + "\n", encoding="utf-8")
+
+    for start in range(done, len(sentences), max(1, chunk_size)):
+        chunk = sentences[start : start + max(1, chunk_size)]
+        translations = fast_translate_batch(
+            model,
+            chunk,
+            src_vocab,
+            tgt_vocab,
+            decode_strategy=decode_strategy,
+            beam_size=beam_size,
+            max_len=max_len,
+            device=device,
+            config=cfg,
+        )
+        # One line per sentence, always: a newline inside a translation would shift every
+        # later line out of alignment with its source.
+        lines = "".join(
+            t.replace("\r", " ").replace("\n", " ") + "\n" for t in translations
+        )
+        with output_path.open("a", encoding="utf-8") as handle:
+            handle.write(lines)
+            handle.flush()
+            os.fsync(handle.fileno())
+        if verbose:
+            print(
+                f"Translated {start + len(chunk):,} of {len(sentences):,}.", flush=True
+            )
+
+    # Split on "\n" only, the way the lines were counted: splitlines() also breaks on rarer
+    # separators such as U+2028, which can occur inside a translation.
+    return output_path.read_text(encoding="utf-8").split("\n")[:-1]
+
+
 __all__ = [
     "beam_search_decode",
     "greedy_decode",
     "translate_batch",
+    "translate_to_file",
 ]

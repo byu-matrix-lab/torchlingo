@@ -97,7 +97,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 |---|---|---|---|---|
 | #176 | **P1** | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
 | #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Mon Nov 2 |
-| #102 | **P1** | Inference cannot resume a long decode | **L13** | **Needed by Wed Oct 21** — largest undone piece |
 | #98 | **P1** | Back-translation as a documented workflow | **L13** | **Due Wed Oct 28** |
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
@@ -173,26 +172,6 @@ configuration change rather than a second project.
 Bidirectional English and X from the Assignment 8/9 system, directions intermingled,
 separate test sets per direction, target-language tagging. Replaces the
 "MNMT Guide Using OpenNMT.docx" handout.
-
-### #102 Inference cannot resume, so a long decode cannot survive an interruption
-
-**The largest undone piece for the second half.** Training has checkpoint-and-resume, verified
-in Colab. Inference has nothing.
-
-Assignment 13 back-translates at least as many sentences as the training set, so 100,000 or
-more. **Throughput is not the problem** — that was the expected answer and the wrong one: the
-decode benchmark measures 27.5 ms per sentence batched, so 100K extrapolates to well under an
-hour. Read it as an order of magnitude, since it was measured on 8 sentences at `max_len=25`.
-
-The problem is that a multi-hour decode dying at hour two starts from zero, which is the
-failure that made resume a priority for training one level up.
-
-Either **write output incrementally and skip inputs already done** — better for students, since
-it asks no discipline of them — or **decode in explicit shards**, cheaper to build but relying
-on the student following the workflow.
-
-**Done when** an interrupted bulk decode can be restarted without redoing finished work.
-Needed for Assignment 13's material, due in class **Wed Oct 21**.
 
 
 ### #108 Nothing releases the device allocator's cache
