@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`torchlingo.inference.translate_to_file`**: a bulk decode that survives an interruption.
+  It appends each chunk of translations to the output file as soon as it is decoded, one line
+  per sentence, and a rerun with the same arguments resumes after the last complete line, so a
+  dropped Colab session loses at most one chunk. A `.progress.json` beside the output
+  fingerprints the sentences and decoding settings, and a rerun from a different job is refused
+  rather than appended to. For Assignment 13's back-translation of 100,000 sentences or more.
+
 ## [0.2.6] - 2026-10-05
 
 ### Added

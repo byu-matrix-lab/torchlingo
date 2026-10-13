@@ -533,6 +533,33 @@ import warnings
 warnings.filterwarnings("ignore", module="torchlingo.inference")
 ```
 
+## Decoding a large file without losing it to a disconnect
+
+Translating 100,000 sentences, as back-translation does, is not slow: well under an hour
+batched. The risk is the session dying at minute forty and taking every translation with it.
+`translate_to_file` writes each chunk of translations to disk as soon as it is decoded, and
+picks up where it stopped when you call it again:
+
+```python
+from torchlingo.inference import translate_to_file
+
+hypotheses = translate_to_file(
+    model, sources, src_vocab, tgt_vocab,
+    "/content/drive/MyDrive/CS479/backtranslated.hyp",   # on Drive, so it outlives the runtime
+    decode_strategy="greedy",
+)
+```
+
+If the session drops, reconnect, rebuild the model and vocabularies as before, and run the
+same cell: it prints `Resuming: 61,440 of 100,000 already translated.` and decodes only the
+rest. At most one chunk (512 sentences by default) is decoded twice.
+
+It refuses to append to a file from a different job. Beside the output it keeps a small
+`.progress.json` recording a fingerprint of the sentences and the decoding settings, and a
+rerun with other sentences, a reordered list or other settings stops with an error instead of
+writing translations that no longer line up with their sources. Pass `overwrite=True` to
+start again on purpose.
+
 ## Exercises
 
 1. **Measure it yourself.** Wrap `model.decode` in a counter and decode a few sentences
