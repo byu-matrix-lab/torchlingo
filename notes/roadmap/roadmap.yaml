@@ -186,8 +186,7 @@ assignments:
   due: 2026-10-26
   set_at: "11"
   emphasize_due: true
-  window: 7; a strict one-session shift gave 2, too short for running COMET on A6's data (this
-    side's call, Oct 7; Eric may pull it back to Oct 21)
+  window: 7; one session would give 2, too short for running COMET on A6's data
 - id: A12
   label: '**A12** context and LRL translation'
   due: 2026-10-28
@@ -207,8 +206,8 @@ assignments:
   label: '**A15** SLT pipeline'
   due: 2026-11-11
   set_at: "15"
-  window: '9; was A16 set at Lecture 16 until Oct 8 (Eric): the speech-to-speech pipeline belongs
-    to the speech-to-speech lecture, and the Azure account needs the extra days'
+  window: 9; the pipeline belongs to the speech-to-speech lecture, and the Azure account needs
+    the extra days
 - label: '**Final project proposal** (date may move with the presentation days)'
   due: 2026-11-16
 - label: '**Paper review assignment**'
@@ -265,10 +264,9 @@ lecture_outcomes:
   shown_by: A8
 - lecture: "8b"
   topic: The Transformer
-  can: 'Describe self-attention (query, key, value, scaled dot product, softmax) and compute
+  can: Describe self-attention (query, key, value, scaled dot product, softmax) and compute
     one step by hand; say why there are three attentions and what each is for; read a tensor
-    shape. (Multi-head attention, the encoder block and residual stream, and the decoder block
-    moved to Lecture 9 on Oct 7: not reached.)'
+    shape.
   shown_by: Quiz 8b
 - lecture: "9"
   topic: Morphology, subwords, terminology
@@ -300,8 +298,8 @@ lecture_outcomes:
   shown_by: A13
 - lecture: "14"
   topic: Multilingual and zero-shot
-  can: Explain tagging and why zero-shot works at all; build a bidirectional system from the
-    A8/A9 one and score both directions.
+  can: Explain tagging and why zero-shot works at all; build a bidirectional system from their
+    A9 one and score both directions.
   shown_by: A14
 - lecture: "15"
   topic: Speech-to-speech MT
@@ -398,7 +396,7 @@ notebooks:
       write A7's two sentences; a contrast phrase runs as well
     notebook_does: corpus, model, training, both scorings, the resume demonstration, the report
       printout
-    rating: low since Oct 5 (was watch)
+    rating: low
   03-train-tiny-model:
     purpose: what a checkpoint holds and what it does not; a rebuild that fails loudly, and one
       that loads cleanly and translates nonsense
@@ -422,23 +420,21 @@ notebooks:
     notebook_does: the ablation and the alignment accuracy
     rating: low, as reading
   05-transformer-attention:
-    purpose: a pretrained Transformer's attention on real text, cross- and (since Oct 5) self-attention;
-      tutorial 4's old Part 8
+    purpose: a pretrained Transformer's attention on real text, cross-attention and self-attention
     aside: (reading)
     lesson: attention can find the right words and the decoder still write the wrong ones
     student_must: read one worked example
     notebook_does: everything
     rating: low, as reading
   lecture-09-subword-tokenization:
-    purpose: '`<unk>` before and after SentencePiece (the student''s counter), a round trip,
-      the student''s vocabulary size and A9 prediction, and the three A9 settings printed under
-      A9''s own run names'
+    purpose: '`<unk>` before and after SentencePiece (the student''s counter), a round trip, the
+      student''s vocabulary size and A9 prediction; Part B is A9 itself, retrained and scored'
     lesson: a fixed vocabulary cannot say unseen words; subwords can
     student_must: write the `<unk>` counter, pick the vocabulary size with a reason, predict
-      A9's BLEU, report back
-    notebook_does: the SentencePiece training, the round trip, and the three A9 settings printed
-      ready to paste
-    rating: low since Oct 5 (was watch); A9 itself is still the paste, see below
+      A9's BLEU, report back, and reconcile the prediction in the A9 write-up
+    notebook_does: the SentencePiece training, the round trip, saving the settings to Drive, and
+      in Part B the retraining and both scorings
+    rating: low
   06-diagnosing-failures:
     purpose: five questions to ask of a model that is not working
     aside: (reading)
@@ -459,7 +455,7 @@ notebooks:
     lesson: install COMET, set up a token
     student_must: the install and the token
     notebook_does: a worked `comet-score`
-    rating: low; it is an install. A11 has no scaffold and needs none
+    rating: being rebuilt to the rule in "Where the line is crossed", with A11's notebook
   08-inference-and-beamsearch:
     purpose: greedy against beam, written out and checked against the library; why a comparison
       holds decoding fixed, as A9 does
@@ -477,7 +473,7 @@ notebooks:
     notebook_does: everything
     rating: low, as reading
   lecture-12-llm-context:
-    purpose: in-context translation with 0 to 20 examples; runnable, on a built-in sample
+    purpose: in-context translation with 0 to 20 examples, on the student's A12 language
     lesson: in-context examples and what they buy
     student_must: write split_pool_and_test and build_prompt (the method, each checked for sizes,
       reproducibility and contamination, and for the prompt's required contents, its wording
@@ -513,24 +509,25 @@ tooling:
   used_for: human ranking; students self-register
 - tool: SacreBLEU, chrF
   first_needed: Lecture 6
-  used_for: automatic scoring, and again in 8, 9, 13, 14
+  used_for: automatic scoring, and again in 8, 9, 12, 13, 14
 - tool: TorchLingo
-  first_needed: Lecture 7
-  used_for: 'every model the students train: 7, 8, 9, 13, 14. `pip install torchlingo>=0.2.1`
-    (0.2.4 current): 0.2.1 fixed mid-epoch resume, 0.2.2 added `colab.setup`, 0.2.3 quietened
-    SentencePiece training, 0.2.4 fixed A9''s `sp_model_path` call and made resume restore the
-    random generators and the AMP loss scale'
+  first_needed: Lecture 6
+  used_for: 'every model the students train (7, 8, 9, 13, 14), and the metrics and Colab setup in
+    every course notebook that uses it. Notebooks install it from the repository''s `course`
+    branch, not PyPI, so a notebook and the library code it calls reach students together;
+    `setup()` prints the exact version, which is what to ask for with a bug report'
 - tool: SentencePiece
   first_needed: Lecture 9
   used_for: subword tokenization
-- tool: HuggingFace account
+- tool: Hugging Face account and token
   first_needed: Lecture 10
-  used_for: COMET model downloads; LLMs in Lecture 12
+  used_for: COMETKiwi, the reference-free COMET model, is gated; the reference-based COMET model,
+    COMET-QE-DA and Lecture 12's default LLM need no token
 - tool: COMET / COMET-QE / xCOMET
   first_needed: Lecture 10
-  used_for: neural evaluation, and again in 13 and 14
+  used_for: neural evaluation, and again in 11, 13 and 14
 - tool: Azure free tier
-  first_needed: Lecture 16
+  first_needed: Lecture 15
   used_for: ASR, MT and TTS for the speech pipeline
 
 # The document, in order, pieces joined by a blank line:

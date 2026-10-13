@@ -1,10 +1,15 @@
 ## The TorchLingo pivot: what is settled
 
 The course trains models with TorchLingo, an educational PyTorch NMT library built in the
-MATRIX Lab. Five assignments train a model: A8, A9, A13, A14, and the toy model at Lecture 7.
-They are cumulative in the artifact, so this is one crossing rather than five. **A7, A8 and A9
-and their notebooks are on TorchLingo. A13 and A14 are still written against OpenNMT, in
-Learning Suite and on the decks, and are due for rewriting by Oct 26 and Oct 28.**
+MATRIX Lab. Five assignments train a model: the toy model at Lecture 7 (A7), A8, A9, A13 and
+A14. They are cumulative in the artifact, so this is one crossing rather than five, and every
+assignment after A9 starts from A9. A7, A8, A9 and A13 have TorchLingo notebooks; A14's is to be
+built. The A13 and A14 Learning Suite texts and decks still describe OpenNMT.
+
+**A8's settings**, the course model: d_model 512, 8 heads, 6 + 6 layers, feed-forward 2048 (the
+2017 base configuration, 56.4M parameters at an 8K vocabulary); a 100-token cap applied before
+the split; about 35 epochs, and keep going while validation loss falls; checkpoints to Drive; an
+A100, L4 or G4 runtime, not a T4. The measurements behind each follow.
 
 **What a 100K-pair run produces, measured.** At the first A8 configuration (German bitext,
 100K/2K/2K, d_model 256, 8 heads, 3+3 layers, 11.7M parameters): 36 epochs gives 11.46 BLEU in
@@ -38,18 +43,18 @@ the longest batch, not the median one; growth is not quadratic in the cap. The c
 has less, use all of it and say so, mirroring A4 and A5.
 
 **A9 is a controlled comparison.** The tokenizer must be the only thing that differs, so A9
-trains and scores on A8's raw files and split unchanged; the three settings above are the whole
-change, and decoding is held constant and stated. (v6 said the sentence set should be chosen
-once with the subword tokenizer; that was withdrawn on Sep 28 because re-split text fed through
-the word vocabulary makes the model output pieces, and BLEU on pieces is not comparable with
-A8's.)
+trains and scores on A8's files and split unchanged, with the SentencePiece model and decode
+limit the Lecture 9 notebook saved; both models are decoded greedily and scored by the same
+code. The split is never redone with the subword tokenizer: text fed through the word
+vocabulary would make A8's model output pieces, and BLEU on pieces is not comparable.
 
 **Post-norm.** `SimpleTransformer` is the 2017 paper's architecture, post-norm by default,
 pinned by a test whose failure message names the two 8b slides that depend on it. Pre-norm is
 available with `norm_first=True`.
 
-**Notebooks live in the repository**, `torchlingo/docs/docs/course/`, each with a Colab badge
-off `main`, metadata declaring which lecture it serves and what it starts, and CI that executes
-every notebook it can. The two sessions exchange files under `notes/handoff/`, one file per
+**Notebooks live in the repository**, `torchlingo/docs/docs/course/`, each with a Colab badge,
+metadata declaring which lecture it serves and what it starts, and CI that executes every
+notebook it can and tests the rest from their own cells. Students install TorchLingo from the
+`course` branch, which moves only when `main`'s checks have passed. The two sessions exchange files under `notes/handoff/`, one file per
 hand-off; course-side items are tracked in `CS479-TASKS.md`, repository items in the
 repository's `notes/TASKS.md`.

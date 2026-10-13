@@ -13,6 +13,6 @@ declared lecture stays valid; the Lecture 9 notebook's Part A ran in 8c.
 calendar; it was that nobody had measured what a 100K-pair run produces or what a Colab GPU
 holds, and both are measured now (see the pivot section).
 
-**Assignment windows, measured from the lecture that sets each one.** This is the measure that
-matters and the one v5 got wrong: it counted gains from the *old due date*, and the Monday /
-Wednesday parity flip meant one session later is sometimes five days and sometimes two.
+**Assignment windows, measured from the lecture that sets each one**, not from an old due date:
+the Monday / Wednesday parity flip means one session later is sometimes five days and sometimes
+two.
