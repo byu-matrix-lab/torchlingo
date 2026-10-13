@@ -788,16 +788,21 @@ Notes on the rows that are not simple:
   agreement counts. tests/test_lecture_11.py runs its cells with COMET stubbed.
 - [13] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
   built-in English-Spanish sample from data/example.tsv until the student sets LANGUAGE
-  and DATA_DIR; translates 50 test sentences with an open instruction-tuned LLM (default
-  Qwen2.5-1.5B-Instruct, greedy) at 0, 5, 10 and 20 in-context examples, scores each with
-  BLEU and its signature, charts it, and writes the upload files (context-k.tsv, test.tsv,
-  bleu-report.tsv) to Drive. Needs a GPU and Drive, so CI does not execute it;
+  and DATA_DIR. The student writes split_pool_and_test (checked on a known case, then by
+  check_contamination on the real split) and build_prompt (checked on a known case), then
+  writes a prediction; an open instruction-tuned LLM (default Qwen2.5-1.5B-Instruct,
+  greedy) translates 50 test sentences at 0, 5, 10 and 20 in-context examples, scores each
+  with BLEU and its signature, charts it, and writes the upload files (context-k.tsv,
+  test.tsv, bleu-report.tsv) to Drive. Needs a GPU and Drive, so CI does not execute it;
   tests/test_lecture_12.py runs its cells with the model stubbed.
 - [14] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
   Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, test-a9.hyp) plus
-  the student's monolingual mono.txt. Reverses the split by swapping columns, trains
+  the student's monolingual mono.txt. The student writes reverse, which turns the split
+  around for an X-to-English model, and combine, which joins the original and synthetic
+  pairs and drops any whose source is held out; each is checked on a known case, and
+  combine's result by check_contamination against validation and test. The notebook trains
   X-to-English with A9's configuration and vocabulary, back-translates with
-  translate_to_file (resumable), retrains English-to-X on the original plus synthetic
+  translate_to_file (resumable), takes a prediction, retrains English-to-X on the combined
   pairs, scores both systems with A9's BLEU, runs COMET on both, and prints the write-up
   block. Needs a GPU and Drive, so CI does not execute it; tests/test_lecture_13.py runs
   its cells at toy size.
