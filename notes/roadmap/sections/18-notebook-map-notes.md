@@ -10,24 +10,24 @@ them, and a Fall 2027 offering should not have to rediscover the mapping. Where 
 The generated table lists notebooks that exist. Absence is the interesting part, and a
 notebook that has not been written cannot declare anything:
 
-- **Lecture 9 has no notebook and needs one.** That is #121, which carries the dates.
-- **Lecture 14 has no notebook**, and the current handout is a Word document written for
-  OpenNMT. That is #99, and #123 is the prior question of whether the code path even works.
-- **Lecture 6 will gain a tutorial it cannot show yet.** Tutorial 2 was written for exactly
-  this ground and is not merged (#88). Once it lands it will declare Lecture 6 itself, as
-  reading *after* Lecture 8, since Lecture 6 has run.
-- **Twelve of the twenty-three lectures pair with nothing** — 1, 2, 11 to 18, 20 and 21. Which
-  is fine: not every lecture wants a notebook, and inventing one to fill a row would be the
-  redundancy this document already warns about.
+- **Lectures 13 and 14 have no notebook and need one**: their assignments, A13's
+  back-translation and A14's two-direction model, train models and are still written against
+  OpenNMT. Lecture 14's handout is a Word document. Tasks #98, #99 and #123 carry them.
+- **Twelve of the sessions pair with nothing**: Lectures 1, 2, 11, 13 to 18, 19 and 20
+  (merged), 21, and 22 and 23 (merged). Apart from 13 and 14 that is fine: not every lecture
+  wants a notebook, and inventing one to fill a row would be the redundancy `CLAUDE.md` rules
+  out.
 
-**Two notebooks declare no `leads_to`, deliberately**, and it is recorded here so nobody reads the
-blank as an oversight and fills it in. Settled 2026-09-28, closing #145.
+**Three notebooks declare no `leads_to`, deliberately**, and it is recorded here so nobody reads
+the blank as an oversight and fills it in. The first two were settled 2026-09-28, closing #145.
 
 - **`04-attention-and-alignment`** explains attention and the Transformer. It gives a student no
   head start on A8's deliverable, which is a trained model on their own corpus — it makes the
   training make sense, which is a different thing.
 - **`lecture-04-regex-refresher`** teaches regular expressions, which A4's cleaning is *written
   in*. A prerequisite skill is not a head start either.
+- **`08-inference-and-beamsearch`** is read at Lecture 10, the day A9 is due, so it cannot give a
+  head start on A9; it explains why A9 holds decoding fixed. Settled 2026-10-12.
 
 The rule both follow is the one #139 established against tutorial 1's Lecture 9 claim: **a notebook
 that teaches the prerequisite should not be recorded as covering the thing.** A visible blank is

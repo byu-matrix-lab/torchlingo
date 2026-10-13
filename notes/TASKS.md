@@ -21,7 +21,7 @@ copy of it.
 **As of 2026-10-12:** everything open is here. Roadmap v16 shifted Lecture 9 onward by one
 session (8c is the new Oct 7). Lecture 10's three notebooks are on `course` (tutorials 7 and
 8, the COMET install). What remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork)
-is Lecture 12's rebuild (#176); the learning-outcomes audit left #216 and #217.
+is Lecture 12's rebuild (#176); the learning-outcomes audit left #217.
 
 **Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
 done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
@@ -106,7 +106,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
-| #216 | **P2** | The roadmap's tutorial sections describe tutorials that no longer exist | **hyg** | Open — Oct 12 audit; this side writes those sections |
+| #226 | **P2** | Audit the roadmap for clarity and simplicity | **hyg** | Open — Eric, Oct 13; report findings before editing |
 | #225 | **P2** | Lecture 9's notebook uses terms only a tutorial explains | **L9** | **With Cowork** — the Lecture 7 and A8 fixes landed Oct 13; Lecture 9's three are in the hand-off |
 | #224 | **P2** | Tutorial 8 trains the same twelve phrases as Lecture 7's notebook | **L10** | Open — Eric's rule of Oct 12 in `CLAUDE.md`: students skip what looks like a repeat |
 | #217 | **P2** | Tutorial outcomes are experiences, not abilities, and openers differ | **hyg** | Open — Oct 12 audit; every tutorial |
@@ -322,7 +322,7 @@ Each PR checks the notebook's prose against its ceiling and runs `scripts/studen
 **Done when** every notebook the audit names has had its directions applied; then this section
 and `NOTEBOOK_AUDIT.md` go.
 
-### #216 to #223 The learning-outcomes audit
+### #217 The learning-outcomes audit
 
 Eric, 2026-10-12: does every tutorial state its learning outcomes, and do they line up with the
 lecture notebooks and the lectures? A read-only pass that day answered it. Cowork's audit had
@@ -330,11 +330,6 @@ already put a "By the end" list in every tutorial but 7; what remains is mostly 
 Its urgent findings, tutorials 7 and 8 and the lecture placement of tutorials 5 and 6, shipped
 for Lecture 10.
 
-- **#216, the roadmap's tutorial sections** (below "Which notebook serves which lecture", so
-  written on this side): its "Learning outcomes" list for tutorials proposes outcomes that differ
-  from the notebooks' own, and "What exists" and "Sequencing" use the old numbering and still
-  say tutorial 8 needs tutorial 3's checkpoint. Make the notebooks the only home for tutorial
-  outcomes, and point at them.
 - **#217, every tutorial**: outcomes say "you will have seen X"; the roadmap's lecture outcomes
   say "you can explain X". Write them as abilities, in the lecture's verbs, and name the lecture
   outcome each serves. Openers also differ: a role line in four tutorials, a time estimate in one,

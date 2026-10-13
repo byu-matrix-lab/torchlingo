@@ -385,7 +385,7 @@ notebooks:
     rating: low; A6's substance is MTEval and the analysis
   02-evaluating-translations:
     purpose: the library's out-of-class treatment of evaluation
-    aside: (reading; was 07)
+    aside: (reading)
     lesson: which metric to believe when they disagree
     student_must: decide before scoring; four "Your turn" exercises
     notebook_does: the examples
@@ -400,10 +400,11 @@ notebooks:
       printout
     rating: low since Oct 5 (was watch)
   03-train-tiny-model:
-    purpose: the library's own tiny-model tutorial, which the exercise above was adapted from
-    aside: (reading; was 02)
-    lesson: the library's plain version of the above
-    student_must: read
+    purpose: what a checkpoint holds and what it does not; a rebuild that fails loudly, and one
+      that loads cleanly and translates nonsense
+    aside: (reading)
+    lesson: a saved model is weights without a vocabulary, so the vocabulary must be rebuilt exactly
+    student_must: read; run the three rebuilds
     notebook_does: everything
     rating: low, as reading
   lecture-08a-a8-kickoff:
@@ -423,7 +424,7 @@ notebooks:
   05-transformer-attention:
     purpose: a pretrained Transformer's attention on real text, cross- and (since Oct 5) self-attention;
       tutorial 4's old Part 8
-    aside: (reading; was 08)
+    aside: (reading)
     lesson: attention can find the right words and the decoder still write the wrong ones
     student_must: read one worked example
     notebook_does: everything
@@ -446,29 +447,31 @@ notebooks:
     notebook_does: five planted bugs and their checks
     rating: low; it is a lookup table
   01-data-and-vocab:
-    purpose: the library's view of corpus loading; word-level vocab, stops at `<unk>`
+    purpose: the library's view of corpus loading, from A5's two files; word-level vocab, stops
+      at `<unk>`, which Lecture 9 takes up
     aside: (reference)
     lesson: the library's view of a corpus
     student_must: read
     notebook_does: everything
     rating: low, as reference
   lecture-10-comet-install:
-    purpose: install COMET, score an example, set up the HF token
+    purpose: install COMET, score two hypotheses with and without a reference, set up the HF token
     lesson: install COMET, set up a token
     student_must: the install and the token
     notebook_does: a worked `comet-score`
     rating: low; it is an install. A11 has no scaffold and needs none
   08-inference-and-beamsearch:
-    purpose: greedy against beam, checked against the library, both scored; badge not yet runnable;
-      rewrite paused until A8 is in shape
-    aside: (reading; was 03)
-    lesson: greedy and beam search, and a null result
+    purpose: greedy against beam, written out and checked against the library; why a comparison
+      holds decoding fixed, as A9 does
+    aside: (reading)
+    lesson: decoding is part of the system being measured
     student_must: read
     notebook_does: two decoders written to be read
     rating: low, as reading
   07-real-translations:
-    purpose: a trained model on real sentences; stays at 10 (Oct 5)
-    aside: (reading; was 05)
+    purpose: a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding
+      held fixed
+    aside: (reading)
     lesson: what an undertrained model looks like on unseen text
     student_must: read; one cell trains a small model
     notebook_does: everything
@@ -568,12 +571,6 @@ layout:
 - prose: 18-notebook-map-notes
 - prose: 19-what-exists
 - rule
-- prose: 20-sequencing
-- rule
 - prose: 21-curriculum-outcomes
 - rule
 - prose: 22-gaps
-- rule
-- prose: 23-redundancy
-- rule
-- prose: 24-instructor-questions
