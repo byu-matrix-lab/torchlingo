@@ -225,7 +225,7 @@ steps.
 | `lecture-10-comet-install` | install COMET, set up a token | the install and the token | a worked `comet-score` | low; it is an install. A11 has no scaffold and needs none |
 | `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
-| `lecture-12-llm-context` | in-context examples and what they buy | point it at their language, predict the best context size before the loop runs, and reconcile the prediction with the curve in the write-up | the split, the prompt, the LLM, the loop, BLEU, the chart and the upload files | low, if the prediction is written; the report prints "(none written)" when it is not |
+| `lecture-12-llm-context` | in-context examples and what they buy | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, its wording their own); predict the best context size; reconcile the prediction with the curve | the LLM, the loop, BLEU, the chart and the upload files | low |
 | `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help | find monolingual text new to their split; write reverse and combine (the method, checked against known answers and the contamination check); predict before retraining; add Google back-translations to three examples and explain the result | both trainings, the back-translation, BLEU, COMET and the upload files | low |
 
 ### Where the line is crossed
