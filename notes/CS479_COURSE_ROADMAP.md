@@ -458,7 +458,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
 | `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMET-QE-DA on the student's A6 sentences, beside BLEU, chrF and their ranking | no: colab, download, pip, exercises |
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download, exercises |
-| `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab |
+| `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab, exercises |
 
 **Tutorial numbers** are in course order: 01 data, 02 evaluating, 03 checkpoints, 04 attention,
 05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search.
@@ -836,16 +836,20 @@ Notes on the rows that are not simple:
   Drive, so CI does not execute it; tests/test_lecture_12.py runs its cells with the model
   stubbed.
 - [17] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
-  Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, test-a9.hyp) plus
-  the student's monolingual mono.txt. The student writes reverse, which turns the split
-  around for an X-to-English model, and combine, which joins the original and synthetic
-  pairs and drops any whose source is held out; each is checked on a known case, and
-  combine's result by check_contamination against validation and test. The notebook trains
-  X-to-English with A9's configuration and vocabulary, back-translates with
-  translate_to_file (resumable), takes a prediction, retrains English-to-X on the combined
+  Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, test-a9.hyp, and
+  A9's training checkpoint, from which both trainings take their epoch count) plus the
+  student's monolingual mono.txt, which Step 1 says where to look for and which stops with
+  instructions if missing. The student writes reverse, which turns the split around for an
+  X-to-English model, and combine, which joins the original and synthetic pairs and drops
+  any whose source is held out; each is checked on a known case, and combine's result by
+  check_contamination against validation and test. The notebook trains X-to-English with
+  A9's configuration and vocabulary, back-translates with translate_to_file (resumable),
+  takes a prediction that stops the run while empty, retrains English-to-X on the combined
   pairs, scores both systems with A9's BLEU, runs COMET on both, and prints the write-up
-  block. Needs a GPU and Drive, so CI does not execute it; tests/test_lecture_13.py runs
-  its cells at toy size.
+  block from Drive alone (a13-notes.json keeps the prediction and the back-translator's
+  BLEU), so it survives a dropped session. The write-up asks what makes the language
+  low-resource beyond pair counts. Needs a GPU and Drive, so CI does not execute it;
+  tests/test_lecture_13.py runs its cells at toy size.
 
 <!-- END generated:notebook-map -->
 

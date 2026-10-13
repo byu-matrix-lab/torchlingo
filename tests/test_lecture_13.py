@@ -6,9 +6,11 @@ produces by running Part B's own cells (see ``test_lecture_09_part_b``). The ins
 COMET cell are left out: one is Colab's, and the other installs a package CI does not have.
 
 Two cells are exercises: ``reverse`` and ``combine`` are the student's, and raise
-``NotImplementedError`` until written. The tests write them in, one straightforward way each, so
-what is tested is that the notebook's checks accept a right answer and that the path after them
-works; a further test checks that the notebook as shipped stops at the first exercise.
+``NotImplementedError`` until written. The tests write them in, one straightforward way each, and
+a prediction, so what is tested is that the notebook's checks accept a right answer and that the
+path after them works; further tests check that the notebook as shipped stops at the first
+exercise, that it stops without a prediction or without ``mono.txt``, that the epochs come from
+A9's checkpoint, and that the write-up runs from Drive alone after a dropped session.
 
 What else changes in the cells is only the epochs and the model's size. What is checked is the
 path: the split reversed, the monolingual text filtered against the split, the back-translations
@@ -23,6 +25,7 @@ import pandas as pd
 from notebook_cells import COURSE, code_cells, colab_faked, run_cells, substitute
 from test_a9_path import PIECE_MARK, toy_corpus
 from test_lecture_09_part_b import (
+    A8_EPOCHS,
     CELL_1,
     CONFIG_CELL,
     SCORING_CELL,
@@ -46,13 +49,31 @@ ANSWERS = {
         "    return pd.concat([original, new], ignore_index=True)"
     ),
 }
+PREDICTED = {'PREDICTION = ""': 'PREDICTION = "back-translation helps a little"'}
+READ_EPOCHS = 'EPOCHS = len(a9_state["train_losses"])'
+SETUP_CELL = "def train("
+MONO_CELL = 'MONO_FILE = A8_DIR / "mono.txt"'
+PREDICTION_CELL = 'PREDICTION = ""'
+WRITE_UP_CELL = "=== For the A13 write-up ==="
 
 
-def lecture_13_cells(answered: bool = True) -> list[tuple[int, str]]:
-    """Every code cell but the install and COMET, at toy size and one epoch."""
+def lecture_13_cells(
+    answered: bool = True, predicted: bool = True, one_epoch: bool = True
+) -> list[tuple[int, str]]:
+    """Every code cell but the install and COMET, at toy size and, unless told not to, one epoch."""
     cells = [c for c in code_cells(NOTEBOOK) if not any(m in c[1] for m in SKIPPED)]
-    swaps = {**TOY_SIZE, "EPOCHS = 35": "EPOCHS = 1"}
-    return substitute(cells, {**swaps, **ANSWERS} if answered else swaps)
+    swaps = {
+        **TOY_SIZE,
+        **({READ_EPOCHS: "EPOCHS = 1"} if one_epoch else {}),
+        **(ANSWERS if answered else {}),
+        **(PREDICTED if predicted else {}),
+    }
+    return substitute(cells, swaps)
+
+
+def cells_with(cells: list[tuple[int, str]], *markers: str) -> list[tuple[int, str]]:
+    """The cells containing each marker, in notebook order."""
+    return sorted(next(c for c in cells if m in c[1]) for m in markers)
 
 
 class TestLecture13(unittest.TestCase):
@@ -128,7 +149,42 @@ class TestLecture13(unittest.TestCase):
         self.assertIn("=== For the A13 write-up ===", self.printed)
         self.assertIn("A9 BLEU:", self.printed)
         self.assertIn(
-            "Prediction, written before training: (none written)", self.printed
+            "Prediction, written before training: back-translation helps a little",
+            self.printed,
+        )
+
+    def test_the_write_up_runs_after_a_dropped_session(self):
+        """A new session runs the setup cell, then the write-up: nothing else in memory."""
+        with colab_faked(self.drive):
+            _, printed = run_cells(
+                cells_with(lecture_13_cells(), SETUP_CELL, WRITE_UP_CELL)
+            )
+        self.assertIn("A13 BLEU:", printed)
+        self.assertIn("Back-translator (your language to English) BLEU:", printed)
+        self.assertIn("back-translation helps a little", printed)
+
+    def test_epochs_come_from_a9s_checkpoint(self):
+        with colab_faked(self.drive):
+            ns, _ = run_cells(cells_with(lecture_13_cells(one_epoch=False), SETUP_CELL))
+        self.assertEqual(ns["EPOCHS"], A8_EPOCHS, "A9 trained as many epochs as A8")
+
+    def test_without_a_prediction_it_stops(self):
+        cells = cells_with(
+            lecture_13_cells(predicted=False), SETUP_CELL, PREDICTION_CELL
+        )
+        with colab_faked(self.drive), self.assertRaises(AssertionError) as stopped:
+            run_cells(cells)
+        self.assertIn("Write your prediction", str(stopped.exception))
+
+    def test_without_mono_txt_it_says_what_to_do(self):
+        cells = substitute(
+            cells_with(lecture_13_cells(), SETUP_CELL, MONO_CELL),
+            {'A8_DIR / "mono.txt"': 'A8_DIR / "no-such-mono.txt"'},
+        )
+        with colab_faked(self.drive), self.assertRaises(SystemExit) as stopped:
+            run_cells(cells)
+        self.assertIn(
+            "Put a file of sentences in your language", str(stopped.exception)
         )
 
     def test_as_shipped_it_stops_at_the_first_exercise(self):
@@ -139,7 +195,7 @@ class TestLecture13(unittest.TestCase):
     def test_combine_check_rejects_an_answer_that_keeps_held_out_sentences(self):
         """The toy case fails a combine that forgets held_out, with the message to fix it."""
         cells = lecture_13_cells()
-        setup_cell = next(c for c in cells if "def train(" in c[1])
+        setup_cell = next(c for c in cells if SETUP_CELL in c[1])
         combine_cell = next(c for c in cells if "def combine(" in c[1])
         forgetful = combine_cell[1].replace(" & ~new.src.isin(held_out)", "")
         with colab_faked(self.drive), self.assertRaises(AssertionError) as stopped:
