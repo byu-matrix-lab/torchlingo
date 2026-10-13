@@ -1,0 +1,56 @@
+name: Roadmap matches its sources
+
+# notes/CS479_COURSE_ROADMAP.md is generated from notes/roadmap/ (Eric, 2026-10-12), and both
+# sessions edit those sources. This checks a change to them in seconds. It used to trigger the
+# whole test-and-build workflow, about five minutes, for a change no test or notebook reads.
+# The same two checks also run in that workflow's lint job, for changes to the code they use.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'notes/roadmap/**'
+      - 'notes/CS479_COURSE_ROADMAP.md'
+      - '.github/workflows/roadmap.yml'
+  pull_request:
+    paths:
+      - 'notes/roadmap/**'
+      - 'notes/CS479_COURSE_ROADMAP.md'
+      - '.github/workflows/roadmap.yml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  roadmap:
+    name: Roadmap matches its sources
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # PyYAML only, at the spec the dev extra pins, like the lint job's.
+      - name: Install PyYAML
+        run: |
+          YAML_SPEC=$(python -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              dev = tomllib.load(f)['project']['optional-dependencies']['dev']
+          print(next(d for d in dev if d.lower().startswith('pyyaml')))
+          ")
+          pip install "$YAML_SPEC"
+
+      - name: Roadmap matches its sources
+        run: python scripts/render_roadmap.py --check
+
+      - name: Notebook metadata agrees with the schedule
+        run: python scripts/notebook_meta.py --check
