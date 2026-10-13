@@ -21,7 +21,7 @@ copy of it.
 **As of 2026-10-12:** everything open is here. Roadmap v16 shifted Lecture 9 onward by one
 session (8c is the new Oct 7). Lecture 10's three notebooks are on `course` (tutorials 7 and
 8, the COMET install). What remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork)
-is Lecture 12's rebuild (#176); the learning-outcomes audit left #216, #217 and #219 to #221.
+is Lecture 12's rebuild (#176); the learning-outcomes audit left #216, #217 and #219.
 
 **Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
 done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
@@ -137,8 +137,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #89 | **P3** | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | **P3** | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
 | #219 | **P3** | Tutorial 1 promises a call it never makes, and claims Lecture 9 without saying why | **L4/L5** | Open — Oct 12 audit |
-| #220 | **P3** | Tutorial 4 never names the third attention | **L8b** | Open — Oct 12 audit; one sentence |
-| #221 | **P3** | Tutorial 2's outcome list omits deciding before scoring | **L6** | Open — Oct 12 audit; one line |
 
 ## The CS 479 pivot
 
@@ -363,9 +361,6 @@ for Lecture 10.
   the notebook imports it and never calls it. It claims Lecture 9 without a word on subwords;
   one sentence after the `<unk>` cells would make the link. `leads_to: A5` is backwards, since
   it uses A5's output.
-- **#220, tutorial 4** (8b): name masked decoder self-attention, the third of 8b's "three
-  attentions".
-- **#221, tutorial 2** (L6): add "decided which system ships before seeing a score" to its list.
 
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 
