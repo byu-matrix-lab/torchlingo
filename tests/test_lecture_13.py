@@ -5,8 +5,13 @@ notebook file itself, starting from what Lecture 9's Part B leaves on Drive, whi
 produces by running Part B's own cells (see ``test_lecture_09_part_b``). The install cell and the
 COMET cell are left out: one is Colab's, and the other installs a package CI does not have.
 
-What changes in the cells is only the epochs and the model's size. What is checked is the path:
-the split reversed, the monolingual text filtered against the split, the back-translations
+Two cells are exercises: ``reverse`` and ``combine`` are the student's, and raise
+``NotImplementedError`` until written. The tests write them in, one straightforward way each, so
+what is tested is that the notebook's checks accept a right answer and that the path after them
+works; a further test checks that the notebook as shipped stops at the first exercise.
+
+What else changes in the cells is only the epochs and the model's size. What is checked is the
+path: the split reversed, the monolingual text filtered against the split, the back-translations
 written, the combined training set, and both systems scored on the same test set.
 """
 
@@ -30,11 +35,24 @@ from test_lecture_09_part_b import (
 NOTEBOOK = COURSE / "lecture-13-back-translation.ipynb"
 SKIPPED = ('%pip install --quiet "torchlingo', "comet-score")
 
+# A student's answers to the two exercises, in place of the line that raises.
+ANSWERS = {
+    'raise NotImplementedError("write reverse, then run this cell again")': (
+        'return frame.rename(columns={"src": "tgt", "tgt": "src"})[["src", "tgt"]]'
+    ),
+    'raise NotImplementedError("write combine, then run this cell again")': (
+        'new = pd.DataFrame({"src": list(back), "tgt": list(mono)})\n'
+        '    new = new[(new.src.str.strip() != "") & ~new.src.isin(held_out)]\n'
+        "    return pd.concat([original, new], ignore_index=True)"
+    ),
+}
 
-def lecture_13_cells() -> list[tuple[int, str]]:
+
+def lecture_13_cells(answered: bool = True) -> list[tuple[int, str]]:
     """Every code cell but the install and COMET, at toy size and one epoch."""
     cells = [c for c in code_cells(NOTEBOOK) if not any(m in c[1] for m in SKIPPED)]
-    return substitute(cells, {**TOY_SIZE, "EPOCHS = 35": "EPOCHS = 1"})
+    swaps = {**TOY_SIZE, "EPOCHS = 35": "EPOCHS = 1"}
+    return substitute(cells, {**swaps, **ANSWERS} if answered else swaps)
 
 
 class TestLecture13(unittest.TestCase):
@@ -112,6 +130,21 @@ class TestLecture13(unittest.TestCase):
         self.assertIn(
             "Prediction, written before training: (none written)", self.printed
         )
+
+    def test_as_shipped_it_stops_at_the_first_exercise(self):
+        with colab_faked(self.drive), self.assertRaises(NotImplementedError) as stopped:
+            run_cells(lecture_13_cells(answered=False))
+        self.assertIn("write reverse", str(stopped.exception))
+
+    def test_combine_check_rejects_an_answer_that_keeps_held_out_sentences(self):
+        """The toy case fails a combine that forgets held_out, with the message to fix it."""
+        cells = lecture_13_cells()
+        setup_cell = next(c for c in cells if "def train(" in c[1])
+        combine_cell = next(c for c in cells if "def combine(" in c[1])
+        forgetful = combine_cell[1].replace(" & ~new.src.isin(held_out)", "")
+        with colab_faked(self.drive), self.assertRaises(AssertionError) as stopped:
+            run_cells([setup_cell, (combine_cell[0], forgetful)])
+        self.assertIn("combine is not right yet", str(stopped.exception))
 
 
 if __name__ == "__main__":

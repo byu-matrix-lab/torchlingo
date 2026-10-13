@@ -486,10 +486,11 @@ notebooks:
   lecture-13-back-translation:
     purpose: back-translation end to end, from the A9 files and the student's own monolingual text
     lesson: synthetic pairs whose target side is real, and whether they help
-    student_must: find monolingual text new to their split, predict the change before retraining,
-      add Google back-translations to three examples, and explain the result
-    notebook_does: the reversal, both trainings, the back-translation, BLEU, COMET and the upload files
-    rating: low, if the prediction and the analysis are written; finding the text is the student's
+    student_must: find monolingual text new to their split; write reverse and combine (the method,
+      checked against known answers and the contamination check); predict before retraining;
+      add Google back-translations to three examples and explain the result
+    notebook_does: both trainings, the back-translation, BLEU, COMET and the upload files
+    rating: low
 
 # The "Tooling the semester depends on" table.
 tooling:
