@@ -947,10 +947,9 @@ Notes on the rows that are not simple:
   the student choose between two systems (Cowork's Q7 call).
 - [3] **`03-train-tiny-model`** — The library's own tutorial. Lecture 7's in-class
   exercise, lecture-07-toy-model, was adapted from it.
-- [4] **`07-real-translations`** — Read at Lecture 10, so it no longer claims A8, which is
-  due at Lecture 9. Its substance is evaluating and decoding a real model -- held-out
-  BLEU, greedy against beam search -- which is what A11's metric work builds on. It would
-  help A8 more if read at 8b; where it sits is Eric's call.
+- [4] **`07-real-translations`** — Read at Lecture 10, after A8 (due at 8c). Its substance
+  is evaluating and decoding a real model -- held-out BLEU, greedy against beam search --
+  which Lecture 10's decoding outcome and A11's metric work build on.
 - [5] **`lecture-04-regex-refresher`** — Fall 2025 material, brought into the repository
   on 2026-09-27. A fifteen-minute tour of Python regular expressions, which is what the
   sixteen cleaning steps are written in. Lecture 4's deck links it twice and Learning
