@@ -211,6 +211,7 @@ Suite, the assignment texts and the course folder's data; this side knows the li
 run and test the notebooks. So a notebook built here asks Cowork for what only the course side
 knows, and one Cowork edits is reviewed here against the library. Cowork does **not** run git:
 committing, the checks, the nav entry, the pull request and promotion to `course` happen here.
+Each side goes as far as it can before handing off; see "Handing the baton".
 
 - **Instructor notebooks never go public.** Lectures 3 and 4 have separate INSTRUCTOR notebooks
   carrying worked solutions. They stay out of this tree.
@@ -373,16 +374,34 @@ Two Claude sessions work on CS 479: this one, in the repository, and a Cowork se
 the course decks. They cannot message each other, so `notes/handoff/` is the channel. The protocol
 — which file is the mailbox, how entries are written — is in `notes/README.md`.
 
-Two rules belong here rather than there.
+Three rules belong here rather than there.
 
-**First: a baton pass in either direction means reconciling `notes/TASKS.md` in the same sitting**,
+**First: go as far as you can before handing off.** Eric, 2026-10-13: *"Each agent should go as
+far as it can before handing off so that the number of hand-offs are minimized for any given
+task or notebook."* A hand-off costs a round trip of hours, so one pass should carry a piece of
+work as far as this side can take it, and stop only where it genuinely needs the other side.
+Concretely:
+
+- **Build around the gap, not up to it.** If a notebook waits on Cowork's data, build everything
+  that does not depend on it (a built-in sample, the analysis, the checks) and leave one marked
+  seam, so the answer slots in without another pass. The Lecture 12 notebook is the example: its
+  loader waits on the A12 files; nothing else does.
+- **Ask everything at once.** Collect every question a task will need answered before sending,
+  including the ones for its next step, rather than one question per pass.
+- **Finish what you received.** When the baton arrives with an edit to review, fix what you can
+  fix yourself rather than sending it back with a note, and say what you changed.
+- **Hand off for what only the other side can do**: Cowork for the decks, Learning Suite, the
+  assignment texts and the course folder; this side for git, running notebooks and the library.
+  Not for review of something either side could have checked itself.
+
+**Second: a baton pass in either direction means reconciling `notes/TASKS.md` in the same sitting**,
 and saying in the reply which tasks moved. A hand-off is when the lists go stale and the only
 moment both sides know what changed. One baton return closed a task outright, made another moot,
 and created five that were invisible from this side — including `grader.exe` having no source or
 license, which the course had carried blind for a year. None of that is discoverable by reading
 code.
 
-**Second: an unanswered question gets re-raised in the next hand-off, not left in the old one** —
+**Third: an unanswered question gets re-raised in the next hand-off, not left in the old one** —
 flagged as a repeat, because a question asked twice with no acknowledgement is a different signal
 from one asked once. Each hand-off is read once, on arrival, so a question inherited by an archived
 file is invisible thereafter.

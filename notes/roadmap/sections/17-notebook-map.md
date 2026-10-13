@@ -6,7 +6,7 @@ numbering schemes do not line up, deliberately:
 | family | numbered by | who writes it |
 |---|---|---|
 | `docs/docs/tutorials/` | library topic | this repository |
-| `docs/docs/course/` | lecture | Cowork writes content, this repository commits it |
+| `docs/docs/course/` | lecture | both sessions, together; this repository commits it |
 
 So nothing about which artifact belongs in which lecture is derivable from a filename. It
 used to be written down only here, by hand. It is now **declared by each notebook** in its
