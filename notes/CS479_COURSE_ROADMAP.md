@@ -963,8 +963,8 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 7 | Research Paper Reviews; Intro to Neural Networks | `lecture-07-toy-model` (activity) [8] | `03-train-tiny-model` (reading) [3] |
 | 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | `lecture-08a-a8-kickoff` (activity) [9] | `04-attention-and-alignment` (reading) |
 | 8b | Neural MT: The Transformer | — | `04-attention-and-alignment` (reading), `05-transformer-attention` (reading) |
-| 8c | Finishing the Transformer, the A8 Debrief, and the Subword Activity | — | — |
-| 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [10] | `01-data-and-vocab` (reference) [1], `06-diagnosing-failures` (reading) |
+| 8c | Finishing the Transformer, the A8 Debrief, and the Subword Activity | — | `05-transformer-attention` (reading), `06-diagnosing-failures` (reading) |
+| 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [10] | `01-data-and-vocab` (reference) [1] |
 | 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [11] | `07-real-translations` (reading) [4], `08-inference-and-beamsearch` (reading) |
 | 11 | Neural Quality Estimation and Evaluation | — | — |
 | 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [12] | — |
