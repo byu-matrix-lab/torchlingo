@@ -222,6 +222,11 @@ and the pull request happen here.
   the first, so a session that already had one kept older code (found 2026-10-05); `setup(gpu=, drive=, data=)` does the device, the Drive mount and
   the downloads. Copy tutorial 3's first two code cells. Not the old commented-out install,
   which was the bug, nor the 20-to-60-line cells that replaced it.
+- **Every tutorial opens the same way** (Task #217, 2026-10-13): `# Tutorial N: Title` in title
+  case; the badge; `**Reading. About N minutes.**` (or `Reference`); two to four sentences on
+  the question and why now; **"By the end you will be able to:"** followed by numbered
+  *abilities*, not "you will have seen"; one line, "These serve Lecture X's outcome *...*",
+  quoting the roadmap's lecture outcome; then the Colab line. Copy tutorial 8's first cell.
 - **Notebooks install from the `course` branch, not PyPI.** Eric, 2026-10-05: `%pip install
   "torchlingo @ git+https://github.com/byu-matrix-lab/torchlingo@course"`. A notebook and the
   library code it calls then reach students together, with no release in between; tutorial 5's
