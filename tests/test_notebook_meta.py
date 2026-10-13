@@ -1355,7 +1355,8 @@ class TestTheExecutorSkipsOnCapabilities(unittest.TestCase):
         """Every declared capability counts as absent: CI has none of them, by decision."""
         path = nm.COURSE / "lecture-10-comet-install.ipynb"
         self.assertEqual(
-            self.en.missing_capabilities(path), ["colab", "hf-token", "pip"]
+            self.en.missing_capabilities(path),
+            ["colab", "download", "exercises", "hf-token", "pip"],
         )
 
     def test_a_notebook_declaring_nothing_is_runnable(self):
