@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-10-12. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-10-13. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
@@ -18,10 +18,13 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-10-12:** everything open is here. Roadmap v16 shifted Lecture 9 onward by one
-session (8c is the new Oct 7). Lecture 10's three notebooks are on `course` (tutorials 7 and
-8, the COMET install). What remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork)
-is Lecture 12's rebuild (#176); the learning-outcomes audit left nothing open.
+**As of 2026-10-13:** everything open is here. Every course notebook from Lecture 7 on now
+has the student write the method, with checks; tutorial 5 is the 8b and 8c notebooks. A
+cell-by-cell audit of all fifteen course notebooks (Eric, Oct 13: are the outcomes clear and
+aligned with the roadmap, and does each cell tell the student what to do without doing it for
+them) left one task per notebook, #227 to #240, and the patterns they share, #241. Each
+assignment notebook also gains a write-up question for the conceptual half of its lecture
+outcome (Eric, Oct 13).
 
 **Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
 done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
@@ -98,6 +101,11 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files | **L12** | **With Cowork** — the notebook runs end to end (Oct 13); the loader guesses the A12 layout until Cowork confirms it |
 | #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Mon Nov 2 |
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
+| #227 | **P1** | A9: Part B takes `EPOCHS` from A8, not a comment; `unknown_rate` checked on more than one case; A8's BLEU shown before the prediction | **L9** | Open — a student who raised A8's epochs gets an A9 that changes two things |
+| #228 | **P1** | A10: the step accepting COMETKiwi's terms; a prediction cell that stops while empty; write-up questions, incl. what the score means | **L10** | Open — the gated download fails even with a valid token |
+| #229 | **P1** | A11: which A6 files, in what layout, and what MTEval's average rank is; a prediction cell; why COMET-QE-DA; an LLM-as-judge question | **L11** | Open — the layout needs Cowork (in the hand-off) |
+| #230 | **P1** | A12: where the shared data lives; the loader out of the exercise cell; "only the first line is kept"; the chart uploaded; a document-level question | **L12** | Open — the data location needs Cowork, with #176 |
+| #231 | **P1** | A13: where monolingual text comes from; write-up questions that reconcile the prediction; a write-up that survives a dropped session; `EPOCHS` from A9 | **L13** | Open — the monolingual source is an open question to Eric |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
@@ -105,6 +113,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
+| #241 | **P2** | The course-notebook house patterns, written down and checked | **hyg** | Open — prediction cells that stop while empty, failure messages that show what was returned, setup notes on run-only cells, specs in markdown; a check that each notebook opens with abilities and the outcome it serves |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
@@ -131,6 +140,15 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #81 | **P3** | Fail the build on hand-typed generated numbers | **hyg** | Open |
 | #89 | **P3** | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | **P3** | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
+| #232 | **P3** | 8a: plot training against validation loss and say when to raise `EPOCHS`; capture the first loss and ln(V); a write-up printout | **L8a** | Open — the one training decision is a code comment |
+| #233 | **P3** | 8b and 8c: predictions that stop while empty and come before the map; capture which one missed; quote 8b's outcome accurately | **L8b/L8c** | Open — 8c's outcome waits on Cowork adding it to the roadmap |
+| #234 | **P3** | Lecture 7: the held-out choice in its own cell, defaulting to none; compare with the prediction before the explanation | **L7** | Open |
+| #235 | **P3** | A6 homework: rank by hand before any score prints, and say what to rank; a stale "Part 1" paragraph and a false TODO | **L6** | Open — the notebook breaks Lecture 6's "rank before seeing a score" |
+| #236 | **P3** | Lecture 6 activity: compute BLEU from its parts, checked; predictions recorded | **L6** | Open |
+| #237 | **P3** | Lecture 5: the cost model and s² explained and asked about; a success criterion; a loud fallback to the sample | **L5** | Open |
+| #238 | **P3** | Lecture 4 TMX: cleaning choices a string function can fix; a recorded prediction; hints that do not give the regex | **L4** | Open |
+| #239 | **P3** | Lecture 4 regex: an `re.sub` exercise; blanks that are not syntax errors, with asserts; one hint per blank | **L4** | Open |
+| #240 | **P3** | Lecture 3: the model's supported languages linked; cosine similarity defined | **L3** | Open |
 
 ## The CS 479 pivot
 
