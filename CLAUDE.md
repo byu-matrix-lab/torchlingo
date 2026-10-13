@@ -240,6 +240,22 @@ and the pull request happen here.
   "turn in on Learning Suite". "Today", meaning the class session, is fine. Self-contained also
   means Run all from the Colab badge works: nothing to uncomment, no other notebook's output.
 
+**Every notebook has its own specific purpose and learning outcome, which no other notebook
+shares, whatever its type.** Eric, 2026-10-12: *"students ignore the appearance of
+redundancy."* A notebook that looks like one they have already seen gets skipped, including the
+part of it that was new. So the test is the appearance, not only the content: the same corpus,
+the same model or the same opening as another notebook reads as a repeat even when the lesson
+differs.
+
+The two kinds still differ in job. A course notebook (`docs/docs/course/`) is where a student
+does the assignment: dated, tied to a lecture, often on their own data; only five of eleven use
+TorchLingo. A tutorial (`docs/docs/tutorials/`) is where they understand a mechanism, on fixed
+data with committed outputs, and it doubles as the library's documentation. When two notebooks
+teach the same thing, one keeps it and the other links: the course notebook if an assignment
+needs it in class, the tutorial otherwise. The case that prompted this: tutorial 3 and
+`lecture-07-toy-model` both trained the same twelve-phrase model. Lecture 7 keeps the loss curve
+and the held-out test; tutorial 3 became making a long run survive, on real data.
+
 **Wrap the plumbing; keep the lesson inline.** Eric, 2026-09-28: large code cells lose a new
 student. So code a student learns nothing from reading (installs, downloads, Drive, file
 loading, exact splits, loader construction, padding arithmetic) belongs in the library, and a
