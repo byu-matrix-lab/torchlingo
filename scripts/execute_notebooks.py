@@ -263,8 +263,8 @@ def main() -> int:
     # a clock -- a broken one costs twenty minutes of class rather than a confusing evening.
     # They were executed by nothing at all until this was widened.
     #
-    # Tutorials first and in name order, because tutorial 8 loads the checkpoint tutorial 3
-    # writes. The course notebooks are independent of each other and of the tutorials.
+    # Tutorials first and in name order, then the course notebooks. Each one is independent
+    # of the others: tutorial 8 trains its own model rather than loading tutorial 3's.
     # Redirect stubs (Task #186) are left out: one Markdown cell, nothing to execute.
     notebooks = [
         path

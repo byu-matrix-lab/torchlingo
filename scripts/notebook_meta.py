@@ -311,8 +311,9 @@ def notebooks() -> list[Path]:
 
 # A redirect stub keeps an old notebook path alive after a rename (Task #186, 2026-10-05: the
 # tutorials were renumbered mid-term). Students hold Colab badges and Content-page links that
-# embed the old path, so a one-cell notebook stays there pointing at the new one until the
-# term ends (Task #187). Its whole `torchlingo` block is {"redirect": "<new filename>"}.
+# embed the old path, so a one-cell notebook can stay there pointing at the new one. Its whole
+# `torchlingo` block is {"redirect": "<new filename>"}. That renumbering's five stubs were
+# removed on 2026-10-12 (Eric); nothing live linked to them any more.
 #
 # A stub is not a notebook in the sense the rest of this file means: it serves no lecture, has
 # nothing to execute, and must not appear on the map. So `notebooks()` leaves it out, and
