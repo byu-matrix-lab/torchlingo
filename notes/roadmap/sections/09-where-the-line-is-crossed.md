@@ -16,7 +16,8 @@ Where each assignment stands against it:
 |---|---|---|
 | A7 | the held-out phrase, a prediction, the contrast | the report, which shows a missing prediction |
 | A9 | `unknown_rate`; `VOCAB_SIZE` with a reason; a BLEU prediction | a known-answer case; Part B reloads the saved settings |
-| A10, A11 | being built to the rule | |
+| A10 | `comet_inputs`; a prediction | known cases, including lists of different lengths |
+| A11 | `comet_inputs` again; `pairwise_agreement`; a prediction | a known case; your files' alignment |
 | A12 | `split_pool_and_test`, `build_prompt`; a prediction | known cases; `check_contamination` on the split |
 | A13 | `reverse`, `combine`; a prediction | known cases; `check_contamination` on both held-out sets |
 | A14 | to be built to the rule: tagging the directions and intermingling them | |

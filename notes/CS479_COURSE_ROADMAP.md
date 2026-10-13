@@ -211,7 +211,8 @@ steps.
 | `lecture-09-subword-tokenization` | a fixed vocabulary cannot say unseen words; subwords can | write the `<unk>` counter, pick the vocabulary size with a reason, predict A9's BLEU, report back, and reconcile the prediction in the A9 write-up | the SentencePiece training, the round trip, saving the settings to Drive, and in Part B the retraining and both scorings | low |
 | `06-diagnosing-failures` (reading) | a procedure for a model that is not working | read once, then look symptoms up | five planted bugs and their checks | low; it is a lookup table |
 | `01-data-and-vocab` (reference) | the library's view of a corpus | read | everything | low, as reference |
-| `lecture-10-comet-install` | install COMET, set up a token | the install and the token | a worked `comet-score` | being rebuilt to the rule in "Where the line is crossed", with A11's notebook |
+| `lecture-10-comet-install` | a learned metric, with and without a reference, and the records it scores | write comet_inputs (checked on known cases), predict which system each model prefers, set up the token | the install, both models' scoring, the summary A10 grades | low |
+| `lecture-11-comet-on-a6` | whether metrics agree with each other and with a human, sentence by sentence | reuse comet_inputs, write pairwise_agreement (checked on a known case), predict, and explain the agreement in the summary | loading, all four metrics on every sentence, the report | low |
 | `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
 | `lecture-12-llm-context` | in-context examples and what they buy | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, its wording their own); predict the best context size; reconcile the prediction with the curve | the LLM, the loop, BLEU, the chart and the upload files | low |
@@ -235,7 +236,8 @@ Where each assignment stands against it:
 |---|---|---|
 | A7 | the held-out phrase, a prediction, the contrast | the report, which shows a missing prediction |
 | A9 | `unknown_rate`; `VOCAB_SIZE` with a reason; a BLEU prediction | a known-answer case; Part B reloads the saved settings |
-| A10, A11 | being built to the rule | |
+| A10 | `comet_inputs`; a prediction | known cases, including lists of different lengths |
+| A11 | `comet_inputs` again; `pairwise_agreement`; a prediction | a known case; your files' alignment |
 | A12 | `split_pool_and_test`, `build_prompt`; a prediction | known cases; `check_contamination` on the split |
 | A13 | `reverse`, `combine`; a prediction | known cases; `check_contamination` on both held-out sets |
 | A14 | to be built to the rule: tagging the directions and intermingling them | |
@@ -354,7 +356,8 @@ scored the same way; the write-up reconciles the prediction with the result.
 Evaluation against estimation, QE features and shared tasks, COMET and COMET-QE and how to read a
 score; and the decoding block: greedy, beam search with a worked example, and why a comparison
 must pin decoding.
-**Notebooks:** `lecture-10-comet-install` (homework, A10). `08-inference-and-beamsearch`
+**Notebooks:** `lecture-10-comet-install` (homework, A10): the student writes `comet_inputs`,
+predicts, and scores two systems with and without a reference. `08-inference-and-beamsearch`
 (reading): greedy and beam search written out, and why a comparison holds decoding fixed.
 `07-real-translations` (reading): a trained model on unseen text, greedy against beam.
 **Sets:** A10, install COMET and run the notebook end to end; two papers for the quiz.
@@ -362,7 +365,9 @@ must pin decoding.
 ### 11. Neural Quality Estimation and Evaluation Toolkits (F2025, 19 slides)
 COMET and COMET-QE in depth, HTER, partial-input baselines, xCOMET, and LLM-as-judge (the
 rebuild uses the five GEMBA slides of the combined May 2025 deck).
-**Notebooks:** A11's, being built.
+**Notebooks:** `lecture-11-comet-on-a6` (homework, A11): COMET and COMET-QE-DA on the student's
+A6 sentences beside BLEU and chrF; the student writes `pairwise_agreement`, which counts how
+often two metrics prefer the same system, sentence by sentence.
 **Sets:** A11: the default COMET model and COMET-QE-DA on the A6 outputs, compared with the BLEU,
 chrF and human-ranking numbers already collected; one page. Extra credit for xCOMET.
 
@@ -440,9 +445,10 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `05-transformer-attention` | 8b, 8c | reading | A8 | a pretrained Transformer's attention on real text, cross-attention and self-attention | yes |
 | `06-diagnosing-failures` | 8c | reading | A8 | five questions to ask of a model that is not working | yes |
 | `lecture-09-subword-tokenization` | 9 | activity | A9 | `<unk>` before and after SentencePiece (the student's counter), a round trip, the student's vocabulary size and A9 prediction; Part B is A9 itself, retrained and scored | no: colab |
-| `lecture-10-comet-install` | 10 | homework | A10 | install COMET, score two hypotheses with and without a reference, set up the HF token | no: colab, hf-token, pip |
+| `lecture-10-comet-install` | 10 | homework | A10 | install COMET; the student's comet_inputs; two systems scored with and without a reference | no: colab, hf-token, pip |
 | `07-real-translations` | 10 | reading | A11 | a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding held fixed | yes |
 | `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
+| `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMET-QE-DA on the student's A6 sentences, beside BLEU, chrF and their ranking | no: colab, pip |
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download |
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab |
 
@@ -712,9 +718,9 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 8c | Finishing the Transformer, the A8 Debrief, and the Subword Activity | — | `05-transformer-attention` (reading), `06-diagnosing-failures` (reading) |
 | 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [10] | `01-data-and-vocab` (reference) [1] |
 | 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [11] | `07-real-translations` (reading) [4], `08-inference-and-beamsearch` (reading) |
-| 11 | Neural Quality Estimation and Evaluation | — | — |
-| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [12] | — |
-| 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [13] | — |
+| 11 | Neural Quality Estimation and Evaluation | `lecture-11-comet-on-a6` (homework) [12] | — |
+| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [13] | — |
+| 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [14] | — |
 | 14 | Multilingual NMT and "Zero-shot" NMT | — | — |
 | 15 | Overview of Speech-to-Speech MT | — | — |
 | 16 | Automatic Dubbing and Interpretation | — | — |
@@ -769,17 +775,25 @@ Notes on the rows that are not simple:
   test-a9.hyp), re-scores the saved A8 model with the same code, and prints the write-up
   numbers. Reads the A8 split from Drive, so it cannot run in CI. Part B added so that A9
   never sends a student back to the A8 notebook.
-- [11] **`lecture-10-comet-install`** — Installs unbabel-comet, scores a worked example,
-  and sets up the Hugging Face token through Colab Secrets, which the reference-free
-  COMETKiwi model requires. It is Lecture 10's assignment and the setup for Lecture 11's.
-- [12] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
+- [11] **`lecture-10-comet-install`** — A10: installs COMET; the student writes
+  comet_inputs, the records COMET scores (reused in A11 on the A6 sentences), checked on
+  known cases; a prediction; then the reference-based model and COMETKiwi (which needs the
+  Hugging Face token) score two systems through COMET's Python API, and the last cell
+  prints what A10 grades. tests/test_lecture_10.py runs its cells with COMET stubbed.
+- [12] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMET-QE-DA on the
+  student's A6 sentences beside BLEU and chrF. The student pastes comet_inputs from A10
+  and writes pairwise_agreement, the sentence-by-sentence measure of whether two metrics
+  prefer the same system, each checked on a known case; a prediction; the report gives
+  system scores, each metric's preferred system against the A6 human average ranks, and
+  agreement counts. tests/test_lecture_11.py runs its cells with COMET stubbed.
+- [13] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
   built-in English-Spanish sample from data/example.tsv until the student sets LANGUAGE
   and DATA_DIR; translates 50 test sentences with an open instruction-tuned LLM (default
   Qwen2.5-1.5B-Instruct, greedy) at 0, 5, 10 and 20 in-context examples, scores each with
   BLEU and its signature, charts it, and writes the upload files (context-k.tsv, test.tsv,
   bleu-report.tsv) to Drive. Needs a GPU and Drive, so CI does not execute it;
   tests/test_lecture_12.py runs its cells with the model stubbed.
-- [13] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
+- [14] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
   Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, test-a9.hyp) plus
   the student's monolingual mono.txt. Reverses the split by swapping columns, trains
   X-to-English with A9's configuration and vocabulary, back-translates with
@@ -800,8 +814,8 @@ would have improved a past lecture it is marked `reference` rather than dropped.
 
 The table lists notebooks that exist; a notebook not yet written cannot declare anything.
 
-- **Lectures 11 and 14 need notebooks**: A11 runs COMET on the A6 outputs, and A14 builds a
-  two-direction model from A9. Both are built to the rule in "Where the line is crossed".
+- **Lecture 14 needs a notebook**: A14 builds a two-direction model from A9, to the rule in
+  "Where the line is crossed".
 - **Ten sessions pair with nothing else**: Lectures 1, 2, 15 to 18, 19 and 20 (merged), 21, and 22
   and 23 (merged). Not every lecture wants a notebook, and inventing one to fill a row would be
   the redundancy `CLAUDE.md` rules out.

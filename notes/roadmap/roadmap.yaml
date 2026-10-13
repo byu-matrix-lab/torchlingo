@@ -451,11 +451,21 @@ notebooks:
     notebook_does: everything
     rating: low, as reference
   lecture-10-comet-install:
-    purpose: install COMET, score two hypotheses with and without a reference, set up the HF token
-    lesson: install COMET, set up a token
-    student_must: the install and the token
-    notebook_does: a worked `comet-score`
-    rating: being rebuilt to the rule in "Where the line is crossed", with A11's notebook
+    purpose: install COMET; the student's comet_inputs; two systems scored with and without a
+      reference
+    lesson: a learned metric, with and without a reference, and the records it scores
+    student_must: write comet_inputs (checked on known cases), predict which system each model
+      prefers, set up the token
+    notebook_does: the install, both models' scoring, the summary A10 grades
+    rating: low
+  lecture-11-comet-on-a6:
+    purpose: COMET and COMET-QE-DA on the student's A6 sentences, beside BLEU, chrF and their
+      ranking
+    lesson: whether metrics agree with each other and with a human, sentence by sentence
+    student_must: reuse comet_inputs, write pairwise_agreement (checked on a known case), predict,
+      and explain the agreement in the summary
+    notebook_does: loading, all four metrics on every sentence, the report
+    rating: low
   08-inference-and-beamsearch:
     purpose: greedy against beam, written out and checked against the library; why a comparison
       holds decoding fixed, as A9 does
