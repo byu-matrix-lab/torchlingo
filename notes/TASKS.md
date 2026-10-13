@@ -21,7 +21,7 @@ copy of it.
 **As of 2026-10-12:** everything open is here. Roadmap v16 shifted Lecture 9 onward by one
 session (8c is the new Oct 7). Lecture 10's three notebooks are on `course` (tutorials 7 and
 8, the COMET install). What remains of the notebook audit (`NOTEBOOK_AUDIT.md`, from Cowork)
-is Lecture 12's rebuild (#176); the learning-outcomes audit left #217.
+is Lecture 12's rebuild (#176); the learning-outcomes audit left #224 and #225.
 
 **Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
 done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
@@ -109,7 +109,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #226 | **P2** | Audit the roadmap for clarity and simplicity | **hyg** | Open — Eric, Oct 13; report findings before editing |
 | #225 | **P2** | Lecture 9's notebook uses terms only a tutorial explains | **L9** | **With Cowork** — the Lecture 7 and A8 fixes landed Oct 13; Lecture 9's three are in the hand-off |
 | #224 | **P2** | Tutorial 8 trains the same twelve phrases as Lecture 7's notebook | **L10** | Open — Eric's rule of Oct 12 in `CLAUDE.md`: students skip what looks like a repeat |
-| #217 | **P2** | Tutorial outcomes are experiences, not abilities, and openers differ | **hyg** | Open — Oct 12 audit; every tutorial |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
@@ -322,7 +321,7 @@ Each PR checks the notebook's prose against its ceiling and runs `scripts/studen
 **Done when** every notebook the audit names has had its directions applied; then this section
 and `NOTEBOOK_AUDIT.md` go.
 
-### #217 The learning-outcomes audit
+### #224 and #225 What the Oct 12 learning-outcomes audit left
 
 Eric, 2026-10-12: does every tutorial state its learning outcomes, and do they line up with the
 lecture notebooks and the lectures? A read-only pass that day answered it. Cowork's audit had
@@ -330,10 +329,6 @@ already put a "By the end" list in every tutorial but 7; what remains is mostly 
 Its urgent findings, tutorials 7 and 8 and the lecture placement of tutorials 5 and 6, shipped
 for Lecture 10.
 
-- **#217, every tutorial**: outcomes say "you will have seen X"; the roadmap's lecture outcomes
-  say "you can explain X". Write them as abilities, in the lecture's verbs, and name the lecture
-  outcome each serves. Openers also differ: a role line in four tutorials, a time estimate in one,
-  a "Tutorial N:" prefix in five. Predicting before running appears only in tutorial 2.
 - **#225, Lecture 9's notebook leans on tutorials** (L9). A read-only check on Oct 12 found seven
   of the eleven course notebooks clean and six dependencies in four. Lecture 7's and the A8
   kickoff's were fixed on Oct 13 (vocabulary, token and `<unk>` defined at first use, greedy
