@@ -225,7 +225,7 @@ steps.
 | `lecture-10-comet-install` | install COMET, set up a token | the install and the token | a worked `comet-score` | low; it is an install. A11 has no scaffold and needs none |
 | `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
-| `lecture-12-llm-context` | in-context examples and what they buy | everything: six TODO cells and no scaffold | nothing | low; the opposite risk, that a student stalls, is the one to watch here |
+| `lecture-12-llm-context` | in-context examples and what they buy | point it at their language, predict the best context size before the loop runs, and reconcile the prediction with the curve in the write-up | the split, the prompt, the LLM, the loop, BLEU, the chart and the upload files | low, if the prediction is written; the report prints "(none written)" when it is not |
 
 ### Where the line is crossed
 
@@ -692,7 +692,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-10-comet-install` | 10 | homework | A10 | install COMET, score two hypotheses with and without a reference, set up the HF token | no: colab, hf-token, pip |
 | `07-real-translations` | 10 | reading | A11 | a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding held fixed | yes |
 | `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
-| `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples; all TODOs | no: pip |
+| `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples; runnable, on a built-in sample | no: colab, download |
 
 **Tutorial numbers (Eric, Oct 5):** in course order, 01 data, 02 evaluating, 03 checkpoints, 04
 attention, 05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search. The
@@ -1026,11 +1026,13 @@ Notes on the rows that are not simple:
   token through Colab Secrets, which the reference-free models require. It is Lecture 10's
   assignment and the setup for Lecture 11's. Framework-independent: nothing in it touched
   OpenNMT.
-- [12] **`lecture-12-llm-context`** — Fall 2025 material, brought into the repository on
-  2026-09-26. The Assignment 12 scaffold: pick a non-MT HuggingFace model, translate a
-  low-resource test set with growing numbers of in-context examples, chart BLEU against
-  context size. Every code cell is a TODO, so it contains no answers.
-  Framework-independent.
+- [12] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
+  built-in English-Spanish sample from data/example.tsv until the student sets LANGUAGE
+  and DATA_DIR; translates 50 test sentences with an open instruction-tuned LLM (default
+  Qwen2.5-1.5B-Instruct, greedy) at 0, 5, 10 and 20 in-context examples, scores each with
+  BLEU and its signature, charts it, and writes the upload files (context-k.tsv, test.tsv,
+  bleu-report.tsv) to Drive. Needs a GPU and Drive, so CI does not execute it;
+  tests/test_lecture_12.py runs its cells with the model stubbed.
 
 <!-- END generated:notebook-map -->
 

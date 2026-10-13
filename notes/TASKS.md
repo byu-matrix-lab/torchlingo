@@ -95,7 +95,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #176 | **P1** | `lecture-12-llm-context` becomes a runnable notebook | **L12** | **Blocked on Eric** — one A12 language's files, or their format |
+| #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files | **L12** | **With Cowork** — the notebook runs end to end (Oct 13); the loader guesses the A12 layout until Cowork confirms it |
 | #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Mon Nov 2 |
 | #98 | **P1** | Back-translation as a documented workflow | **L13** | **Due Wed Oct 28** |
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
@@ -311,9 +311,11 @@ the spec; these rows only track which notebooks are done. Eric's test where they
 
 One task per group that shares a deadline, so the "Critical for" column stays honest.
 
-- **#176, `lecture-12-llm-context`** (L12): rebuilt as a runnable notebook on a built-in
-  English-Spanish sample. **Blocked on Eric**: the loader must be written against one A12
-  language's real files, or their format.
+- **#176, `lecture-12-llm-context`** (L12): rebuilt on Oct 13 as a runnable notebook, run end to
+  end with a real model, and tested in CI with the model stubbed (`tests/test_lecture_12.py`).
+  Its loader accepts one TSV or two line-aligned text files, a guess at the A12 folder's layout;
+  the hand-off asks Cowork for the real layout. **Done when** the loader is checked against one
+  language's real files.
 
 Each PR checks the notebook's prose against its ceiling and runs `scripts/student_path.sh` on it.
 **Done when** every notebook the audit names has had its directions applied; then this section
