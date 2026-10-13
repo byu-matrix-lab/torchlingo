@@ -5,9 +5,10 @@ has neither ``unbabel-comet`` nor a Hugging Face token. What these tests run is 
 from the notebook file itself: the example, the student's ``comet_inputs`` and its checks, the
 scoring loop and the summary A10 grades.
 
-Three cells are left out (the install, the Colab login) or changed (COMET's import), and a stub
-model stands in for COMET: it scores a translation 1.0 when it equals the reference and 0.5
-otherwise, or, without a reference, by length. What is checked is the path, not COMET.
+Two cells are left out (the install, the Colab login) and two imports changed (COMET's, and
+huggingface_hub's ``GatedRepoError``), and a stub model stands in for COMET: it scores a
+translation 1.0 when it equals the reference and 0.5 otherwise, or, without a reference, by
+length. What is checked is the path, not COMET.
 """
 
 import unittest
@@ -27,6 +28,9 @@ ANSWER = {
         '        return [{"src": s, "mt": t} for s, t in zip(sources, translations)]\n'
         '    return [{"src": s, "mt": t, "ref": r} for s, t, r in zip(sources, translations, references)]'
     ),
+}
+PREDICTED = {
+    'PREDICTION = ""': 'PREDICTION = "both prefer system 2"',
 }
 STUB_COMET = {
     "from comet import download_model, load_from_checkpoint": (
@@ -54,9 +58,28 @@ def load_from_checkpoint(path: str) -> _StubModel:
     return _StubModel()
 
 
-def lecture_10_cells(answered: bool = True) -> list[tuple[int, str]]:
+def lecture_10_cells(
+    answered: bool = True, predicted: bool = True
+) -> list[tuple[int, str]]:
     cells = [c for c in code_cells(NOTEBOOK) if not any(m in c[1] for m in SKIPPED)]
-    return substitute(cells, {**STUB_COMET, **(ANSWER if answered else {})})
+    return substitute(
+        cells,
+        {
+            **STUB_COMET,
+            **(ANSWER if answered else {}),
+            **(PREDICTED if predicted else {}),
+        },
+    )
+
+
+def refuse_download(name: str) -> str:
+    """COMET's download for an account that has not accepted COMETKiwi's license.
+
+    COMET 2.2.7 catches the gated-repository error and raises this ``KeyError`` instead.
+    """
+    if "cometkiwi" in name:
+        raise KeyError(f"Model '{name}' not supported by COMET.")
+    return name
 
 
 class TestLecture10(unittest.TestCase):
@@ -64,7 +87,7 @@ class TestLecture10(unittest.TestCase):
         namespace, printed = run_cells(lecture_10_cells())
         self.assertIn("comet_inputs passes its checks.", printed)
         self.assertIn("=== For A10 ===", printed)
-        self.assertIn("Your prediction: (none written)", printed)
+        self.assertIn("Your prediction: both prefer system 2", printed)
         self.assertEqual(set(namespace["with_reference"]), {"system 1", "system 2"})
         self.assertEqual(set(namespace["without_reference"]), {"system 1", "system 2"})
 
@@ -73,6 +96,25 @@ class TestLecture10(unittest.TestCase):
             run_cells(lecture_10_cells(answered=False))
         self.assertIn("write comet_inputs", str(stopped.exception))
 
+    def test_without_a_prediction_it_stops_before_scoring(self):
+        with self.assertRaises(AssertionError) as stopped:
+            run_cells(lecture_10_cells(predicted=False))
+        self.assertIn("Write your prediction", str(stopped.exception))
+
+    def test_an_unaccepted_license_says_what_to_do(self):
+        """The gated download fails even when logged in; the cell names the missing step."""
+        cells = substitute(
+            lecture_10_cells(),
+            {
+                "import download_model, load_from_checkpoint": (
+                    "import refuse_download as download_model, load_from_checkpoint"
+                ),
+            },
+        )
+        with self.assertRaises(RuntimeError) as stopped:
+            run_cells(cells)
+        self.assertIn("has not accepted COMETKiwi's license", str(stopped.exception))
+
     def test_an_answer_that_ignores_lengths_is_rejected(self):
         careless = {
             old: new.replace('raise ValueError("lists of different lengths")', "pass")
@@ -80,7 +122,7 @@ class TestLecture10(unittest.TestCase):
         }
         cells = [c for c in code_cells(NOTEBOOK) if not any(m in c[1] for m in SKIPPED)]
         with self.assertRaises(AssertionError) as stopped:
-            run_cells(substitute(cells, {**STUB_COMET, **careless}))
+            run_cells(substitute(cells, {**STUB_COMET, **PREDICTED, **careless}))
         self.assertIn("must refuse lists of different lengths", str(stopped.exception))
 
 

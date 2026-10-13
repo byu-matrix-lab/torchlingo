@@ -453,7 +453,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `06-diagnosing-failures` | 8c | reading | A8 | five questions to ask of a model that is not working | yes |
 | `lecture-09-subword-tokenization` | 9 | activity | A9 | `<unk>` before and after SentencePiece (the student's counter), a round trip, the student's vocabulary size and A9 prediction; Part B is A9 itself, retrained and scored | no: colab |
 | `lecture-09-subword-tokenization-new` | 9 | activity | A9 | the next version of the Lecture 9 notebook, renamed over it once A9's deadline has passed; A9 trains as many epochs as A8, from A8's checkpoint | no: colab |
-| `lecture-10-comet-install` | 10 | homework | A10 | install COMET; the student's comet_inputs; two systems scored with and without a reference | no: colab, hf-token, pip |
+| `lecture-10-comet-install` | 10 | homework | A10 | install COMET; the student's comet_inputs; two systems scored with and without a reference | no: colab, hf-token, download, pip, exercises |
 | `07-real-translations` | 10 | reading | A11 | a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding held fixed | yes |
 | `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
 | `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMET-QE-DA on the student's A6 sentences, beside BLEU, chrF and their ranking | no: colab, pip |
@@ -808,9 +808,12 @@ Notes on the rows that are not simple:
   never sends a student back to the A8 notebook.
 - [14] **`lecture-10-comet-install`** — A10: installs COMET; the student writes
   comet_inputs, the records COMET scores (reused in A11 on the A6 sentences), checked on
-  known cases; a prediction; then the reference-based model and COMETKiwi (which needs the
-  Hugging Face token) score two systems through COMET's Python API, and the last cell
-  prints what A10 grades. tests/test_lecture_10.py runs its cells with COMET stubbed.
+  known cases, and a prediction, which stops the run while empty; then the reference-based
+  model and COMETKiwi (whose license the student accepts on Hugging Face, then logs in
+  with a token) score two systems through COMET's Python API; the last cell prints what
+  A10 grades, followed by three write-up questions: the prediction against the result,
+  what a COMET score means, and evaluation against estimation. tests/test_lecture_10.py
+  runs its cells with COMET stubbed.
 - [15] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMET-QE-DA on the
   student's A6 sentences beside BLEU and chrF. The student pastes comet_inputs from A10
   and writes pairwise_agreement, the sentence-by-sentence measure of whether two metrics
