@@ -419,13 +419,25 @@ notebooks:
     student_must: read Parts 1 to 5 and 7; run them
     notebook_does: the ablation and the alignment accuracy
     rating: low, as reading
-  05-transformer-attention:
-    purpose: a pretrained Transformer's attention on real text, cross-attention and self-attention
-    aside: (reading)
+  lecture-08b-cross-attention:
+    purpose: one attention step written by the student and shown to be the trained model's, head
+      by head; cross-attention read against a wrong translation
     lesson: attention can find the right words and the decoder still write the wrong ones
-    student_must: read one worked example
-    notebook_does: everything
-    rating: low, as reading
+    student_must: write `attention`, predict where three output pieces will look, say which
+      prediction missed
+    notebook_does: the model, the capture of each head's inputs and weights, the map
+    rating: low
+  lecture-08c-attention-heads:
+    purpose: the student's head split shown to be the model's in every encoder layer; heads read
+      one by one, and sharpness measured against averaging and depth
+    lesson: each head is sharp and the average is not; deeper layers spread out
+    student_must: write `split_heads` and `sharpness`, predict before the measurement, say which
+      part of the prediction was wrong
+    notebook_does: the model, the attention step, the capture, the maps
+    rating: low
+  05-transformer-attention:
+    purpose: both of Lecture 8b's and 8c's notebooks in one worked example, without the exercises
+    aside: (reference)
   lecture-09-subword-tokenization:
     purpose: '`<unk>` before and after SentencePiece (the student''s counter), a round trip, the
       student''s vocabulary size and A9 prediction; Part B is A9 itself, retrained and scored'

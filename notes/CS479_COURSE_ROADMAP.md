@@ -207,7 +207,8 @@ steps.
 | `03-train-tiny-model` (reading) | a saved model is weights without a vocabulary, so the vocabulary must be rebuilt exactly | read; run the three rebuilds | everything | low, as reading |
 | `lecture-08a-a8-kickoff` | from cleaned corpus to a running, checkpointed model | type two file names; raise `EPOCHS` if validation loss is still falling | cap, dedupe, split, verification, nine files, the configuration, the training call, the resume, the scoring | **high** |
 | `04-attention-and-alignment` (reading) | attention is measurable alignment | read Parts 1 to 5 and 7; run them | the ablation and the alignment accuracy | low, as reading |
-| `05-transformer-attention` (reading) | attention can find the right words and the decoder still write the wrong ones | read one worked example | everything | low, as reading |
+| `lecture-08b-cross-attention` | attention can find the right words and the decoder still write the wrong ones | write `attention`, predict where three output pieces will look, say which prediction missed | the model, the capture of each head's inputs and weights, the map | low |
+| `lecture-08c-attention-heads` | each head is sharp and the average is not; deeper layers spread out | write `split_heads` and `sharpness`, predict before the measurement, say which part of the prediction was wrong | the model, the attention step, the capture, the maps | low |
 | `lecture-09-subword-tokenization` | a fixed vocabulary cannot say unseen words; subwords can | write the `<unk>` counter, pick the vocabulary size with a reason, predict A9's BLEU, report back, and reconcile the prediction in the A9 write-up | the SentencePiece training, the round trip, saving the settings to Drive, and in Part B the retraining and both scorings | low |
 | `06-diagnosing-failures` (reading) | a procedure for a model that is not working | read once, then look symptoms up | five planted bugs and their checks | low; it is a lookup table |
 | `01-data-and-vocab` (reference) | the library's view of a corpus | read | everything | low, as reference |
@@ -328,15 +329,19 @@ pivot" below; SacreBLEU over the whole test set; the decoding strategy stated.
 Tensor shapes; the three attentions and what each is for; softmax; query, key and value, with
 one attention step by hand; self-attention on a real model's maps; replacing recurrence. The
 multi-head and block slides were not reached, and are taught in 8c and 9.
-**Notebooks:** `04-attention-and-alignment` Part 7; `05-transformer-attention` (reading): a
-pretrained Transformer's cross- and self-attention, head by head.
+**Notebooks:** `lecture-08b-cross-attention` (activity): the student writes the attention step,
+shown to be the trained model's in every head, then predicts and reads cross-attention against a
+wrong translation. `04-attention-and-alignment` Part 7 (reading); `05-transformer-attention`
+(reference): this notebook and 8c's in one worked example, without the exercises.
 **Sets:** nothing; A8 is due two days later.
 
 ### 8c. Finishing the Transformer, the A8 Debrief, and the Subword Activity (F2026, 22 slides)
 The by-hand solution; multi-head attention, the whole Transformer, the encoder block, the
 residual stream and the decoder block; pros and cons of NMT; the A8 debrief around the capacity
 table; Part A of the Lecture 9 notebook, in class.
-**Notebooks:** `lecture-09-subword-tokenization` Part A (activity); `06-diagnosing-failures`
+**Notebooks:** `lecture-08c-attention-heads` (activity): the student splits the projections into
+heads, shown to be the model's in every encoder layer, and measures how averaging and depth blur
+attention. `lecture-09-subword-tokenization` Part A (activity); `06-diagnosing-failures`
 (reading): five questions to ask of a model that is not working.
 **Sets:** A9.
 
@@ -442,7 +447,9 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `03-train-tiny-model` | 7 | reading | A8 | what a checkpoint holds and what it does not; a rebuild that fails loudly, and one that loads cleanly and translates nonsense | yes |
 | `lecture-08a-a8-kickoff` | 8a | activity | A8 | from your A5 corpus to a running, checkpointed, bucketed training job | no: colab, pip |
 | `04-attention-and-alignment` | 8a, 8b | reading | | with and without attention; did it learn the right alignment; Part 7 is the Transformer | yes |
-| `05-transformer-attention` | 8b, 8c | reading | A8 | a pretrained Transformer's attention on real text, cross-attention and self-attention | yes |
+| `lecture-08b-cross-attention` | 8b | activity | | one attention step written by the student and shown to be the trained model's, head by head; cross-attention read against a wrong translation | no: exercises |
+| `05-transformer-attention` | 8b, 8c | reference | A8 | both of Lecture 8b's and 8c's notebooks in one worked example, without the exercises | yes |
+| `lecture-08c-attention-heads` | 8c | activity | | the student's head split shown to be the model's in every encoder layer; heads read one by one, and sharpness measured against averaging and depth | no: exercises |
 | `06-diagnosing-failures` | 8c | reading | A8 | five questions to ask of a model that is not working | yes |
 | `lecture-09-subword-tokenization` | 9 | activity | A9 | `<unk>` before and after SentencePiece (the student's counter), a round trip, the student's vocabulary size and A9 prediction; Part B is A9 itself, retrained and scored | no: colab |
 | `lecture-10-comet-install` | 10 | homework | A10 | install COMET; the student's comet_inputs; two systems scored with and without a reference | no: colab, hf-token, pip |
@@ -580,6 +587,9 @@ place, with who made it.
   configuration and test set, not "A8 or A9, whichever was best". A comparison then changes one
   thing, and subwords handle the new words that back-translated and multilingual data bring. The
   A13 notebook is built this way; A14's follows, and the A13 and A14 handouts drop the choice.
+  Tutorial 5 split into two course notebooks with exercises (Eric): cross-attention for 8b,
+  heads for 8c, where the deck moved the multi-head slides. The tutorial stays for now as
+  reference, pointing at both, so a student who opens it is not lost.
 - **Oct 8.** Assignments renamed "Assignment N" and the grade category "Assignments" (Eric). The SLT
   pipeline is A15, set at Lecture 15 and still due Wed Nov 11, so the numbering has no gap and Lecture
   16 sets nothing. A10 gains a 3-point rubric and counts in the grade. Every hand-in list mirrors its
@@ -714,13 +724,13 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 6 | Automatic and Human MT Evaluation | `lecture-06-mt-evaluation-homework` (homework) [6], `lecture-06-mt-evaluation` (activity) [7] | `02-evaluating-translations` (reading) [2] |
 | 7 | Research Paper Reviews; Intro to Neural Networks | `lecture-07-toy-model` (activity) [8] | `03-train-tiny-model` (reading) [3] |
 | 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | `lecture-08a-a8-kickoff` (activity) [9] | `04-attention-and-alignment` (reading) |
-| 8b | Neural MT: The Transformer | — | `04-attention-and-alignment` (reading), `05-transformer-attention` (reading) |
-| 8c | Finishing the Transformer, the A8 Debrief, and the Subword Activity | — | `05-transformer-attention` (reading), `06-diagnosing-failures` (reading) |
-| 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [10] | `01-data-and-vocab` (reference) [1] |
-| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [11] | `07-real-translations` (reading) [4], `08-inference-and-beamsearch` (reading) |
-| 11 | Neural Quality Estimation and Evaluation | `lecture-11-comet-on-a6` (homework) [12] | — |
-| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [13] | — |
-| 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [14] | — |
+| 8b | Neural MT: The Transformer | `lecture-08b-cross-attention` (activity) [10] | `04-attention-and-alignment` (reading), `05-transformer-attention` (reference) |
+| 8c | Finishing the Transformer, the A8 Debrief, and the Subword Activity | `lecture-08c-attention-heads` (activity) [11] | `05-transformer-attention` (reference), `06-diagnosing-failures` (reading) |
+| 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [12] | `01-data-and-vocab` (reference) [1] |
+| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [13] | `07-real-translations` (reading) [4], `08-inference-and-beamsearch` (reading) |
+| 11 | Neural Quality Estimation and Evaluation | `lecture-11-comet-on-a6` (homework) [14] | — |
+| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [15] | — |
+| 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [16] | — |
 | 14 | Multilingual NMT and "Zero-shot" NMT | — | — |
 | 15 | Overview of Speech-to-Speech MT | — | — |
 | 16 | Automatic Dubbing and Interpretation | — | — |
@@ -766,7 +776,20 @@ Notes on the rows that are not simple:
   student's Assignment 5 corpus to a training run already going when class ends. The
   handout is the authority; this is the executable path through it, and every threshold is
   quoted from the handout in one cell. Cannot run in CI: it mounts Drive and needs a GPU.
-- [10] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity and, in Part
+- [10] **`lecture-08b-cross-attention`** — Lecture 8b's activity, the cross-attention half
+  of what was tutorial 5. The student writes attention, one scaled dot-product step,
+  checked on a case worked on paper (one that also catches a missing √d_k) and then
+  against the trained model's own weights in all four heads of the last decoder layer's
+  cross-attention; then predicts where three output pieces will look and reads the
+  averaged map against the translation: the right words found, the wrong Spanish written.
+  tests/test_lecture_08b.py runs it with an answer written in.
+- [11] **`lecture-08c-attention-heads`** — Lecture 8c's activity, the self-attention half
+  of what was tutorial 5, on the same model and sentence as Lecture 8b's. The student
+  writes split_heads, checked on numbers readable by eye and then against the model's own
+  weights in every encoder layer, and sharpness, checked on paper cases; predicts, then
+  reads the first layer head by head and measures how averaging and depth blur attention.
+  tests/test_lecture_08c.py runs it with answers written in.
+- [12] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity and, in Part
   B, Assignment 9 itself. Part A (CPU, in class): SentencePiece fit on the student's A8
   training split, the student's own unknown-token counter under words and under pieces, a
   round trip, a vocabulary size chosen with a reason, an A9 BLEU prediction, and the
@@ -775,18 +798,18 @@ Notes on the rows that are not simple:
   test-a9.hyp), re-scores the saved A8 model with the same code, and prints the write-up
   numbers. Reads the A8 split from Drive, so it cannot run in CI. Part B added so that A9
   never sends a student back to the A8 notebook.
-- [11] **`lecture-10-comet-install`** — A10: installs COMET; the student writes
+- [13] **`lecture-10-comet-install`** — A10: installs COMET; the student writes
   comet_inputs, the records COMET scores (reused in A11 on the A6 sentences), checked on
   known cases; a prediction; then the reference-based model and COMETKiwi (which needs the
   Hugging Face token) score two systems through COMET's Python API, and the last cell
   prints what A10 grades. tests/test_lecture_10.py runs its cells with COMET stubbed.
-- [12] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMET-QE-DA on the
+- [14] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMET-QE-DA on the
   student's A6 sentences beside BLEU and chrF. The student pastes comet_inputs from A10
   and writes pairwise_agreement, the sentence-by-sentence measure of whether two metrics
   prefer the same system, each checked on a known case; a prediction; the report gives
   system scores, each metric's preferred system against the A6 human average ranks, and
   agreement counts. tests/test_lecture_11.py runs its cells with COMET stubbed.
-- [13] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
+- [15] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
   built-in English-Spanish sample from data/example.tsv until the student sets LANGUAGE
   and DATA_DIR. The student writes split_pool_and_test (checked on a known case, then by
   check_contamination on the real split) and build_prompt (checked on a known case), then
@@ -795,7 +818,7 @@ Notes on the rows that are not simple:
   with BLEU and its signature, charts it, and writes the upload files (context-k.tsv,
   test.tsv, bleu-report.tsv) to Drive. Needs a GPU and Drive, so CI does not execute it;
   tests/test_lecture_12.py runs its cells with the model stubbed.
-- [14] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
+- [16] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
   Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, test-a9.hyp) plus
   the student's monolingual mono.txt. The student writes reverse, which turns the split
   around for an X-to-English model, and combine, which joins the original and synthetic
@@ -874,8 +897,8 @@ by what it teaches; and a course notebook never assumes a tutorial was read.
 
 What the material still does not teach, ordered by how much it costs a student. Three gaps
 listed here before are closed: tutorial 6 teaches diagnosis by breaking a model on purpose and
-watching each check fire; tutorial 2 teaches where BLEU misleads; tutorial 5 reads a
-Transformer's attention.
+watching each check fire; tutorial 2 teaches where BLEU misleads; the Lecture 8b and 8c
+notebooks read a Transformer's attention.
 
 **Training dynamics.** `concepts/training.md` covers the loop, optimizers, schedulers,
 clipping and early stopping. It does not cover what a student does when training goes wrong:

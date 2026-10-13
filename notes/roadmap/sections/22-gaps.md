@@ -2,8 +2,8 @@
 
 What the material still does not teach, ordered by how much it costs a student. Three gaps
 listed here before are closed: tutorial 6 teaches diagnosis by breaking a model on purpose and
-watching each check fire; tutorial 2 teaches where BLEU misleads; tutorial 5 reads a
-Transformer's attention.
+watching each check fire; tutorial 2 teaches where BLEU misleads; the Lecture 8b and 8c
+notebooks read a Transformer's attention.
 
 **Training dynamics.** `concepts/training.md` covers the loop, optimizers, schedulers,
 clipping and early stopping. It does not cover what a student does when training goes wrong:

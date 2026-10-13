@@ -185,6 +185,10 @@ You'll learn:
 
 ### Tutorial 5: Attention on a Real Transformer
 
+In CS 479, open the two course notebooks this became instead:
+[Lecture 8b](../course/lecture-08b-cross-attention.ipynb) and
+[Lecture 8c](../course/lecture-08c-attention-heads.ipynb), which ask you to write the steps.
+
 Tutorial 4's inspection, on a pretrained Transformer reading a held-out sentence.
 
 You'll learn:

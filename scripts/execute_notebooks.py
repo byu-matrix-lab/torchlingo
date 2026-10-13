@@ -59,7 +59,8 @@ STUDENT_PATH = Path(__file__).resolve().parent / "student_path.sh"
 # `google.colab` well enough for a notebook that mounts Drive only to write into it. It has
 # no GPU, no real Drive holding a student's own files, and no token -- so a notebook that
 # declares `colab` (in the course, that means one of those), `hf-token` or `blanks` is skipped.
-STUDENT_CANNOT = {"blanks", "colab", "hf-token"}
+# So is one declaring `exercises`, which stops at the first function a student has to write.
+STUDENT_CANNOT = {"blanks", "colab", "exercises", "hf-token"}
 
 # Failures already filed. Reported, not counted, so a scheduled run stays green on news it
 # already has; an entry that starts passing is reported too, so it gets removed.

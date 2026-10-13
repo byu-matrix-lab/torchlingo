@@ -7,6 +7,9 @@ place, with who made it.
   configuration and test set, not "A8 or A9, whichever was best". A comparison then changes one
   thing, and subwords handle the new words that back-translated and multilingual data bring. The
   A13 notebook is built this way; A14's follows, and the A13 and A14 handouts drop the choice.
+  Tutorial 5 split into two course notebooks with exercises (Eric): cross-attention for 8b,
+  heads for 8c, where the deck moved the multi-head slides. The tutorial stays for now as
+  reference, pointing at both, so a student who opens it is not lost.
 - **Oct 8.** Assignments renamed "Assignment N" and the grade category "Assignments" (Eric). The SLT
   pipeline is A15, set at Lecture 15 and still due Wed Nov 11, so the numbering has no gap and Lecture
   16 sets nothing. A10 gains a 3-point rubric and counts in the grade. Every hand-in list mirrors its
