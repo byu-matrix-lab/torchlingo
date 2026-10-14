@@ -67,6 +67,27 @@ moment estimates; resuming from weights alone throws those away and the loss
 visibly jumps as the optimizer rebuilds them. The scheduler is saved for the same
 reason.
 
+The state also keeps the run's **first logged loss**: the value on the first
+`Train Loss` line, which is the mean of the first `log_every` batches (or
+`config.log_interval`). That is the number to set beside `ln(V)`, the loss of a
+model that has learned nothing (see `torchlingo.diagnostics.uniform_loss`), and a
+dropped session would otherwise lose it with the cell's output. A resumed run keeps
+the original run's value rather than its own first line, which comes from a model
+that has already learned something. It is also on the returned `TrainResult`:
+
+```python
+result = train_model(model, train_loader, val_loader, num_epochs=20,
+                     log_every=50, checkpointer=checkpointer)
+print(result.first_logged_loss)                                   # this run
+print(TrainingCheckpointer("my-experiment").load(model).first_logged_loss)  # a later session
+```
+
+It is `None` when no line was logged, for instance when an epoch has fewer
+batches than `log_every`, and in a checkpoint written before TorchLingo kept it.
+A run resumed from such a checkpoint leaves it `None` too: only a run that starts
+from an untrained model records one, because a resumed run's first line comes
+from a model that has already learned something.
+
 ## When it saves
 
 - Every `save_every_seconds` (default 600), or every `save_every_steps` if you

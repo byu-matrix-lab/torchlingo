@@ -2,16 +2,17 @@
 
 The notebook declares ``colab``, so CI's notebook run skips it: it mounts Drive and needs a GPU.
 These tests run its cells from the notebook file itself on a toy corpus written where Step 0
-looks for it, with the model shrunk, two epochs, split sizes a toy corpus can meet, a prediction
-and a first logged loss filled in. The install cell is left out.
+looks for it, with the model shrunk, two epochs, split sizes a toy corpus can meet, and both
+predictions filled in. The install cell is left out.
 
-What is checked is the path: the nine split files on Drive, a training run, the loss curves read
-back from the checkpoint, the test set scored, and the write-up block. Further tests check that
-the notebook stops without a prediction, without a first logged loss, or when the input files
+What is checked is the path: the nine split files on Drive, a training run, the loss curves and
+the first logged loss read back from the checkpoint, the test set scored, and the write-up block.
+Further tests check that the notebook stops without either prediction, or when the input files
 are not where SRC_FILE and TGT_FILE say, and that the cells after training run in a later
 session that skips the training cell.
 """
 
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -29,21 +30,28 @@ TOY_RUN = {
     "TEST_SIZE   = 2_000": "TEST_SIZE   = 50",
     "EPOCHS      = 35": "EPOCHS      = 2",
     "plt.show()": "plt.close()",
+    # The toy corpus has far fewer than fifty batches an epoch, so no line would be logged.
+    "log_every=50": "log_every=2",
 }
-PREDICTED = {'PREDICTION = ""': 'PREDICTION = "still falling: the corpus is small"'}
-FIRST_LOGGED = {"FIRST_LOSS = None": "FIRST_LOSS = 9.5"}
+# Each key names its cell's own comment, because one prediction's name contains the other's.
+PREDICTED = {
+    'PREDICTION = ""   # <- your prediction': 'PREDICTION = "still falling: the corpus is small"   #'
+}
+FIRST_LOSS_PREDICTED = {
+    'FIRST_LOSS_PREDICTION = ""   # <- e.g.': 'FIRST_LOSS_PREDICTION = "above, by about 0.3"   #'
+}
 TRAINING_CELL = "result = train_model("
 
 
 def kickoff_cells(
-    predicted: bool = True, first_logged: bool = True
+    predicted: bool = True, first_loss_predicted: bool = True
 ) -> list[tuple[int, str]]:
-    """Every code cell but the install, at toy size, with the student's two entries unless told."""
+    """Every code cell but the install, at toy size, with the student's two predictions unless told."""
     cells = [c for c in code_cells(NOTEBOOK) if not any(m in c[1] for m in SKIPPED)]
     swaps = {
         **TOY_RUN,
         **(PREDICTED if predicted else {}),
-        **(FIRST_LOGGED if first_logged else {}),
+        **(FIRST_LOSS_PREDICTED if first_loss_predicted else {}),
     }
     return substitute(cells, swaps)
 
@@ -99,8 +107,18 @@ class TestLecture08a(unittest.TestCase):
         self.assertEqual(len(hyp), 50)
         self.assertIn("FOR YOUR WRITE-UP", self.printed)
         self.assertIn("Decoder:  greedy", self.printed)
-        self.assertIn("first logged loss 9.500", self.printed)
+        self.assertIn("where you predicted: above, by about 0.3", self.printed)
         self.assertIn("What limits the output:", self.printed)
+
+    def test_the_first_logged_loss_comes_from_the_checkpoint(self):
+        """Nothing is copied by hand: the plot cell prints the run's own first line."""
+        first_line = re.search(r"Train Loss: ([0-9.]+)", self.printed)
+        self.assertIsNotNone(first_line, "Step 7 printed a log_every line")
+        self.assertAlmostEqual(
+            self.ns["first_loss"], float(first_line.group(1)), places=4
+        )
+        self.assertIn(f"First logged loss {self.ns['first_loss']:.3f}", self.printed)
+        self.assertIn("You predicted: above, by about 0.3", self.printed)
 
     def test_the_cells_after_training_run_in_a_later_session(self):
         """A new session runs every cell but the training cell, as the notebook says to."""
@@ -115,13 +133,12 @@ class TestLecture08a(unittest.TestCase):
             run_cells(kickoff_cells(predicted=False))
         self.assertIn("Write your prediction", str(stopped.exception))
 
-    def test_without_a_first_logged_loss_it_stops(self):
-        cells = [
-            c for c in kickoff_cells(first_logged=False) if TRAINING_CELL not in c[1]
-        ]
+    def test_without_a_first_loss_prediction_it_stops_before_training(self):
+        cells = kickoff_cells(first_loss_predicted=False)
+        training = next(i for i, src in cells if TRAINING_CELL in src)
         with colab_faked(self.drive), self.assertRaises(AssertionError) as stopped:
-            run_cells(cells)
-        self.assertIn("Copy your first logged loss", str(stopped.exception))
+            run_cells([c for c in cells if c[0] < training])
+        self.assertIn("Write your first-loss prediction", str(stopped.exception))
 
     def test_missing_input_files_say_which_lines_to_edit(self):
         cells = substitute(
