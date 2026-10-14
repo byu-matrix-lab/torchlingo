@@ -111,7 +111,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
-| #241 | **P2** | The course-notebook house patterns, written down and checked | **hyg** | Open — prediction cells that stop while empty, failure messages that show what was returned, setup notes on run-only cells, specs in markdown; a check that each notebook opens with abilities and the outcome it serves |
+| #241 | **P2** | Check the last two course-notebook house patterns in `notebook_meta.py --check` | **hyg** | **In progress** — the patterns are in CLAUDE.md and two are checked (cell ids, the GPU disconnect); left: each notebook opens with its outcome block, and a `PREDICTION` cell is followed by the stop that refuses it empty |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
@@ -138,15 +138,8 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #81 | **P3** | Fail the build on hand-typed generated numbers | **hyg** | Open |
 | #89 | **P3** | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | **P3** | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
-| #232 | **P3** | 8a: plot training against validation loss and say when to raise `EPOCHS`; capture the first loss and ln(V); a write-up printout | **L8a** | Open — the one training decision is a code comment |
-| #233 | **P3** | 8b and 8c: predictions that stop while empty and come before the map; capture which one missed; quote 8b's outcome accurately | **L8b/L8c** | Open — 8c's outcome waits on Cowork adding it to the roadmap |
-| #234 | **P3** | Lecture 7: the held-out choice in its own cell, defaulting to none; compare with the prediction before the explanation | **L7** | Open |
-| #235 | **P3** | A6 homework: rank by hand before any score prints, and say what to rank; a stale "Part 1" paragraph and a false TODO | **L6** | Open — the notebook breaks Lecture 6's "rank before seeing a score" |
-| #236 | **P3** | Lecture 6 activity: compute BLEU from its parts, checked; predictions recorded | **L6** | Open |
-| #237 | **P3** | Lecture 5: the cost model and s² explained and asked about; a success criterion; a loud fallback to the sample | **L5** | Open |
-| #238 | **P3** | Lecture 4 TMX: cleaning choices a string function can fix; a recorded prediction; hints that do not give the regex | **L4** | Open |
-| #239 | **P3** | Lecture 4 regex: an `re.sub` exercise; blanks that are not syntax errors, with asserts; one hint per blank | **L4** | Open |
-| #240 | **P3** | Lecture 3: the model's supported languages linked; cosine similarity defined | **L3** | Open |
+| #233 | **P3** | 8c: quote Lecture 8c's outcome in the notebook's opening | **L8c** | **Waits on Cowork** (in the hand-off): the roadmap has no 8c outcome yet. The predictions, the stops and 8b's quoted outcome are done |
+| #235 | **P3** | A6: make the roadmap and the notebook agree on how students get their ten translations | **L6** | **Waits on Cowork** (in the hand-off): the roadmap says "translate ten by hand", the notebook has them paste a web MT system's output. Ranking before any score prints is done |
 
 ## The CS 479 pivot
 
