@@ -440,7 +440,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-04-tmx-cleaning` | 4 | activity | A4 | planted TMX problems, two parsers, a checker that names the cleaning step | no: pip |
 | `01-data-and-vocab` | 4, 9 | reference | A9 | the library's view of corpus loading, from A5's two files; word-level vocab, stops at `<unk>`, which Lecture 9 takes up | yes |
 | `lecture-05-sentence-alignment` | 5 | activity | A5 | estimate Gale-Church parameters on your language | no: pip |
-| `lecture-06-mt-evaluation` | 6 | activity | A6 | BLEU and chrF on your data; BLEU returns zero on ten short sentences | yes |
+| `lecture-06-mt-evaluation` | 6 | activity | A6 | BLEU and chrF on your data; BLEU returns zero on ten short sentences | no: exercises |
 | `lecture-06-mt-evaluation-homework` | 6 | homework | A6 | the assignment's scaffold over your uploaded A5 corpus | no: colab |
 | `02-evaluating-translations` | 6 | reading | A6, A8 | the library's out-of-class treatment of evaluation | yes |
 | `lecture-07-toy-model` | 7 | activity | A7 | the three-part toy-model exercise; the student picks the held-out phrase, predicts, and a contrast phrase runs; resume demo | yes |
@@ -761,13 +761,22 @@ Notes on the rows that are not simple:
   expressions, which the sixteen cleaning steps are written in. Lecture 4's deck links it
   and Learning Suite posts it on the Lecture 3 tab, so it is offered ahead of Lecture 4
   rather than used inside it.
-- [6] **`lecture-06-mt-evaluation-homework`** — The A6 homework: the metrics on the
-  student's own Assignment 5 corpus, uploaded through the Colab file picker, so it cannot
-  run outside Colab.
-- [7] **`lecture-06-mt-evaluation`** — Lecture 6's in-class activity: BLEU and chrF on
-  supplied data, and BLEU's zero on short sentences. The homework on the student's own
-  data is lecture-06-mt-evaluation-homework. Needs nothing and no Colab runtime, so it
-  executes in CI.
+- [6] **`lecture-06-mt-evaluation-homework`** — The A6 homework: ten sentences from the
+  student's own Assignment 5 corpus, uploaded through the Colab file picker, translated by
+  a web MT system and pasted in, ranked by hand into MY_RANKING (which stops the notebook
+  while empty) before any score prints, then scored with BLEU, chrF and TER, with
+  sentence-level chrF set beside the ranking. Needs the Colab picker, so CI does not
+  execute it; tests/test_lecture_06.py runs its cells with the upload skipped and files,
+  translations and a ranking written in.
+- [7] **`lecture-06-mt-evaluation`** — Lecture 6's in-class activity on supplied data:
+  BLEU's zero on two short sentences, then the student writes bleu_from_parts (BLEU from
+  bleu.precisions and bleu.bp, checked on a case worked on paper, on a brevity penalty and
+  on Part 1's zero, then against BLEU's own score on both Part 2 systems); reads five
+  pairs and records which system they would rank higher and which BLEU will prefer before
+  any score; and predicts BLEU at three words kept before the brevity-penalty table. Each
+  prediction stops the notebook while empty. The homework on the student's own data is
+  lecture-06-mt-evaluation-homework. CI does not execute it as shipped;
+  tests/test_lecture_06.py runs its cells with an answer and predictions written in.
 - [8] **`lecture-07-toy-model`** — Lecture 7's three-part exercise: Part A in class
   (install, train the toy model, read the loss curve against ln(V)), Part B outside class
   (hold out a phrase of the student's choice, predict, run a contrast phrase, score seen
