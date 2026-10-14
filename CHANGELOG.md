@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.8] - 2026-10-14
+
 ### Added
 - **`TrainResult.first_logged_loss`, also kept in `TrainingCheckpointer`'s state**: the value on
   a run's first `Train Loss` line, the mean of its first `log_every` batches, so it can be set
