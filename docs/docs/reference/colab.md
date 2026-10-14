@@ -71,6 +71,29 @@ device = env.device                    # cuda when there is a GPU, else cpu
   or Git LFS host by itself. A clone made without `git lfs pull` has pointer files in place
   of the real ones; those are replaced too.
 
+## The course folder
+
+Each assignment keeps its work in `MyDrive/CS479/<assignment>`, and a later notebook reads what
+an earlier one wrote there. `course_dir` finds that folder and checks the files a notebook
+needs, all at once, so a student who skipped a step sees which files are missing, where they
+should be, and what writes them, rather than a `FileNotFoundError` several cells later:
+
+```python
+from torchlingo.colab import course_dir, setup
+
+env = setup(gpu=True, drive=True)
+A8_DIR = course_dir(
+    env.drive_dir, "assignment8",
+    needs=["train.tsv", "val.tsv", "test.tsv", "spm.model"],
+    hint="Lecture 9's Part B writes them; finish A9 first.",
+)
+# SystemExit: Not found in /content/drive/MyDrive/CS479/assignment8: spm.model.
+#   Lecture 9's Part B writes them; finish A9 first.
+```
+
+It stops with `SystemExit`, which a notebook shows as the message alone, without a traceback.
+For a notebook that writes to a new folder, `create=True` makes it.
+
 ## API
 
 ::: torchlingo.colab

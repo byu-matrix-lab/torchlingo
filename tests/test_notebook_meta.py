@@ -906,9 +906,9 @@ class TestNotebookHygiene(unittest.TestCase):
         self.source = nm.COURSE / "lecture-03-word-embeddings.ipynb"
         self.base = json.loads(self.source.read_text(encoding="utf-8"))
 
-    def check(self, nb=None, text=None):
+    def check(self, nb=None, text=None, name=None):
         """Write a notebook into a directory treated as `course/`, and check it."""
-        target = self.tmp / self.source.name
+        target = self.tmp / (name or self.source.name)
         target.write_text(
             text if text is not None else json.dumps(nb, indent=1), encoding="utf-8"
         )
@@ -1061,6 +1061,53 @@ class TestNotebookHygiene(unittest.TestCase):
             if cell["cell_type"] == "code":
                 cell["source"] = ["if True:\n", "    %pip install torchlingo\n"]
                 break
+        self.assertEqual(self.check(nb), [])
+
+    def with_markdown(self, nb, text):
+        """Append a Markdown cell, in the 4.0 shape the fixture uses (no id)."""
+        nb["cells"].append({"cell_type": "markdown", "metadata": {}, "source": [text]})
+        return nb
+
+    def test_a_gpu_notebook_without_the_disconnect_section_is_caught(self):
+        """An idle GPU runtime spends the student's Colab quota (Eric, 2026-10-13)."""
+        nb = self.with_code_line("env = setup(gpu=True, drive=True)")
+        complaints = self.check(nb)
+        self.assertTrue(any("disconnect" in c for c in complaints), complaints)
+
+    def test_a_gpu_notebook_that_says_how_to_disconnect_is_clean(self):
+        nb = self.with_markdown(
+            self.with_code_line("env = setup(gpu=True, drive=True)"),
+            "**Runtime → Disconnect and delete runtime** when you finish.",
+        )
+        self.assertEqual(self.check(nb), [])
+
+    def test_a_cpu_notebook_needs_no_disconnect_section(self):
+        nb = self.with_code_line("env = setup(gpu=False, drive=True)")
+        self.assertEqual(self.check(nb), [])
+
+    def test_the_gpu_exemption_holds_and_expires(self):
+        """The live A9 copy is exempt until `-new` is renamed over it; then it must go."""
+        name = "lecture-09-subword-tokenization.ipynb"
+        self.assertIn(name, nm.GPU_WITHOUT_DISCONNECT)
+        gpu = self.with_code_line("env = setup(gpu=True, drive=True)")
+        self.assertEqual(self.check(gpu, name=name), [])
+        fixed = self.with_markdown(gpu, "Runtime → Disconnect and delete runtime")
+        complaints = self.check(fixed, name=name)
+        self.assertTrue(any("GPU_WITHOUT_DISCONNECT" in c for c in complaints))
+
+    def test_a_cell_id_in_an_nbformat_4_0_notebook_is_caught(self):
+        """nbformat adds an id to every cell it creates, valid only from 4.5."""
+        nb = json.loads(json.dumps(self.base))
+        self.assertEqual((nb["nbformat"], nb["nbformat_minor"]), (4, 0))
+        nb["cells"][1]["id"] = "abc123"
+        complaints = self.check(nb)
+        self.assertTrue(any("cell ids" in c for c in complaints), complaints)
+
+    def test_cell_ids_are_fine_in_nbformat_4_5(self):
+        nb = json.loads(json.dumps(self.base))
+        nb["nbformat_minor"] = 5
+        for index, cell in enumerate(nb["cells"]):
+            cell["id"] = f"cell-{index}"
         self.assertEqual(self.check(nb), [])
 
 
