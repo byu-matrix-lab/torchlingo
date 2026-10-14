@@ -18,7 +18,7 @@ Example:
 
     >>> from torchlingo.colab import setup                        # doctest: +SKIP
     >>> env = setup(gpu=True, drive=True, data=["data/pretrained/model.pt"])  # doctest: +SKIP
-    >>> out_dir = env.drive_dir / "CS479"                          # doctest: +SKIP
+    >>> a8_dir = course_dir(env.drive_dir, "assignment8", needs=["train.tsv"])  # doctest: +SKIP
 """
 
 from __future__ import annotations
@@ -215,3 +215,75 @@ def setup(
     return NotebookEnvironment(
         device=device, in_colab=in_colab, drive_dir=drive_dir, files=files
     )
+
+
+COURSE_FOLDER = "CS479"
+
+
+def course_dir(
+    drive_dir: str | Path | None,
+    assignment: str | None = None,
+    *,
+    needs: Iterable[str | Path] = (),
+    hint: str = "",
+    create: bool = False,
+) -> Path:
+    """Find a course folder on Drive, stopping with instructions if files are missing.
+
+    The course notebooks keep each assignment's work in ``MyDrive/CS479/<assignment>``, and
+    one notebook reads what an earlier one wrote there. When a file is missing, a student
+    should see which files, in which folder, and what writes them, not a ``FileNotFoundError``
+    traceback several cells later. This function checks every file at once and stops with
+    :class:`SystemExit`, which a notebook shows as the message alone.
+
+    Args:
+        drive_dir (str | Path | None): Where Drive is, normally ``setup(drive=True).drive_dir``.
+        assignment (str | None, optional): The folder under ``CS479``, such as
+            ``"assignment8"``. Defaults to ``CS479`` itself.
+        needs (Iterable[str | Path], optional): Paths inside the folder that must exist, such
+            as ``"train.tsv"`` or ``"best-a9/model_best.pt"``.
+        hint (str, optional): Appended to the message when something is missing: what writes
+            the files, and what to do. Defaults to no hint.
+        create (bool, optional): Make the folder if it does not exist, for a notebook that
+            writes there. Defaults to False.
+
+    Returns:
+        Path: The folder.
+
+    Raises:
+        ValueError: If ``drive_dir`` is None, because :func:`setup` was not asked for Drive.
+        SystemExit: If any of ``needs`` is missing. The message names each one, the folder,
+            and ``hint``.
+
+    Examples:
+        >>> import tempfile
+        >>> from pathlib import Path
+        >>> with tempfile.TemporaryDirectory() as drive:
+        ...     out = course_dir(drive, "assignment8", create=True)
+        ...     _ = (out / "train.tsv").write_text("src\\ttgt\\n")
+        ...     found = course_dir(drive, "assignment8", needs=["train.tsv"])
+        ...     print(found.relative_to(drive).as_posix())
+        ...     try:
+        ...         course_dir(drive, "assignment8", needs=["train.tsv", "test.tsv"],
+        ...                    hint="The A8 notebook writes them.")
+        ...     except SystemExit as stopped:
+        ...         print(stopped)
+        CS479/assignment8
+        Not found in .../CS479/assignment8: test.tsv. The A8 notebook writes them.
+    """
+    if drive_dir is None:
+        raise ValueError(
+            "No Drive folder: call setup(drive=True) and pass its drive_dir."
+        )
+    folder = Path(drive_dir) / COURSE_FOLDER
+    if assignment is not None:
+        folder = folder / assignment
+    if create:
+        folder.mkdir(parents=True, exist_ok=True)
+
+    missing = [Path(n).as_posix() for n in needs if not (folder / n).exists()]
+    if missing:
+        where = "" if folder.is_dir() else " (the folder itself does not exist)"
+        message = f"Not found in {folder}{where}: {', '.join(missing)}."
+        raise SystemExit(f"{message} {hint}".rstrip())
+    return folder

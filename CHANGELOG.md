@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`torchlingo.colab.course_dir`**: finds a course folder on Drive (`MyDrive/CS479/<assignment>`)
+  and checks the files a notebook needs from it, all at once. When any are missing it stops with
+  a message naming each one, the folder, and what writes them, in place of the check every
+  assignment notebook from A9 on writes out by hand. `create=True` makes the folder for a
+  notebook that writes there.
+
 ## [0.2.7] - 2026-10-13
 
 ### Added
