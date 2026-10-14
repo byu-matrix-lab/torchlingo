@@ -647,7 +647,8 @@ class SentencePieceVocab(BaseVocab):
     and provides statistically-driven subword segmentation.
 
     Args:
-        model_path (str): Path to a SentencePiece model file (.model).
+        model_path (str, optional): Path to a SentencePiece model file (.model).
+            Give this or ``model_proto``, not both.
         pad_idx (int, optional): Padding token index. If None, uses value from
             config. Defaults to None.
         unk_idx (int, optional): Unknown token index. If None, uses value from
@@ -658,8 +659,14 @@ class SentencePieceVocab(BaseVocab):
             value from config. Defaults to None.
         config (Config, optional): Configuration object to use for default values.
             If None, uses get_default_config(). Defaults to None.
+        model_proto (bytes, optional): The model itself, as bytes, in place of a
+            path; this is how a checkpoint carries its tokenizer. The bytes are
+            what ``vocab.sp.serialized_model_proto()`` returns, or a ``.model``
+            file's contents.
 
     Raises:
+        ValueError: If both or neither of ``model_path`` and ``model_proto``
+            are given.
         FileNotFoundError: If the model file does not exist.
         RuntimeError: If the model cannot be loaded by SentencePiece.
 
@@ -673,12 +680,14 @@ class SentencePieceVocab(BaseVocab):
 
     def __init__(
         self,
-        model_path: str,
+        model_path: str | None = None,
         pad_idx: int | None = None,
         unk_idx: int | None = None,
         sos_idx: int | None = None,
         eos_idx: int | None = None,
         config: Config | None = None,
+        *,
+        model_proto: bytes | None = None,
     ) -> None:
         cfg = config if config is not None else get_default_config()
         super().__init__(
@@ -693,11 +702,17 @@ class SentencePieceVocab(BaseVocab):
             config=cfg,
         )
 
+        if (model_path is None) == (model_proto is None):
+            raise ValueError("give exactly one of model_path and model_proto")
+        self.sp: spm.SentencePieceProcessor = spm.SentencePieceProcessor()
+        if model_proto is not None:
+            # The model's bytes, as a checkpoint carries them: no file needed.
+            self.sp.load_from_serialized_proto(model_proto)
+            return
         # Load sentencepiece processor; the load() call returns False when the
         # model could not be found/loaded which we surface as FileNotFoundError
         # to make failures explicit and easy to debug in upstream code.
-        self.sp: spm.SentencePieceProcessor = spm.SentencePieceProcessor()
-        loaded = self.sp.load(model_path)
+        loaded = self.sp.load(str(model_path))
         if not loaded:
             raise FileNotFoundError(f"SentencePiece model not found: {model_path}")
 

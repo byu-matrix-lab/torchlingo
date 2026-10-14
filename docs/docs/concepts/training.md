@@ -294,6 +294,14 @@ def load_checkpoint(model, optimizer, scheduler, path):
     return checkpoint['epoch'], checkpoint['loss']
 ```
 
+!!! tip "In TorchLingo"
+    `train_model` does this for you, in two ways. `checkpointer=` saves training
+    state so an interrupted run resumes (see
+    [Training Checkpoints](../reference/training_checkpoint.md)). `save_dir=` saves
+    the best model with its settings and vocabularies, and
+    `load_model(save_dir / "model_best.pt")` rebuilds both in a new session (see
+    [Model Checkpoints](../reference/checkpoint.md)).
+
 ## GPU Training
 
 Move model and data to GPU for faster training:
