@@ -20,9 +20,29 @@ set -uo pipefail
 
 cd "$(dirname "$0")/.."
 
-if [[ -d .venv && -z "${VIRTUAL_ENV:-}" ]]; then
-  # shellcheck disable=SC1091
-  source .venv/bin/activate
+# A git worktree has no .venv of its own, so fall back to the main checkout's.
+if [[ -z "${VIRTUAL_ENV:-}" ]]; then
+  MAIN_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"
+  for venv in .venv "$MAIN_ROOT/.venv"; do
+    if [[ -d "$venv" ]]; then
+      # shellcheck disable=SC1091
+      source "$venv/bin/activate"
+      break
+    fi
+  done
+fi
+
+# TEST THIS TREE'S CODE, NOT THE INSTALLED COPY. The venv's editable install points at
+# whichever checkout ran `pip install -e`, normally the main one. Run from a worktree without
+# this, every Python gate imported the main checkout's torchlingo: on 2026-10-14 a branch's
+# new module failed to import in its own preflight, and a library change could as easily have
+# passed against the old code. Putting this tree's src first on the path fixes both.
+export PYTHONPATH="$PWD/src${PYTHONPATH:+:$PYTHONPATH}"
+IMPORTED="$(python -c 'import torchlingo, os; print(os.path.dirname(torchlingo.__file__))' 2>&1)"
+if [[ "$IMPORTED" != "$PWD/src/torchlingo" ]]; then
+  echo "preflight: torchlingo imports from $IMPORTED, not $PWD/src/torchlingo."
+  echo "The gates would test the wrong code. Check PYTHONPATH and the active venv."
+  exit 1
 fi
 
 MODE="${1:-}"
