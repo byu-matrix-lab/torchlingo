@@ -3,8 +3,9 @@
 The notebook declares ``exercises``, so CI's notebook run skips it: as shipped it stops at
 ``attention`` until a student writes it. These tests run its cells from the notebook file itself
 with an answer written in, on the pretrained model, and check that the step matches the model's
-four heads and the map prints. Two more check that the notebook as shipped stops at the exercise
-and that an answer missing the √d_k scale is rejected by the paper case.
+four heads, the map prints and the prediction is marked. The rest check that the notebook as
+shipped stops at the exercise, that it stops at the prediction while it is empty or names a piece
+that is not there, and that an answer missing the √d_k scale is rejected by the paper case.
 
 The pretrained model lives in Git LFS, which CI does not fetch, so the class skips there.
 """
@@ -37,9 +38,15 @@ def is_available(path: Path) -> bool:
         return not handle.read(23).startswith(b"version https://git-lfs")
 
 
-def lecture_08b_cells(answer: dict[str, str] | None = None) -> list[tuple[int, str]]:
+PREDICTED = {"PREDICTION = {}": 'PREDICTION = {"▁nuestra": "▁our", "▁Esta": "▁is"}'}
+
+
+def lecture_08b_cells(
+    answer: dict[str, str] | None = None, predicted: bool = True
+) -> list[tuple[int, str]]:
     cells = [c for c in code_cells(NOTEBOOK) if not any(m in c[1] for m in SKIPPED)]
-    return substitute(cells, ANSWER if answer is None else answer)
+    cells = substitute(cells, ANSWER if answer is None else answer)
+    return substitute(cells, PREDICTED) if predicted else cells
 
 
 @unittest.skipUnless(is_available(MODEL), "pretrained model not fetched (Git LFS)")
@@ -54,15 +61,11 @@ class TestLecture08b(unittest.TestCase):
         namespace, printed = run_cells(lecture_08b_cells())
         self.assertIn("attention passes its checks.", printed)
         self.assertIn("Your attention step is the model's, in all four heads.", printed)
-        self.assertIn("Your prediction: (none written)", printed)
+        self.assertIn("What missed: (none written)", printed)
         self.assertEqual(len(namespace["yours"]), 4)
 
     def test_a_prediction_is_marked(self):
-        cells = substitute(
-            lecture_08b_cells(),
-            {"PREDICTION = {}": 'PREDICTION = {"▁nuestra": "▁our", "▁Esta": "▁is"}'},
-        )
-        _, printed = run_cells(cells)
+        _, printed = run_cells(lecture_08b_cells())
         self.assertIn(
             "'▁nuestra': you predicted '▁our'; it looked most at '▁our' (right)",
             printed,
@@ -76,6 +79,20 @@ class TestLecture08b(unittest.TestCase):
         with self.assertRaises(NotImplementedError) as stopped:
             run_cells(lecture_08b_cells(answer={}))
         self.assertIn("write attention", str(stopped.exception))
+
+    def test_without_a_prediction_it_stops_before_the_map(self):
+        with self.assertRaises(AssertionError) as stopped:
+            run_cells(lecture_08b_cells(predicted=False))
+        self.assertIn("Write your prediction", str(stopped.exception))
+
+    def test_a_prediction_naming_no_output_piece_stops(self):
+        cells = substitute(
+            lecture_08b_cells(predicted=False),
+            {"PREDICTION = {}": 'PREDICTION = {"nuestra": "▁our"}'},
+        )
+        with self.assertRaises(AssertionError) as stopped:
+            run_cells(cells)
+        self.assertIn("is not an output piece", str(stopped.exception))
 
     def test_an_answer_without_the_scale_is_rejected(self):
         unscaled = {RAISE: ANSWER[RAISE].replace(" / math.sqrt(k.shape[-1])", "")}

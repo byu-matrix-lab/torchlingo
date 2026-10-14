@@ -3,9 +3,10 @@
 The notebook declares ``exercises``, so CI's notebook run skips it: as shipped it stops at
 ``split_heads`` until a student writes it. These tests run its cells from the notebook file
 itself with both answers written in, on the pretrained model, and check that the heads match the
-model in every encoder layer and the sharpness table prints. Two more check that the notebook as
-shipped stops at the first exercise, and that a ``split_heads`` which reshapes without moving
-the head dimension, a likely first attempt, is rejected by the eye-readable case.
+model in every encoder layer and the sharpness table prints. The rest check that the notebook as
+shipped stops at the first exercise and at the prediction while it is empty, that a
+``split_heads`` which reshapes without moving the head dimension, a likely first attempt, is
+rejected by the eye-readable case, and that a ``sharpness`` over columns is rejected.
 
 The pretrained model lives in Git LFS, which CI does not fetch, so the class skips there.
 """
@@ -31,9 +32,15 @@ ANSWERS = {
 }
 
 
-def lecture_08c_cells(answers: dict[str, str] | None = None) -> list[tuple[int, str]]:
+PREDICTED = {'PREDICTION = ""': 'PREDICTION = "the heads differ"'}
+
+
+def lecture_08c_cells(
+    answers: dict[str, str] | None = None, predicted: bool = True
+) -> list[tuple[int, str]]:
     cells = [c for c in code_cells(NOTEBOOK) if not any(m in c[1] for m in SKIPPED)]
-    return substitute(cells, ANSWERS if answers is None else answers)
+    cells = substitute(cells, ANSWERS if answers is None else answers)
+    return substitute(cells, PREDICTED) if predicted else cells
 
 
 @unittest.skipUnless(is_available(MODEL), "pretrained model not fetched (Git LFS)")
@@ -48,7 +55,8 @@ class TestLecture08c(unittest.TestCase):
         self.assertIn("split_heads passes its checks.", printed)
         self.assertIn("Your heads are the model's, in every layer.", printed)
         self.assertIn("sharpness passes its checks.", printed)
-        self.assertIn("Your prediction: (none written)", printed)
+        self.assertIn("Your prediction: the heads differ", printed)
+        self.assertIn("What missed: (none written)", printed)
         self.assertEqual(len(namespace["layer_weights"]), 3)
         # The first layer's heads are sharp and their average is not: what the reading claims.
         first = namespace["sharpness"](namespace["layer_weights"][0])
@@ -60,6 +68,11 @@ class TestLecture08c(unittest.TestCase):
         with self.assertRaises(NotImplementedError) as stopped:
             run_cells(lecture_08c_cells(answers={}))
         self.assertIn("write split_heads", str(stopped.exception))
+
+    def test_without_a_prediction_it_stops_before_the_heads(self):
+        with self.assertRaises(AssertionError) as stopped:
+            run_cells(lecture_08c_cells(predicted=False))
+        self.assertIn("Write your prediction", str(stopped.exception))
 
     def test_a_reshape_that_keeps_pieces_first_is_rejected(self):
         careless = {**ANSWERS, SPLIT: "return x.reshape(n_heads, x.shape[0], -1)"}
