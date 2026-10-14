@@ -217,6 +217,8 @@ class SimpleTransformer(nn.Module):
         max_seq_length (int): Maximum sequence length.
         norm_first (bool): True if this model is pre-norm, False if post-norm.
         pad_idx (int): Resolved padding index.
+        model_config (dict): Every constructor setting, resolved; passing it back
+            as ``SimpleTransformer(**model_config)`` builds the same architecture.
         src_tok_emb (nn.Embedding): Source token embedding layer.
         tgt_tok_emb (nn.Embedding): Target token embedding layer.
         pos_encoding (SinusoidalPositionalEncoding): Positional encoding module.
@@ -265,6 +267,21 @@ class SimpleTransformer(nn.Module):
         self.max_seq_length = max_seq_length
         self.dropout = dropout
         self.norm_first = norm_first
+        # Every setting, resolved, so a checkpoint can rebuild this exact model
+        # without the code that built it (see torchlingo.checkpoint.load_model).
+        self.model_config = {
+            "src_vocab_size": src_vocab_size,
+            "tgt_vocab_size": tgt_vocab_size,
+            "d_model": d_model,
+            "n_heads": n_heads,
+            "num_encoder_layers": num_encoder_layers,
+            "num_decoder_layers": num_decoder_layers,
+            "d_ff": d_ff,
+            "max_seq_length": max_seq_length,
+            "dropout": dropout,
+            "pad_idx": self.pad_idx,
+            "norm_first": norm_first,
+        }
 
         self.src_tok_emb = nn.Embedding(
             src_vocab_size, d_model, padding_idx=self.pad_idx

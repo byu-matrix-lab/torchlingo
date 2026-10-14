@@ -31,9 +31,12 @@ except ImportError:  # pragma: no cover - optional dependency
     SummaryWriter = None
 
 
+from .checkpoint import describe_model
 from .config import Config, get_default_config
 
 if TYPE_CHECKING:
+    from .data_processing.vocab import BaseVocab
+
     # Import only for typing: training_checkpoint imports nothing from here, and
     # keeping it that way means the dependency stays one-way.
     from .training_checkpoint import TrainingCheckpointer
@@ -201,6 +204,8 @@ def train_model(
     log_every: int = 0,
     accumulation_steps: int = 1,
     checkpointer: TrainingCheckpointer | None = None,
+    src_vocab: BaseVocab | None = None,
+    tgt_vocab: BaseVocab | None = None,
 ) -> TrainResult:
     """Train a seq2seq model with optional validation and checkpointing.
 
@@ -234,6 +239,13 @@ def train_model(
             saves periodically so a Colab disconnect costs minutes rather than
             the whole run. Distinct from ``save_dir``, which writes a finished
             model for inference; this saves resumable training state.
+        src_vocab: The source vocabulary, recorded in every model file this
+            writes so :func:`~torchlingo.checkpoint.load_model` can rebuild the
+            model and its vocabularies from the file alone. Defaults to
+            ``train_loader.dataset.src_vocab``, which an ``NMTDataset`` (and so
+            ``create_dataloaders``) provides.
+        tgt_vocab: The target vocabulary, recorded the same way. Defaults to
+            ``train_loader.dataset.tgt_vocab``.
 
     Returns:
         TrainResult containing per-epoch losses and optional checkpoint path.
@@ -253,6 +265,18 @@ def train_model(
     cfg = config if config is not None else get_default_config()
     device = _resolve_device(device)
     model = model.to(device)
+
+    # What every model file needs besides the weights to rebuild the model alone:
+    # its class, its settings and its vocabularies. Empty for a model TorchLingo
+    # did not build, whose files are then saved as they always were.
+    dataset = getattr(train_loader, "dataset", None)
+    src_vocab = (
+        src_vocab if src_vocab is not None else getattr(dataset, "src_vocab", None)
+    )
+    tgt_vocab = (
+        tgt_vocab if tgt_vocab is not None else getattr(dataset, "tgt_vocab", None)
+    )
+    described = describe_model(model, src_vocab, tgt_vocab)
 
     opt = (
         optimizer
@@ -508,6 +532,7 @@ def train_model(
                         no_improve_steps = 0
                         # save best checkpoint with full training state
                         state = {
+                            **described,
                             "epoch": epoch,
                             "global_step": global_step,
                             "model_state_dict": model.state_dict(),
@@ -541,6 +566,7 @@ def train_model(
                     and global_step % cfg.save_interval == 0
                 ):
                     state = {
+                        **described,
                         "epoch": epoch,
                         "global_step": global_step,
                         "model_state_dict": model.state_dict(),
@@ -664,6 +690,7 @@ def train_model(
                 best_path = Path(save_dir) / "model_best.pt"
                 torch.save(
                     {
+                        **described,
                         "epoch": epoch,
                         "global_step": global_step,
                         "model_state_dict": model.state_dict(),
@@ -680,6 +707,7 @@ def train_model(
                 cfg.checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
                 torch.save(
                     {
+                        **described,
                         "epoch": epoch,
                         "global_step": global_step,
                         "model_state_dict": model.state_dict(),

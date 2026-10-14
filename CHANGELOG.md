@@ -13,6 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a message naming each one, the folder, and what writes them, in place of the check every
   assignment notebook from A9 on writes out by hand. `create=True` makes the folder for a
   notebook that writes there.
+- **`torchlingo.checkpoint.load_model(path, device=None)`**: one call rebuilds a trained model
+  and both its vocabularies from its file, with nothing re-declared, so a new session needs
+  only the path. It returns `(model, src_vocab, tgt_vocab)`, the model in `eval()` mode, and
+  refuses a vocabulary whose size does not match the model's.
+- **`train_model` writes self-describing model files.** Every file it saves (`save_dir`'s
+  `model_best.pt` and `model_last.pt`, or `config.checkpoint_path`) now also holds the
+  model's class, every setting it was built with (`model.model_config`, which both models now
+  record) and its vocabularies, taken from `train_loader.dataset` or from the new
+  `src_vocab=`/`tgt_vocab=` arguments. `SimpleVocab`, `CharVocab` and `SentencePieceVocab`
+  are recorded; a shared vocabulary is stored once.
+- `SentencePieceVocab(model_proto=...)` builds a vocabulary from a model's bytes.
+
+### Changed
+- Files saved before this load exactly as before through `load_checkpoint`; `load_model`
+  refuses them with instructions rather than guess their settings. `load_checkpoint` now
+  returns a new `train_model` file's full contents (training state included) rather than the
+  legacy wrapper, and `save_checkpoint`'s `model_config` defaults to `model.model_config`.
 
 ## [0.2.7] - 2026-10-13
 

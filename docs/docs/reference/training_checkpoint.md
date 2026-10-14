@@ -10,11 +10,14 @@ questions, and picking the wrong one is the easy mistake:
 | | `torchlingo.checkpoint` | `torchlingo.training_checkpoint` |
 | --- | --- | --- |
 | Saves | a **finished model** for inference | **training state** for resuming |
-| Contents | weights, architecture config, tokenizers | weights, optimizer, scheduler, epoch, step, loss history |
+| Contents | weights, architecture config, vocabularies | weights, optimizer, scheduler, epoch, step, loss history |
+| Written by | `train_model(..., save_dir=...)`, as `model_best.pt` | `train_model(..., checkpointer=...)` |
+| Read back with | `load_model(path)`, which rebuilds the model and vocabularies | passing the same checkpointer to `train_model` again |
 | Use when | you are done training and want a portable file | you are mid-training and might get interrupted |
 
 A training checkpoint is not a substitute for the other: it does not carry the
-tokenizers, so it is not portable to someone else's machine. Save both.
+vocabularies, so it is not portable to someone else's machine. Save both. See
+[Model Checkpoints](checkpoint.md).
 
 ## Quick Start
 

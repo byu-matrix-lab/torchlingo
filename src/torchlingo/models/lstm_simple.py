@@ -74,6 +74,8 @@ class SimpleSeq2SeqLSTM(nn.Module):
             or ``None`` when attention is disabled.
         output (nn.Linear): Linear output layer projecting decoder hidden state to target vocabulary.
         hidden_dim (int): Hidden dimension size.
+        model_config (dict): Every constructor setting, resolved; passing it back
+            as ``SimpleSeq2SeqLSTM(**model_config)`` builds the same architecture.
 
     Note:
         Enabling attention adds parameters, so a checkpoint saved with
@@ -138,6 +140,19 @@ class SimpleSeq2SeqLSTM(nn.Module):
 
         self.output = nn.Linear(hidden_dim, tgt_vocab_size)
         self.hidden_dim = hidden_dim
+        # Every setting, resolved, so a checkpoint can rebuild this exact model
+        # without the code that built it (see torchlingo.checkpoint.load_model).
+        self.model_config = {
+            "src_vocab_size": src_vocab_size,
+            "tgt_vocab_size": tgt_vocab_size,
+            "emb_dim": emb_dim,
+            "hidden_dim": hidden_dim,
+            "num_layers": num_layers,
+            "dropout": dropout,
+            "pad_idx": self.pad_idx,
+            "attention": bool(attention),
+            "attn_type": attn_type,
+        }
 
         # Initialize weights for better convergence
         self._init_weights()

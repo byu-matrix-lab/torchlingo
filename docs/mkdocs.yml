@@ -162,6 +162,7 @@ nav:
     - Config: reference/config.md
     - Diagnostics: reference/diagnostics.md
     - Evaluation: reference/evaluation.md
+    - Model Checkpoints: reference/checkpoint.md
     - Training Checkpoints: reference/training_checkpoint.md
     - Notebook Setup: reference/colab.md
     - Data Processing:
