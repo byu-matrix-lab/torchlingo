@@ -440,10 +440,10 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-04-tmx-cleaning` | 4 | activity | A4 | planted TMX problems, two parsers, a checker that names the cleaning step | no: pip, exercises |
 | `01-data-and-vocab` | 4, 9 | reference | A9 | the library's view of corpus loading, from A5's two files; word-level vocab, stops at `<unk>`, which Lecture 9 takes up | yes |
 | `lecture-05-sentence-alignment` | 5 | activity | A5 | estimate Gale-Church parameters on your language | no: pip |
-| `lecture-06-mt-evaluation` | 6 | activity | A6 | BLEU and chrF on your data; BLEU returns zero on ten short sentences | yes |
+| `lecture-06-mt-evaluation` | 6 | activity | A6 | BLEU and chrF on your data; BLEU returns zero on ten short sentences | no: exercises |
 | `lecture-06-mt-evaluation-homework` | 6 | homework | A6 | the assignment's scaffold over your uploaded A5 corpus | no: colab |
 | `02-evaluating-translations` | 6 | reading | A6, A8 | the library's out-of-class treatment of evaluation | yes |
-| `lecture-07-toy-model` | 7 | activity | A7 | the three-part toy-model exercise; the student picks the held-out phrase, predicts, and a contrast phrase runs; resume demo | yes |
+| `lecture-07-toy-model` | 7 | activity | A7 | the three-part toy-model exercise; the student picks the held-out phrase, predicts, and a contrast phrase runs; resume demo | no: exercises |
 | `03-train-tiny-model` | 7 | reading | A8 | what a checkpoint holds and what it does not; a rebuild that fails loudly, and one that loads cleanly and translates nonsense | yes |
 | `lecture-08a-a8-kickoff` | 8a | activity | A8 | from your A5 corpus to a running, checkpointed, bucketed training job | no: colab, pip |
 | `04-attention-and-alignment` | 8a, 8b | reading | | with and without attention; did it learn the right alignment; Part 7 is the Transformer | yes |
@@ -769,18 +769,28 @@ Notes on the rows that are not simple:
   step and the student writes two string cleaners. Installs Translate Toolkit, so CI does
   not execute it; tests/test_lecture_04.py runs its cells with answers written in and the
   parser stubbed by xml.etree.
-- [7] **`lecture-06-mt-evaluation-homework`** — The A6 homework: the metrics on the
-  student's own Assignment 5 corpus, uploaded through the Colab file picker, so it cannot
-  run outside Colab.
-- [8] **`lecture-06-mt-evaluation`** — Lecture 6's in-class activity: BLEU and chrF on
-  supplied data, and BLEU's zero on short sentences. The homework on the student's own
-  data is lecture-06-mt-evaluation-homework. Needs nothing and no Colab runtime, so it
-  executes in CI.
+- [7] **`lecture-06-mt-evaluation-homework`** — The A6 homework: ten sentences from the
+  student's own Assignment 5 corpus, uploaded through the Colab file picker, translated by
+  a web MT system and pasted in, ranked by hand into MY_RANKING (which stops the notebook
+  while empty) before any score prints, then scored with BLEU, chrF and TER, with
+  sentence-level chrF set beside the ranking. Needs the Colab picker, so CI does not
+  execute it; tests/test_lecture_06.py runs its cells with the upload skipped and files,
+  translations and a ranking written in.
+- [8] **`lecture-06-mt-evaluation`** — Lecture 6's in-class activity on supplied data:
+  BLEU's zero on two short sentences, then the student writes bleu_from_parts (BLEU from
+  bleu.precisions and bleu.bp, checked on a case worked on paper, on a brevity penalty and
+  on Part 1's zero, then against BLEU's own score on both Part 2 systems); reads five
+  pairs and records which system they would rank higher and which BLEU will prefer before
+  any score; and predicts BLEU at three words kept before the brevity-penalty table. Each
+  prediction stops the notebook while empty. The homework on the student's own data is
+  lecture-06-mt-evaluation-homework. CI does not execute it as shipped;
+  tests/test_lecture_06.py runs its cells with an answer and predictions written in.
 - [9] **`lecture-07-toy-model`** — Lecture 7's three-part exercise: Part A in class
   (install, train the toy model, read the loss curve against ln(V)), Part B outside class
   (hold out a phrase of the student's choice, predict, run a contrast phrase, score seen
   against unseen; watch a run resume after a faked disconnect), Part C the report handed
-  in as A7. Trains a 64-dimensional model in seconds, so it runs in CI.
+  in as A7. Part B stops while HELD_OUT is unset or the prediction is empty, so CI does
+  not execute it; tests/test_lecture_07.py runs its cells with both filled in.
 - [10] **`lecture-08a-a8-kickoff`** — The in-class start of Assignment 8: from the
   student's Assignment 5 corpus to a training run already going when class ends. The
   handout is the authority; this is the executable path through it, and every threshold is
@@ -789,15 +799,19 @@ Notes on the rows that are not simple:
   of what was tutorial 5. The student writes attention, one scaled dot-product step,
   checked on a case worked on paper (one that also catches a missing √d_k) and then
   against the trained model's own weights in all four heads of the last decoder layer's
-  cross-attention; then predicts where three output pieces will look and reads the
-  averaged map against the translation: the right words found, the wrong Spanish written.
-  tests/test_lecture_08b.py runs it with an answer written in.
+  cross-attention; places it among the three attentions and their weight shapes; then
+  predicts where three output pieces will look, which stops the notebook while empty,
+  reads the averaged map against the translation (the right words found, the wrong Spanish
+  written) and records which prediction missed. tests/test_lecture_08b.py runs it with an
+  answer written in.
 - [12] **`lecture-08c-attention-heads`** — Lecture 8c's activity, the self-attention half
-  of what was tutorial 5, on the same model and sentence as Lecture 8b's. The student
-  writes split_heads, checked on numbers readable by eye and then against the model's own
-  weights in every encoder layer, and sharpness, checked on paper cases; predicts, then
-  reads the first layer head by head and measures how averaging and depth blur attention.
-  tests/test_lecture_08c.py runs it with answers written in.
+  of what was tutorial 5, on the same model and sentence as Lecture 8b's, with Lecture
+  8b's attention step given. The student writes split_heads, checked on numbers readable
+  by eye and then against the model's own weights in every encoder layer, and sharpness,
+  checked on paper cases; predicts, which stops the notebook while empty, then reads the
+  first layer head by head, measures how averaging and depth blur attention, and records
+  which part of the prediction missed. tests/test_lecture_08c.py runs it with answers
+  written in.
 - [13] **`lecture-09-subword-tokenization-new`** — The next version of
   lecture-09-subword-tokenization, renamed over it once A9's deadline has passed (Eric,
   Oct 13), so students mid-assignment keep the notebook they started. Part B reads the
