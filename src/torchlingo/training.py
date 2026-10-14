@@ -62,7 +62,9 @@ class TrainResult:
             mean of its first ``log_every`` batches (or ``config.log_interval``).
             The number to set beside ``ln(V)``, the loss of a model that has
             learned nothing. A resumed run keeps the original run's value. None
-            if no line was ever logged.
+            if no line was ever logged, and None for a run resumed from a state
+            that has trained but holds no value (one saved before TorchLingo
+            kept it): that run's first line comes from a partly trained model.
     """
 
     train_losses: list[float]
@@ -372,8 +374,10 @@ def train_model(
     # shuffled loader the skipped batches are not the same ones that were
     # trained, but the step count, and so the learning-rate schedule, is exact.
     resume_skip = 0
-    # The first "Train Loss" line's value, kept for comparison with ln(V).
+    # The first "Train Loss" line's value, kept for comparison with ln(V). Only a run that
+    # starts from an untrained model may record it; see the resume below.
     first_logged_loss: float | None = None
+    record_first_logged_loss = True
 
     # Resume before the loop starts, so a re-run of the same cell after a
     # disconnect continues rather than starting over. Failing to resume is not
@@ -403,7 +407,17 @@ def train_model(
             val_losses = list(state.val_losses)
             # The original run's first line, not this one's: a resumed run's
             # first line comes from a model that has already learned something.
+            # So once any training has happened, nothing new is recorded, even
+            # when the state holds no value (one saved before the field
+            # existed, or before the first line was logged): None, not a wrong
+            # number.
             first_logged_loss = state.first_logged_loss
+            already_trained = (
+                state.global_step > 0
+                or state.batches_into_epoch > 0
+                or bool(state.train_losses)
+            )
+            record_first_logged_loss = not already_trained
     # Accumulates loss over the current logging window. Unlike the per-epoch
     # totals below, this is reset at each log point (not at each epoch), so the
     # logged "train/loss" curve is continuous across epoch boundaries instead of
@@ -612,7 +626,7 @@ def train_model(
                 print(
                     f"Epoch {epoch + 1} Step {step}/{num_batches} | Train Loss: {window_loss:.4f}"
                 )
-                if first_logged_loss is None:
+                if record_first_logged_loss and first_logged_loss is None:
                     first_logged_loss = window_loss
                     if checkpointer is not None:
                         checkpointer.update(first_logged_loss=window_loss)

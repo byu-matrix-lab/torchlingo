@@ -503,6 +503,12 @@ class TestFirstLoggedLoss(unittest.TestCase):
             "demo", checkpoint_dir=self.dir, verbose=False, save_every_seconds=0
         )
 
+    @staticmethod
+    def _model():
+        from tests.test_training_inference import DummyTransformer
+
+        return DummyTransformer()
+
     def _train(self, num_epochs, checkpointer=None):
         """Train the tiny model with a two-batch log window; return result and lines."""
         from tests.test_training_inference import DummyTransformer
@@ -550,6 +556,24 @@ class TestFirstLoggedLoss(unittest.TestCase):
         resumed, logged = self._train(num_epochs=3, checkpointer=self._checkpointer())
         self.assertEqual(len(logged), 4, "the resumed run trained epochs 2 and 3")
         self.assertEqual(resumed.first_logged_loss, 99.0)
+
+    def test_resuming_a_trained_state_without_the_value_records_none(self):
+        """A state from before the field existed: the resumed run's first line is not the run's."""
+        self._train(num_epochs=1, checkpointer=self._checkpointer())
+        path = self._checkpointer().path_for("latest")
+        payload = torch.load(path, weights_only=False)
+        self.assertTrue(
+            payload["state"]["train_losses"], "the planted state has trained"
+        )
+        del payload["state"]["first_logged_loss"]
+        torch.save(payload, path)
+
+        resumed, logged = self._train(num_epochs=3, checkpointer=self._checkpointer())
+        self.assertEqual(len(logged), 4, "the resumed run did print lines of its own")
+        self.assertIsNone(resumed.first_logged_loss)
+        state = self._checkpointer().load(self._model(), restore_rng=False)
+        self.assertEqual(len(state.train_losses), 3)
+        self.assertIsNone(state.first_logged_loss)
 
     def test_a_state_saved_before_the_field_loads_as_none(self):
         saver = self._checkpointer()

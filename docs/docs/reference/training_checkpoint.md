@@ -84,6 +84,9 @@ print(TrainingCheckpointer("my-experiment").load(model).first_logged_loss)  # a 
 
 It is `None` when no line was logged, for instance when an epoch has fewer
 batches than `log_every`, and in a checkpoint written before TorchLingo kept it.
+A run resumed from such a checkpoint leaves it `None` too: only a run that starts
+from an untrained model records one, because a resumed run's first line comes
+from a model that has already learned something.
 
 ## When it saves
 
