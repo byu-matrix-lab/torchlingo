@@ -508,6 +508,17 @@ SECRET_SHAPES = re.compile(
 )
 
 
+GPU_SETUP = re.compile(r"\bsetup\([^)]*\bgpu\s*=\s*True")
+DISCONNECT = "Disconnect and delete runtime"
+
+# Course notebooks that ask for a GPU and may, for now, not say how to disconnect. One entry:
+# lecture-09-subword-tokenization is the copy students are mid-A9 in, and
+# lecture-09-subword-tokenization-new, which has the section, is renamed over it after the A9
+# deadline (Eric, 2026-10-13). The check complains once an entry is no longer needed, so the
+# rename is what removes it.
+GPU_WITHOUT_DISCONNECT = {"lecture-09-subword-tokenization.ipynb"}
+
+
 def _cell_parses(cell: dict) -> bool:
     """Report whether one code cell is syntactically valid Python.
 
@@ -651,6 +662,39 @@ def hygiene(path: Path) -> list[str]:
         found.append(
             f"{path}: no Colab badge, and students open course notebooks in Colab"
         )
+
+    # A GPU runtime left idle spends the student's Colab quota, so every GPU notebook says
+    # how to give it back: Runtime -> Disconnect and delete runtime (Eric, 2026-10-13).
+    # `setup(gpu=True)` is how a course notebook asks for a GPU; it stops without one.
+    if path.parent == COURSE:
+        sources = ["".join(c.get("source") or []) for c in cells]
+        wants_gpu = any(
+            GPU_SETUP.search(s)
+            for c, s in zip(cells, sources)
+            if c.get("cell_type") == "code"
+        )
+        says_disconnect = any(DISCONNECT in s for s in sources)
+        exempt = path.name in GPU_WITHOUT_DISCONNECT
+        if wants_gpu and not says_disconnect and not exempt:
+            found.append(
+                f"{path}: calls setup(gpu=True) but never tells students to disconnect "
+                f"({DISCONNECT!r}), so an idle GPU runtime spends their Colab quota"
+            )
+        if exempt and (says_disconnect or not wants_gpu):
+            found.append(
+                f"{path}: is listed in GPU_WITHOUT_DISCONNECT but no longer needs to be; "
+                "remove it from that set in scripts/notebook_meta.py"
+            )
+
+    # nbformat 4.0 has no cell ids; 4.5 requires them. A cell added through `nbformat` to a
+    # 4.0 notebook gets one anyway, which leaves the file invalid for its own declared version.
+    if nb.get("nbformat") == 4 and nb.get("nbformat_minor") == 0:
+        with_ids = [i for i, c in enumerate(cells) if "id" in c]
+        if with_ids:
+            found.append(
+                f"{path}: is nbformat 4.0, which has no cell ids, but cell(s) {with_ids} "
+                "carry one -- strip it (nbformat adds one to every cell it creates)"
+            )
 
     return found
 
