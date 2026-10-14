@@ -1,6 +1,6 @@
 """Tests for the helpers the notebooks call instead of carrying their own plumbing.
 
-``torchlingo.colab``, ``preprocessing.split_exact`` and ``diagnostics.padding_report``
+``torchlingo.colab`` (``setup``, ``fetch_data`` and ``course_dir``), ``preprocessing.split_exact`` and ``diagnostics.padding_report``
 replace code every course notebook used to write out by hand, and ``evaluate_model`` is the
 scoring function callers use (Task #86: it had no test of its own). The network and Colab
 are faked, since CI has neither; the real Colab path is exercised by
@@ -134,6 +134,72 @@ class TestSetup(unittest.TestCase):
             self.assertTrue(env.in_colab)
             self.assertEqual(env.drive_dir, Path(tmp) / "MyDrive")
             self.assertEqual(mounted, [tmp])
+
+
+class TestCourseDir(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.drive = Path(self.tmp.name)
+        self.a8 = self.drive / "CS479" / "assignment8"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_found_files_return_the_folder(self):
+        (self.a8 / "best-a9").mkdir(parents=True)
+        (self.a8 / "train.tsv").write_text("src\ttgt\n")
+        (self.a8 / "best-a9" / "model_best.pt").write_bytes(b"")
+        folder = colab.course_dir(
+            self.drive, "assignment8", needs=["train.tsv", "best-a9/model_best.pt"]
+        )
+        self.assertEqual(folder, self.a8)
+
+    def test_every_missing_file_is_named_with_the_folder_and_hint(self):
+        self.a8.mkdir(parents=True)
+        (self.a8 / "train.tsv").write_text("src\ttgt\n")
+        with self.assertRaises(SystemExit) as stopped:
+            colab.course_dir(
+                self.drive,
+                "assignment8",
+                needs=["train.tsv", "val.tsv", "test.tsv"],
+                hint="Step 5 of the A8 notebook writes them.",
+            )
+        message = str(stopped.exception)
+        self.assertIn(str(self.a8), message)
+        self.assertIn("val.tsv, test.tsv.", message)
+        self.assertNotIn("train.tsv", message)
+        self.assertTrue(message.endswith("Step 5 of the A8 notebook writes them."))
+        self.assertNotIn("does not exist", message)
+
+    def test_a_missing_folder_says_so(self):
+        with self.assertRaisesRegex(SystemExit, "folder itself does not exist"):
+            colab.course_dir(self.drive, "assignment8", needs=["train.tsv"])
+
+    def test_create_makes_the_folder_for_a_notebook_that_writes(self):
+        folder = colab.course_dir(self.drive, "assignment12", create=True)
+        self.assertTrue(folder.is_dir())
+        self.assertEqual(folder, self.drive / "CS479" / "assignment12")
+
+    def test_without_an_assignment_it_is_the_course_folder(self):
+        self.assertEqual(colab.course_dir(self.drive), self.drive / "CS479")
+
+    def test_without_drive_it_says_to_ask_setup_for_it(self):
+        with self.assertRaisesRegex(ValueError, r"setup\(drive=True\)"):
+            colab.course_dir(None, "assignment8")
+
+    def test_as_a_notebook_calls_it_with_colab_faked(self):
+        """The cell the notebooks would write: setup's drive_dir, then the folder."""
+        from notebook_cells import colab_faked
+
+        self.a8.mkdir(parents=True)
+        (self.a8 / "test.tsv").write_text("src\ttgt\n")
+        with (
+            colab_faked(self.drive),
+            mock.patch("torch.cuda.is_available", return_value=False),
+        ):
+            env = colab.setup(drive=True)
+            folder = colab.course_dir(env.drive_dir, "assignment8", needs=["test.tsv"])
+            self.assertEqual(folder.resolve(), self.a8.resolve())
 
 
 class TestSplitExact(unittest.TestCase):
