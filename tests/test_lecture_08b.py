@@ -4,8 +4,8 @@ The notebook declares ``exercises``, so CI's notebook run skips it: as shipped i
 ``attention`` until a student writes it. These tests run its cells from the notebook file itself
 with an answer written in, on the pretrained model, and check that the step matches the model's
 four heads, the map prints and the prediction is marked. The rest check that the notebook as
-shipped stops at the exercise, that it stops at the prediction while it is empty or names a piece
-that is not there, and that an answer missing the √d_k scale is rejected by the paper case.
+shipped stops at the exercise, that it stops at the prediction while it is empty, holds other than
+three pieces or names a piece that is not there, and that an answer missing the √d_k scale is rejected by the paper case.
 
 The pretrained model lives in Git LFS, which CI does not fetch, so the class skips there.
 """
@@ -38,7 +38,11 @@ def is_available(path: Path) -> bool:
         return not handle.read(23).startswith(b"version https://git-lfs")
 
 
-PREDICTED = {"PREDICTION = {}": 'PREDICTION = {"▁nuestra": "▁our", "▁Esta": "▁is"}'}
+PREDICTED = {
+    "PREDICTION = {}": (
+        'PREDICTION = {"▁nuestra": "▁our", "▁Esta": "▁is", "▁públ": "▁public"}'
+    )
+}
 
 
 def lecture_08b_cells(
@@ -74,6 +78,10 @@ class TestLecture08b(unittest.TestCase):
             "'▁Esta': you predicted '▁is'; it looked most at '▁This' (not this time)",
             printed,
         )
+        self.assertIn(
+            "'▁públ': you predicted '▁public'; it looked most at '▁public' (right)",
+            printed,
+        )
 
     def test_as_shipped_it_stops_at_the_exercise(self):
         with self.assertRaises(NotImplementedError) as stopped:
@@ -88,11 +96,24 @@ class TestLecture08b(unittest.TestCase):
     def test_a_prediction_naming_no_output_piece_stops(self):
         cells = substitute(
             lecture_08b_cells(predicted=False),
-            {"PREDICTION = {}": 'PREDICTION = {"nuestra": "▁our"}'},
+            {
+                "PREDICTION = {}": (
+                    'PREDICTION = {"nuestra": "▁our", "▁Esta": "▁This", "▁públ": "▁public"}'
+                )
+            },
         )
         with self.assertRaises(AssertionError) as stopped:
             run_cells(cells)
         self.assertIn("is not an output piece", str(stopped.exception))
+
+    def test_a_prediction_of_two_pieces_stops(self):
+        cells = substitute(
+            lecture_08b_cells(predicted=False),
+            {"PREDICTION = {}": 'PREDICTION = {"▁nuestra": "▁our", "▁Esta": "▁This"}'},
+        )
+        with self.assertRaises(AssertionError) as stopped:
+            run_cells(cells)
+        self.assertIn("Choose three output pieces; you have 2.", str(stopped.exception))
 
     def test_an_answer_without_the_scale_is_rejected(self):
         unscaled = {RAISE: ANSWER[RAISE].replace(" / math.sqrt(k.shape[-1])", "")}
