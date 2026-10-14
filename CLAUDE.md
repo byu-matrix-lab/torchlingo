@@ -285,15 +285,44 @@ course notebook.
 student. So code a student learns nothing from reading (installs, downloads, Drive, file
 loading, exact splits, loader construction, padding arithmetic) belongs in the library, and a
 notebook calls it. Code that *is* the lesson stays written out: tutorial 8's beam search, 8a's
-length cap, dedupe and contamination check. Data fixtures stay visible too. Plumbing that stays
-in a notebook because it serves only that notebook, such as tutorial 6's toy-corpus `Vocab`, opens
-with `# Setup: run this cell, no need to read it.` (Eric, 2026-09-29).
+length cap, dedupe and contamination check. Data fixtures stay visible too. Any long cell a
+student only runs — plumbing that serves only that notebook, such as tutorial 6's toy-corpus
+`Vocab`, or a training or scoring loop — opens with `# Setup: run this cell, no need to read it.`
+(Eric, 2026-09-29).
 Before writing a helper, check the library has not got one already: on the day this rule was
 written, `create_dataloaders`, `parallel_txt_to_dataframe` and `evaluate_model` all existed and
 no course notebook used them.
 
+**House patterns for a course notebook's cells**, from the 2026-10-13 audit of A7 to A13;
+`lecture-12-llm-context` and `lecture-13-back-translation` show them all.
+
+- **Instructions to the student live in markdown**, not only in code comments, which a student
+  running cells does not read.
+- **A prediction gets its own code cell, before the reveal or the long run it predicts, and stops
+  while empty**, or it is skipped and written after the fact:
+
+  ```python
+  PREDICTION = ""   # <- your prediction, in a sentence or two
+  assert PREDICTION.strip(), "Write your prediction in PREDICTION, then run this cell again."
+  ```
+
+  The write-up then asks the student to reconcile it with the result.
+- **A TODO's specification lives in markdown; its docstring stays short** and does not give the
+  recipe, or the docstring is the answer.
+- **An exercise's check runs on a case whose answer the student can work out**, and its failure
+  message shows what their code returned (`got ...`), so a failure says what to fix.
+- **The write-up asks about the lecture's conceptual outcome, not only its numbers** (Eric,
+  2026-10-13). A write-up of numbers alone can be filled in without the idea.
+- **Whatever a later step or the write-up needs survives a dropped Colab session.** Save it to
+  Drive, e.g. a small JSON beside the outputs (A13's `a13-notes.json`), and have the write-up cell
+  read it from there, so it runs after the setup cell alone.
+- **Every GPU notebook tells students to disconnect when done** (Runtime → Disconnect and delete
+  runtime) **and when not to** (while a training or decode cell runs) (Eric, 2026-10-13): an idle
+  GPU runtime spends the student's Colab quota. `notebook_meta.py --check` enforces the first
+  half for any course notebook calling `setup(gpu=True)`.
+
 **Every notebook declares what it needs from its environment, in `requires`:** one of `pip`,
-`download`, `colab`, `hf-token`, `blanks`. A closed set, because a typo would otherwise read as
+`download`, `colab`, `hf-token`, `blanks`, `exercises`. A closed set, because a typo would otherwise read as
 "runnable in CI" — the opposite of what whoever wrote it meant. `needs` is repo-relative *paths*;
 `requires` is *capabilities*; they are not interchangeable.
 
@@ -309,7 +338,10 @@ executed this directory. A student would have hit it in the room.
 So code that does not parse must declare `blanks`, and a `blanks` declaration must correspond to
 real blanks — checked both ways, or the marker rots into a licence to ship broken cells. Note that
 `!pip install` can appear *inside* a `try` block, so a plain `compile()` flags notebooks that run
-perfectly well.
+perfectly well. Code that parses but stops until a student acts — an exercise that raises
+`NotImplementedError`, a prediction that stops while empty — declares `exercises`, so CI does not
+execute it unanswered, and gets a `tests/notebook_cells.py` test that fills the answers in and
+checks that each stop fires (`tests/test_lecture_13.py`).
 
 **Green CI is not a student's run, in two ways.** CI executes notebooks on x86 Linux against the
 repository's own install, with `data/` linked in. Students have neither:
@@ -327,6 +359,13 @@ what `course` holds, so to test a change before promoting it, run it after the c
 `execute_notebooks.py --as-student`; it tests what students are served, so it is not a PR check.
 For the second there is no CI answer; a device-specific bug shows up on a Mac or in Colab or not
 at all.
+
+**Editing a notebook with tools has three traps.** NotebookEdit's cell ids are synthetic, by
+index, so an insert shifts every later id: edit bottom-up. It writes a cell's source as one string
+and un-escapes the `—` in the generated purpose cell, so re-save the notebook with `nbformat`
+and run `notebook_meta.py --purpose` after it. And an nbformat 4.0 notebook (`nbformat_minor: 0`)
+carries no cell ids, but a cell added through `nbformat` gets one: strip it.
+`notebook_meta.py --check` catches the last.
 
 ## Every training run checkpoints, and it is not a flag
 
