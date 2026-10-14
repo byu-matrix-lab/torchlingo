@@ -187,6 +187,10 @@ class CheckpointState:
         best_val_loss (float): Best validation loss seen so far.
         train_losses (list[float]): Training loss per epoch.
         val_losses (list[float]): Validation loss per epoch.
+        first_logged_loss (float | None): The loss on the run's first "Train
+            Loss" line, kept so a resumed run still knows where it started.
+            None until a line is logged, and in a state saved before this field
+            existed.
         metrics (dict): Any extra values the caller wants carried along.
         timestamp (str): UTC ISO-8601 time the state was created.
         experiment_name (str): Name the checkpoints are filed under.
@@ -198,6 +202,7 @@ class CheckpointState:
     best_val_loss: float = float("inf")
     train_losses: list[float] = field(default_factory=list)
     val_losses: list[float] = field(default_factory=list)
+    first_logged_loss: float | None = None
     metrics: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
@@ -429,9 +434,14 @@ class TrainingCheckpointer:
         global_step: int | None = None,
         train_loss: float | None = None,
         val_loss: float | None = None,
+        first_logged_loss: float | None = None,
         metrics: dict[str, Any] | None = None,
     ) -> None:
-        """Record progress without writing anything to disk."""
+        """Record progress without writing anything to disk.
+
+        ``first_logged_loss`` is recorded only once: a value already in the
+        state, such as the original run's after a resume, is kept.
+        """
         if epoch is not None:
             self.state.epoch = epoch
         if batches_into_epoch is not None:
@@ -443,6 +453,8 @@ class TrainingCheckpointer:
         if val_loss is not None:
             self.state.val_losses.append(val_loss)
             self.state.best_val_loss = min(self.state.best_val_loss, val_loss)
+        if first_logged_loss is not None and self.state.first_logged_loss is None:
+            self.state.first_logged_loss = first_logged_loss
         if metrics:
             self.state.metrics.update(metrics)
 

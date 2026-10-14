@@ -412,8 +412,8 @@ notebooks:
   lecture-08a-a8-kickoff:
     purpose: from your A5 corpus to a running, checkpointed, bucketed training job
     lesson: from cleaned corpus to a running, checkpointed model
-    student_must: type two file names; predict; copy the first loss in to set beside ln(V); raise
-      `EPOCHS` if validation loss is still falling
+    student_must: type two file names; predict the first logged loss from ln(V), and the curve's
+      last epochs; raise `EPOCHS` if validation loss is still falling
     notebook_does: cap, dedupe, split, verification, nine files, the configuration, the training
       call, the resume, the scoring
     rating: '**high**'

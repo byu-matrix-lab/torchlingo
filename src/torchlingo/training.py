@@ -58,12 +58,18 @@ class TrainResult:
             two produces a list whose length is neither the epoch count nor
             anything else meaningful.
         best_checkpoint: Path to the best checkpoint file if saved, else None.
+        first_logged_loss: The loss on the run's first "Train Loss" line: the
+            mean of its first ``log_every`` batches (or ``config.log_interval``).
+            The number to set beside ``ln(V)``, the loss of a model that has
+            learned nothing. A resumed run keeps the original run's value. None
+            if no line was ever logged.
     """
 
     train_losses: list[float]
     val_losses: list[float]
     best_checkpoint: Path | None
     periodic_val_losses: list[float] = field(default_factory=list)
+    first_logged_loss: float | None = None
 
 
 def _resolve_device(device: torch.device | None) -> torch.device:
@@ -366,6 +372,8 @@ def train_model(
     # shuffled loader the skipped batches are not the same ones that were
     # trained, but the step count, and so the learning-rate schedule, is exact.
     resume_skip = 0
+    # The first "Train Loss" line's value, kept for comparison with ln(V).
+    first_logged_loss: float | None = None
 
     # Resume before the loop starts, so a re-run of the same cell after a
     # disconnect continues rather than starting over. Failing to resume is not
@@ -393,6 +401,9 @@ def train_model(
             best_val = state.best_val_loss
             train_losses = list(state.train_losses)
             val_losses = list(state.val_losses)
+            # The original run's first line, not this one's: a resumed run's
+            # first line comes from a model that has already learned something.
+            first_logged_loss = state.first_logged_loss
     # Accumulates loss over the current logging window. Unlike the per-epoch
     # totals below, this is reset at each log point (not at each epoch), so the
     # logged "train/loss" curve is continuous across epoch boundaries instead of
@@ -601,6 +612,10 @@ def train_model(
                 print(
                     f"Epoch {epoch + 1} Step {step}/{num_batches} | Train Loss: {window_loss:.4f}"
                 )
+                if first_logged_loss is None:
+                    first_logged_loss = window_loss
+                    if checkpointer is not None:
+                        checkpointer.update(first_logged_loss=window_loss)
                 if writer is not None:
                     writer.add_scalar("train/loss", window_loss, global_step)
                     # Log learning rate from optimizer
@@ -746,6 +761,7 @@ def train_model(
         val_losses=val_losses,
         best_checkpoint=best_path,
         periodic_val_losses=periodic_val_losses,
+        first_logged_loss=first_logged_loss,
     )
 
 

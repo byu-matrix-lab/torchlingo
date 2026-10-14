@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`TrainResult.first_logged_loss`, also kept in `TrainingCheckpointer`'s state**: the value on
+  a run's first `Train Loss` line, the mean of its first `log_every` batches, so it can be set
+  beside `ln(V)` in a later session without anyone copying it down. A resumed run keeps the
+  original run's value; a state saved before this loads it as `None`.
 - **`torchlingo.colab.course_dir`**: finds a course folder on Drive (`MyDrive/CS479/<assignment>`)
   and checks the files a notebook needs from it, all at once. When any are missing it stops with
   a message naming each one, the folder, and what writes them, in place of the check every

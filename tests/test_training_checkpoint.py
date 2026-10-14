@@ -5,7 +5,10 @@ to mount. What is tested is everything else, plus that the Colab helpers degrade
 safely off-Colab, which is the behavior a local user actually depends on.
 """
 
+import contextlib
+import io
 import random
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -475,6 +478,97 @@ class TestTrainModelIntegration(unittest.TestCase):
             checkpointer=checkpointer,
         )
         self.assertEqual(len(result.train_losses), 1)
+
+
+class TestFirstLoggedLoss(unittest.TestCase):
+    """The first "Train Loss" line is kept, so it can be set beside ln(V) later."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    @staticmethod
+    def _loader():
+        """Four single-pair batches, so a two-batch log window has a real mean."""
+        src = torch.tensor([[2, 5, 3], [2, 6, 3], [2, 7, 3], [2, 5, 3]])
+        tgt = torch.tensor([[2, 8, 3], [2, 9, 3], [2, 7, 3], [2, 8, 3]])
+        dataset = torch.utils.data.TensorDataset(src, tgt)
+        return torch.utils.data.DataLoader(dataset, batch_size=1)
+
+    def _checkpointer(self):
+        return TrainingCheckpointer(
+            "demo", checkpoint_dir=self.dir, verbose=False, save_every_seconds=0
+        )
+
+    def _train(self, num_epochs, checkpointer=None):
+        """Train the tiny model with a two-batch log window; return result and lines."""
+        from tests.test_training_inference import DummyTransformer
+
+        torch.manual_seed(0)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            result = train_model(
+                DummyTransformer(),
+                self._loader(),
+                num_epochs=num_epochs,
+                log_every=2,
+                checkpointer=checkpointer,
+            )
+        logged = [
+            float(m) for m in re.findall(r"Train Loss: ([0-9.]+)", out.getvalue())
+        ]
+        return result, logged
+
+    def test_records_the_first_printed_line(self):
+        result, logged = self._train(num_epochs=2)
+        self.assertEqual(len(logged), 4, "two lines per epoch")
+        self.assertAlmostEqual(result.first_logged_loss, logged[0], places=4)
+
+    def test_is_recorded_in_the_checkpoint(self):
+        checkpointer = self._checkpointer()
+        result, _ = self._train(num_epochs=1, checkpointer=checkpointer)
+        from tests.test_training_inference import DummyTransformer
+
+        state = self._checkpointer().load(DummyTransformer(), restore_rng=False)
+        self.assertEqual(state.first_logged_loss, result.first_logged_loss)
+
+    def test_a_resumed_run_keeps_the_original_runs_value(self):
+        """A resumed run prints lines of its own, and must not take its first as the run's.
+
+        The tiny model barely learns, so its lines are nearly equal; the saved value is
+        replaced by one no line could print, to tell the two apart.
+        """
+        self._train(num_epochs=1, checkpointer=self._checkpointer())
+        path = self._checkpointer().path_for("latest")
+        payload = torch.load(path, weights_only=False)
+        payload["state"]["first_logged_loss"] = 99.0
+        torch.save(payload, path)
+
+        resumed, logged = self._train(num_epochs=3, checkpointer=self._checkpointer())
+        self.assertEqual(len(logged), 4, "the resumed run trained epochs 2 and 3")
+        self.assertEqual(resumed.first_logged_loss, 99.0)
+
+    def test_a_state_saved_before_the_field_loads_as_none(self):
+        saver = self._checkpointer()
+        saver.update(epoch=2)
+        saver.save(_model())
+        path = saver.path_for("latest")
+        payload = torch.load(path, weights_only=False)
+        del payload["state"]["first_logged_loss"]
+        torch.save(payload, path)
+
+        state = self._checkpointer().load(_model())
+        self.assertEqual(state.epoch, 2)
+        self.assertIsNone(state.first_logged_loss)
+
+    def test_update_records_it_only_once(self):
+        checkpointer = self._checkpointer()
+        checkpointer.update(first_logged_loss=9.5)
+        checkpointer.update(first_logged_loss=4.0)
+        self.assertEqual(checkpointer.state.first_logged_loss, 9.5)
 
 
 if __name__ == "__main__":
