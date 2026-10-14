@@ -782,15 +782,19 @@ Notes on the rows that are not simple:
   of what was tutorial 5. The student writes attention, one scaled dot-product step,
   checked on a case worked on paper (one that also catches a missing √d_k) and then
   against the trained model's own weights in all four heads of the last decoder layer's
-  cross-attention; then predicts where three output pieces will look and reads the
-  averaged map against the translation: the right words found, the wrong Spanish written.
-  tests/test_lecture_08b.py runs it with an answer written in.
+  cross-attention; places it among the three attentions and their weight shapes; then
+  predicts where three output pieces will look, which stops the notebook while empty,
+  reads the averaged map against the translation (the right words found, the wrong Spanish
+  written) and records which prediction missed. tests/test_lecture_08b.py runs it with an
+  answer written in.
 - [11] **`lecture-08c-attention-heads`** — Lecture 8c's activity, the self-attention half
-  of what was tutorial 5, on the same model and sentence as Lecture 8b's. The student
-  writes split_heads, checked on numbers readable by eye and then against the model's own
-  weights in every encoder layer, and sharpness, checked on paper cases; predicts, then
-  reads the first layer head by head and measures how averaging and depth blur attention.
-  tests/test_lecture_08c.py runs it with answers written in.
+  of what was tutorial 5, on the same model and sentence as Lecture 8b's, with Lecture
+  8b's attention step given. The student writes split_heads, checked on numbers readable
+  by eye and then against the model's own weights in every encoder layer, and sharpness,
+  checked on paper cases; predicts, which stops the notebook while empty, then reads the
+  first layer head by head, measures how averaging and depth blur attention, and records
+  which part of the prediction missed. tests/test_lecture_08c.py runs it with answers
+  written in.
 - [12] **`lecture-09-subword-tokenization-new`** — The next version of
   lecture-09-subword-tokenization, renamed over it once A9's deadline has passed (Eric,
   Oct 13), so students mid-assignment keep the notebook they started. Part B reads the
