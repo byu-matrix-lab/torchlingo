@@ -518,6 +518,26 @@ DISCONNECT = "Disconnect and delete runtime"
 # rename is what removes it.
 GPU_WITHOUT_DISCONNECT = {"lecture-09-subword-tokenization.ipynb"}
 
+# The outcome block every notebook opens with (CLAUDE.md, "Every tutorial opens the same way";
+# the 2026-10-13 audit gave every course notebook the same block): "By the end you will be able
+# to:" followed by a numbered list of abilities, and a line "These serve Lecture X's ...".
+# Searched for in the opening, the Markdown cells before the first code cell, since a course
+# notebook may put a badge or a note ahead of it.
+OUTCOME_ABILITIES = re.compile(r"^By the end you will be able to:\s*\n\s*1\. ", re.M)
+OUTCOME_SERVES = re.compile(r"^These serve Lecture \w+", re.M)
+
+# Notebooks that may, for now, open without the outcome block. The same one entry and the same
+# expiry as GPU_WITHOUT_DISCONNECT: the live A9 copy, until -new is renamed over it.
+WITHOUT_OUTCOME_BLOCK = {"lecture-09-subword-tokenization.ipynb"}
+
+# A prediction is a code-cell assignment to PREDICTION, or to a name ending in it
+# (MY_PREDICTION, BLEU_PREDICTION). CLAUDE.md's house pattern: it ships empty and is followed
+# by an assert that stops the notebook while it is empty. The assert may open the next code
+# cell, as Lecture 4's TMX notebook does, so the prediction cell can be run on its own.
+# 8b's prediction is a dict (three output pieces), so `{}` is empty too.
+PREDICTION_ASSIGNED = re.compile(r"^([A-Z_]*PREDICTION)\s*=\s*(.*)$", re.M)
+EMPTY_PREDICTION = re.compile(r"""^(""|''|\{\}|\[\]|None)\s*(#.*)?$""")
+
 
 def _cell_parses(cell: dict) -> bool:
     """Report whether one code cell is syntactically valid Python.
@@ -685,6 +705,52 @@ def hygiene(path: Path) -> list[str]:
                 f"{path}: is listed in GPU_WITHOUT_DISCONNECT but no longer needs to be; "
                 "remove it from that set in scripts/notebook_meta.py"
             )
+
+    # Every notebook says what a student will be able to do and which lecture outcome that
+    # serves, in one shape, so a student can tell two notebooks apart by their first screen
+    # (Eric, 2026-10-12: "students ignore the appearance of redundancy").
+    if path.parent in (COURSE, TUTORIALS):
+        opening = []
+        for cell in cells:
+            if cell.get("cell_type") == "code":
+                break
+            opening.append("".join(cell.get("source") or []))
+        head = "\n\n".join(opening)
+        has_block = bool(OUTCOME_ABILITIES.search(head) and OUTCOME_SERVES.search(head))
+        exempt = path.name in WITHOUT_OUTCOME_BLOCK
+        if not has_block and not exempt:
+            found.append(
+                f"{path}: does not open with the outcome block -- 'By the end you will be "
+                "able to:' and a numbered list, then 'These serve Lecture X's outcome ...' -- "
+                "in the Markdown before the first code cell (copy tutorial 8's first cell)"
+            )
+        if exempt and has_block:
+            found.append(
+                f"{path}: is listed in WITHOUT_OUTCOME_BLOCK but no longer needs to be; "
+                "remove it from that set in scripts/notebook_meta.py"
+            )
+
+    # A prediction written after the result is not a prediction, so it ships empty and an
+    # assert stops the notebook until it is written -- in its own cell or opening the next.
+    code = [
+        "".join(c.get("source") or []) for c in cells if c.get("cell_type") == "code"
+    ]
+    for index, source in enumerate(code):
+        for match in PREDICTION_ASSIGNED.finditer(source):
+            name, value = match.group(1), match.group(2).strip()
+            if not EMPTY_PREDICTION.match(value):
+                found.append(
+                    f"{path}: {name} ships with a value ({value[:40]}), so it predicts "
+                    "nothing -- ship it empty"
+                )
+            stop = re.compile(rf"^\s*assert\s+{name}\b", re.M)
+            after = source[match.end() :]
+            following = code[index + 1] if index + 1 < len(code) else ""
+            if not (stop.search(after) or stop.search(following)):
+                found.append(
+                    f"{path}: {name} is not followed by `assert {name}...` in its cell or "
+                    "the next, so the notebook runs on with the prediction empty"
+                )
 
     # nbformat 4.0 has no cell ids; 4.5 requires them. A cell added through `nbformat` to a
     # 4.0 notebook gets one anyway, which leaves the file invalid for its own declared version.

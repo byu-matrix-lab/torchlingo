@@ -1089,11 +1089,107 @@ class TestNotebookHygiene(unittest.TestCase):
         """The live A9 copy is exempt until `-new` is renamed over it; then it must go."""
         name = "lecture-09-subword-tokenization.ipynb"
         self.assertIn(name, nm.GPU_WITHOUT_DISCONNECT)
-        gpu = self.with_code_line("env = setup(gpu=True, drive=True)")
+        # As the live copy is: no outcome block either, which WITHOUT_OUTCOME_BLOCK exempts.
+        gpu = self.without_outcome_block(
+            self.with_code_line("env = setup(gpu=True, drive=True)")
+        )
         self.assertEqual(self.check(gpu, name=name), [])
         fixed = self.with_markdown(gpu, "Runtime → Disconnect and delete runtime")
         complaints = self.check(fixed, name=name)
         self.assertTrue(any("GPU_WITHOUT_DISCONNECT" in c for c in complaints))
+
+    def without_outcome_block(self, nb=None):
+        """The fixture (or ``nb``) with its opening's "By the end" list taken out."""
+        nb = json.loads(json.dumps(nb if nb is not None else self.base))
+        for cell in nb["cells"]:
+            if cell["cell_type"] == "code":
+                break
+            cell["source"] = [
+                line.replace("By the end you will be able to:", "You will see:")
+                for line in cell["source"]
+            ]
+        return nb
+
+    def test_a_notebook_without_the_outcome_block_is_caught(self):
+        complaints = self.check(self.without_outcome_block())
+        self.assertTrue(any("outcome block" in c for c in complaints), complaints)
+
+    def test_the_outcome_block_after_the_first_code_cell_does_not_count(self):
+        """It belongs on the first screen, not wherever a search happens to find it."""
+        nb = self.without_outcome_block()
+        nb["cells"].append(
+            {
+                "cell_type": "markdown",
+                "metadata": {},
+                "source": [
+                    "By the end you will be able to:\n\n1. read.\n\n",
+                    "These serve Lecture 3's outcome *read*.",
+                ],
+            }
+        )
+        complaints = self.check(nb)
+        self.assertTrue(any("outcome block" in c for c in complaints), complaints)
+
+    def test_the_outcome_exemption_holds_and_expires(self):
+        """The live A9 copy is exempt until `-new` is renamed over it; then it must go."""
+        name = "lecture-09-subword-tokenization.ipynb"
+        self.assertIn(name, nm.WITHOUT_OUTCOME_BLOCK)
+        # As the live copy is: a GPU notebook, which GPU_WITHOUT_DISCONNECT also exempts.
+        gpu = self.with_code_line("env = setup(gpu=True, drive=True)")
+        self.assertEqual(self.check(self.without_outcome_block(gpu), name=name), [])
+        complaints = self.check(gpu, name=name)
+        self.assertTrue(any("WITHOUT_OUTCOME_BLOCK" in c for c in complaints))
+
+    def with_code_cells(self, *sources):
+        """Append code cells, in the 4.0 shape the fixture uses (no id)."""
+        nb = json.loads(json.dumps(self.base))
+        for source in sources:
+            nb["cells"].append(
+                {
+                    "cell_type": "code",
+                    "execution_count": None,
+                    "metadata": {},
+                    "outputs": [],
+                    "source": [source],
+                }
+            )
+        return nb
+
+    STOP = 'assert PREDICTION.strip(), "Write your prediction in PREDICTION."'
+
+    def test_a_prediction_followed_by_its_assert_is_clean(self):
+        nb = self.with_code_cells(
+            f'PREDICTION = ""   # <- your prediction\n{self.STOP}'
+        )
+        self.assertEqual(self.check(nb), [])
+
+    def test_the_assert_may_open_the_next_code_cell(self):
+        """Lecture 4's TMX notebook: the prediction cell runs on its own, the next one stops."""
+        nb = self.with_code_cells(
+            'MY_PREDICTION = ""   # <- two line counts',
+            'assert MY_PREDICTION.strip(), "Write it."\nprint("counting")',
+        )
+        self.assertEqual(self.check(nb), [])
+
+    def test_a_dict_prediction_is_allowed(self):
+        """8b predicts three output pieces, so its prediction is a dict."""
+        nb = self.with_code_cells('PREDICTION = {}\nassert PREDICTION, "Write it."')
+        self.assertEqual(self.check(nb), [])
+
+    def test_a_prediction_without_its_assert_is_caught(self):
+        nb = self.with_code_cells('BLEU_PREDICTION = ""', 'print("training")')
+        complaints = self.check(nb)
+        self.assertTrue(any("not followed by" in c for c in complaints), complaints)
+
+    def test_an_assert_two_cells_later_is_too_late(self):
+        nb = self.with_code_cells('PREDICTION = ""', 'print("the reveal")', self.STOP)
+        complaints = self.check(nb)
+        self.assertTrue(any("not followed by" in c for c in complaints), complaints)
+
+    def test_a_prediction_shipped_filled_in_is_caught(self):
+        nb = self.with_code_cells(f'PREDICTION = "BLEU goes up"\n{self.STOP}')
+        complaints = self.check(nb)
+        self.assertTrue(any("ships with a value" in c for c in complaints), complaints)
 
     def test_a_cell_id_in_an_nbformat_4_0_notebook_is_caught(self):
         """nbformat adds an id to every cell it creates, valid only from 4.5."""
