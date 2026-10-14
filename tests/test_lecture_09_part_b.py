@@ -68,7 +68,7 @@ TOY_CONFIG = {
 CELL_1 = "# Part B, cell 1"
 CONFIG_CELL = "max_decode_length=MAX_DECODE"
 TRAINING_CELL = "result = train_model("
-SCORING_CELL = "hyp_a9 = translate_all("
+SCORING_CELL = "hyp_a9 = translate_to_file("
 WRITE_UP_CELL = "=== For the A9 write-up ==="
 
 
