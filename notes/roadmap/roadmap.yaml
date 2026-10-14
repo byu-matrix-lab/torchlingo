@@ -351,10 +351,11 @@ notebooks:
     notebook_does: embed and print the matrix
     rating: low
   lecture-04-regex-refresher:
-    purpose: fifteen-minute regex tour; a worksheet with blanks
+    purpose: twenty-minute regex tour, ending with re.sub; nine exercises that stop until written
     lesson: read the patterns the cleaning steps are written in
-    student_must: fill seven blanks
-    notebook_does: check each against an expected output
+    student_must: write nine patterns, each stopping the notebook until written
+    notebook_does: check each against an expected output, refusing a greedy tag pattern and an
+      unanchored start
     rating: low
   lecture-04-tmx-cleaning:
     purpose: planted TMX problems, two parsers, a checker that names the cleaning step
@@ -370,16 +371,19 @@ notebooks:
     notebook_does: aligner, scoring, the c and s² formulas
     rating: low
   lecture-06-mt-evaluation:
-    purpose: BLEU and chrF on your data; BLEU returns zero on ten short sentences
+    purpose: BLEU's zero on two short sentences; BLEU rebuilt from its parts; your preference
+      against BLEU's, on supplied data
     lesson: what BLEU and chrF count
-    student_must: predict before each of three runs, three talk-it-over answers
-    notebook_does: the scoring
+    student_must: write `bleu_from_parts`, record which system they prefer and which BLEU will
+      before any score, predict at Parts 1 and 3
+    notebook_does: the scoring, and the checks against SacreBLEU's own score
     rating: low
   lecture-06-mt-evaluation-homework:
     purpose: the assignment's scaffold over your uploaded A5 corpus
     lesson: the metrics on their own data
-    student_must: upload, sample, translate ten by hand, rank before re-reading the scores
-    notebook_does: three scoring calls
+    student_must: upload, sample, paste in ten web MT translations, rank them in `MY_RANKING`
+      before any score prints
+    notebook_does: three scoring calls, and sentence-level chrF set beside the ranking
     rating: low; A6's substance is MTEval and the analysis
   02-evaluating-translations:
     purpose: the library's out-of-class treatment of evaluation
@@ -408,7 +412,8 @@ notebooks:
   lecture-08a-a8-kickoff:
     purpose: from your A5 corpus to a running, checkpointed, bucketed training job
     lesson: from cleaned corpus to a running, checkpointed model
-    student_must: type two file names; raise `EPOCHS` if validation loss is still falling
+    student_must: type two file names; predict; copy the first loss in to set beside ln(V); raise
+      `EPOCHS` if validation loss is still falling
     notebook_does: cap, dedupe, split, verification, nine files, the configuration, the training
       call, the resume, the scoring
     rating: '**high**'

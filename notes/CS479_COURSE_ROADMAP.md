@@ -197,15 +197,15 @@ steps.
 | notebook | the lesson | the student must | the notebook does | rating |
 |---|---|---|---|---|
 | `lecture-03-word-embeddings` | a shared multilingual space can be tested, not assumed | pick five words, read the matrix row by row, answer four questions; A3 adds the heat-map code, which is deliberately not given | embed and print the matrix | low |
-| `lecture-04-regex-refresher` | read the patterns the cleaning steps are written in | fill seven blanks | check each against an expected output | low |
+| `lecture-04-regex-refresher` | read the patterns the cleaning steps are written in | write nine patterns, each stopping the notebook until written | check each against an expected output, refusing a greedy tag pattern and an unanchored start | low |
 | `lecture-04-tmx-cleaning` | find data problems with code, through `repr` | predict two counts, write the line-break regex, write two cleaners, defend a keep-or-drop call | parse, write files, run the checker | low. The model for the course |
 | `lecture-05-sentence-alignment` | length can align sentences and cannot see a deletion | change the priors and watch it fail, upload their A4 files, report c | aligner, scoring, the c and s² formulas | low |
-| `lecture-06-mt-evaluation` | what BLEU and chrF count | predict before each of three runs, three talk-it-over answers | the scoring | low |
-| `lecture-06-mt-evaluation-homework` | the metrics on their own data | upload, sample, translate ten by hand, rank before re-reading the scores | three scoring calls | low; A6's substance is MTEval and the analysis |
+| `lecture-06-mt-evaluation` | what BLEU and chrF count | write `bleu_from_parts`, record which system they prefer and which BLEU will before any score, predict at Parts 1 and 3 | the scoring, and the checks against SacreBLEU's own score | low |
+| `lecture-06-mt-evaluation-homework` | the metrics on their own data | upload, sample, paste in ten web MT translations, rank them in `MY_RANKING` before any score prints | three scoring calls, and sentence-level chrF set beside the ranking | low; A6's substance is MTEval and the analysis |
 | `02-evaluating-translations` (reading) | which metric to believe when they disagree | decide before scoring; four "Your turn" exercises | the examples | low |
 | `lecture-07-toy-model` | a model can score perfectly on what it memorised and know nothing | choose the held-out phrase, predict, run Parts A and B, report back in class, write A7's two sentences; a contrast phrase runs as well | corpus, model, training, both scorings, the resume demonstration, the report printout | low |
 | `03-train-tiny-model` (reading) | a saved model is weights without a vocabulary, so the vocabulary must be rebuilt exactly | read; run the three rebuilds | everything | low, as reading |
-| `lecture-08a-a8-kickoff` | from cleaned corpus to a running, checkpointed model | type two file names; raise `EPOCHS` if validation loss is still falling | cap, dedupe, split, verification, nine files, the configuration, the training call, the resume, the scoring | **high** |
+| `lecture-08a-a8-kickoff` | from cleaned corpus to a running, checkpointed model | type two file names; predict; copy the first loss in to set beside ln(V); raise `EPOCHS` if validation loss is still falling | cap, dedupe, split, verification, nine files, the configuration, the training call, the resume, the scoring | **high** |
 | `04-attention-and-alignment` (reading) | attention is measurable alignment | read Parts 1 to 5 and 7; run them | the ablation and the alignment accuracy | low, as reading |
 | `lecture-08b-cross-attention` | attention can find the right words and the decoder still write the wrong ones | write `attention`, predict where three output pieces will look, say which prediction missed | the model, the capture of each head's inputs and weights, the map | low |
 | `lecture-08c-attention-heads` | each head is sharp and the average is not; deeper layers spread out | write `split_heads` and `sharpness`, predict before the measurement, say which part of the prediction was wrong | the model, the attention step, the capture, the maps | low |
@@ -436,11 +436,11 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | notebook | lecture | role | starts | purpose | CI |
 |---|---|---|---|---|---|
 | `lecture-03-word-embeddings` | 3 | activity | A3 | does the shared multilingual space line up across your languages | no: download, pip |
-| `lecture-04-regex-refresher` | 4 | reference | | fifteen-minute regex tour; a worksheet with blanks | no: exercises |
+| `lecture-04-regex-refresher` | 4 | reference | | twenty-minute regex tour, ending with re.sub; nine exercises that stop until written | no: exercises |
 | `lecture-04-tmx-cleaning` | 4 | activity | A4 | planted TMX problems, two parsers, a checker that names the cleaning step | no: pip, exercises |
 | `01-data-and-vocab` | 4, 9 | reference | A9 | the library's view of corpus loading, from A5's two files; word-level vocab, stops at `<unk>`, which Lecture 9 takes up | yes |
 | `lecture-05-sentence-alignment` | 5 | activity | A5 | estimate Gale-Church parameters on your language | no: pip |
-| `lecture-06-mt-evaluation` | 6 | activity | A6 | BLEU and chrF on your data; BLEU returns zero on ten short sentences | no: exercises |
+| `lecture-06-mt-evaluation` | 6 | activity | A6 | BLEU's zero on two short sentences; BLEU rebuilt from its parts; your preference against BLEU's, on supplied data | no: exercises |
 | `lecture-06-mt-evaluation-homework` | 6 | homework | A6 | the assignment's scaffold over your uploaded A5 corpus | no: colab |
 | `02-evaluating-translations` | 6 | reading | A6, A8 | the library's out-of-class treatment of evaluation | yes |
 | `lecture-07-toy-model` | 7 | activity | A7 | the three-part toy-model exercise; the student picks the held-out phrase, predicts, and a contrast phrase runs; resume demo | no: exercises |
