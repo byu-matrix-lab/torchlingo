@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-10-13. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-10-14. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
@@ -103,7 +103,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
 | #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on Cowork** (in the hand-off): the notebook assumes one `.txt` per column and defines average rank as the mean rank per system, 1 best; both need confirming. The prediction stop, why COMET-QE-DA and the LLM-as-judge question are done |
 | #231 | **P1** | A13: point Step 1 at a course-recommended source of monolingual text, if the course has one | **L13** | **Waits on Cowork** (in the hand-off): Step 1 names general sources (Wikipedia, news sites, the Hub, OPUS) behind a marked seam. The write-up questions, the resume-safe write-up, `EPOCHS` from A9's checkpoint and the prediction stop are done |
-| #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Half done** — helpers in 0.2.2; 8a, Lecture 7 and tutorials 1, 3, 4, 7 moved; the rest listed |
+| #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Two left, both waiting** — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: A12's loader (waits on the A12 layout) and an LLM helper (only if a second notebook needs one) |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #171 | **P2** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
@@ -138,6 +138,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #91 | **P3** | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
 | #233 | **P3** | 8c: quote Lecture 8c's outcome in the notebook's opening | **L8c** | **Waits on Cowork** (in the hand-off): the roadmap has no 8c outcome yet. The predictions, the stops and 8b's quoted outcome are done |
 | #235 | **P3** | A6: make the roadmap and the notebook agree on how students get their ten translations | **L6** | **Waits on Cowork** (in the hand-off): the roadmap says "translate ten by hand", the notebook has them paste a web MT system's output. Ranking before any score prints is done |
+| #242 | **P3** | 8a: a first logged loss for every corpus A8 allows | **L8a** | **Waits on Cowork** (in the hand-off): an epoch shorter than `log_every` (50 batches, about 3,200 pairs at batch size 64) prints no `Train Loss` line, so 8a has no first loss to set beside ln(V) and says so. If the A8 handout allows corpora that small, 8a sets `log_every` from the training set's size instead |
 
 ## The CS 479 pivot
 
@@ -252,11 +253,22 @@ question is answered.
 Eric, 2026-09-28: large code cells lose a new student. The rule is in `CLAUDE.md`: code a student
 learns nothing from reading belongs in the library; code that *is* the lesson stays written out.
 
+On 2026-10-14 every code cell of 25 lines or more was reviewed (38 cells, 16 notebooks), and
+three helpers came out of it in 0.2.8: `course_dir` (find the course folder on Drive and name
+every missing file at once), `load_model` (rebuild a model and its vocabularies from one file)
+and `translate_to_file` in place of hand-written decode loops. A9, A11, A12, A13, 8a, 8b, 8c,
+Lecture 7 and tutorial 5 use them. The long cells that remain are lessons (tutorial 8's beam
+search, 8b's attention), data fixtures, or marked `# Setup:` cells serving one notebook, which
+the rule allows. A13's `load_best` stays hand-written on purpose: it also loads the A9 model,
+which students trained before checkpoints described themselves, so `load_model` refuses it.
+
 **Left:**
 
-- **Cowork's course notebooks** (Lectures 3, 4, 5, 6, 10, 12) install other packages, not
-  TorchLingo, so `setup()` does not replace their installs; check each for plumbing that a
-  helper does cover, and ask Cowork before changing their cells.
+- **A12's loader** (`lecture-12-llm-context`, its `# Setup:` cell): a folder loader for one TSV
+  or aligned `.txt` files, extending `parallel_txt_to_dataframe`. Waits on the A12 shared
+  folder's real layout, which the Cowork hand-off asks for (see #176).
+- **An LLM translate helper**, only if a second notebook comes to prompt an LLM. Until then,
+  A12's prompting code serves one notebook and stays where it is.
 
 **Done when** no notebook carries plumbing a library helper covers.
 
