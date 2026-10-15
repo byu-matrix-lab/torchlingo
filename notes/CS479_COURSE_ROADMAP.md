@@ -451,8 +451,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `05-transformer-attention` | 8b, 8c | reference | A8 | both of Lecture 8b's and 8c's notebooks in one worked example, without the exercises | yes |
 | `lecture-08c-attention-heads` | 8c | activity | | the student's head split shown to be the model's in every encoder layer; heads read one by one, and sharpness measured against averaging and depth | no: exercises |
 | `06-diagnosing-failures` | 8c | reading | A8 | five questions to ask of a model that is not working | yes |
-| `lecture-09-subword-tokenization` | 9 | activity | A9 | `<unk>` before and after SentencePiece (the student's counter), a round trip, the student's vocabulary size and A9 prediction; Part B is A9 itself, retrained and scored | no: colab |
-| `lecture-09-subword-tokenization-new` | 9 | activity | A9 | the next version of the Lecture 9 notebook, renamed over it once A9's deadline has passed; A9 trains as many epochs as A8, from A8's checkpoint | no: colab |
+| `lecture-09-subword-tokenization` | 9 | activity | A9 | `<unk>` before and after SentencePiece (the student's counter), a round trip, the student's vocabulary size and A9 prediction; Part B is A9 itself, retrained for as many epochs as A8 and scored | no: colab |
 | `lecture-10-comet-install` | 10 | homework | A10 | install COMET; the student's comet_inputs; two systems scored with and without a reference | no: colab, hf-token, download, pip, exercises |
 | `07-real-translations` | 10 | reading | A11 | a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding held fixed | yes |
 | `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
@@ -727,11 +726,11 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | `lecture-08a-a8-kickoff` (activity) [10] | `04-attention-and-alignment` (reading) |
 | 8b | Neural MT: The Transformer | `lecture-08b-cross-attention` (activity) [11] | `04-attention-and-alignment` (reading), `05-transformer-attention` (reference) |
 | 8c | Finishing the Transformer, the A8 Debrief, and the Subword Activity | `lecture-08c-attention-heads` (activity) [12] | `05-transformer-attention` (reference), `06-diagnosing-failures` (reading) |
-| 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization-new` (activity) [13], `lecture-09-subword-tokenization` (activity) [14] | `01-data-and-vocab` (reference) [1] |
-| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [15] | `07-real-translations` (reading) [4], `08-inference-and-beamsearch` (reading) |
-| 11 | Neural Quality Estimation and Evaluation | `lecture-11-comet-on-a6` (homework) [16] | — |
-| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [17] | — |
-| 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [18] | — |
+| 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [13] | `01-data-and-vocab` (reference) [1] |
+| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [14] | `07-real-translations` (reading) [4], `08-inference-and-beamsearch` (reading) |
+| 11 | Neural Quality Estimation and Evaluation | `lecture-11-comet-on-a6` (homework) [15] | — |
+| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [16] | — |
+| 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [17] | — |
 | 14 | Multilingual NMT and "Zero-shot" NMT | — | — |
 | 15 | Overview of Speech-to-Speech MT | — | — |
 | 16 | Automatic Dubbing and Interpretation | — | — |
@@ -812,23 +811,17 @@ Notes on the rows that are not simple:
   first layer head by head, measures how averaging and depth blur attention, and records
   which part of the prediction missed. tests/test_lecture_08c.py runs it with answers
   written in.
-- [13] **`lecture-09-subword-tokenization-new`** — The next version of
-  lecture-09-subword-tokenization, renamed over it once A9's deadline has passed (Eric,
-  Oct 13), so students mid-assignment keep the notebook they started. Part B reads the
-  epoch count from A8's checkpoint instead of a hard-coded 35; unknown_rate is checked on
-  three cases; Step 6 shows A8's BLEU before the prediction, which has its own cell; the
-  opening states abilities; Part B tells students to disconnect the GPU when done.
-  tests/test_lecture_09_part_a.py and _part_b.py run it.
-- [14] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity and, in Part
+- [13] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity and, in Part
   B, Assignment 9 itself. Part A (CPU, in class): SentencePiece fit on the student's A8
-  training split, the student's own unknown-token counter under words and under pieces, a
-  round trip, a vocabulary size chosen with a reason, an A9 BLEU prediction, and the
-  settings Part B needs saved to Drive (a9-settings.json). Part B (GPU, outside class):
-  retrains the A8 model with the pieces under its own run names (assignment-9, best-a9/,
-  test-a9.hyp), re-scores the saved A8 model with the same code, and prints the write-up
-  numbers. Reads the A8 split from Drive, so it cannot run in CI. Part B added so that A9
-  never sends a student back to the A8 notebook.
-- [15] **`lecture-10-comet-install`** — A10: installs COMET; the student writes
+  training split; the student's own unknown_rate counter, checked on three cases, under
+  words and under pieces; a round trip; a vocabulary size chosen with a reason; A8's BLEU
+  from test.hyp, then an A9 BLEU prediction in its own cell; the settings Part B needs
+  saved to Drive (a9-settings.json). Part B (GPU, outside class): trains for as many
+  epochs as A8 did, read from A8's checkpoint, under its own run names (assignment-9,
+  best-a9/, test-a9.hyp); re-scores the saved A8 model with the same code; prints the
+  write-up numbers; says to disconnect the GPU. Reads the A8 split from Drive, so it
+  cannot run in CI; tests/test_lecture_09_part_a.py and _part_b.py run it.
+- [14] **`lecture-10-comet-install`** — A10: installs COMET; the student writes
   comet_inputs, the records COMET scores (reused in A11 on the A6 sentences), checked on
   known cases, and a prediction, which stops the run while empty; then the reference-based
   model and COMETKiwi (whose license the student accepts on Hugging Face, then logs in
@@ -836,7 +829,7 @@ Notes on the rows that are not simple:
   A10 grades, followed by three write-up questions: the prediction against the result,
   what a COMET score means, and evaluation against estimation. tests/test_lecture_10.py
   runs its cells with COMET stubbed.
-- [16] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMET-QE-DA on the
+- [15] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMET-QE-DA on the
   student's A6 sentences beside BLEU and chrF. The student pastes comet_inputs from A10
   and writes pairwise_agreement, the sentence-by-sentence measure of whether two metrics
   prefer the same system, each checked on a known case; a prediction, which stops the run
@@ -845,7 +838,7 @@ Notes on the rows that are not simple:
   ranks, and agreement counts; four summary questions follow, the last on LLM-as-judge and
   system- against segment-level agreement. tests/test_lecture_11.py runs its cells with
   COMET stubbed.
-- [17] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
+- [16] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
   built-in English-Spanish sample from data/example.tsv until the student sets LANGUAGE
   and DATA_DIR, together. The student writes split_pool_and_test (checked on the alphabet,
   including that a different seed gives a different split, then by check_contamination on
@@ -857,7 +850,7 @@ Notes on the rows that are not simple:
   The write-up adds the document-level problems no example pair fixes. Needs a GPU and
   Drive, so CI does not execute it; tests/test_lecture_12.py runs its cells with the model
   stubbed.
-- [18] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
+- [17] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
   Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, test-a9.hyp, and
   A9's training checkpoint, from which both trainings take their epoch count) plus the
   student's monolingual mono.txt, which Step 1 says where to look for and which stops with

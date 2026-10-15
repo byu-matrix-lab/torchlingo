@@ -445,16 +445,14 @@ notebooks:
     aside: (reference)
   lecture-09-subword-tokenization:
     purpose: '`<unk>` before and after SentencePiece (the student''s counter), a round trip, the
-      student''s vocabulary size and A9 prediction; Part B is A9 itself, retrained and scored'
+      student''s vocabulary size and A9 prediction; Part B is A9 itself, retrained for as many
+      epochs as A8 and scored'
     lesson: a fixed vocabulary cannot say unseen words; subwords can
     student_must: write the `<unk>` counter, pick the vocabulary size with a reason, predict
       A9's BLEU, report back, and reconcile the prediction in the A9 write-up
     notebook_does: the SentencePiece training, the round trip, saving the settings to Drive, and
       in Part B the retraining and both scorings
     rating: low
-  lecture-09-subword-tokenization-new:
-    purpose: the next version of the Lecture 9 notebook, renamed over it once A9's deadline has
-      passed; A9 trains as many epochs as A8, from A8's checkpoint
   06-diagnosing-failures:
     purpose: five questions to ask of a model that is not working
     aside: (reading)

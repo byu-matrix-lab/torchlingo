@@ -32,9 +32,7 @@ from test_a9_path import SEED, toy_corpus
 
 from torchlingo.preprocessing import split_exact
 
-# The version that replaces the live notebook once A9's deadline has passed (Eric, Oct 13); when
-# it is renamed over lecture-09-subword-tokenization.ipynb, so is this.
-NOTEBOOK = COURSE / "lecture-09-subword-tokenization-new.ipynb"
+NOTEBOOK = COURSE / "lecture-09-subword-tokenization.ipynb"
 
 RAISE = 'raise NotImplementedError("write unknown_rate, then run this cell again")'
 ANSWER = (
