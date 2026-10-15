@@ -128,6 +128,14 @@ It runs exactly what CI runs, cheapest gate first, stopping at the first failure
 `notebook_meta.py --check`, the suite under **both** pytest and `unittest discover`,
 `--doctest-modules`, `mkdocs build --strict`, and optionally `execute_notebooks.py`.
 
+**In a git worktree, run preflight, not the gates by hand.** The venv's editable install points
+at the main checkout, so a bare `python -m pytest` in a worktree tests the main checkout's
+`torchlingo`, not the branch's: on 2026-10-14 a branch's new module failed to import in its own
+tests, and a library change can as easily pass against the old code. Preflight puts the tree's
+own `src` first on `PYTHONPATH`, uses the main checkout's `.venv` when the worktree has none,
+and stops if `torchlingo` still imports from anywhere else. Running a gate by hand there, set
+`PYTHONPATH=$PWD/src` first.
+
 **CI gates eight things across four jobs, and running them from memory means running most of
 them.** The forgotten one is the one that fails: on 2026-09-28 a PR burned a full cycle on
 `render_report.py --check` — 0.4s locally — because a generated report had been hand-edited. A
