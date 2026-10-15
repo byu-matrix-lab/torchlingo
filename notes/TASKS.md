@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-10-13. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-10-14. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
@@ -138,6 +138,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #91 | **P3** | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
 | #233 | **P3** | 8c: quote Lecture 8c's outcome in the notebook's opening | **L8c** | **Waits on Cowork** (in the hand-off): the roadmap has no 8c outcome yet. The predictions, the stops and 8b's quoted outcome are done |
 | #235 | **P3** | A6: make the roadmap and the notebook agree on how students get their ten translations | **L6** | **Waits on Cowork** (in the hand-off): the roadmap says "translate ten by hand", the notebook has them paste a web MT system's output. Ranking before any score prints is done |
+| #242 | **P3** | 8a: a first logged loss for every corpus A8 allows | **L8a** | **Waits on Cowork** (in the hand-off): an epoch shorter than `log_every` (50 batches, about 3,200 pairs at batch size 64) prints no `Train Loss` line, so 8a has no first loss to set beside ln(V) and says so. If the A8 handout allows corpora that small, 8a sets `log_every` from the training set's size instead |
 
 ## The CS 479 pivot
 
