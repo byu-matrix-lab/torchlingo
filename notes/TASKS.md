@@ -110,6 +110,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
+| #243 | **P2** | An architectural review of TorchLingo, pedagogy first | **lib** | Open — a review, reported before any change (Eric, Oct 14) |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
@@ -617,6 +618,40 @@ Full explanation for students lives in `docs/docs/concepts/decoding.md` — keep
 rather than duplicating it into code and notes.
 
 ## Code — other gaps
+
+### #243 An architectural review of TorchLingo, pedagogy first
+
+Eric, 2026-10-14: an architectural review of the library, **keeping pedagogy as the foremost
+requirement**. The library grew feature by feature, each change justified alone. This term added
+`colab`, `checkpoint.load_model`, `translate_to_file`, `first_logged_loss` and the diagnostics,
+and nobody has since asked whether the whole still reads as one design a student can follow.
+
+The test for every finding is the one `CLAUDE.md` puts first: does it make the library easier for
+a CS 479 student to read, use and learn from? Speed, generality and third-party use come after,
+and a change that serves them at the cost of readability is a finding against it, not for it.
+
+What to look at:
+
+- **Module boundaries and the data flow.** Does the path from text to `TrainResult` to translation
+  read in the order a student meets it? Is each module's job one sentence?
+- **Two ways to do one thing.** For example `load_checkpoint` beside `load_model`,
+  `translate_batch` beside `translate_to_file`, the reference decoders beside `inference_fast`,
+  and `Config` defaults beside explicit parameters. For each pair, is the reason it exists
+  written where a student would find it?
+- **The `Config` pattern.** Is the rule that explicit parameters always win applied everywhere,
+  and is it something a student can predict?
+- **Interfaces detected with `hasattr`** (Transformer against LSTM; vocabularies) against an
+  explicit protocol. Which one teaches the contract better?
+- **What the notebooks actually use**, from the long-cell survey of 2026-10-14 and the course
+  notebooks' imports. Public API nobody calls is a candidate to cut, and plumbing every notebook
+  repeats is a candidate to add.
+- **Docstrings and docs as the student's first reading**: the Examples that run, and the names
+  that say what they do.
+
+**Done when** a report in `notes/reports/` lists the findings, each with the student-facing
+reason, a recommendation and a cost, and Eric has chosen which to act on. Each one chosen
+becomes its own task. No code changes before then, as with the long-cell survey: review
+precedes implementation.
 
 ## Evaluation / tooling
 
