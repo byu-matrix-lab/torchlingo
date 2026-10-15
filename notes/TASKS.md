@@ -103,13 +103,14 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
 | #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on Cowork** (in the hand-off): the notebook assumes one `.txt` per column and defines average rank as the mean rank per system, 1 best; both need confirming. The prediction stop, why COMET-QE-DA and the LLM-as-judge question are done |
 | #231 | **P1** | A13: point Step 1 at a course-recommended source of monolingual text, if the course has one | **L13** | **Waits on Cowork** (in the hand-off): Step 1 names general sources (Wikipedia, news sites, the Hub, OPUS) behind a marked seam. The write-up questions, the resume-safe write-up, `EPOCHS` from A9's checkpoint and the prediction stop are done |
-| #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Two left, both waiting** — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: A12's loader (waits on the A12 layout) and an LLM helper (only if a second notebook needs one) |
+| #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Waits on Cowork** (in the hand-off) — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: A12's loader (waits on the A12 layout) and an LLM helper (waits on whether any later lecture prompts an LLM) |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #171 | **P2** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
+| #243 | **P2** | An architectural review of TorchLingo, pedagogy first | **lib** | Open — a review, reported before any change (Eric, Oct 14) |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
@@ -268,7 +269,8 @@ which students trained before checkpoints described themselves, so `load_model` 
   or aligned `.txt` files, extending `parallel_txt_to_dataframe`. Waits on the A12 shared
   folder's real layout, which the Cowork hand-off asks for (see #176).
 - **An LLM translate helper**, only if a second notebook comes to prompt an LLM. Until then,
-  A12's prompting code serves one notebook and stays where it is.
+  A12's prompting code serves one notebook and stays where it is. Whether any of Lectures 14
+  onward will is the course plan's to say, so the hand-off asks Cowork.
 
 **Done when** no notebook carries plumbing a library helper covers.
 
@@ -617,6 +619,40 @@ Full explanation for students lives in `docs/docs/concepts/decoding.md` — keep
 rather than duplicating it into code and notes.
 
 ## Code — other gaps
+
+### #243 An architectural review of TorchLingo, pedagogy first
+
+Eric, 2026-10-14: an architectural review of the library, **keeping pedagogy as the foremost
+requirement**. The library grew feature by feature, each change justified alone. This term added
+`colab`, `checkpoint.load_model`, `translate_to_file`, `first_logged_loss` and the diagnostics,
+and nobody has since asked whether the whole still reads as one design a student can follow.
+
+The test for every finding is the one `CLAUDE.md` puts first: does it make the library easier for
+a CS 479 student to read, use and learn from? Speed, generality and third-party use come after,
+and a change that serves them at the cost of readability is a finding against it, not for it.
+
+What to look at:
+
+- **Module boundaries and the data flow.** Does the path from text to `TrainResult` to translation
+  read in the order a student meets it? Is each module's job one sentence?
+- **Two ways to do one thing.** For example `load_checkpoint` beside `load_model`,
+  `translate_batch` beside `translate_to_file`, the reference decoders beside `inference_fast`,
+  and `Config` defaults beside explicit parameters. For each pair, is the reason it exists
+  written where a student would find it?
+- **The `Config` pattern.** Is the rule that explicit parameters always win applied everywhere,
+  and is it something a student can predict?
+- **Interfaces detected with `hasattr`** (Transformer against LSTM; vocabularies) against an
+  explicit protocol. Which one teaches the contract better?
+- **What the notebooks actually use**, from the long-cell survey of 2026-10-14 and the course
+  notebooks' imports. Public API nobody calls is a candidate to cut, and plumbing every notebook
+  repeats is a candidate to add.
+- **Docstrings and docs as the student's first reading**: the Examples that run, and the names
+  that say what they do.
+
+**Done when** a report in `notes/reports/` lists the findings, each with the student-facing
+reason, a recommendation and a cost, and Eric has chosen which to act on. Each one chosen
+becomes its own task. No code changes before then, as with the long-cell survey: review
+precedes implementation.
 
 ## Evaluation / tooling
 
