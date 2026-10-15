@@ -511,13 +511,6 @@ SECRET_SHAPES = re.compile(
 GPU_SETUP = re.compile(r"\bsetup\([^)]*\bgpu\s*=\s*True")
 DISCONNECT = "Disconnect and delete runtime"
 
-# Course notebooks that ask for a GPU and may, for now, not say how to disconnect. One entry:
-# lecture-09-subword-tokenization is the copy students are mid-A9 in, and
-# lecture-09-subword-tokenization-new, which has the section, is renamed over it after the A9
-# deadline (Eric, 2026-10-13). The check complains once an entry is no longer needed, so the
-# rename is what removes it.
-GPU_WITHOUT_DISCONNECT = {"lecture-09-subword-tokenization.ipynb"}
-
 # The outcome block every notebook opens with (CLAUDE.md, "Every tutorial opens the same way";
 # the 2026-10-13 audit gave every course notebook the same block): "By the end you will be able
 # to:" followed by a numbered list of abilities, and a line "These serve Lecture X's ...".
@@ -525,10 +518,6 @@ GPU_WITHOUT_DISCONNECT = {"lecture-09-subword-tokenization.ipynb"}
 # notebook may put a badge or a note ahead of it.
 OUTCOME_ABILITIES = re.compile(r"^By the end you will be able to:\s*\n\s*1\. ", re.M)
 OUTCOME_SERVES = re.compile(r"^These serve Lecture \w+", re.M)
-
-# Notebooks that may, for now, open without the outcome block. The same one entry and the same
-# expiry as GPU_WITHOUT_DISCONNECT: the live A9 copy, until -new is renamed over it.
-WITHOUT_OUTCOME_BLOCK = {"lecture-09-subword-tokenization.ipynb"}
 
 # A prediction is a code-cell assignment to PREDICTION, or to a name ending in it
 # (MY_PREDICTION, BLEU_PREDICTION). CLAUDE.md's house pattern: it ships empty and is followed
@@ -694,16 +683,10 @@ def hygiene(path: Path) -> list[str]:
             if c.get("cell_type") == "code"
         )
         says_disconnect = any(DISCONNECT in s for s in sources)
-        exempt = path.name in GPU_WITHOUT_DISCONNECT
-        if wants_gpu and not says_disconnect and not exempt:
+        if wants_gpu and not says_disconnect:
             found.append(
                 f"{path}: calls setup(gpu=True) but never tells students to disconnect "
                 f"({DISCONNECT!r}), so an idle GPU runtime spends their Colab quota"
-            )
-        if exempt and (says_disconnect or not wants_gpu):
-            found.append(
-                f"{path}: is listed in GPU_WITHOUT_DISCONNECT but no longer needs to be; "
-                "remove it from that set in scripts/notebook_meta.py"
             )
 
     # Every notebook says what a student will be able to do and which lecture outcome that
@@ -717,17 +700,11 @@ def hygiene(path: Path) -> list[str]:
             opening.append("".join(cell.get("source") or []))
         head = "\n\n".join(opening)
         has_block = bool(OUTCOME_ABILITIES.search(head) and OUTCOME_SERVES.search(head))
-        exempt = path.name in WITHOUT_OUTCOME_BLOCK
-        if not has_block and not exempt:
+        if not has_block:
             found.append(
                 f"{path}: does not open with the outcome block -- 'By the end you will be "
                 "able to:' and a numbered list, then 'These serve Lecture X's outcome ...' -- "
                 "in the Markdown before the first code cell (copy tutorial 8's first cell)"
-            )
-        if exempt and has_block:
-            found.append(
-                f"{path}: is listed in WITHOUT_OUTCOME_BLOCK but no longer needs to be; "
-                "remove it from that set in scripts/notebook_meta.py"
             )
 
     # A prediction written after the result is not a prediction, so it ships empty and an

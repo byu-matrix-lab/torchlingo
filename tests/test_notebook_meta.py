@@ -1085,19 +1085,6 @@ class TestNotebookHygiene(unittest.TestCase):
         nb = self.with_code_line("env = setup(gpu=False, drive=True)")
         self.assertEqual(self.check(nb), [])
 
-    def test_the_gpu_exemption_holds_and_expires(self):
-        """The live A9 copy is exempt until `-new` is renamed over it; then it must go."""
-        name = "lecture-09-subword-tokenization.ipynb"
-        self.assertIn(name, nm.GPU_WITHOUT_DISCONNECT)
-        # As the live copy is: no outcome block either, which WITHOUT_OUTCOME_BLOCK exempts.
-        gpu = self.without_outcome_block(
-            self.with_code_line("env = setup(gpu=True, drive=True)")
-        )
-        self.assertEqual(self.check(gpu, name=name), [])
-        fixed = self.with_markdown(gpu, "Runtime → Disconnect and delete runtime")
-        complaints = self.check(fixed, name=name)
-        self.assertTrue(any("GPU_WITHOUT_DISCONNECT" in c for c in complaints))
-
     def without_outcome_block(self, nb=None):
         """The fixture (or ``nb``) with its opening's "By the end" list taken out."""
         nb = json.loads(json.dumps(nb if nb is not None else self.base))
@@ -1129,16 +1116,6 @@ class TestNotebookHygiene(unittest.TestCase):
         )
         complaints = self.check(nb)
         self.assertTrue(any("outcome block" in c for c in complaints), complaints)
-
-    def test_the_outcome_exemption_holds_and_expires(self):
-        """The live A9 copy is exempt until `-new` is renamed over it; then it must go."""
-        name = "lecture-09-subword-tokenization.ipynb"
-        self.assertIn(name, nm.WITHOUT_OUTCOME_BLOCK)
-        # As the live copy is: a GPU notebook, which GPU_WITHOUT_DISCONNECT also exempts.
-        gpu = self.with_code_line("env = setup(gpu=True, drive=True)")
-        self.assertEqual(self.check(self.without_outcome_block(gpu), name=name), [])
-        complaints = self.check(gpu, name=name)
-        self.assertTrue(any("WITHOUT_OUTCOME_BLOCK" in c for c in complaints))
 
     def with_code_cells(self, *sources):
         """Append code cells, in the 4.0 shape the fixture uses (no id)."""
