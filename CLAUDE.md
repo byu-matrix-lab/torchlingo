@@ -43,6 +43,7 @@ pip install -e ".[dev]"
 ```bash
 scripts/preflight.sh                 # everything CI checks — see the workflow section
 scripts/student_path.sh NOTEBOOK     # a notebook as a Colab student runs it — see the course section
+scripts/merge_check.sh PR            # preflight on a PR merged with main, before merging it
 python scripts/execute_notebooks.py --as-student   # every notebook that way, one environment each
 ruff check --fix src tests && ruff format src tests
 python -m unittest discover tests
@@ -199,7 +200,11 @@ moved, and GitHub still shows `MERGEABLE / CLEAN`. PR #17 carried ten green tick
 grown a `--doctest-modules` gate its new module failed — merging would have turned `main` red.
 
 **Before merging any PR more than a few days old**, merge `main` into it and let CI re-run, or
-build the merge result locally.
+build the merge result locally: **`scripts/merge_check.sh PR`** does the latter in a scratch
+worktree and runs preflight on it, ending `CLEAN`, `CONFLICT` (with the files) or
+`PREFLIGHT-FAIL`. When several PRs merge in a row, run it on each just before merging, against
+the `main` the previous merge left: on 2026-10-14 that caught a generated-roadmap conflict and a
+`CHANGELOG.md` conflict, each one merge after its PR's own CI had gone green.
 
 ### Check which branch you are on before a destructive git command
 
