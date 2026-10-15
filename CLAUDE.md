@@ -368,12 +368,15 @@ what `course` holds, so to test a change before promoting it, run it after the c
 For the second there is no CI answer; a device-specific bug shows up on a Mac or in Colab or not
 at all.
 
-**Editing a notebook with tools has three traps.** NotebookEdit's cell ids are synthetic, by
-index, so an insert shifts every later id: edit bottom-up. It writes a cell's source as one string
-and un-escapes the `—` in the generated purpose cell, so re-save the notebook with `nbformat`
-and run `notebook_meta.py --purpose` after it. And an nbformat 4.0 notebook (`nbformat_minor: 0`)
-carries no cell ids, but a cell added through `nbformat` gets one: strip it.
-`notebook_meta.py --check` catches the last.
+**After editing a notebook, by any tool, run `python scripts/notebook_meta.py --normalize
+NOTEBOOK`.** Every notebook is stored in one form: literal UTF-8, one-space indent, a final
+newline, sources as line lists, no cell ids in an nbformat 4.0 notebook, and keys in the order
+the file has them. `--normalize` rewrites the named notebooks into it, refreshes the purpose
+cells, regenerates the map and checks; `--check` fails on a notebook that is not in it. Not an
+`nbformat` re-save, which sorts every key and turned each one-cell edit into a diff across the
+file (until 2026-10-14 that re-save, then `--purpose`, `--write` and `--check`, was the
+sequence after every edit). One trap is left that no command fixes: NotebookEdit's cell ids
+are synthetic, by index, so an insert shifts every later id. Edit bottom-up.
 
 ## Every training run checkpoints, and it is not a flag
 

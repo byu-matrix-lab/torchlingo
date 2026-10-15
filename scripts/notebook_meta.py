@@ -457,7 +457,7 @@ def write_meta(path: Path, meta: dict) -> None:
         ValueError: If the notebook has no top-level ``metadata`` object to write into.
     """
     text = path.read_text(encoding="utf-8")
-    body = json.dumps({"torchlingo": meta}, indent=1)
+    body = json.dumps({"torchlingo": meta}, indent=1, ensure_ascii=False)
     # json.dumps(indent=1) indents the inner lines one space relative to the braces it
     # writes; the notebook's own metadata members sit at two, so one more space aligns them.
     block = "\n".join(" " + line for line in body.splitlines()[1:-1])
@@ -565,6 +565,39 @@ def _cell_parses(cell: dict) -> bool:
     except SyntaxError:
         return False
     return True
+
+
+def canonical_text(text: str) -> str:
+    """Return a notebook's JSON in the one form every notebook here is stored in.
+
+    Literal UTF-8, one-space indent, a final newline, every cell source a list of lines,
+    and no cell ids in an nbformat 4.0 notebook. Key order is left as the file has it, so
+    nothing is reordered: the one difference from an ``nbformat`` round trip, which sorts
+    every key and turns a one-cell edit into a diff across the whole file. A notebook
+    ``nbformat`` wrote is already in this form, so re-executing a tutorial keeps it there.
+
+    Why one form at all: notebooks here are edited three ways (Colab, the editor's notebook
+    tool, and this script's textual splices), and each wrote slightly different JSON. Every
+    edit then meant a hand-run sequence: re-save through ``nbformat`` to turn string sources
+    into lists and drop stray ids, regenerate the purpose cell the re-save had made look
+    stale, regenerate the map, and check. Run on 2026-10-14 by every notebook change, and the
+    re-save reordered metadata keys in each diff. ``--normalize`` is that sequence.
+
+    Args:
+        text (str): The notebook file's contents.
+
+    Returns:
+        str: The same notebook in canonical form; equal to ``text`` when it already is.
+    """
+    nb = json.loads(text)
+    # nbformat 4.5 requires cell ids and 4.0 rejects them, so ids go only from 4.0 files.
+    keep_ids = nb.get("nbformat", 4) > 4 or nb.get("nbformat_minor", 0) >= 5
+    for cell in nb.get("cells", []):
+        if isinstance(cell.get("source"), str):
+            cell["source"] = cell["source"].splitlines(keepends=True)
+        if not keep_ids:
+            cell.pop("id", None)
+    return json.dumps(nb, indent=1, ensure_ascii=False) + "\n"
 
 
 def hygiene(path: Path) -> list[str]:
@@ -738,6 +771,13 @@ def hygiene(path: Path) -> list[str]:
                 f"{path}: is nbformat 4.0, which has no cell ids, but cell(s) {with_ids} "
                 "carry one -- strip it (nbformat adds one to every cell it creates)"
             )
+
+    if text != canonical_text(text):
+        found.append(
+            f"{path}: is not in the repository's notebook form (literal UTF-8, sources as "
+            "line lists, a final newline). Run: python scripts/notebook_meta.py "
+            f"--normalize {path}"
+        )
 
     return found
 
@@ -955,10 +995,13 @@ def purpose_line(meta: dict) -> str:
     return " ".join(parts)
 
 
-# ASCII only, deliberately. Notebook JSON is written with ensure_ascii, so an em dash here
-# would be stored as — while the lookup searched for the literal character -- the find
-# would miss, and every run would prepend another banner. That is exactly what happened the
-# first time this ran, and the test for it is idempotence rather than correct output.
+# ASCII only, deliberately. The marker is found by searching the file's text, so it must be
+# stored exactly as written. When this tool still wrote escaped JSON, an em dash here was
+# stored as — while the lookup searched for the literal character -- the find missed,
+# and every run prepended another banner. That is exactly what happened the first time this
+# ran, and the test for it is idempotence rather than correct output. Notebooks are now
+# stored as literal UTF-8 (see canonical_text), but an ASCII marker cannot be caught out by
+# either form.
 PURPOSE_MARKER = (
     "<!-- GENERATED:purpose - change the torchlingo metadata, not this cell -->"
 )
@@ -982,7 +1025,7 @@ def purpose_cell(path: Path, meta: dict) -> str:
     if nb.get("nbformat_minor", 0) >= 5:
         cell["id"] = "torchlingo-purpose"
     cell["source"] = [f"{PURPOSE_MARKER}\n", "\n", purpose_line(meta)]
-    body = json.dumps(cell, indent=1)
+    body = json.dumps(cell, indent=1, ensure_ascii=False)
     return "\n".join("  " + line for line in body.splitlines())
 
 
@@ -1210,6 +1253,17 @@ def main(argv: list[str] | None = None) -> int:
             f"out of CI. One or more of {sorted(CAPABILITIES)}"
         ),
     )
+    parser.add_argument(
+        "--normalize",
+        nargs="*",
+        type=Path,
+        default=None,
+        metavar="NOTEBOOK",
+        help=(
+            "after editing a notebook: rewrite it in the repository's notebook form, refresh "
+            "every purpose cell, regenerate the map and check. With no paths, every notebook"
+        ),
+    )
     parser.add_argument("--note", help="with --stamp: prose for a non-obvious pairing")
     parser.add_argument(
         "--leads-to",
@@ -1315,6 +1369,25 @@ def main(argv: list[str] | None = None) -> int:
         )
         if carried:
             print(f"  kept       {', '.join(sorted(carried))} from the existing block")
+        args.write = True
+
+    # After any edit, one command: the canonical form, the purpose cells, the map, the check.
+    if args.normalize is not None:
+        targets = args.normalize or found
+        for path in targets:
+            if not path.exists():
+                print(f"{path} does not exist", file=sys.stderr)
+                return 2
+            text = path.read_text(encoding="utf-8")
+            try:
+                wanted = canonical_text(text)
+            except json.JSONDecodeError as error:
+                print(f"{path}: is not valid JSON ({error})", file=sys.stderr)
+                return 1
+            if wanted != text:
+                path.write_text(wanted, encoding="utf-8")
+                print(f"  normalized {path}")
+        args.purpose = True
         args.write = True
 
     complaints = []

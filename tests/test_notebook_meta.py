@@ -910,7 +910,10 @@ class TestNotebookHygiene(unittest.TestCase):
         """Write a notebook into a directory treated as `course/`, and check it."""
         target = self.tmp / (name or self.source.name)
         target.write_text(
-            text if text is not None else json.dumps(nb, indent=1), encoding="utf-8"
+            text
+            if text is not None
+            else json.dumps(nb, indent=1, ensure_ascii=False) + "\n",
+            encoding="utf-8",
         )
         nm.COURSE = self.tmp
         return nm.hygiene(target)
@@ -1182,6 +1185,92 @@ class TestNotebookHygiene(unittest.TestCase):
         for index, cell in enumerate(nb["cells"]):
             cell["id"] = f"cell-{index}"
         self.assertEqual(self.check(nb), [])
+
+    def test_a_notebook_not_in_canonical_form_is_caught(self):
+        """Escaped JSON, as the editor's notebook tool and old splices wrote it."""
+        complaints = self.check(text=json.dumps(self.base, indent=1) + "\n")
+        self.assertTrue(any("--normalize" in c for c in complaints), complaints)
+
+    def test_a_string_source_is_caught(self):
+        nb = json.loads(json.dumps(self.base))
+        nb["cells"][1]["source"] = "".join(nb["cells"][1]["source"])
+        complaints = self.check(nb)
+        self.assertTrue(any("--normalize" in c for c in complaints), complaints)
+
+
+class TestCanonicalForm(unittest.TestCase):
+    """One stored form, so a one-cell edit is a one-cell diff (session task #78)."""
+
+    def setUp(self):
+        self.text = (nm.COURSE / "lecture-03-word-embeddings.ipynb").read_text(
+            encoding="utf-8"
+        )
+
+    def test_every_notebook_in_the_repository_is_canonical(self):
+        for path in nm.notebooks():
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(notebook=path.name):
+                self.assertEqual(nm.canonical_text(text), text)
+
+    def test_it_is_idempotent(self):
+        once = nm.canonical_text(json.dumps(json.loads(self.text), indent=1))
+        self.assertEqual(nm.canonical_text(once), once)
+
+    def test_key_order_is_kept_not_sorted(self):
+        """An nbformat round trip sorts keys; that churn is what this form avoids."""
+        nb = json.loads(self.text)
+        nb["metadata"] = {"zeta": 1, "alpha": 2, **nb["metadata"]}
+        out = json.loads(nm.canonical_text(json.dumps(nb)))
+        self.assertEqual(list(out["metadata"])[:2], ["zeta", "alpha"])
+
+    def test_non_ascii_is_stored_literally(self):
+        self.assertIn("—", nm.canonical_text(self.text))
+        self.assertNotIn("\\u2014", nm.canonical_text(self.text))
+
+    def test_string_sources_become_line_lists(self):
+        nb = json.loads(self.text)
+        nb["cells"][1]["source"] = "a\nb\n"
+        out = json.loads(nm.canonical_text(json.dumps(nb)))
+        self.assertEqual(out["cells"][1]["source"], ["a\n", "b\n"])
+
+    def test_ids_go_from_4_0_and_stay_in_4_5(self):
+        nb = json.loads(self.text)
+        nb["cells"][1]["id"] = "abc"
+        self.assertNotIn(
+            "id", json.loads(nm.canonical_text(json.dumps(nb)))["cells"][1]
+        )
+        nb["nbformat_minor"] = 5
+        self.assertEqual(
+            json.loads(nm.canonical_text(json.dumps(nb)))["cells"][1]["id"], "abc"
+        )
+
+    @unittest.skipIf(
+        nbformat is None, "nbformat is a docs extra, absent in CI's test job"
+    )
+    def test_what_nbformat_writes_is_already_canonical(self):
+        """So re-executing a tutorial through nbformat keeps it in this form."""
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        path = tmp / "re-executed.ipynb"
+        nbformat.write(nbformat.reads(self.text, as_version=4), path)
+        written = path.read_text(encoding="utf-8")
+        self.assertEqual(nm.canonical_text(written), written)
+
+    def test_normalize_rewrites_only_the_form(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        path = tmp / "lecture-03-word-embeddings.ipynb"
+        path.write_text(json.dumps(json.loads(self.text), indent=1), encoding="utf-8")
+        # Only the named file is rewritten; the purpose and map steps that follow run over
+        # the repository's notebooks, which are canonical already, so nothing else changes.
+        roadmap_before = rr.ROADMAP.read_text(encoding="utf-8")
+        with (
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
+            nm.main(["--normalize", str(path)])
+        self.assertEqual(path.read_text(encoding="utf-8"), self.text)
+        self.assertEqual(rr.ROADMAP.read_text(encoding="utf-8"), roadmap_before)
 
 
 class TestThePurposeCellIsGeneratedAndGated(unittest.TestCase):
