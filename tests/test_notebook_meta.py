@@ -1244,10 +1244,9 @@ class TestCanonicalForm(unittest.TestCase):
             json.loads(nm.canonical_text(json.dumps(nb)))["cells"][1]["id"], "abc"
         )
 
+    @unittest.skipIf(nbformat is None, "nbformat is a docs extra, absent in CI's test job")
     def test_what_nbformat_writes_is_already_canonical(self):
         """So re-executing a tutorial through nbformat keeps it in this form."""
-        import nbformat
-
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
         path = tmp / "re-executed.ipynb"
