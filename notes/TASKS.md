@@ -18,13 +18,12 @@ That keeps the working list short enough to be read, without losing anything: th
 is authoritative and always has every task. The mirror is a filter over it, not a second
 copy of it.
 
-**As of 2026-10-13:** everything open is here. Every course notebook from Lecture 7 on now
-has the student write the method, with checks; tutorial 5 is the 8b and 8c notebooks. A
-cell-by-cell audit of all fifteen course notebooks (Eric, Oct 13: are the outcomes clear and
-aligned with the roadmap, and does each cell tell the student what to do without doing it for
-them) left one task per notebook, #227 to #240, and the patterns they share, #241. Each
-assignment notebook also gains a write-up question for the conceptual half of its lecture
-outcome (Eric, Oct 13).
+**As of 2026-10-14, at the baton pass to Cowork:** everything open is here. The cell-by-cell
+audit of every course notebook is applied, and every assignment notebook has the student write
+the method, with checks, a prediction that stops the run, and write-up questions for its
+lecture's conceptual outcome. What is left on the course side waits on Cowork's answers, each
+row saying so: Tasks #176, #229, #231, #233, #235 and #242, and part of Task #169. On this side,
+Tasks #99 and #123 (both due Nov 2) and Task #243, the architectural review, are the open work.
 
 **Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
 done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
