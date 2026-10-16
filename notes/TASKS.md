@@ -102,8 +102,10 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
 | #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on Cowork** (in the hand-off): the notebook assumes one `.txt` per column and defines average rank as the mean rank per system, 1 best; both need confirming. The prediction stop, why COMET-QE-DA and the LLM-as-judge question are done |
 | #231 | **P1** | A13: point Step 1 at a course-recommended source of monolingual text, if the course has one | **L13** | **Waits on Cowork** (in the hand-off): Step 1 names general sources (Wikipedia, news sites, the Hub, OPUS) behind a marked seam. The write-up questions, the resume-safe write-up, `EPOCHS` from A9's checkpoint and the prediction stop are done |
+| #244 | **P1** | The student path runs nothing in Colab's environment, and never runs a COMET install | **L11** | Open — extend `student_path.sh`; two COMET install breaks reached students in one week (Oct 15–16) |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Waits on Cowork** (in the hand-off) — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: A12's loader (waits on the A12 layout) and an LLM helper (waits on whether any later lecture prompts an LLM) |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
+| #245 | **P2** | Landing a PR is eight manual steps, and the order matters | **hyg** | Open — a `land_pr.sh` that composes `merge_check.sh` and `promote_course.sh` |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #171 | **P2** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
@@ -696,6 +698,62 @@ and `scripts/compare_metrics.py` — but nothing enforces the link, which is how
 chrF `63.39` in #80 survived. Scope it to the generated pages first rather than all of
 `docs/`.
 
+**#244 The student path runs nothing in Colab's environment, and never runs a COMET install**
+
+Two installs broke A10, A11 and A13 for students in one week, and no check here could have
+caught either. On 2026-10-15 `unbabel-comet`'s `numpy<2` pin made pip build numpy 1.26 from
+source on Colab's Python 3.13, which broke every numpy-2 package Colab ships (PR #295). On
+2026-10-16 the fixed install still failed, because COMET does not run on Colab's
+transformers 5 (PR #297). Both were found from students' screenshots, then reproduced here
+by hand in a venv rebuilt from Colab's published package list.
+
+`student_path.sh` misses this class of bug for three reasons:
+
+| | the student path | Colab |
+|---|---|---|
+| Python | 3.12 in `student_path.yml`, whatever `python3` is locally | 3.13 |
+| preinstalled | numpy, pandas, matplotlib, at their latest | about 650 pinned packages, numpy 2.1.3 and transformers 5 among them |
+| the COMET notebooks | skipped: they declare `colab` or `exercises` | run, by every student |
+
+**Extend `student_path.sh`; no new tool.** Two modes:
+
+- **`--colab`** builds the fresh venv on Python 3.13 (`uv venv -p 3.13`) and pins the packages
+  Colab ships that a notebook's install can collide with, read from googlecolab/backend-info's
+  `pip-freeze.txt`. That repo publishes the runtime's `pip freeze`. Pin a fixed subset (numpy,
+  pandas, scipy, scikit-learn, torch, transformers, huggingface_hub, protobuf, sentencepiece,
+  setuptools, tensorboard), not all 650: many are Linux- or CUDA-only. The by-hand rebuild on
+  2026-10-16 used exactly that subset and reproduced both breaks on a Mac.
+- **`--install-only`** runs only the install cells and then imports what the notebook imports.
+  That covers the notebooks a full run must skip: an install needs neither a GPU nor a
+  student's answers. For COMET it also loads `Unbabel/wmt22-comet-da` and scores one pair,
+  because the transformers-5 break raised only at load time, after a clean import.
+
+Add both to `student_path.yml`. Run `--colab --install-only` on every notebook that has an
+install cell, on each push to `course` and weekly; the weekly run is how a new Colab image
+gets caught. Also pass the freeze's date in the log, so a failure says which Colab image it
+was tested against.
+
+**Done when** `student_path.sh --colab --install-only` fails on the COMET notebooks as they
+were at `b98709c` (before PR #295) and at `08d1339` (before PR #297), passes on them at
+`ffa7d69`, and the workflow runs it.
+
+**#245 Landing a PR is eight manual steps, and the order matters**
+
+Each of PRs #295 to #299 landed by the same steps, typed by hand each time: `merge_check.sh`,
+record the open-PR set, `gh pr merge` without `--delete-branch`, compare the open-PR set,
+delete the branch, remove the worktree, `promote_course.sh --await`, then wait on the
+student-path run on `course`. `CLAUDE.md` gives the reason for each step, from PRs lost to
+auto-close and to `--delete-branch`. Typed from memory, they get skipped or run out of order,
+and the student-path run was the step nobody waited on: it failed on every push to `course`
+from 2026-10-14 until PR #299.
+
+**`scripts/land_pr.sh PR [--admin] [--promote]`** composes the two existing scripts and does
+not reimplement them. It stops at the first failure and says which step. `--admin` is passed
+only on Eric's explicit OK for that PR (or for a notes-only diff); the script never decides
+that itself. It never removes a worktree with uncommitted changes. With `--promote` it ends by
+awaiting the student-path run on the promoted commit, logging to a file. **Done when** the
+next PR that reaches `course` lands through it.
+
 
 ---
 
@@ -722,6 +780,11 @@ to open a PR inherits a red main and may assume they caused it.
 **Done when** a failed push-to-main run notifies someone: an `if: failure()` step posting to the
 lab's Discord, or just enabling GitHub's own Actions-failure email. Neither needs new
 infrastructure.
+
+**`course` has the same gap, and it has already cost something.** `student_path.yml` failed on
+every push to `course` from at least 2026-10-14 until PR #299 on 2026-10-16. Lecture 5 stopped
+at an exercise it did not declare. Nobody saw it until the build looked broken. The same
+notification covers that workflow's failed runs.
 
 Same family as #51 and #53: a check that does not block, a check that runs a fifth of what it
 claims, and a check nobody reads.
