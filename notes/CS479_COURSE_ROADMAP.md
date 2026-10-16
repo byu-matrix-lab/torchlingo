@@ -439,7 +439,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-04-regex-refresher` | 4 | reference | | twenty-minute regex tour, ending with re.sub; nine exercises that stop until written | no: exercises |
 | `lecture-04-tmx-cleaning` | 4 | activity | A4 | planted TMX problems, two parsers, a checker that names the cleaning step | no: pip, exercises |
 | `01-data-and-vocab` | 4, 9 | reference | A9 | the library's view of corpus loading, from A5's two files; word-level vocab, stops at `<unk>`, which Lecture 9 takes up | yes |
-| `lecture-05-sentence-alignment` | 5 | activity | A5 | estimate Gale-Church parameters on your language | no: pip |
+| `lecture-05-sentence-alignment` | 5 | activity | A5 | estimate Gale-Church parameters on your language | no: pip, exercises |
 | `lecture-06-mt-evaluation` | 6 | activity | A6 | BLEU's zero on two short sentences; BLEU rebuilt from its parts; your preference against BLEU's, on supplied data | no: exercises |
 | `lecture-06-mt-evaluation-homework` | 6 | homework | A6 | the assignment's scaffold over your uploaded A5 corpus | no: colab |
 | `02-evaluating-translations` | 6 | reading | A6, A8 | the library's out-of-class treatment of evaluation | yes |
