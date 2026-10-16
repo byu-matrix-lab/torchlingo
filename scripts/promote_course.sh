@@ -16,6 +16,8 @@
 #     student-path job is left out: it tests what `course` already holds, not this commit.
 #     When the commit is a PR's merge with exactly the tree of that PR's head, the PR's
 #     checks are used, so promoting does not wait for main to re-run them;
+#   - the tests_and_build workflow run for those checks has completed and passed, so a check
+#     list read before every job has started cannot pass for a finished one;
 #   - the move is a fast-forward of origin/course (git refuses anything else, and this script
 #     never forces).
 #
@@ -73,16 +75,24 @@ fi
 # Sets runs to one line per check run: status, conclusion, check-run id, details URL, name. The
 # student-path job is left out: it tests what `course` already holds, not this commit. If
 # GitHub cannot be reached, runs is empty and api_error says why.
+#
+# Plus one line for the tests_and_build workflow run itself, "queued" until it exists. Check
+# runs appear only as their jobs start, so "every check run passed" can hold of the first job
+# to finish alone: on 2026-10-16 this promoted 5af98f6 on "1 checks passed", with the tests not
+# yet begun. The workflow run exists from the push and is complete only when every job is.
 fetch_runs() {
-  local out
+  local out wf
   if out="$(gh api "repos/$REPO/commits/$checked/check-runs?per_page=100" \
       --jq '.check_runs[] | select(.name | startswith("Notebooks from") | not)
-            | "\(.status) \(.conclusion // "-") \(.id) \(.details_url) \(.name)"' 2>&1)"; then
-    runs="$out"
+            | "\(.status) \(.conclusion // "-") \(.id) \(.details_url) \(.name)"' 2>&1)" \
+      && wf="$(gh api "repos/$REPO/actions/workflows/tests_and_build.yml/runs?head_sha=$checked" \
+      --jq '.workflow_runs[0] // empty | "\(.status) \(.conclusion // "-") - \(.html_url) workflow tests_and_build"' 2>&1)"; then
+    runs="$out"$'\n'"${wf:-queued - - - workflow tests_and_build (not started)}"
+    runs="${runs#$'\n'}"
     api_error=""
   else
     runs=""
-    api_error="$(tail -n 1 <<<"$out")"
+    api_error="$(tail -n 1 <<<"${wf:-$out}")"
   fi
 }
 
