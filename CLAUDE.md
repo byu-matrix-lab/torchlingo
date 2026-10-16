@@ -373,6 +373,15 @@ what `course` holds, so to test a change before promoting it, run it after the c
 For the second there is no CI answer; a device-specific bug shows up on a Mac or in Colab or not
 at all.
 
+**Before changing an install cell, run `scripts/student_path.sh --colab --install-only
+NOTEBOOK`.** `--colab` builds the environment on Colab's Python, with the versions of the
+packages Colab ships that an install can collide with, read fresh from googlecolab/backend-info;
+`--install-only` runs only the install cells, the notebook's imports and a COMET score, so it
+covers notebooks a full run skips, A10, A11 and A13 among them. It fails if an install replaces
+Colab's numpy or torch, and lists everything else it replaced. In October 2026 a COMET install
+downgraded numpy and broke Colab for students, while a laptop's plain student path passed it.
+The workflow runs this on every notebook too, in a second job.
+
 **After editing a notebook, by any tool, run `python scripts/notebook_meta.py --normalize
 NOTEBOOK`.** Every notebook is stored in one form: literal UTF-8, one-space indent, a final
 newline, sources as line lists, no cell ids in an nbformat 4.0 notebook, and keys in the order

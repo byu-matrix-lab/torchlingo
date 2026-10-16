@@ -102,7 +102,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
 | #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on Cowork** (in the hand-off): the notebook assumes one `.txt` per column and defines average rank as the mean rank per system, 1 best; both need confirming. The prediction stop, why COMET-QE-DA and the LLM-as-judge question are done |
 | #231 | **P1** | A13: point Step 1 at a course-recommended source of monolingual text, if the course has one | **L13** | **Waits on Cowork** (in the hand-off): Step 1 names general sources (Wikipedia, news sites, the Hub, OPUS) behind a marked seam. The write-up questions, the resume-safe write-up, `EPOCHS` from A9's checkpoint and the prediction stop are done |
-| #244 | **P1** | The student path runs nothing in Colab's environment, and never runs a COMET install | **L11** | Open — extend `student_path.sh`; two COMET install breaks reached students in one week (Oct 15–16) |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Waits on Cowork** (in the hand-off) — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: A12's loader (waits on the A12 layout) and an LLM helper (waits on whether any later lecture prompts an LLM) |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #245 | **P2** | Landing a PR is eight manual steps, and the order matters | **hyg** | Open — a `land_pr.sh` that composes `merge_check.sh` and `promote_course.sh` |
@@ -697,45 +696,6 @@ inputs for it already — `docs/docs/_generated/*.json` from `scripts/sweep_deco
 and `scripts/compare_metrics.py` — but nothing enforces the link, which is how the
 chrF `63.39` in #80 survived. Scope it to the generated pages first rather than all of
 `docs/`.
-
-**#244 The student path runs nothing in Colab's environment, and never runs a COMET install**
-
-Two installs broke A10, A11 and A13 for students in one week, and no check here could have
-caught either. On 2026-10-15 `unbabel-comet`'s `numpy<2` pin made pip build numpy 1.26 from
-source on Colab's Python 3.13, which broke every numpy-2 package Colab ships (PR #295). On
-2026-10-16 the fixed install still failed, because COMET does not run on Colab's
-transformers 5 (PR #297). Both were found from students' screenshots, then reproduced here
-by hand in a venv rebuilt from Colab's published package list.
-
-`student_path.sh` misses this class of bug for three reasons:
-
-| | the student path | Colab |
-|---|---|---|
-| Python | 3.12 in `student_path.yml`, whatever `python3` is locally | 3.13 |
-| preinstalled | numpy, pandas, matplotlib, at their latest | about 650 pinned packages, numpy 2.1.3 and transformers 5 among them |
-| the COMET notebooks | skipped: they declare `colab` or `exercises` | run, by every student |
-
-**Extend `student_path.sh`; no new tool.** Two modes:
-
-- **`--colab`** builds the fresh venv on Python 3.13 (`uv venv -p 3.13`) and pins the packages
-  Colab ships that a notebook's install can collide with, read from googlecolab/backend-info's
-  `pip-freeze.txt`. That repo publishes the runtime's `pip freeze`. Pin a fixed subset (numpy,
-  pandas, scipy, scikit-learn, torch, transformers, huggingface_hub, protobuf, sentencepiece,
-  setuptools, tensorboard), not all 650: many are Linux- or CUDA-only. The by-hand rebuild on
-  2026-10-16 used exactly that subset and reproduced both breaks on a Mac.
-- **`--install-only`** runs only the install cells and then imports what the notebook imports.
-  That covers the notebooks a full run must skip: an install needs neither a GPU nor a
-  student's answers. For COMET it also loads `Unbabel/wmt22-comet-da` and scores one pair,
-  because the transformers-5 break raised only at load time, after a clean import.
-
-Add both to `student_path.yml`. Run `--colab --install-only` on every notebook that has an
-install cell, on each push to `course` and weekly; the weekly run is how a new Colab image
-gets caught. Also pass the freeze's date in the log, so a failure says which Colab image it
-was tested against.
-
-**Done when** `student_path.sh --colab --install-only` fails on the COMET notebooks as they
-were at `b98709c` (before PR #295) and at `08d1339` (before PR #297), passes on them at
-`ffa7d69`, and the workflow runs it.
 
 **#245 Landing a PR is eight manual steps, and the order matters**
 

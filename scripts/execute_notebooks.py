@@ -29,12 +29,16 @@ Two details this script exists to get right:
 Run:
     python scripts/execute_notebooks.py
     python scripts/execute_notebooks.py --as-student   # notebook's own install, Colab faked
+    python scripts/execute_notebooks.py --as-student --colab --install-only
 
 ``--as-student`` runs each notebook through ``scripts/student_path.sh`` instead:
 a fresh environment *per notebook*, the notebook's own install cell pulling
 from the repository's ``course`` branch, no ``data/`` linked in. It tests what
 students are served, not what is checked out, so it runs when ``course`` moves
-and on a schedule rather than on pull requests.
+and on a schedule rather than on pull requests. ``--colab`` builds each of those
+environments as Colab's runtime has it, and ``--install-only`` runs only the install
+cells and the notebook's imports, so it covers notebooks a full run must skip; see
+``student_path.sh``.
 
 Exits non-zero if any notebook fails, so CI can gate on it.
 """
@@ -186,7 +190,7 @@ def link_repo_data(workdir: Path) -> None:
             (target / name).symlink_to(member)
 
 
-def run_as_student(notebook: Path) -> tuple[bool, str]:
+def run_as_student(notebook: Path, options: list[str]) -> tuple[bool, str]:
     """Run one notebook through ``student_path.sh``, in an environment of its own.
 
     One environment per notebook, because a shared one exercises only the first
@@ -194,13 +198,14 @@ def run_as_student(notebook: Path) -> tuple[bool, str]:
 
     Args:
         notebook (Path): Repository path of the notebook.
+        options (list[str]): ``student_path.sh`` options, such as ``--colab``.
 
     Returns:
         tuple[bool, str]: Success flag, and the harness's output.
     """
     student_dir = tempfile.mkdtemp(prefix=f"torchlingo-student-{notebook.stem}-")
     result = subprocess.run(
-        ["bash", str(STUDENT_PATH), str(notebook)],
+        ["bash", str(STUDENT_PATH), *options, str(notebook)],
         env={**os.environ, "STUDENT_DIR": student_dir},
         capture_output=True,
         text=True,
@@ -209,17 +214,23 @@ def run_as_student(notebook: Path) -> tuple[bool, str]:
     return result.returncode == 0, result.stdout + result.stderr
 
 
-def main_as_student(notebooks: list[Path]) -> int:
-    """Run every notebook the student path can supply, and summarize."""
+def main_as_student(notebooks: list[Path], options: list[str]) -> int:
+    """Run every notebook the student path can supply, and summarize.
+
+    With ``--install-only`` in ``options`` nothing is skipped for what it requires: an
+    install needs no GPU, token or answers. ``student_path.sh`` passes a notebook with
+    no install cell, saying so.
+    """
     failures, skipped, known = [], [], []
+    install_only = "--install-only" in options
     for notebook in notebooks:
         unavailable = sorted(set(missing_capabilities(notebook)) & STUDENT_CANNOT)
-        if unavailable:
+        if unavailable and not install_only:
             skipped.append(notebook.name)
             print(f"  SKIP  {notebook.name} (requires {', '.join(unavailable)})")
             continue
         print(f"as a student: {notebook.name} ...", flush=True)
-        ok, output = run_as_student(notebook)
+        ok, output = run_as_student(notebook, options)
         reason = KNOWN_STUDENT_FAILURES.get(notebook.name)
         if reason and not ok:
             known.append(notebook.name)
@@ -271,7 +282,19 @@ def main() -> int:
         action="store_true",
         help="use each notebook's own install cell and fake Colab, one fresh environment each",
     )
+    parser.add_argument(
+        "--colab",
+        action="store_true",
+        help="with --as-student: Colab's Python and preinstalled package versions",
+    )
+    parser.add_argument(
+        "--install-only",
+        action="store_true",
+        help="with --as-student: run only the install cells, then the notebook's imports",
+    )
     args = parser.parse_args()
+    if (args.colab or args.install_only) and not args.as_student:
+        parser.error("--colab and --install-only go with --as-student")
 
     # Both families, because the course notebooks are the ones students open in the room, on
     # a clock -- a broken one costs twenty minutes of class rather than a confusing evening.
@@ -303,7 +326,8 @@ def main() -> int:
         )
         return 1
     if args.as_student:
-        return main_as_student(notebooks)
+        options = ["--colab"] * args.colab + ["--install-only"] * args.install_only
+        return main_as_student(notebooks, options)
 
     failures = []
     skipped = []

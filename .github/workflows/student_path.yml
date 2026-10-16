@@ -9,7 +9,8 @@ name: Notebooks as a student runs them
 # Not on pull requests: it installs what students are SERVED, the `course` branch, so a PR's
 # changes are not what it tests. On every push to `course`, to check what students just got;
 # and weekly, to catch drift (a dependency's new release breaking a notebook nobody touched).
-# Task #168; `course` since Task #196.
+# Task #168; `course` since Task #196. A second job runs every install cell in a copy of
+# Colab's environment (Task #244).
 
 on:
   schedule:
@@ -42,3 +43,31 @@ jobs:
         env:
           PIP_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
         run: python scripts/execute_notebooks.py --as-student
+
+  # Every notebook's install cells in a copy of Colab's runtime: its Python and the versions of
+  # the packages it ships, as googlecolab/backend-info publishes them, read fresh each run. The
+  # job above skips the notebooks that need a GPU or a student's answers -- A10, A11 and A13
+  # among them, whose COMET install broke for students in October 2026 -- and builds a plain
+  # environment on another Python. The weekly run is how a new Colab image gets caught.
+  # Task #244.
+  colab-installs:
+    name: Install cells in Colab's environment
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # student_path.sh --colab gets Colab's Python through uv.
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.2.0
+
+      - name: Run every notebook's install cells, then its imports
+        env:
+          PIP_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
+        run: python scripts/execute_notebooks.py --as-student --colab --install-only
