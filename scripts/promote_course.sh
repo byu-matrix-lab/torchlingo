@@ -13,7 +13,9 @@
 # WHAT IT CHECKS, before pushing anything:
 #   - the commit is on origin/main;
 #   - GitHub has check runs for it, every one has completed, and none failed. The
-#     student-path job is left out: it tests what `course` already holds, not this commit;
+#     student-path job is left out: it tests what `course` already holds, not this commit.
+#     When the commit is a PR's merge with exactly the tree of that PR's head, the PR's
+#     checks are used, so promoting does not wait for main to re-run them;
 #   - the move is a fast-forward of origin/course (git refuses anything else, and this script
 #     never forces).
 #
@@ -24,7 +26,9 @@
 #
 # --await polls every 30 seconds for up to 90 minutes, and treats a failed call to GitHub as
 # "not yet" rather than a reason to stop: on 2026-10-05 a network blip killed a hand-written
-# wait loop, and runners were scarce enough that checks took an hour to start.
+# wait loop, and runners were scarce enough that checks took an hour to start. Each poll
+# prints a timestamped line saying what it is waiting on, or the error GitHub returned:
+# on 2026-10-15 the wait ran 17 minutes after every check had passed, and said nothing.
 #
 # A job GitHub cancels because no runner ever picked it up is reported as that, with the
 # command that re-runs it; it is not a failure of the code, but it is not a pass either, so the
@@ -53,28 +57,56 @@ if ! git merge-base --is-ancestor "$target" origin/main; then
   exit 1
 fi
 
-# One line per check run: status, conclusion, check-run id, details URL, name. The student-path
-# job is left out: it tests what `course` already holds, not this commit. Prints nothing if
-# GitHub cannot be reached.
-check_runs() {
-  gh api "repos/$REPO/commits/$target/check-runs?per_page=100" \
-    --jq '.check_runs[] | select(.name | startswith("Notebooks from") | not)
-          | "\(.status) \(.conclusion // "-") \(.id) \(.details_url) \(.name)"' 2>/dev/null || true
+# Whose checks count. A squash merge of a PR that was up to date with main has exactly the tree
+# the PR's own checks passed on, so those checks are this commit's checks and waiting for main's
+# run of the same jobs adds about five minutes and no information (PR #295, 2026-10-15). Any
+# other commit, or a PR whose tree differs, is judged by its own checks on main.
+checked="$target"
+via=""
+pr="$(gh api "repos/$REPO/commits/$target/pulls" --jq '.[0] | "\(.number) \(.head.sha)"' 2>/dev/null || true)"
+if [ -n "$pr" ] && git fetch --quiet origin "refs/pull/${pr%% *}/head" 2>/dev/null \
+    && [ "$(git rev-parse "${pr#* }^{tree}")" = "$(git rev-parse "$target^{tree}")" ]; then
+  checked="${pr#* }"
+  via=" (PR #${pr%% *}'s checks, on the same tree at $(git rev-parse --short "$checked"))"
+fi
+
+# Sets runs to one line per check run: status, conclusion, check-run id, details URL, name. The
+# student-path job is left out: it tests what `course` already holds, not this commit. If
+# GitHub cannot be reached, runs is empty and api_error says why.
+fetch_runs() {
+  local out
+  if out="$(gh api "repos/$REPO/commits/$checked/check-runs?per_page=100" \
+      --jq '.check_runs[] | select(.name | startswith("Notebooks from") | not)
+            | "\(.status) \(.conclusion // "-") \(.id) \(.details_url) \(.name)"' 2>&1)"; then
+    runs="$out"
+    api_error=""
+  else
+    runs=""
+    api_error="$(tail -n 1 <<<"$out")"
+  fi
 }
 
-runs="$(check_runs)"
+fetch_runs
 if [ "$await" = 1 ]; then
+  echo "Waiting for the checks on $short$via, every 30 seconds." >&2
   for _ in $(seq 1 180); do
     if [ -n "$runs" ] && ! grep -qv '^completed ' <<<"$runs"; then
       break
     fi
+    if [ -n "$api_error" ]; then
+      echo "$(date -u +%H:%M:%SZ)  GitHub call failed, trying again: $api_error" >&2
+    elif [ -z "$runs" ]; then
+      echo "$(date -u +%H:%M:%SZ)  no check runs yet" >&2
+    else
+      echo "$(date -u +%H:%M:%SZ)  $(grep -c '^completed ' <<<"$runs") of $(wc -l <<<"$runs" | tr -d ' ') checks done; waiting on: $(grep -v '^completed ' <<<"$runs" | cut -d' ' -f5- | paste -sd, -)" >&2
+    fi
     sleep 30
-    runs="$(check_runs)"
+    fetch_runs
   done
 fi
 
 if [ -z "$runs" ]; then
-  echo "REFUSED: GitHub has no check runs for $short yet, or could not be reached." >&2
+  echo "REFUSED: GitHub has no check runs for $short yet, or could not be reached.${api_error:+ $api_error}" >&2
   exit 1
 fi
 
@@ -101,7 +133,7 @@ if [ -n "$pending" ] || [ -n "$failed" ]; then
   fi
   exit 1
 fi
-echo "$(wc -l <<<"$runs" | tr -d ' ') checks passed on $short."
+echo "$(wc -l <<<"$runs" | tr -d ' ') checks passed on $short$via."
 
 if git fetch --quiet origin course 2>/dev/null; then
   if [ "$(git rev-parse origin/course)" = "$target" ]; then
