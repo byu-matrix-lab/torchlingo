@@ -104,7 +104,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #231 | **P1** | A13: point Step 1 at a course-recommended source of monolingual text, if the course has one | **L13** | **Waits on Cowork** (in the hand-off): Step 1 names general sources (Wikipedia, news sites, the Hub, OPUS) behind a marked seam. The write-up questions, the resume-safe write-up, `EPOCHS` from A9's checkpoint and the prediction stop are done |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Waits on Cowork** (in the hand-off) — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: A12's loader (waits on the A12 layout) and an LLM helper (waits on whether any later lecture prompts an LLM) |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
-| #245 | **P2** | Landing a PR is eight manual steps, and the order matters | **hyg** | Open — a `land_pr.sh` that composes `merge_check.sh` and `promote_course.sh` |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #171 | **P2** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
@@ -695,23 +694,6 @@ inputs for it already — `docs/docs/_generated/*.json` from `scripts/sweep_deco
 and `scripts/compare_metrics.py` — but nothing enforces the link, which is how the
 chrF `63.39` in #80 survived. Scope it to the generated pages first rather than all of
 `docs/`.
-
-**#245 Landing a PR is eight manual steps, and the order matters**
-
-Each of PRs #295 to #299 landed by the same steps, typed by hand each time: `merge_check.sh`,
-record the open-PR set, `gh pr merge` without `--delete-branch`, compare the open-PR set,
-delete the branch, remove the worktree, `promote_course.sh --await`, then wait on the
-student-path run on `course`. `CLAUDE.md` gives the reason for each step, from PRs lost to
-auto-close and to `--delete-branch`. Typed from memory, they get skipped or run out of order,
-and the student-path run was the step nobody waited on: it failed on every push to `course`
-from 2026-10-14 until PR #299.
-
-**`scripts/land_pr.sh PR [--admin] [--promote]`** composes the two existing scripts and does
-not reimplement them. It stops at the first failure and says which step. `--admin` is passed
-only on Eric's explicit OK for that PR (or for a notes-only diff); the script never decides
-that itself. It never removes a worktree with uncommitted changes. With `--promote` it ends by
-awaiting the student-path run on the promoted commit, logging to a file. **Done when** the
-next PR that reaches `course` lands through it.
 
 
 ---
