@@ -44,6 +44,7 @@ pip install -e ".[dev]"
 scripts/preflight.sh                 # everything CI checks — see the workflow section
 scripts/student_path.sh NOTEBOOK     # a notebook as a Colab student runs it — see the course section
 scripts/merge_check.sh PR            # preflight on a PR merged with main, before merging it
+scripts/land_pr.sh PR [--promote]    # merge_check, merge, compare open PRs, clean up, promote
 python scripts/execute_notebooks.py --as-student   # every notebook that way, one environment each
 ruff check --fix src tests && ruff format src tests
 python -m unittest discover tests
@@ -183,6 +184,11 @@ was based on `main`**, so this is not stacking-specific.
   merged. This is how #84 was caught and reopened in one command; #26 took a day to notice.
 - **Prefer merging without `--delete-branch`**, deleting the branch as a separate step, until the
   mechanism is understood. The cost is one command.
+- **Land a PR with `scripts/land_pr.sh PR`**, which does all of this in order: `merge_check.sh`,
+  the merge without `--delete-branch`, the open-PR comparison (stopping before any deletion if
+  another PR closed), then the worktree, only if it is clean, and the branch. With `--promote`
+  it then runs `promote_course.sh --await` and waits for the student-path run on that commit.
+  `--admin` goes only with Eric's explicit OK for that PR, or on a notes-only PR.
 
 ### Retargeting a PR dismisses its approvals
 
