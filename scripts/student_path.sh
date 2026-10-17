@@ -104,9 +104,16 @@ if [ ! -x venv/bin/python ] && [ "$COLAB" = 1 ]; then
        "Python $python_version, $(wc -l < colab-pins.txt | tr -d ' ') pins:" \
        "$(grep -E '^(numpy|torch|transformers)==' colab-pins.txt | tr '\n' ' ')"
   uv venv --quiet --seed -p "$python_version" venv || exit 1
-  # The runner, then Colab's pins, with pip: what the notebooks' own installs use, and it reads
-  # PIP_EXTRA_INDEX_URL, which CI uses for the CPU build of torch.
-  venv/bin/python -m pip install --quiet nbclient nbformat ipykernel -r colab-pins.txt || exit 1
+  # The runner and Colab's pins go in with uv, not pip: uv's shared cache makes every fresh
+  # environment after the first take seconds rather than a minute, and each is still empty
+  # before this line. The notebook's own install cells still use pip, as in Colab. uv reads
+  # its own index variable, so CI's CPU build of torch is passed on; best-match lets
+  # torch==2.11.0 take the CPU index's 2.11.0+cpu while everything else comes from PyPI.
+  if [ -n "${PIP_EXTRA_INDEX_URL:-}" ]; then
+    export UV_EXTRA_INDEX_URL="$PIP_EXTRA_INDEX_URL" UV_INDEX_STRATEGY=unsafe-best-match
+  fi
+  uv pip install --quiet --python venv/bin/python nbclient nbformat ipykernel -r colab-pins.txt ||
+    exit 1
 elif [ ! -x venv/bin/python ]; then
   python3 -m venv venv
   # The runner, and the few packages every Colab runtime already has. Not torchlingo: the

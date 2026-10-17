@@ -214,23 +214,31 @@ def run_as_student(notebook: Path, options: list[str]) -> tuple[bool, str]:
     return result.returncode == 0, result.stdout + result.stderr
 
 
-def main_as_student(notebooks: list[Path], options: list[str]) -> int:
+def main_as_student(notebooks: list[Path], options: list[str], jobs: int) -> int:
     """Run every notebook the student path can supply, and summarize.
 
     With ``--install-only`` in ``options`` nothing is skipped for what it requires: an
     install needs no GPU, token or answers. ``student_path.sh`` passes a notebook with
-    no install cell, saying so.
+    no install cell, saying so. ``jobs`` notebooks run at once, each still in its own
+    environment; one at a time, the Colab run of all 23 took 27 minutes in CI.
     """
     failures, skipped, known = [], [], []
     install_only = "--install-only" in options
+    runnable = []
     for notebook in notebooks:
         unavailable = sorted(set(missing_capabilities(notebook)) & STUDENT_CANNOT)
         if unavailable and not install_only:
             skipped.append(notebook.name)
             print(f"  SKIP  {notebook.name} (requires {', '.join(unavailable)})")
             continue
-        print(f"as a student: {notebook.name} ...", flush=True)
-        ok, output = run_as_student(notebook, options)
+        runnable.append(notebook)
+
+    print(f"as a student: {len(runnable)} notebooks, {jobs} at a time ...", flush=True)
+    with ThreadPoolExecutor(max_workers=max(1, jobs)) as pool:
+        results = list(pool.map(lambda notebook: run_as_student(notebook, options), runnable))
+
+    # Reported in notebook order, whatever order they finished in.
+    for notebook, (ok, output) in zip(runnable, results):
         reason = KNOWN_STUDENT_FAILURES.get(notebook.name)
         if reason and not ok:
             known.append(notebook.name)
@@ -327,7 +335,7 @@ def main() -> int:
         return 1
     if args.as_student:
         options = ["--colab"] * args.colab + ["--install-only"] * args.install_only
-        return main_as_student(notebooks, options)
+        return main_as_student(notebooks, options, args.jobs)
 
     failures = []
     skipped = []
