@@ -1,0 +1,74 @@
+name: Tell someone when main or course goes red
+
+# A failed run on main, on course or on a schedule used to sit in the Actions tab until someone
+# happened to look. main was red from 2026-09-19 until someone noticed; the student-path run
+# failed on every push to course from at least 2026-10-14 to 2026-10-16. Task #60.
+#
+# So a failure of a watched workflow there opens an issue labelled `ci-red`, or comments on the
+# one already open. GitHub emails the repository's watchers about both, with no secret and no
+# setup. If the repository has a DISCORD_WEBHOOK_URL secret, the same message goes to that
+# Discord channel too. Pull-request runs are left out: their author is already watching.
+#
+# Run it by hand (Actions -> this workflow -> Run workflow) to check that the message arrives.
+
+on:
+  workflow_run:
+    workflows:
+      - "Test, Build, and Publish Python package"
+      - "Notebooks as a student runs them"
+      - "Build and publish docs"
+      - "Roadmap matches its sources"
+    types: [completed]
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+
+jobs:
+  notify:
+    name: Report a red run
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'failure' &&
+       (github.event.workflow_run.event == 'schedule' ||
+        (github.event.workflow_run.event == 'push' &&
+         contains(fromJSON('["main", "course"]'), github.event.workflow_run.head_branch))))
+    steps:
+      # Everything from the triggering run goes through the environment, never into the script
+      # text: a branch name or commit message is not trusted shell.
+      - name: Open or update the ci-red issue, and post to Discord
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          EVENT: ${{ github.event_name }}
+          WORKFLOW: ${{ github.event.workflow_run.name }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          TRIGGER: ${{ github.event.workflow_run.event }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          if [ "$EVENT" = workflow_dispatch ]; then
+            message="Test of the red-run notification, run by hand. Nothing is failing."
+          else
+            message="**${WORKFLOW}** failed on \`${BRANCH}\` (${TRIGGER}, ${SHA:0:7}): ${RUN_URL}"
+          fi
+          echo "$message"
+
+          gh label create ci-red --color B60205 \
+            --description "A run on main, course or a schedule failed" 2>/dev/null || true
+          issue="$(gh issue list --label ci-red --state open --json number --jq '.[0].number')"
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body "$message"
+          else
+            gh issue create --label ci-red --title "A run on main or course failed" \
+              --body "$message"$'\n\n'"Close this once it is green again; the next failure opens a new one."
+          fi
+
+          if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+            jq -n --arg content "$message" '{content: $content}' |
+              curl -sSf -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK_URL"
+          else
+            echo "No DISCORD_WEBHOOK_URL secret, so the issue is the only notice."
+          fi

@@ -108,7 +108,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #171 | **P2** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
-| #60 | **P2** | Nobody is told when main goes red | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
 | #243 | **P2** | An architectural review of TorchLingo, pedagogy first | **lib** | Open — a review, reported before any change (Eric, Oct 14) |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
@@ -717,37 +716,11 @@ next PR that reaches `course` lands through it.
 
 ---
 
-## Follow-ups from the training-budget finding
+## The training-budget finding
 
 **The finding itself now lives in [`reports/training-budget.md`](reports/training-budget.md).**
 It is a measurement, not a task, and it is the prior for #119's learning curve: training
 budget beat data by about 7x, and the data effect's confidence interval crossed zero.
-
-What remains here are the corrections it generated.
-
-**#60 Nobody is told when main goes red**
-
-main broke on 2026-09-19 and stayed broken until someone happened to look.
-
-**No PR could have caught it**, which is the point. #25 added a docstring example that cannot
-pass; #32 added the `--doctest-modules` gate that runs it, having branched from a main where
-that file did not exist. Both green alone; the *combination* fails. A merge-order interaction
-can only surface in a post-merge run on main — so that run is load-bearing and unwatched.
-
-Nothing notifies on a failed push-to-main run; it sits in the Actions tab, and the next person
-to open a PR inherits a red main and may assume they caused it.
-
-**Done when** a failed push-to-main run notifies someone: an `if: failure()` step posting to the
-lab's Discord, or just enabling GitHub's own Actions-failure email. Neither needs new
-infrastructure.
-
-**`course` has the same gap, and it has already cost something.** `student_path.yml` failed on
-every push to `course` from at least 2026-10-14 until PR #299 on 2026-10-16. Lecture 5 stopped
-at an exercise it did not declare. Nobody saw it until the build looked broken. The same
-notification covers that workflow's failed runs.
-
-Same family as #51 and #53: a check that does not block, a check that runs a fifth of what it
-claims, and a check nobody reads.
 
 ## Tests
 
@@ -956,7 +929,7 @@ that in the job summary); **fetch LFS for the notebook job only**, ~28 MB per ru
 keep-CI-light decision ruled out on four-version-matrix grounds that do not apply to one job;
 or a **scheduled full run** with LFS.
 
-**Done when** the green check states what it did not run. Same family as #51 and #60.
+**Done when** the green check states what it did not run. Same family as #51.
 
 
 **#66 Adopt `nltk.translate.gale_church`; split #29 into two different jobs**
