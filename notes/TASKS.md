@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-10-14. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-10-17. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
@@ -23,7 +23,15 @@ audit of every course notebook is applied, and every assignment notebook has the
 the method, with checks, a prediction that stops the run, and write-up questions for its
 lecture's conceptual outcome. What is left on the course side waits on Cowork's answers, each
 row saying so: Tasks #176, #229, #231, #233, #235 and #242, and part of Task #169. On this side,
-Tasks #99 and #123 (both due Nov 2) and Task #243, the architectural review, are the open work.
+Tasks #99 and #123 (both needed by Wed Oct 28, when A14 is set) and Task #243, the architectural
+review, are the open work.
+
+**Since then, 2026-10-15 to 17, on this side:** the COMET install in A10, A11 and A13 was fixed
+twice (PRs #295 and #297); every install cell now runs in a copy of Colab's runtime on each push to
+`course` (Task #244, PR #302); a red run on `main` or `course` opens a `ci-red` issue (Task #60,
+PR #301); and `scripts/land_pr.sh` lands a PR (Task #245, PR #304). The baton is still with Cowork.
+Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
+from this side.
 
 **Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
 done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
@@ -41,7 +49,7 @@ is not finished until that PR merges, and only then does the row disappear.
 
 **Task #99 has an external deadline.** It comes from
 `notes/CS479_COURSE_ROADMAP.md`, is sequenced against a calendar nobody here controls, and
-outranks everything else in this file until Nov 2. See "The CS 479 pivot" below for the schedule and the reasoning.
+outranks everything else in this file until A14 is set at Lecture 14, Wed Oct 28. See "The CS 479 pivot" below for the schedule and the reasoning.
 
 ### Reading the "Critical for" column
 
@@ -64,16 +72,16 @@ dates are not lecture-critical, and several with no date are.
 | **L8c** | Finishing the Transformer, the A8 Debrief, and the Subword Activity — **has already run** | Wed Oct 7 · **A8 due, A9 set** |
 | **L8a/8b** | the halves of the split | |
 | **L9** | Morphology and Terminology in NMT — **has already run** | Mon Oct 12 |
-| **L10** | Overview of MT Quality Estimation | Wed Oct 14 · A9 due · A10 set (install COMET) |
+| **L10** | Overview of MT Quality Estimation — **has already run** | Wed Oct 14 · A9 due · A10 set (install COMET) |
 | **L11** | Neural Quality Estimation and Evaluation | Mon Oct 19 · A10 due · A11 set |
 | **L12** | Using LLMs for MT; Expanding Context Awareness | Wed Oct 21 · A12 set |
 | **L13** | Strategies for NMT of Low-Resource Languages | Mon Oct 26 · A11 due · A13 set (back-translation) |
-| **14+** | Lecture 14 onward: multilingual and zero-shot, speech, and later | from Wed Oct 28 |
+| **14+** | Lecture 14 onward: multilingual and zero-shot, speech, and later | from Wed Oct 28 · A14 set |
+| **lib** | library, tooling or docs work **no lecture depends on** | |
+| **hyg** | roadmap and process integrity — **critical, but not to one lecture** | |
 
 Since roadmap v16 (Oct 7) everything from Lecture 9 on sits one session later than it did, and
 the dates in the task rows below were shifted with it.
-| **lib** | library, tooling or docs work **no lecture depends on** | |
-| **hyg** | roadmap and process integrity — **critical, but not to one lecture** | |
 
 **A lecture that has already run still owns its work.** `L6` means "this belongs to Lecture
 6", not "this is overdue" — the deadline pressure is gone, the subject matter is not, and a
@@ -98,11 +106,12 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
 | #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files, and Step 1 says where the A12 shared folder is | **L12** | **With Cowork** — the notebook runs end to end (Oct 13); the loader guesses the A12 layout, and Step 1 names "the A12 shared folder" without saying where it is (a marked seam), until Cowork answers both |
-| #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty, due Mon Nov 2 |
-| #99 | **P1** | Multilingual tagging tutorial, replacing the OpenNMT handout | **14+** | **Due Mon Nov 2** |
+| #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty; needed by Wed Oct 28, when A14 is set; comes before #99 |
+| #99 | **P1** | The A14 notebook: a bidirectional system from A9, tagged and intermingled, scored both ways | **14+** | **Needed by Wed Oct 28**, when A14 is set; after #123. Rescoped Oct 17 from a tutorial to the course notebook (see below) |
 | #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on Cowork** (in the hand-off): the notebook assumes one `.txt` per column and defines average rank as the mean rank per system, 1 best; both need confirming. The prediction stop, why COMET-QE-DA and the LLM-as-judge question are done |
 | #231 | **P1** | A13: point Step 1 at a course-recommended source of monolingual text, if the course has one | **L13** | **Waits on Cowork** (in the hand-off): Step 1 names general sources (Wikipedia, news sites, the Hub, OPUS) behind a marked seam. The write-up questions, the resume-safe write-up, `EPOCHS` from A9's checkpoint and the prediction stop are done |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Waits on Cowork** (in the hand-off) — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: A12's loader (waits on the A12 layout) and an LLM helper (waits on whether any later lecture prompts an LLM) |
+| #246 | **P2** | Ask Cowork what Lectures 15 to 23 and the final project need from this side | **14+** | **For the next hand-off** — the roadmap has no notebook for them, by design, but Lecture 18's edit-distance activity, Lecture 19's IBM Model 1 and the projects may want code |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #171 | **P2** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
@@ -131,10 +140,16 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #68 | **P3** | Cite `torcheck` as prior art in the diagnostics docs | **lib** | Open |
 | #71 | **P3** | Decide whether to report the Joey NMT breakage upstream | **lib** | Open — Eric's call |
 | #74 | **P3** | Diagnose the 93 docs warnings | **hyg** | Open — **the anchor half shipped** in PR #51 |
-| #79 | **P3** | An order-dependent test | **hyg** | **Fails on unmodified `main`** — so it blocks nothing; CI cannot see it |
 | #81 | **P3** | Fail the build on hand-typed generated numbers | **hyg** | Open |
 | #89 | **P3** | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | **P3** | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
+| #247 | **P3** | Next offering: the A8 kickoff's cap and dedupe become the student's | **L8a** | Open — the roadmap's one notebook rated **high**; after the term |
+| #248 | **P3** | Does "about 35 epochs" hold for a student with 30K pairs? | **L8a** | Open — a measurement, for the next offering's A8 handout |
+| #249 | **P3** | Roadmap gap: what to do when training goes wrong | **lib** | Open — `concepts/training.md` has the loop, not batch size against learning rate or overfitting on a small corpus |
+| #250 | **P3** | Roadmap gap: model size against latency | **lib** | Open — what a student meets when a Colab session is slow |
+| #251 | **P3** | Roadmap gap: teach the training-budget episode | **lib** | Open — "which lever are you pulling?", from `reports/training-budget.md` |
+| #252 | **P3** | The roadmap still says the grader has no source | **hyg** | Open — after Eric's uncommitted roadmap edits land; Task #120 found the source on Sep 26 |
+| #253 | **P3** | Lecture 19: IBM Model 1 by hand, set against 8a's attention alignment | **L19** | **After Cowork rescopes Lecture 19** (Mon Nov 30); asked in #246 |
 | #233 | **P3** | 8c: quote Lecture 8c's outcome in the notebook's opening | **L8c** | **Waits on Cowork** (in the hand-off): the roadmap has no 8c outcome yet. The predictions, the stops and 8b's quoted outcome are done |
 | #235 | **P3** | A6: make the roadmap and the notebook agree on how students get their ten translations | **L6** | **Waits on Cowork** (in the hand-off): the roadmap says "translate ten by hand", the notebook has them paste a web MT system's output. Ranking before any score prints is done |
 | #242 | **P3** | 8a: a first logged loss for every corpus A8 allows | **L8a** | **Waits on Cowork** (in the hand-off): an epoch shorter than `log_every` (50 batches, about 3,200 pairs at batch size 64) prints no `Train Loss` line, so 8a has no first loss to set beside ln(V) and says so. If the A8 handout allows corpora that small, 8a sets `log_every` from the training set's size instead |
@@ -158,11 +173,31 @@ produced two copies that disagreed within days.
 
 What stays below are the dated tasks themselves.
 
-### #99 Multilingual tagging tutorial
+### #99 The A14 notebook: a bidirectional system from A9
 
-Bidirectional English and X from the Assignment 8/9 system, directions intermingled,
-separate test sets per direction, target-language tagging. Replaces the
-"MNMT Guide Using OpenNMT.docx" handout.
+Bidirectional English and X from the A9 system, directions intermingled, separate test sets per
+direction, target-language tagging, BLEU and COMET both ways. Replaces the
+"MNMT Guide Using OpenNMT.docx" handout. **Needed by Wed Oct 28**, when Lecture 14 sets A14
+(due Wed Nov 4); it was filed as due Nov 2, A14's old place in the calendar.
+
+**Rescoped 2026-10-17 from a tutorial to the course notebook.** It was filed as a tutorial, but
+A14 is where a student builds this system, and `CLAUDE.md` puts a lesson an assignment needs in
+the course notebook, which never assumes a tutorial was read. A separate tutorial on the same
+system would read as a repeat. If a library-documentation page on `preprocessing.multilingual`
+is still wanted afterwards, it links to this notebook rather than retraining the same thing.
+
+**Built to the rule in the roadmap's "Where the line is crossed"**, as A12 and A13 are: the
+student writes the tagging and the intermingling as short functions that raise
+`NotImplementedError`, each checked on a known case and then by `check_contamination` on both
+directions' held-out sets; a prediction stops the run before training (does the reverse
+direction score higher or lower than A9's?); the notebook supplies the training, decoding and
+scoring. It starts from what Lecture 9's Part B leaves on Drive, as `lecture-13-back-translation`
+does, and the write-up asks why tagging works at all, Lecture 14's conceptual outcome.
+
+**Done when** `lecture-14-...` is in `docs/docs/course/` with its metadata, roadmap row, a
+`tests/notebook_cells.py` test at toy size, and `student_path.sh --colab --install-only` passing,
+and is promoted to `course` by Oct 28. The A14 Learning Suite text is Cowork's, rewritten against
+the notebook; the hand-off that announces the notebook asks for it.
 
 
 ### #108 Nothing releases the device allocator's cache
@@ -384,8 +419,15 @@ ungated, and `scripts/generate_sentencepiece_models.py` fails three rules on unm
 `scripts/`, and it is the one file here whose breakage would be least visible — a formatting drift
 in it is exactly what silently defeated a mutation test earlier today.
 
-Fix is widening two workflow lines and clearing the three violations. Keep it as its own PR, so
-pre-existing fixes are not buried inside a feature diff.
+`examples/` is worse: `ruff check examples` found 32 errors across five files (unsorted and
+unused imports, `f`-strings without placeholders, `typing.List`, a blind `except Exception`), and
+**these are the code students are most likely to copy**. The 2026-10-16 scripts
+(`student_path.sh`'s Python, `land_pr.sh`) were checked by hand on the way in, which is what stops
+happening once whoever does it moves on. (This entry was filed twice; merged on 2026-10-17.)
+
+**Done when** the scope in CI and `preflight.sh` is `src tests examples scripts`. Fix is widening
+those lines and clearing the violations. Keep it as its own PR, so pre-existing fixes are not
+buried inside a feature diff.
 
 ### #101 Give the tutorials stable unique names
 
@@ -474,7 +516,8 @@ deadline.
 
 ### #123 A14's two-directions case has never been run
 
-**Due Mon Nov 2. Lowest risk by date, highest uncertainty by evidence.**
+**Needed by Wed Oct 28, when Lecture 14 sets A14. Highest uncertainty by evidence.** It was
+filed as due Mon Nov 2, A14's old place in the calendar.
 
 `preprocessing.multilingual` has never been exercised at "two directions, intermingled,
 separate test sets per direction", which is precisely what Assignment 14 asks for. Lecture
@@ -486,6 +529,89 @@ works at all, and it should be answered before a notebook is written on top of i
 The notebook starts from A9 (Eric, Oct 13: every assignment after A9 does): its split,
 SentencePiece model and configuration, as `lecture-13-back-translation` does. A9's shared
 SentencePiece model already covers both languages, so two directions need no new vocabulary.
+
+## What the rest of the roadmap needs from this side
+
+Filed 2026-10-17 from a pass over `notes/CS479_COURSE_ROADMAP.md` for what it asks of the
+repository and nothing here tracked: its "What the table cannot say", "Where the line is
+crossed", "Open questions" and "Gaps" sections, and Lectures 14 to 23's scope notes. Lecture 14's
+notebook is Task #99. Lecture 15's A15 runs on Azure, outside the repository, and Lectures 16 to
+18 set no assignment, so none has a row of its own until #246 says otherwise.
+
+### #246 Ask Cowork what Lectures 15 to 23 and the final project need from this side
+
+The roadmap pairs ten sessions with no notebook, by design ("inventing one to fill a row would
+be the redundancy `CLAUDE.md` rules out"). Three may still want code, and only the course side
+knows: Lecture 18's in-class post-editing activity measures normalized edit distance (does it
+want a small notebook, or `torchlingo.evaluation`'s TER?); Lecture 19 works IBM Model 1 by hand
+(#253); and the final projects, proposed Nov 16, may build on a student's A9 or A14 system (does
+the course want a "starting a project from your model" page?). **Done when** the next hand-off
+to Cowork has asked all three and the answers are rows here, or this row is closed as nothing
+needed. Asked together, as `CLAUDE.md`'s "ask everything at once" wants.
+
+### #247 Next offering: the A8 kickoff's cap and dedupe become the student's
+
+The roadmap's "Where the line is crossed": `lecture-08a-a8-kickoff` is the one notebook rated
+**high**, since it performs the cap, the dedupe, the split and the verification that the A8
+slide on AI use calls the student's, and the student edits two file names. It was deliberate,
+since the run has to be going when class ends, and A8 has run for this term. **Done when**, for
+the next offering, the cap and the source-side dedupe are the student's functions, checked on
+known cases and then by `check_contamination`; the split, model and training call stay given;
+and a prediction of ln V and the first logged loss stops the run before training. After the
+term: changing it now would reach no student and risk the notebook A9 and A13 read from.
+
+### #248 Does "about 35 epochs" hold for a student with 30K pairs?
+
+An open question in the roadmap. The 30-epoch convergence was measured at 100K pairs with a
+subword vocabulary; A8 uses words, and low-resource students have far fewer pairs. The A8
+instruction's escape hatch ("keep going while validation loss falls") covers a student who
+reads it. **Done when** a run at 30K pairs, word vocabulary, A8's 56.4M configuration, has a
+measured convergence epoch in `notes/reports/`, and the next A8 handout's guidance follows it.
+Needs the A5 audit's count of students well below 100K to say whether it matters.
+
+### #249 Roadmap gap: what to do when training goes wrong
+
+The roadmap's first gap. `concepts/training.md` covers the loop, optimizers, schedulers,
+clipping and early stopping, but not what a student does when training goes wrong: batch size
+against learning rate, or what overfitting looks like on a small corpus. **Done when** the page
+covers both, with a measured example from this repository's corpus rather than a described one
+(documentation that executes), linked from tutorial 6's lookup table.
+
+### #250 Roadmap gap: model size against latency
+
+The roadmap's third gap. `concepts/decoding.md` explains beam search's cost and why a GPU at
+batch size 1 is mostly overhead; nothing covers model size against latency, which is what a
+student meets when a Colab session is slow. **Done when** `concepts/decoding.md` or a new
+section of it carries a generated table (decode time per sentence against parameter count, on
+CPU and on one GPU), produced by a script into `docs/docs/_generated/`, not typed.
+`scripts/bench_decode.py` is the place to start, not a new script.
+
+### #251 Roadmap gap: teach the training-budget episode
+
+The roadmap's second gap. "How much data is enough" is open in general, but the material has a
+measured answer to a better question, *which lever are you actually pulling?*: at this scale
+training longer helped and more data did not, and the first attempt to answer it was wrong in a
+way only a control run caught (`notes/reports/training-budget.md`). The roadmap says the episode
+is worth teaching directly. **Done when** a docs page (or a section of `concepts/training.md`,
+beside #249) tells it to students, with the report's numbers included from its JSON, not typed.
+
+### #252 The roadmap still says the grader has no source
+
+The roadmap's "Tooling the semester depends on" row for `grader.exe` says "Binaries only, no
+source, no repository", and its first open question asks whether the grader survives. Task #120
+found the source on 2026-09-26 (`byu-matrix-lab/data-cleaning-pipeline-grader`, private and
+unlicensed). **Done when** both roadmap sources say what #120 found and what still blocks it.
+Wait for Eric's uncommitted edits to `notes/roadmap/` to land first, so the two do not collide.
+
+### #253 Lecture 19: IBM Model 1 by hand, set against 8a's attention alignment
+
+Lecture 19's outcome: "Work IBM Model 1 by hand on a toy pair; explain EM; relate statistical
+alignment to the attention alignment of 8a." The roadmap says the lecture needs rescoping around
+material now in Lecture 5, and has no notebook. A notebook could run EM on a toy corpus and set
+its alignment beside the attention alignment tutorial 4 measures, which is the link the outcome
+names and nothing else in the course makes. **After Cowork rescopes Lecture 19** (asked in
+#246); Mon Nov 30. **Done when** Cowork has said whether the lecture wants it, and if so it is
+built to the course-notebook rules.
 
 ## Code — decoding performance
 
@@ -714,96 +840,6 @@ therefore cannot detect scrambled beam state or bad memory expansion.
 - Mitigated by the new `tests/test_decoding_equivalence.py`, but the old tests should
   eventually migrate to the history-sensitive fixture rather than sitting alongside it.
 
-**#79 `test_different_optimizers_produce_different_results` is order-dependent**
-
-**Reproduced 2026-09-26, with a mechanism.** It failed on PR #57's branch under
-`python -m unittest discover tests` while `main` passed the same run, and it passes under
-`pytest` on both. So the two documented ways to run the suite disagree, which is the fourth
-instance this month of two things that must agree with nothing checking that they do.
-
-**The trigger is test count, not PR #57's content.** #57 changes only the decode path — a float
-causal mask becomes the boolean one training already used — and this test trains Adam against
-SGD and never decodes. What #57 adds is a 150-line test file, so more RNG is consumed before
-this test runs. That is exactly the failure mode predicted when this was filed: *a test that
-depends on whatever seeded the RNG before it will come back.*
-
-**Stronger than that, as of 2026-09-26: it fails on unmodified `main` with nothing added.**
-Stashing a branch's changes and running `python -m unittest discover tests` on `main` alone gave
-726 tests and the same single failure. So it does not need a PR to add test lines — the current
-`main` already sits on the wrong side of it under `unittest discover`, while `pytest` passes 737.
-
-That matters for two reasons. It is not a property of whichever branch happens to surface it, so
-no PR should be held for it. And **CI only runs `pytest`**, so the suite CLAUDE.md documents
-first is the one nobody is watching.
-
-**The assertion is the defect.** It checks `adam_improved or sgd_improved` — "at least one
-should show improvement" — on a tiny fixture over 5 epochs. With an unlucky starting state
-neither improves and the test fails, while the claim it is named for, that the two optimizers
-take *different trajectories*, is never checked at all.
-
-- Seed inside the test, and assert the **difference** between the two curves rather than
-  improvement in either.
-
-**Fixed 2026-09-27, and it was three defects rather than one.** Worth recording because each
-was hidden behind the previous, and only the first was the one filed:
-
-1. **The optimizer test was unseeded**, so its models' initial weights came from whatever RNG
-   state earlier tests left. Seeded identically for both optimizers, which also makes it the
-   controlled comparison its name claims. Its assertion now checks that the two curves
-   *differ*, which is the actual claim — and that they differ by epoch two, so an optimizer
-   ignored until epoch three would still fail.
-2. **A sibling had the same disease**, and fixing the first revealed it:
-   `test_learning_rate_affects_convergence_speed`, also unseeded, also asserting a stochastic
-   inequality.
-3. **That sibling was measuring the wrong quantity, and that is why it looked flaky.** It
-   compared `losses[0] - losses[1]` between two rates and called the larger drop faster. But
-   `train_losses[0]` is the *average over epoch one*, so a rate that learns quickly within
-   epoch one reports a lower first value and therefore a smaller later drop — the formula
-   inverts the thing it is measuring. It now asserts the loss *reached*, which is what
-   "converges faster" means.
-   **And its rates were wrong:** at lr 0.01 the "fast" model reaches a worse final loss than
-   the slow one at two of three seeds, because 0.01 overshoots on a 32-dimensional model over
-   twelve identical rows. Measured, not assumed. Changed to 0.001 — the library default —
-   against 1e-05, which holds at every seed with a wide margin.
-
-**CI now runs both documented runners.** `pytest` and `python -m unittest discover tests`. It
-costs a second pass over the suite, and it is the price of "the tests pass" meaning the same
-thing on a laptop and in CI.
-
-**Twelve more tests have the same shape**, found by walking the AST for tests that build a
-model, train it, and assert an inequality without seeding:
-
-```
-test_checkpoint.py            test_legacy_training_state_dict_extracts_weights
-test_integration_robust.py    test_full_pipeline_with_sentencepiece
-                              test_training_with_validation_and_early_stopping
-                              test_training_handles_gradient_explosion
-                              test_training_with_amp
-test_model_convergence.py     test_transformer_overfits_small_dataset
-                              test_transformer_loss_decreases_monotonically_on_simple_task
-                              test_lstm_overfits_small_dataset
-                              test_gradient_clipping_prevents_nan_loss
-                              test_early_stopping_triggers_on_no_improvement
-                              test_best_checkpoint_has_lowest_val_loss
-                              test_larger_model_achieves_lower_loss
-```
-
-**Deliberately not rewritten.** Most assert effects large enough to survive any starting
-point — a model *will* overfit ten identical rows — and rewriting twelve working tests to
-pre-empt a failure none of them is showing would be churn. The two that broke were the two
-whose claims were weak or inverted, which is the pattern worth watching rather than the
-absence of a seed.
-
-**`test_larger_model_achieves_lower_loss` is the one to look at first if another goes.** It is
-the same shape as the learning-rate test: a comparative claim between two configurations on a
-toy corpus, where the effect may be smaller than the noise. The both-runner gate will surface
-it rather than leaving it to a laptop.
-- **This now blocks clean verification of every PR that adds tests**, since adding tests is what
-  perturbs the ordering. That makes it worth fixing before #54, #59, #103 and #105 land rather
-  than after.
-- Worth sweeping for others while in there: run the suite under both runners and diff. CI uses
-  `pytest`; `CLAUDE.md` documents `unittest discover`. Nothing checks they agree.
-
 **#36 CI actions are pinned to a deprecated Node runtime**
 Every run now warns: `actions/checkout@v4`, `actions/setup-python@v5` and
 `actions/download-artifact@v4` target Node 20, which GitHub deprecated, and are being
@@ -823,49 +859,6 @@ with nothing checking they do.
 **Done when** a release-job step scans the built sdist and wheel for any member beginning
 `version https://git-lfs` and fails on a hit. Cheap, no LFS dependency, and it catches the class
 rather than today's two files.
-
-## Inference gaps
-
-## Lint and tooling gaps
-
-**Standing gotcha from #45, which is now fixed in #21**
-
-A PR opened *before* #21 merged still shows no checks, because for `pull_request` events
-GitHub reads the workflow from the PR branch rather than from main. Rebase such a PR onto
-current main, or dispatch a run with
-`gh workflow run tests_and_build.yml --ref <branch>`. PRs opened since #21 get checks
-automatically, whatever branch they target.
-
-
-**#22 `examples/` and `scripts/` are outside the lint gate**
-
-CLAUDE.md and CI lint `src` and `tests` only. `ruff check examples` turns up 32 pre-existing
-errors across five files — unsorted and unused imports, `f`-strings without placeholders,
-deprecated `typing.List`, a blind `except Exception`. `scripts/` has the same gap.
-
-**These are the code students are most likely to copy**, which makes them arguably the worst
-place in the repo to let style rot.
-
-The gap keeps widening: `scripts/` has since gained `bench_decode.py`,
-`execute_notebooks.py`, `train_example_model.py`, `sweep_decoding.py`, `diagnose_corpus.py` and
-`render_report.py`, all linted by hand on the way in and none of them gated. Hand-linting is
-exactly what stops happening once whoever does it moves on.
-
-**Done when** the scope is `src tests examples scripts`. Fix under its own PR first, since a
-five-file mechanical diff would bury any review it rode along with.
-
-## Visualization
-
-All three raised by Coulson on Discord, 2026-09-14, after reviewing the open PRs:
-
-> "if we can add visualization to any of the options that we present it could be useful
-> for the students. I saw that it was added for attention, but did we add it for beam
-> search as well? ... students should have learned about this in 312 ... but I think a
-> reminder in this tool may be useful."
-
-**The answer to his direct question was no.** That is now fixed: `visualization.py` gained
-`format_beam_search` and `plot_beam_search`, and `beam_search_decode` takes an optional
-trace recording candidates *before* pruning. The two below are what remains.
 
 ## Docs and tutorials
 
