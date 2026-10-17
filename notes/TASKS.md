@@ -31,7 +31,7 @@ twice (PRs #295 and #297); every install cell now runs in a copy of Colab's runt
 `course` (Task #244, PR #302); a red run on `main` or `course` opens a `ci-red` issue (Task #60,
 PR #301); and `scripts/land_pr.sh` lands a PR (Task #245, PR #304). The baton is still with Cowork.
 Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
-from this side.
+from this side, and Tasks #254 to #256 from the session's repeated manual steps.
 
 **Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
 done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
@@ -141,6 +141,9 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #71 | **P3** | Decide whether to report the Joey NMT breakage upstream | **lib** | Open — Eric's call |
 | #74 | **P3** | Diagnose the 93 docs warnings | **hyg** | Open — **the anchor half shipped** in PR #51 |
 | #81 | **P3** | Fail the build on hand-typed generated numbers | **hyg** | Open |
+| #254 | **P3** | One way to wait for a GitHub run, shared by the scripts | **hyg** | Open — `promote_course.sh` and `land_pr.sh` each carry a loop, and four more were typed on Oct 16–17 |
+| #255 | **P3** | `student_path.sh --at COMMIT`: run a notebook as it was | **hyg** | Open — showing a fix fails before and passes after took three hand extractions on Oct 16 |
+| #256 | **P3** | Check `TASKS.md` itself: duplicate entries, rows without bodies, empty sections | **hyg** | Open — the Oct 17 clean-up was mostly mechanical |
 | #89 | **P3** | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | **P3** | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
 | #247 | **P3** | Next offering: the A8 kickoff's cap and dedupe become the student's | **L8a** | Open — the roadmap's one notebook rated **high**; after the term |
@@ -820,6 +823,42 @@ inputs for it already — `docs/docs/_generated/*.json` from `scripts/sweep_deco
 and `scripts/compare_metrics.py` — but nothing enforces the link, which is how the
 chrF `63.39` in #80 survived. Scope it to the generated pages first rather than all of
 `docs/`.
+
+**#254 One way to wait for a GitHub run, shared by the scripts**
+
+On 2026-10-16 and 17, waiting on GitHub was written by hand four times: a dispatched workflow on
+a branch (twice), a PR's checks, and the student-path run on `course`. `gh run watch` is not
+the answer, since one network blip killed it mid-run. `promote_course.sh` and `land_pr.sh` each
+carry their own loop, with slightly different rules for a failed call. The global rule on
+authenticated connections asks every one of them for the same three things: an attempt cap, a
+deadline, and a stop at the first authentication failure.
+
+**`scripts/await_run.sh`**, taking a run id, a workflow and commit, or `--pr N`, that does those
+three things, treats any other failed call as "not yet", prints a timestamped line per poll, and
+exits with the run's conclusion. **Done when** `promote_course.sh` and `land_pr.sh` call it
+instead of their own loops, and `CLAUDE.md`'s Commands list names it.
+
+**#255 `student_path.sh --at COMMIT`: run a notebook as it was**
+
+Proving the Colab check (Task #244) caught the October COMET break meant running A11 as it was at
+three commits: `git show COMMIT:path > file` by hand for each, then `student_path.sh` on each
+file. That recurs whenever a notebook fix needs "fails before, passes after" shown, which is how
+a fix to an install cell should be verified. **Done when** `student_path.sh --at COMMIT NOTEBOOK`
+extracts the notebook at that commit into the run directory and runs it, so
+`--colab --install-only --at b98709c docs/docs/course/lecture-11-comet-on-a6.ipynb` reproduces
+the numpy failure in one command. The install cell still installs from `course`; the header says
+so, since only the notebook travels back.
+
+**#256 Check `TASKS.md` itself: duplicate entries, rows without bodies, empty sections**
+
+The 2026-10-17 clean-up found Task #22 filed twice, Task #79 done since Sep 27 and still listed,
+two empty sections, and a paragraph splitting the label table. The first three are mechanical,
+and a file whose convention is "a finished task is deleted" has nothing checking it. **A
+`--check-tasks` in `notebook_meta.py`'s family, or a small `scripts/check_tasks.py`, run by
+preflight**: every task number has one table row and at most one body; a body exists only with a
+row; no section heading is empty; the table has no non-row line inside it. It cannot tell a done
+task from an open one; that stays a reading at each baton pass. **Done when** it fails on the
+file as it was at `061031f` and passes now.
 
 
 ---
