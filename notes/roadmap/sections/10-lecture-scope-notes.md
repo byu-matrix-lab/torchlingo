@@ -79,20 +79,23 @@ wrong translation. `04-attention-and-alignment` Part 7 (reading); `05-transforme
 (reference): this notebook and 8c's in one worked example, without the exercises.
 **Sets:** nothing; A8 is due two days later.
 
-### 8c. Finishing the Transformer, the A8 Debrief, and the Subword Activity (F2026, 22 slides)
+### 8c. Finishing the Transformer, the A8 Debrief, and the Subword Activity (F2026 `_v13`, 38 slides shown)
 The by-hand solution; multi-head attention, the whole Transformer, the encoder block, the
-residual stream and the decoder block; pros and cons of NMT; the A8 debrief around the capacity
-table; Part A of the Lecture 9 notebook, in class.
+residual stream and the decoder block; how order gets into a model with no recurrence (the
+position is added to the embedding, once); deployment challenges, then pros and cons of NMT; the
+A8 debrief around the capacity table; Part A of the Lecture 9 notebook, in class.
 **Notebooks:** `lecture-08c-attention-heads` (activity): the student splits the projections into
 heads, shown to be the model's in every encoder layer, and measures how averaging and depth blur
 attention. `lecture-09-subword-tokenization` Part A (activity); `06-diagnosing-failures`
 (reading): five questions to ask of a model that is not working.
 **Sets:** A9.
 
-### 9. Handling Morphology and Terminology in NMT (F2026 `_v4`, 21 slides shown)
-Deployment; how order gets into a model with no recurrence; the fixed vocabulary; morphology and
-why vocabularies explode; BPE and SentencePiece on real sentences; characters; what changes in
-the model's shapes; terminology and getting terms into a neural system.
+### 9. Handling Morphology and Terminology in NMT (F2026 `_v16`, 38 slides shown)
+The fixed vocabulary; morphology, one figure each for inflection, derivation, compounding and
+agglutination; BPE and SentencePiece on real sentences, with the two pipelines as pseudocode;
+characters; what changes in the model's shapes; terminology and getting terms into a neural
+system. A pencil-and-paper "Subwords by Hand" exercise on a real 3,000-piece English and Spanish
+BPE model, with its handout, is in the deck for next year or a Lecture 10 opener.
 **Notebooks:** `lecture-09-subword-tokenization` (activity, and A9 itself). Part A, on a CPU:
 the student writes the `<unk>` counter, trains SentencePiece on the training split, chooses the
 vocabulary size with a reason, and predicts A9's BLEU; the settings go to Drive. Part B, on a GPU:
@@ -101,33 +104,41 @@ retrains with the pieces under A9's own run names and scores A8 and A9 with the 
 **Sets:** A9 (set at 8c): the same split as A8, the tokenizer the only change, both decoded and
 scored the same way; the write-up reconciles the prediction with the result.
 
-### 10. Overview of MT Quality Estimation (F2026 corrected, 34 slides)
+### 10. Overview of MT Quality Estimation (F2026 `_v2`, 37 slides shown; a redo is planned)
 Evaluation against estimation, QE features and shared tasks, COMET and COMET-QE and how to read a
 score; and the decoding block: greedy, beam search with a worked example, and why a comparison
-must pin decoding.
+must pin decoding. Taught Oct 14 from the `_v2` rebuild; Eric judged it text-heavy, out of order
+and repetitive, and a redo for next year is planned around seven themes (decisions log, Oct 14;
+the plan is `Roadmap/Lecture 10 Redo Plan_v1.md` in the course folder).
 **Notebooks:** `lecture-10-comet-install` (homework, A10): the student writes `comet_inputs`,
 predicts, and scores two systems with and without a reference. `08-inference-and-beamsearch`
 (reading): greedy and beam search written out, and why a comparison holds decoding fixed.
 `07-real-translations` (reading): a trained model on unseen text, greedy against beam.
-**Sets:** A10, install COMET and run the notebook end to end; two papers for the quiz.
+**Sets:** A10 (6 points): the Hugging Face setup, including the COMETKiwi license; run the
+notebook end to end; three write-up questions; two papers, one read carefully and one skimmed,
+which prepare Lecture 11.
 
-### 11. Neural Quality Estimation and Evaluation Toolkits (F2025, 19 slides)
-COMET and COMET-QE in depth, HTER, partial-input baselines, xCOMET, and LLM-as-judge (the
-rebuild uses the five GEMBA slides of the combined May 2025 deck).
+### 11. Neural Quality Estimation and Evaluation Toolkits (F2025, 19 slides; rebuild pending)
+What the QE datasets taught (skewed HTER, partial-input baselines, artifacts; Sun, Guzmán and
+Specia 2020), xCOMET's error spans, and LLM-as-judge (GEMBA, AutoMQM) with its system- against
+segment-level caveat. It does not repeat Lecture 10's COMET material. Quiz 11 reads GEMBA and
+xCOMET, one carefully and one skimmed.
 **Notebooks:** `lecture-11-comet-on-a6` (homework, A11): COMET and COMET-QE-DA on the student's
 A6 sentences beside BLEU and chrF; the student writes `pairwise_agreement`, which counts how
 often two metrics prefer the same system, sentence by sentence.
-**Sets:** A11: the default COMET model and COMET-QE-DA on the A6 outputs, compared with the BLEU,
-chrF and human-ranking numbers already collected; one page. Extra credit for xCOMET.
+**Sets:** A11 (26 points): the default COMET model and COMET-QE-DA on the A6 outputs, compared
+with the BLEU, chrF and human-ranking numbers already collected; one page answering the
+notebook's four summary questions. Extra credit for xCOMET.
 
 ### 12. Using LLMs for MT and Expanding Context Awareness (F2025, 32 slides)
 Encoder-only, decoder-only and large language models; MT with decoder-only models;
 document-level and context-aware MT; dropped and ambiguous pronouns; contrastive test sets.
 **Notebooks:** `lecture-12-llm-context` (homework, A12): the student writes the context/test
 split and the prompt; an open chat model translates at 0, 5, 10 and 20 examples.
-**Sets:** A12: a non-MT model from the Hugging Face Hub, one of Efik, Palauan, Pohnpeian, Yapese,
-Kosraean or Kamba (the Learning Suite list), BLEU against context size, and an analysis. The
-deck's own slide still lists last year's languages; fix it at the rebuild.
+**Sets:** A12: a non-MT model from the Hugging Face Hub, one of Efik, Kosraean, Palauan,
+Pohnpeian, Telugu or Yapese (the data folder's list, which Learning Suite now matches), BLEU
+against context size, and an analysis. The deck's own slide still lists last year's languages;
+fix it at the rebuild.
 
 ### 13. Introduction to Low-Resource NMT Strategies (F2025, 30 slides)
 What counts as low-resource, mitigation with and without LLMs, evaluation for low-resource
