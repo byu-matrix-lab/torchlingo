@@ -2,7 +2,7 @@
 
 The notebook declares ``colab``, so CI's notebook run skips it, and it needs ``transformers`` and
 a model download that CI should not make. What these tests run is everything else, from the
-notebook file itself: the data cell on the built-in sample and on each layout the loader accepts,
+notebook file itself: the data cell on the built-in sample and on the A12 folder's layout,
 the prompt, the loop over context sizes, the BLEU report and the files the assignment uploads.
 
 The model cell is left out, and a stand-in ``translate`` takes its place: it returns the
@@ -169,46 +169,86 @@ class TestBuiltInSample(NotebookCase):
         self.assertIn("Write your prediction", str(stopped.exception))
 
 
-class TestStudentData(NotebookCase):
-    def test_reads_one_tsv(self):
-        def write(data_dir):
-            frame = pd.DataFrame(pairs(80), columns=["english", "pohnpeian"])
-            frame.to_csv(data_dir / "pohnpeian.tsv", sep="\t", index=False)
+BOM = chr(0xFEFF)  # the byte-order mark a Windows editor may put at a file's start
 
-        namespace, printed, out = self.run_notebook(write)
+
+def write_a12_folder(
+    data_dir: Path, rows, newline: str = "\n", bom: bool = False
+) -> None:
+    """The A12 data folder's layout: line-aligned src.txt (English) and tgt.txt."""
+    src, tgt = zip(*rows)
+    for name, lines in (("src.txt", src), ("tgt.txt", tgt)):
+        text = (BOM if bom else "") + newline.join(lines) + newline
+        (data_dir / name).write_bytes(text.encode("utf-8"))
+
+
+class TestStudentData(NotebookCase):
+    def test_reads_the_a12_folder(self):
+        namespace, printed, _ = self.run_notebook(
+            lambda d: write_a12_folder(d, pairs(80))
+        )
         self.assertNotIn("Spanish is not the assignment", printed)
         self.assertEqual(len(namespace["pairs"]), 80)
         self.assertTrue(namespace["test"].src.str.startswith("sentence number").all())
-
-    def test_reads_two_aligned_text_files(self):
-        def write(data_dir):
-            src, tgt = zip(*pairs(80))
-            (data_dir / "train.en.txt").write_text(
-                "\n".join(src) + "\n", encoding="utf-8"
-            )
-            (data_dir / "train.pon.txt").write_text(
-                "\n".join(tgt) + "\n", encoding="utf-8"
-            )
-
-        namespace, _, _ = self.run_notebook(write)
         self.assertTrue(namespace["test"].tgt.str.startswith("lino").all())
 
-    def test_stops_with_a_message_on_another_layout(self):
+    def test_reads_windows_line_endings_and_a_byte_order_mark(self):
+        namespace, _, _ = self.run_notebook(
+            lambda d: write_a12_folder(d, pairs(80), newline="\r\n", bom=True)
+        )
+        loaded = namespace["pairs"]
+        self.assertEqual(len(loaded), 80)
+        for column in (loaded.src, loaded.tgt):
+            self.assertFalse(column.str.contains("\r", regex=False).any())
+            self.assertFalse(column.str.contains(BOM, regex=False).any())
+
+    def test_a_unicode_line_separator_stays_inside_its_line(self):
+        """str.splitlines would split there, and the two files' line counts would differ."""
+        rows = pairs(80)
+        rows[3] = (rows[3][0], rows[3][1] + chr(0x2028) + "continued")
+        namespace, _, _ = self.run_notebook(lambda d: write_a12_folder(d, rows))
+        self.assertEqual(len(namespace["pairs"]), 80)
+
+    def test_a_missing_final_newline_is_not_a_length_mismatch(self):
         def write(data_dir):
-            (data_dir / "data.json").write_text("{}", encoding="utf-8")
+            write_a12_folder(data_dir, pairs(80))
+            tgt = data_dir / "tgt.txt"
+            tgt.write_bytes(tgt.read_bytes().rstrip(b"\n"))
+
+        namespace, _, _ = self.run_notebook(write)
+        self.assertEqual(len(namespace["pairs"]), 80)
+
+    def test_skips_blank_lines_and_duplicate_sources(self):
+        rows = pairs(80) + [("", "lino blank"), ("only english here", "")]
+        rows += pairs(5)
+        namespace, _, _ = self.run_notebook(lambda d: write_a12_folder(d, rows))
+        self.assertEqual(len(namespace["pairs"]), 80)
+
+    def test_stops_naming_the_files_it_wants(self):
+        def write(data_dir):
+            (data_dir / "efik.tsv").write_text("a\tb\n", encoding="utf-8")
 
         with self.assertRaises(SystemExit) as stopped:
             self.run_notebook(write)
-        self.assertIn(
-            "expected one .tsv file or two .txt files", str(stopped.exception)
-        )
+        message = str(stopped.exception)
+        self.assertIn("expected src.txt and tgt.txt", message)
+        self.assertIn("efik.tsv", message)
+
+    def test_stops_when_the_files_differ_in_length(self):
+        def write(data_dir):
+            write_a12_folder(data_dir, pairs(80))
+            with open(data_dir / "tgt.txt", "a", encoding="utf-8") as f:
+                f.write("one line too many\n")
+
+        with self.assertRaises(SystemExit) as stopped:
+            self.run_notebook(write)
+        self.assertIn("src.txt has 80 lines and tgt.txt 81", str(stopped.exception))
 
     def test_data_dir_without_language_stops(self):
         """Otherwise the prompt asks for Spanish while the data is Pohnpeian."""
 
         def write(data_dir):
-            frame = pd.DataFrame(pairs(80), columns=["english", "pohnpeian"])
-            frame.to_csv(data_dir / "pohnpeian.tsv", sep="\t", index=False)
+            write_a12_folder(data_dir, pairs(80))
 
         with self.assertRaises(SystemExit) as stopped:
             self.run_notebook(write, language=None)
@@ -244,8 +284,7 @@ class TestExercises(unittest.TestCase):
         self.drive = Path(scratch.name)
         self.data_dir = self.drive / "a12-data"
         self.data_dir.mkdir()
-        frame = pd.DataFrame(pairs(80), columns=["english", "pohnpeian"])
-        frame.to_csv(self.data_dir / "pohnpeian.tsv", sep="\t", index=False)
+        write_a12_folder(self.data_dir, pairs(80))
         self.setup_cell = next(
             c for c in code_cells(NOTEBOOK) if "setup(gpu=True" in c[1]
         )
