@@ -60,7 +60,7 @@ lectures:
 - ids: ["10"]
   date: 2026-10-14
   title: Overview of MT Quality Estimation
-  deck: F2026 corrected
+  deck: F2026 rebuilt; redo planned
 - ids: ["11"]
   date: 2026-10-19
   title: Neural Quality Estimation and Evaluation
@@ -268,12 +268,17 @@ lecture_outcomes:
     one step by hand; say why there are three attentions and what each is for; read a tensor
     shape.
   shown_by: Quiz 8b
-- lecture: "9"
-  topic: Morphology, subwords, terminology
+- lecture: "8c"
+  topic: Finishing the Transformer
   can: Describe multi-head attention, the encoder block and residual stream, and the decoder's
     masked self-attention and cross-attention; say how order gets into a model with no recurrence;
     place their own A8 BLEU on the measured capacity curve and say what capacity buys and when;
-    explain the fixed-vocabulary problem; measure `<unk>` before and after SentencePiece; retrain
+    weigh NMT's strengths against its deployment costs.
+  shown_by: A8 report back; Quiz 8c
+- lecture: "9"
+  topic: Morphology, subwords, terminology
+  can: Explain the fixed-vocabulary problem and how morphology makes vocabularies explode;
+    segment a sentence with BPE by hand; measure `<unk>` before and after SentencePiece; retrain
     with one variable changed and attribute the BLEU difference to it.
   shown_by: A9 comparison
 - lecture: "10"
@@ -531,7 +536,8 @@ tooling:
   used_for: inspection only, never in the pipeline
 - tool: grader.exe
   first_needed: Lecture 4
-  used_for: checking cleaned output. Binaries only, no source, no repository; see Open questions
+  used_for: checking cleaned output. Students get binaries; the source is one `grader.py` in
+    byu-matrix-lab/data-cleaning-pipeline-grader, private and unlicensed; see Open questions
 - tool: MTEval (mteval.matrix.byu.edu)
   first_needed: Lecture 6
   used_for: human ranking; students self-register

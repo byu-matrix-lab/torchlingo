@@ -4,9 +4,13 @@
   measured at 100K pairs with a subword vocabulary. Revisit once the A5 audit says how many
   students are well below 100K; the audit itself still needs the submissions staged somewhere
   readable. The instruction's escape hatch is "keep going while validation loss falls".
-- **Does the grader survive?** `grader.exe` is four unsigned PyInstaller binaries in a PhD
-  student's OneDrive with no source, no repository, no license. Ammon has been asked for the
-  source. Fallback: the checks are documented in Lecture 4 and belong in `torchlingo.diagnostics`.
+- **Can students run the grader from source?** The source exists:
+  `byu-matrix-lab/data-cleaning-pipeline-grader`, one `grader.py` run as
+  `python3 grader.py source target output`, which would end the download-and-override-Gatekeeper
+  step. Two things block pointing the Lecture 4 and 5 decks at it, both Eric's: the repository is
+  private, so students cannot clone it, and it has no license. It was last pushed in September
+  2024, so its checks need comparing with what Lectures 4 and 5 ask for first. Until then
+  students use the four PyInstaller binaries.
 - **An NLLB spotlight lecture** (Eric, Sep 27): what makes NLLB special beyond its data, namely
   the sparsely gated mixture-of-experts architecture with its regularisation against low-resource
   pairs overfitting, and the deliberate training curriculum, which has no coverage in the course.

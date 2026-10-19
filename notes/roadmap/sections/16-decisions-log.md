@@ -3,6 +3,31 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 14, evening.** Lecture 10, taught today from its rebuild, is to be redone for next year
+  (Eric: text-heavy, snapshots of old slides, out of order, repetitive). The redo's themes, from
+  an interview: open on "how do you improve on your A9 results?" with decoding as the first
+  answer; evaluation needs a reference and estimation does not, evaluation taught first; both are
+  plain supervised learning with a human label as the supervision signal, shown with one native
+  regressor diagram; three ways to get a label from a human (post-edits, DA, MQM), each setting a
+  granularity, each introduced by the decision it serves; a feature-based estimator worked on
+  English and Spanish slides after a class brainstorm, with no system names; a COMET score is a
+  predicted human judgment; and evaluating metrics and estimators as the close, the bridge to A11.
+  About 50 to 55 minutes. Lecture 11 does not repeat what Lecture 10 now owns, and its rebuild
+  waits for its own themes interview.
+  A10 gains the Hugging Face setup with the COMETKiwi license and the notebook's three write-up
+  questions, 6 points (Eric: 3 + 3). A11 is rewritten against its notebook: "Install COMET" goes
+  from the directions and the title, since A10 did it (Eric); the notebook's four summary
+  questions are added, the last three at 2 points each, 26 in all (Eric: add points). The two A10
+  papers prepare Lecture 11, one read carefully and one skimmed, the student's choice (Eric, as he
+  told the class); Quiz 11's two papers, GEMBA and xCOMET, follow the same rule, one question each.
+  The desktop roadmap is retired (Eric: one roadmap, in the repository).
+- **Oct 12.** Three slide moves across decks (Eric): "The Model Behind the Attention Maps" from 8b
+  to 8a, after the maps it describes; how order gets into a model with no recurrence, and the
+  deployment challenges, from 9 to 8c. The course runs at Level 1, Reference, of the CS
+  department's AI policy, stated in the syllabus and on Lecture 1's assignments slide and not
+  repeated on later decks (Eric); the lecture quizzes are open book, now in the syllabus too. The
+  syllabus gains a Colab computing note (Colab Pro's compute units; disconnect the GPU runtime
+  when a run is done), also sent to the class as an announcement.
 - **Oct 13.** Every assignment after A9 starts from A9 (Eric): its split, SentencePiece model,
   configuration and test set, not "A8 or A9, whichever was best". A comparison then changes one
   thing, and subwords handle the new words that back-translated and multilingual data bring. The

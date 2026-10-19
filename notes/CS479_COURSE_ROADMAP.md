@@ -42,7 +42,7 @@ rewritten against its notebook.
 | 8b | Mon Oct 5 | Neural MT: The Transformer | | F2026 |
 | 8c | Wed Oct 7 | Finishing the Transformer, the A8 Debrief, and the Subword Activity | **A8** create and run an NMT model | F2026 |
 | 9 | Mon Oct 12 | Handling Morphology and Terminology in NMT | | F2026 |
-| 10 | Wed Oct 14 | Overview of MT Quality Estimation | **A9** SentencePiece | F2026 corrected |
+| 10 | Wed Oct 14 | Overview of MT Quality Estimation | **A9** SentencePiece | F2026 rebuilt; redo planned |
 | 11 | Mon Oct 19 | Neural Quality Estimation and Evaluation | **A10** install COMET | F2025 |
 | 12 | Wed Oct 21 | Using LLMs for MT; Expanding Context Awareness | | F2025 |
 | 13 | Mon Oct 26 | Strategies for NMT of Low-Resource Languages | **A11** run COMET on the A6 sentences | F2025 |
@@ -172,7 +172,8 @@ lecture; the scope notes below carry the content, this carries the point.
 | 7 | Paper reviews; neural networks | Review a paper to the course template; explain neuron, activation, forward pass, loss and gradient; read a loss curve against ln V; tell memorisation from translation with a held-out item. | A7 report; paper reviews |
 | 8a | Encoder-decoder and attention | Describe the encoder-decoder and its bottleneck; explain attention as a learned soft alignment and read an alignment matrix; split and verify a corpus and say why the dedupe is source-side; read training against validation loss; start, checkpoint and resume a long run. | A8 |
 | 8b | The Transformer | Describe self-attention (query, key, value, scaled dot product, softmax) and compute one step by hand; say why there are three attentions and what each is for; read a tensor shape. | Quiz 8b |
-| 9 | Morphology, subwords, terminology | Describe multi-head attention, the encoder block and residual stream, and the decoder's masked self-attention and cross-attention; say how order gets into a model with no recurrence; place their own A8 BLEU on the measured capacity curve and say what capacity buys and when; explain the fixed-vocabulary problem; measure `<unk>` before and after SentencePiece; retrain with one variable changed and attribute the BLEU difference to it. | A9 comparison |
+| 8c | Finishing the Transformer | Describe multi-head attention, the encoder block and residual stream, and the decoder's masked self-attention and cross-attention; say how order gets into a model with no recurrence; place their own A8 BLEU on the measured capacity curve and say what capacity buys and when; weigh NMT's strengths against its deployment costs. | A8 report back; Quiz 8c |
+| 9 | Morphology, subwords, terminology | Explain the fixed-vocabulary problem and how morphology makes vocabularies explode; segment a sentence with BPE by hand; measure `<unk>` before and after SentencePiece; retrain with one variable changed and attribute the BLEU difference to it. | A9 comparison |
 | 10 | Quality estimation | Distinguish evaluation from estimation; say what COMET and COMET-QE score and what the number means; explain greedy against beam search and why a comparison must pin decoding. | A10; Quiz 10 |
 | 11 | Neural QE and toolkits | Run COMET and COMET-QE on their own A6 data; reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and its system- against segment-level caveat. | A11 |
 | 12 | LLMs for MT; context | Prompt a decoder-only model to translate with in-context examples; measure what context buys and where it stops; name the document-level problems (pronouns, consistency). | A12 chart and analysis |
@@ -335,20 +336,23 @@ wrong translation. `04-attention-and-alignment` Part 7 (reading); `05-transforme
 (reference): this notebook and 8c's in one worked example, without the exercises.
 **Sets:** nothing; A8 is due two days later.
 
-### 8c. Finishing the Transformer, the A8 Debrief, and the Subword Activity (F2026, 22 slides)
+### 8c. Finishing the Transformer, the A8 Debrief, and the Subword Activity (F2026 `_v13`, 38 slides shown)
 The by-hand solution; multi-head attention, the whole Transformer, the encoder block, the
-residual stream and the decoder block; pros and cons of NMT; the A8 debrief around the capacity
-table; Part A of the Lecture 9 notebook, in class.
+residual stream and the decoder block; how order gets into a model with no recurrence (the
+position is added to the embedding, once); deployment challenges, then pros and cons of NMT; the
+A8 debrief around the capacity table; Part A of the Lecture 9 notebook, in class.
 **Notebooks:** `lecture-08c-attention-heads` (activity): the student splits the projections into
 heads, shown to be the model's in every encoder layer, and measures how averaging and depth blur
 attention. `lecture-09-subword-tokenization` Part A (activity); `06-diagnosing-failures`
 (reading): five questions to ask of a model that is not working.
 **Sets:** A9.
 
-### 9. Handling Morphology and Terminology in NMT (F2026 `_v4`, 21 slides shown)
-Deployment; how order gets into a model with no recurrence; the fixed vocabulary; morphology and
-why vocabularies explode; BPE and SentencePiece on real sentences; characters; what changes in
-the model's shapes; terminology and getting terms into a neural system.
+### 9. Handling Morphology and Terminology in NMT (F2026 `_v16`, 38 slides shown)
+The fixed vocabulary; morphology, one figure each for inflection, derivation, compounding and
+agglutination; BPE and SentencePiece on real sentences, with the two pipelines as pseudocode;
+characters; what changes in the model's shapes; terminology and getting terms into a neural
+system. A pencil-and-paper "Subwords by Hand" exercise on a real 3,000-piece English and Spanish
+BPE model, with its handout, is in the deck for next year or a Lecture 10 opener.
 **Notebooks:** `lecture-09-subword-tokenization` (activity, and A9 itself). Part A, on a CPU:
 the student writes the `<unk>` counter, trains SentencePiece on the training split, chooses the
 vocabulary size with a reason, and predicts A9's BLEU; the settings go to Drive. Part B, on a GPU:
@@ -357,33 +361,41 @@ retrains with the pieces under A9's own run names and scores A8 and A9 with the 
 **Sets:** A9 (set at 8c): the same split as A8, the tokenizer the only change, both decoded and
 scored the same way; the write-up reconciles the prediction with the result.
 
-### 10. Overview of MT Quality Estimation (F2026 corrected, 34 slides)
+### 10. Overview of MT Quality Estimation (F2026 `_v2`, 37 slides shown; a redo is planned)
 Evaluation against estimation, QE features and shared tasks, COMET and COMET-QE and how to read a
 score; and the decoding block: greedy, beam search with a worked example, and why a comparison
-must pin decoding.
+must pin decoding. Taught Oct 14 from the `_v2` rebuild; Eric judged it text-heavy, out of order
+and repetitive, and a redo for next year is planned around seven themes (decisions log, Oct 14;
+the plan is `Roadmap/Lecture 10 Redo Plan_v1.md` in the course folder).
 **Notebooks:** `lecture-10-comet-install` (homework, A10): the student writes `comet_inputs`,
 predicts, and scores two systems with and without a reference. `08-inference-and-beamsearch`
 (reading): greedy and beam search written out, and why a comparison holds decoding fixed.
 `07-real-translations` (reading): a trained model on unseen text, greedy against beam.
-**Sets:** A10, install COMET and run the notebook end to end; two papers for the quiz.
+**Sets:** A10 (6 points): the Hugging Face setup, including the COMETKiwi license; run the
+notebook end to end; three write-up questions; two papers, one read carefully and one skimmed,
+which prepare Lecture 11.
 
-### 11. Neural Quality Estimation and Evaluation Toolkits (F2025, 19 slides)
-COMET and COMET-QE in depth, HTER, partial-input baselines, xCOMET, and LLM-as-judge (the
-rebuild uses the five GEMBA slides of the combined May 2025 deck).
+### 11. Neural Quality Estimation and Evaluation Toolkits (F2025, 19 slides; rebuild pending)
+What the QE datasets taught (skewed HTER, partial-input baselines, artifacts; Sun, Guzmán and
+Specia 2020), xCOMET's error spans, and LLM-as-judge (GEMBA, AutoMQM) with its system- against
+segment-level caveat. It does not repeat Lecture 10's COMET material. Quiz 11 reads GEMBA and
+xCOMET, one carefully and one skimmed.
 **Notebooks:** `lecture-11-comet-on-a6` (homework, A11): COMET and COMET-QE-DA on the student's
 A6 sentences beside BLEU and chrF; the student writes `pairwise_agreement`, which counts how
 often two metrics prefer the same system, sentence by sentence.
-**Sets:** A11: the default COMET model and COMET-QE-DA on the A6 outputs, compared with the BLEU,
-chrF and human-ranking numbers already collected; one page. Extra credit for xCOMET.
+**Sets:** A11 (26 points): the default COMET model and COMET-QE-DA on the A6 outputs, compared
+with the BLEU, chrF and human-ranking numbers already collected; one page answering the
+notebook's four summary questions. Extra credit for xCOMET.
 
 ### 12. Using LLMs for MT and Expanding Context Awareness (F2025, 32 slides)
 Encoder-only, decoder-only and large language models; MT with decoder-only models;
 document-level and context-aware MT; dropped and ambiguous pronouns; contrastive test sets.
 **Notebooks:** `lecture-12-llm-context` (homework, A12): the student writes the context/test
 split and the prompt; an open chat model translates at 0, 5, 10 and 20 examples.
-**Sets:** A12: a non-MT model from the Hugging Face Hub, one of Efik, Palauan, Pohnpeian, Yapese,
-Kosraean or Kamba (the Learning Suite list), BLEU against context size, and an analysis. The
-deck's own slide still lists last year's languages; fix it at the rebuild.
+**Sets:** A12: a non-MT model from the Hugging Face Hub, one of Efik, Kosraean, Palauan,
+Pohnpeian, Telugu or Yapese (the data folder's list, which Learning Suite now matches), BLEU
+against context size, and an analysis. The deck's own slide still lists last year's languages;
+fix it at the rebuild.
 
 ### 13. Introduction to Low-Resource NMT Strategies (F2025, 30 slides)
 What counts as low-resource, mitigation with and without LLMs, evaluation for low-resource
@@ -476,7 +488,7 @@ outlive one term's calendar.
 | Google Colab, paid plan | Lecture 3 | every in-class activity and most assignments; the paid plan is required from 8a, where A8 needs an A100, L4 or G4 (a T4 does not hold the course model at long lengths) |
 | Python TMX libraries | Lecture 4 | extracting segment pairs |
 | TMX editors (Olifant, Heartsome) | Lecture 4 | inspection only, never in the pipeline |
-| grader.exe | Lecture 4 | checking cleaned output. Binaries only, no source, no repository; see Open questions |
+| grader.exe | Lecture 4 | checking cleaned output. Students get binaries; the source is one `grader.py` in byu-matrix-lab/data-cleaning-pipeline-grader, private and unlicensed; see Open questions |
 | MTEval (mteval.matrix.byu.edu) | Lecture 6 | human ranking; students self-register |
 | SacreBLEU, chrF | Lecture 6 | automatic scoring, and again in 8, 9, 12, 13, 14 |
 | TorchLingo | Lecture 6 | every model the students train (7, 8, 9, 13, 14), and the metrics and Colab setup in every course notebook that uses it. Notebooks install it from the repository's `course` branch, not PyPI, so a notebook and the library code it calls reach students together; `setup()` prints the exact version, which is what to ask for with a bug report |
@@ -556,9 +568,13 @@ repository's `notes/TASKS.md`.
   measured at 100K pairs with a subword vocabulary. Revisit once the A5 audit says how many
   students are well below 100K; the audit itself still needs the submissions staged somewhere
   readable. The instruction's escape hatch is "keep going while validation loss falls".
-- **Does the grader survive?** `grader.exe` is four unsigned PyInstaller binaries in a PhD
-  student's OneDrive with no source, no repository, no license. Ammon has been asked for the
-  source. Fallback: the checks are documented in Lecture 4 and belong in `torchlingo.diagnostics`.
+- **Can students run the grader from source?** The source exists:
+  `byu-matrix-lab/data-cleaning-pipeline-grader`, one `grader.py` run as
+  `python3 grader.py source target output`, which would end the download-and-override-Gatekeeper
+  step. Two things block pointing the Lecture 4 and 5 decks at it, both Eric's: the repository is
+  private, so students cannot clone it, and it has no license. It was last pushed in September
+  2024, so its checks need comparing with what Lectures 4 and 5 ask for first. Until then
+  students use the four PyInstaller binaries.
 - **An NLLB spotlight lecture** (Eric, Sep 27): what makes NLLB special beyond its data, namely
   the sparsely gated mixture-of-experts architecture with its regularisation against low-resource
   pairs overfitting, and the deliberate training curriculum, which has no coverage in the course.
@@ -583,6 +599,31 @@ repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 14, evening.** Lecture 10, taught today from its rebuild, is to be redone for next year
+  (Eric: text-heavy, snapshots of old slides, out of order, repetitive). The redo's themes, from
+  an interview: open on "how do you improve on your A9 results?" with decoding as the first
+  answer; evaluation needs a reference and estimation does not, evaluation taught first; both are
+  plain supervised learning with a human label as the supervision signal, shown with one native
+  regressor diagram; three ways to get a label from a human (post-edits, DA, MQM), each setting a
+  granularity, each introduced by the decision it serves; a feature-based estimator worked on
+  English and Spanish slides after a class brainstorm, with no system names; a COMET score is a
+  predicted human judgment; and evaluating metrics and estimators as the close, the bridge to A11.
+  About 50 to 55 minutes. Lecture 11 does not repeat what Lecture 10 now owns, and its rebuild
+  waits for its own themes interview.
+  A10 gains the Hugging Face setup with the COMETKiwi license and the notebook's three write-up
+  questions, 6 points (Eric: 3 + 3). A11 is rewritten against its notebook: "Install COMET" goes
+  from the directions and the title, since A10 did it (Eric); the notebook's four summary
+  questions are added, the last three at 2 points each, 26 in all (Eric: add points). The two A10
+  papers prepare Lecture 11, one read carefully and one skimmed, the student's choice (Eric, as he
+  told the class); Quiz 11's two papers, GEMBA and xCOMET, follow the same rule, one question each.
+  The desktop roadmap is retired (Eric: one roadmap, in the repository).
+- **Oct 12.** Three slide moves across decks (Eric): "The Model Behind the Attention Maps" from 8b
+  to 8a, after the maps it describes; how order gets into a model with no recurrence, and the
+  deployment challenges, from 9 to 8c. The course runs at Level 1, Reference, of the CS
+  department's AI policy, stated in the syllabus and on Lecture 1's assignments slide and not
+  repeated on later decks (Eric); the lecture quizzes are open book, now in the syllabus too. The
+  syllabus gains a Colab computing note (Colab Pro's compute units; disconnect the GPU runtime
+  when a run is done), also sent to the class as an announcement.
 - **Oct 13.** Every assignment after A9 starts from A9 (Eric): its split, SentencePiece model,
   configuration and test set, not "A8 or A9, whichever was best". A comparison then changes one
   thing, and subwords handle the new words that back-translated and multilingual data bring. The

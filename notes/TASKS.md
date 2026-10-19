@@ -29,7 +29,12 @@ review, are the open work.
 **Since then, 2026-10-15 to 17, on this side:** the COMET install in A10, A11 and A13 was fixed
 twice (PRs #295 and #297); every install cell now runs in a copy of Colab's runtime on each push to
 `course` (Task #244, PR #302); a red run on `main` or `course` opens a `ci-red` issue (Task #60,
-PR #301); and `scripts/land_pr.sh` lands a PR (Task #245, PR #304). The baton is still with Cowork.
+PR #301); and `scripts/land_pr.sh` lands a PR (Task #245, PR #304).
+
+**2026-10-19: the baton is back with this side.** Cowork's hand-off answered Tasks #176, #231,
+#233, #235 and #242, so all but #235 are open work here; #235 needed nothing, since the roadmap
+already matched the notebook. Task #229 now waits on one student's MTEval results file, and
+Task #169's LLM helper on Eric. Task #252 closed with the roadmap edits.
 Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
 from this side, and Tasks #254 to #256 from the session's repeated manual steps.
 
@@ -105,12 +110,12 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files, and Step 1 says where the A12 shared folder is | **L12** | **With Cowork** — the notebook runs end to end (Oct 13); the loader guesses the A12 layout, and Step 1 names "the A12 shared folder" without saying where it is (a marked seam), until Cowork answers both |
+| #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files, and Step 1 says where the A12 shared folder is | **L12** | **Open, before Wed Oct 21** (A12 is set at Lecture 12) — Cowork answered on Oct 19: one folder per language under `LLM_Assignment_Data/`, `src.txt` English and `tgt.txt` the language, line-aligned, no header or split; Step 1 names "the A12 page's data link" and copies both into `MyDrive/CS479/a12-data`; the language list becomes Efik, Kosraean, Palauan, Pohnpeian, Telugu, Yapese |
 | #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty; needed by Wed Oct 28, when A14 is set; comes before #99 |
 | #99 | **P1** | The A14 notebook: a bidirectional system from A9, tagged and intermingled, scored both ways | **14+** | **Needed by Wed Oct 28**, when A14 is set; after #123. Rescoped Oct 17 from a tutorial to the course notebook (see below) |
-| #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on Cowork** (in the hand-off): the notebook assumes one `.txt` per column and defines average rank as the mean rank per system, 1 best; both need confirming. The prediction stop, why COMET-QE-DA and the LLM-as-judge question are done |
-| #231 | **P1** | A13: point Step 1 at a course-recommended source of monolingual text, if the course has one | **L13** | **Waits on Cowork** (in the hand-off): Step 1 names general sources (Wikipedia, news sites, the Hub, OPUS) behind a marked seam. The write-up questions, the resume-safe write-up, `EPOCHS` from A9's checkpoint and the prediction stop are done |
-| #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Waits on Cowork** (in the hand-off) — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: A12's loader (waits on the A12 layout) and an LLM helper (waits on whether any later lecture prompts an LLM) |
+| #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on one student's MTEval results file** (asked of Eric, Oct 19) — Cowork confirmed the average-rank definition and that A6 prescribed no layout, so one `.txt` per column stays. Every student has the MTEval results `.tsv` from A6; its columns are unknown, and reading it directly would give a sentence-level human comparison on the ranked 50 |
+| #231 | **P1** | A13: point Step 1 at a course-recommended source of monolingual text, if the course has one | **L13** | **Open** — Cowork answered on Oct 19 (Eric agreed Oct 15): first the target side of the student's Church TM segments unused in A8, then public text (Wikipedia, MADLAD-400 or CC-100, OPUS) if short; both deduplicated against the A8/A9 test set and training targets, with a check like A8's; no minimum; the student reports how many came from where. Never carve it from the A8 training targets. The write-up questions, the resume-safe write-up, `EPOCHS` from A9's checkpoint and the prediction stop are done |
+| #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Open** — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: A12's loader (the layout is known, with #176) and an LLM helper (waits on Eric: Cowork could not say whether any lecture after 12 prompts an LLM) |
 | #246 | **P2** | Ask Cowork what Lectures 15 to 23 and the final project need from this side | **14+** | **For the next hand-off** — the roadmap has no notebook for them, by design, but Lecture 18's edit-distance activity, Lecture 19's IBM Model 1 and the projects may want code |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
@@ -151,11 +156,9 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #249 | **P3** | Roadmap gap: what to do when training goes wrong | **lib** | Open — `concepts/training.md` has the loop, not batch size against learning rate or overfitting on a small corpus |
 | #250 | **P3** | Roadmap gap: model size against latency | **lib** | Open — what a student meets when a Colab session is slow |
 | #251 | **P3** | Roadmap gap: teach the training-budget episode | **lib** | Open — "which lever are you pulling?", from `reports/training-budget.md` |
-| #252 | **P3** | The roadmap still says the grader has no source | **hyg** | Open — after Eric's uncommitted roadmap edits land; Task #120 found the source on Sep 26 |
 | #253 | **P3** | Lecture 19: IBM Model 1 by hand, set against 8a's attention alignment | **L19** | **After Cowork rescopes Lecture 19** (Mon Nov 30); asked in #246 |
-| #233 | **P3** | 8c: quote Lecture 8c's outcome in the notebook's opening | **L8c** | **Waits on Cowork** (in the hand-off): the roadmap has no 8c outcome yet. The predictions, the stops and 8b's quoted outcome are done |
-| #235 | **P3** | A6: make the roadmap and the notebook agree on how students get their ten translations | **L6** | **Waits on Cowork** (in the hand-off): the roadmap says "translate ten by hand", the notebook has them paste a web MT system's output. Ranking before any score prints is done |
-| #242 | **P3** | 8a: a first logged loss for every corpus A8 allows | **L8a** | **Waits on Cowork** (in the hand-off): an epoch shorter than `log_every` (50 batches, about 3,200 pairs at batch size 64) prints no `Train Loss` line, so 8a has no first loss to set beside ln(V) and says so. If the A8 handout allows corpora that small, 8a sets `log_every` from the training set's size instead |
+| #233 | **P3** | 8c and 9: quote each lecture's current outcome in the notebook's opening | **L8c** | **Open** — the roadmap has an 8c outcome since Oct 19, and Lecture 9's outcome was rewritten the same day, so `lecture-09-subword-tokenization` quotes wording that is gone. The predictions, the stops and 8b's quoted outcome are done |
+| #242 | **P3** | 8a: a first logged loss for every corpus A8 allows | **L8a** | **Open** — Cowork, Oct 19: A8 has no hard minimum ("use all of it and say so"), so a corpus under 3,200 pairs is possible. An epoch shorter than `log_every` (50 batches at batch size 64) prints no `Train Loss` line; 8a sets `log_every` from the training set's size instead |
 
 ## The CS 479 pivot
 
@@ -302,11 +305,12 @@ which students trained before checkpoints described themselves, so `load_model` 
 **Left:**
 
 - **A12's loader** (`lecture-12-llm-context`, its `# Setup:` cell): a folder loader for one TSV
-  or aligned `.txt` files, extending `parallel_txt_to_dataframe`. Waits on the A12 shared
-  folder's real layout, which the Cowork hand-off asks for (see #176).
+  or aligned `.txt` files, extending `parallel_txt_to_dataframe`. The layout is now known
+  (see #176).
 - **An LLM translate helper**, only if a second notebook comes to prompt an LLM. Until then,
-  A12's prompting code serves one notebook and stays where it is. Whether any of Lectures 14
-  onward will is the course plan's to say, so the hand-off asks Cowork.
+  A12's prompting code serves one notebook and stays where it is. Cowork could not say whether
+  any of Lectures 14 onward will (Oct 19); the one case so far is A11's extra credit, which runs
+  outside the notebook. The question is Eric's.
 
 **Done when** no notebook carries plumbing a library helper covers.
 
@@ -362,9 +366,13 @@ One task per group that shares a deadline, so the "Critical for" column stays ho
 
 - **#176, `lecture-12-llm-context`** (L12): rebuilt on Oct 13 as a runnable notebook, run end to
   end with a real model, and tested in CI with the model stubbed (`tests/test_lecture_12.py`).
-  Its loader accepts one TSV or two line-aligned text files, a guess at the A12 folder's layout;
-  the hand-off asks Cowork for the real layout. **Done when** the loader is checked against one
-  language's real files.
+  Its loader accepts one TSV or two line-aligned text files, a guess at the A12 folder's layout,
+  and looks for a file whose name contains `en`. The real layout (Cowork, Oct 19): one folder per
+  language, `src.txt` (English) and `tgt.txt`, line-aligned, no header, no split; Church general
+  conference text, the same lines in every language; Efik 22,611 lines, Kosraean (folder
+  `Kosrean`) 70,208, Palauan 42,662, Pohnpeian 50,818, Telugu 49,611, Yapese 54,080. Step 1 names
+  "the A12 page's data link" rather than pasting the URL, so a changed link is fixed in one place.
+  **Done when** the loader is checked against one language's real files.
 
 Each PR checks the notebook's prose against its ceiling and runs `scripts/student_path.sh` on it.
 **Done when** every notebook the audit names has had its directions applied; then this section
@@ -597,14 +605,6 @@ training longer helped and more data did not, and the first attempt to answer it
 way only a control run caught (`notes/reports/training-budget.md`). The roadmap says the episode
 is worth teaching directly. **Done when** a docs page (or a section of `concepts/training.md`,
 beside #249) tells it to students, with the report's numbers included from its JSON, not typed.
-
-### #252 The roadmap still says the grader has no source
-
-The roadmap's "Tooling the semester depends on" row for `grader.exe` says "Binaries only, no
-source, no repository", and its first open question asks whether the grader survives. Task #120
-found the source on 2026-09-26 (`byu-matrix-lab/data-cleaning-pipeline-grader`, private and
-unlicensed). **Done when** both roadmap sources say what #120 found and what still blocks it.
-Wait for Eric's uncommitted edits to `notes/roadmap/` to land first, so the two do not collide.
 
 ### #253 Lecture 19: IBM Model 1 by hand, set against 8a's attention alignment
 
