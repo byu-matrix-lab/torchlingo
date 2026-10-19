@@ -36,6 +36,18 @@ jobs:
         with:
           python-version: "3.12"
 
+      # pip's download cache, kept between runs. The fresh environments of one run already
+      # share it; this saves each run's first download of torch and the rest. It holds
+      # downloaded files only: pip still resolves every version from the index, so what a
+      # student would get is unchanged. Keyed by run and restoring the latest, so it always
+      # carries the newest wheels.
+      - name: Restore pip's download cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: student-path-pip-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: student-path-pip-${{ runner.os }}-
+
       # The CPU build of torch, as the test job uses: the GPU build is gigabytes, and nothing
       # here has a GPU. pip reads this from the environment, including the notebooks' own
       # %pip install cells, so every fresh environment gets it.
@@ -66,6 +78,15 @@ jobs:
       # student_path.sh --colab gets Colab's Python through uv.
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.2.0
+
+      # As in the job above, and for the same reason: the notebooks' own install cells use pip.
+      # uv's cache, for the runner and Colab's pins, is setup-uv's to manage.
+      - name: Restore pip's download cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: colab-installs-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: colab-installs-${{ runner.os }}-
 
       - name: Run every notebook's install cells, then its imports
         env:

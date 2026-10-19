@@ -49,6 +49,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -190,7 +191,7 @@ def link_repo_data(workdir: Path) -> None:
             (target / name).symlink_to(member)
 
 
-def run_as_student(notebook: Path, options: list[str]) -> tuple[bool, str]:
+def run_as_student(notebook: Path, options: list[str]) -> tuple[bool, str, float]:
     """Run one notebook through ``student_path.sh``, in an environment of its own.
 
     One environment per notebook, because a shared one exercises only the first
@@ -201,9 +202,11 @@ def run_as_student(notebook: Path, options: list[str]) -> tuple[bool, str]:
         options (list[str]): ``student_path.sh`` options, such as ``--colab``.
 
     Returns:
-        tuple[bool, str]: Success flag, and the harness's output.
+        tuple[bool, str, float]: Success flag, the harness's output, and the seconds it
+        took, environment and install included, so a slow CI run says where it went.
     """
     student_dir = tempfile.mkdtemp(prefix=f"torchlingo-student-{notebook.stem}-")
+    start = time.monotonic()
     result = subprocess.run(
         ["bash", str(STUDENT_PATH), *options, str(notebook)],
         env={**os.environ, "STUDENT_DIR": student_dir},
@@ -211,7 +214,8 @@ def run_as_student(notebook: Path, options: list[str]) -> tuple[bool, str]:
         text=True,
         check=False,
     )
-    return result.returncode == 0, result.stdout + result.stderr
+    seconds = time.monotonic() - start
+    return result.returncode == 0, result.stdout + result.stderr, seconds
 
 
 def main_as_student(notebooks: list[Path], options: list[str], jobs: int) -> int:
@@ -238,22 +242,23 @@ def main_as_student(notebooks: list[Path], options: list[str], jobs: int) -> int
         results = list(pool.map(lambda notebook: run_as_student(notebook, options), runnable))
 
     # Reported in notebook order, whatever order they finished in.
-    for notebook, (ok, output) in zip(runnable, results):
+    for notebook, (ok, output, seconds) in zip(runnable, results):
+        took = f"{seconds:4.0f}s"
         reason = KNOWN_STUDENT_FAILURES.get(notebook.name)
         if reason and not ok:
             known.append(notebook.name)
-            print(f"  KNOWN {notebook.name} ({reason})", flush=True)
+            print(f"  KNOWN {took}  {notebook.name} ({reason})", flush=True)
         elif reason:
             print(
-                f"  PASS  {notebook.name}: now passes; remove it from "
+                f"  PASS  {took}  {notebook.name}: now passes; remove it from "
                 "KNOWN_STUDENT_FAILURES",
                 flush=True,
             )
         elif ok:
-            print(f"  PASS  {notebook.name}", flush=True)
+            print(f"  PASS  {took}  {notebook.name}", flush=True)
         else:
             failures.append(notebook.name)
-            print(f"  FAIL  {notebook.name}", flush=True)
+            print(f"  FAIL  {took}  {notebook.name}", flush=True)
             print(output, file=sys.stderr, flush=True)
 
     ran = len(notebooks) - len(skipped) - len(known)
