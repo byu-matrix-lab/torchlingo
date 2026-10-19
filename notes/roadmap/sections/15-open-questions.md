@@ -18,9 +18,6 @@
 - **Learning Suite's assignment texts.** A13 and A14 still carry last year's OpenNMT directions;
   each is rewritten against its notebook. A7's due time differs between Learning Suite and the
   deck.
-- **Where does A13's monolingual text come from?** A8 used all of each student's cleaned data, so
-  the A13 notebook asks students for new sentences in their language. A course-provided source
-  per language would remove that step.
 - **Lecture 6 is overloaded** and nothing has been done about it.
 - **Lecture 19 needs rescoping** around the material now in Lecture 5, and has no notebook.
 - **Deck links to personal Google Drive URLs.** Lecture 4 links the regex notebook twice and its

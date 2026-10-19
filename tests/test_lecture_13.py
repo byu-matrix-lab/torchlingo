@@ -9,7 +9,8 @@ Two cells are exercises: ``reverse`` and ``combine`` are the student's, and rais
 ``NotImplementedError`` until written. The tests write them in, one straightforward way each, and
 a prediction, so what is tested is that the notebook's checks accept a right answer and that the
 path after them works; further tests check that the notebook as shipped stops at the first
-exercise, that it stops without a prediction or without ``mono.txt``, that the epochs come from
+exercise, that it stops without a prediction or without a monolingual file, that the Church TM's
+text is used before the public text's, that the epochs come from
 A9's checkpoint, and that the write-up runs from Drive alone after a dropped session.
 
 What else changes in the cells is only the epochs and the model's size. What is checked is the
@@ -17,6 +18,7 @@ path: the split reversed, the monolingual text filtered against the split, the b
 written, the combined training set, and both systems scored on the same test set.
 """
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -52,7 +54,7 @@ ANSWERS = {
 PREDICTED = {'PREDICTION = ""': 'PREDICTION = "back-translation helps a little"'}
 READ_EPOCHS = 'EPOCHS = len(a9_state["train_losses"])'
 SETUP_CELL = "def train("
-MONO_CELL = 'MONO_FILE = A8_DIR / "mono.txt"'
+MONO_CELL = "MONO_FILES = {"
 PREDICTION_CELL = 'PREDICTION = ""'
 WRITE_UP_CELL = "=== For the A13 write-up ==="
 
@@ -86,16 +88,27 @@ class TestLecture13(unittest.TestCase):
         with colab_faked(cls.drive):
             run_cells(part_b(CELL_1, CONFIG_CELL, TRAINING_CELL, SCORING_CELL))
 
-        # The student's monolingual file: new sentences, plus a repeat, a blank line and a
-        # sentence from the test set, which the notebook must all leave out.
+        # The student's two monolingual files. The Church TM file holds half as many new
+        # sentences as the training pairs, so the public file tops it up. Each also has a
+        # repeat, a blank line and a sentence from the test set, and the public file repeats
+        # one of the TM's sentences: the notebook must leave all of those out.
         cls.train = pd.read_csv(cls.a8_dir / "train.tsv", sep="\t", dtype=str)
         cls.test = pd.read_csv(cls.a8_dir / "test.tsv", sep="\t", dtype=str)
-        in_split = set(cls.train.tgt) | set(cls.test.tgt)
-        new = [s for s in toy_corpus(2000, seed=7).tgt if s not in in_split]
-        cls.mono_lines = new + [new[0], "", cls.test.tgt.iloc[0]]
-        (cls.a8_dir / "mono.txt").write_text(
-            "\n".join(cls.mono_lines) + "\n", encoding="utf-8"
+        val = pd.read_csv(cls.a8_dir / "val.tsv", sep="\t", dtype=str)
+        in_split = set(cls.train.tgt) | set(val.tgt) | set(cls.test.tgt)
+        new = list(
+            dict.fromkeys(s for s in toy_corpus(2000, seed=7).tgt if s not in in_split)
         )
+        cls.half = len(cls.train) // 2
+        cls.tm_new = new[: cls.half]
+        unwanted = ["", cls.test.tgt.iloc[0]]
+        tm_lines = cls.tm_new + [cls.tm_new[1]] + unwanted
+        public_lines = new[cls.half :] + [new[-1], cls.tm_new[0]] + unwanted
+        for name, lines in (
+            ("mono-tm.txt", tm_lines),
+            ("mono-public.txt", public_lines),
+        ):
+            (cls.a8_dir / name).write_text("\n".join(lines) + "\n", encoding="utf-8")
 
         with colab_faked(cls.drive):
             cls.ns, cls.printed = run_cells(lecture_13_cells())
@@ -110,6 +123,16 @@ class TestLecture13(unittest.TestCase):
         self.assertEqual(len(used), len(set(used)), "no repeats")
         self.assertNotIn(self.test.tgt.iloc[0], used)
         self.assertNotIn("", used)
+
+    def test_the_church_tm_comes_first_and_public_text_tops_it_up(self):
+        used = (self.a8_dir / "mono-used.txt").read_text(encoding="utf-8").splitlines()
+        self.assertEqual(set(used[: self.half]), set(self.tm_new))
+        notes = json.loads((self.a8_dir / "a13-notes.json").read_text(encoding="utf-8"))
+        self.assertEqual(
+            notes["mono_sources"],
+            {"Church TM": self.half, "public text": len(self.train) - self.half},
+        )
+        self.assertIn("Monolingual sentences used, by source: Church TM", self.printed)
 
     def test_reverses_the_split(self):
         reversed_train = pd.read_csv(
@@ -176,10 +199,13 @@ class TestLecture13(unittest.TestCase):
             run_cells(cells)
         self.assertIn("Write your prediction", str(stopped.exception))
 
-    def test_without_mono_txt_it_says_what_to_do(self):
+    def test_without_a_monolingual_file_it_says_what_to_do(self):
         cells = substitute(
             cells_with(lecture_13_cells(), SETUP_CELL, MONO_CELL),
-            {'A8_DIR / "mono.txt"': 'A8_DIR / "no-such-mono.txt"'},
+            {
+                'A8_DIR / "mono-tm.txt"': 'A8_DIR / "no-such-tm.txt"',
+                'A8_DIR / "mono-public.txt"': 'A8_DIR / "no-such-public.txt"',
+            },
         )
         with colab_faked(self.drive), self.assertRaises(SystemExit) as stopped:
             run_cells(cells)

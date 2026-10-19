@@ -3,6 +3,11 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 15.** A13's monolingual text comes from the student's Church translation memory first
+  (Eric: "they have more data from the Church TMs"): the target side of segments A5 left out,
+  topped up from public text (Wikipedia, MADLAD-400 or CC-100, OPUS) only if that runs short.
+  Both are deduplicated against the A8/A9 split, never carved from A8's training targets. There
+  is no minimum; the student reports how many came from where. The A13 notebook follows on Oct 19.
 - **Oct 14, evening.** Lecture 10, taught today from its rebuild, is to be redone for next year
   (Eric: text-heavy, snapshots of old slides, out of order, repetitive). The redo's themes, from
   an interview: open on "how do you improve on your A9 results?" with decoding as the first
