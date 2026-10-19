@@ -157,7 +157,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #250 | **P3** | Roadmap gap: model size against latency | **lib** | Open — what a student meets when a Colab session is slow |
 | #251 | **P3** | Roadmap gap: teach the training-budget episode | **lib** | Open — "which lever are you pulling?", from `reports/training-budget.md` |
 | #253 | **P3** | Lecture 19: IBM Model 1 by hand, set against 8a's attention alignment | **L19** | **After Cowork rescopes Lecture 19** (Mon Nov 30); asked in #246 |
-| #242 | **P3** | 8a: a first logged loss for every corpus A8 allows | **L8a** | **Open** — Cowork, Oct 19: A8 has no hard minimum ("use all of it and say so"), so a corpus under 3,200 pairs is possible. An epoch shorter than `log_every` (50 batches at batch size 64) prints no `Train Loss` line; 8a sets `log_every` from the training set's size instead |
 
 ## The CS 479 pivot
 

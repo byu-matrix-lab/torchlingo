@@ -30,8 +30,6 @@ TOY_RUN = {
     "TEST_SIZE   = 2_000": "TEST_SIZE   = 50",
     "EPOCHS      = 35": "EPOCHS      = 2",
     "plt.show()": "plt.close()",
-    # The toy corpus has far fewer than fifty batches an epoch, so no line would be logged.
-    "log_every=50": "log_every=2",
 }
 # Each key names its cell's own comment, because one prediction's name contains the other's.
 PREDICTED = {
@@ -112,8 +110,15 @@ class TestLecture08a(unittest.TestCase):
 
     def test_the_first_logged_loss_comes_from_the_checkpoint(self):
         """Nothing is copied by hand: the plot cell prints the run's own first line."""
-        first_line = re.search(r"Train Loss: ([0-9.]+)", self.printed)
+        first_line = re.search(
+            r"Epoch (\d+) Step .*Train Loss: ([0-9.]+)", self.printed
+        )
         self.assertIsNotNone(first_line, "Step 7 printed a log_every line")
+        # The toy corpus has far fewer than fifty batches an epoch, as a small A8 corpus can:
+        # LOG_EVERY shrinks, so the first line still comes in the first epoch.
+        self.assertLess(self.ns["LOG_EVERY"], 50)
+        self.assertEqual(first_line.group(1), "1")
+        first_line = re.search(r"Train Loss: ([0-9.]+)", self.printed)
         self.assertAlmostEqual(
             self.ns["first_loss"], float(first_line.group(1)), places=4
         )
