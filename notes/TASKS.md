@@ -157,7 +157,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #250 | **P3** | Roadmap gap: model size against latency | **lib** | Open — what a student meets when a Colab session is slow |
 | #251 | **P3** | Roadmap gap: teach the training-budget episode | **lib** | Open — "which lever are you pulling?", from `reports/training-budget.md` |
 | #253 | **P3** | Lecture 19: IBM Model 1 by hand, set against 8a's attention alignment | **L19** | **After Cowork rescopes Lecture 19** (Mon Nov 30); asked in #246 |
-| #233 | **P3** | 8c and 9: quote each lecture's current outcome in the notebook's opening | **L8c** | **Open** — the roadmap has an 8c outcome since Oct 19, and Lecture 9's outcome was rewritten the same day, so `lecture-09-subword-tokenization` quotes wording that is gone. The predictions, the stops and 8b's quoted outcome are done |
 
 ## The CS 479 pivot
 
