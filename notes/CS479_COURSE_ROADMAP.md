@@ -218,7 +218,7 @@ steps.
 | `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
 | `lecture-12-llm-context` | in-context examples and what they buy | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, its wording their own); predict the best context size; reconcile the prediction with the curve | the LLM, the loop, BLEU, the chart and the upload files | low |
-| `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help | find monolingual text new to their split; write reverse and combine (the method, checked against known answers and the contamination check); predict before retraining; add Google back-translations to three examples and explain the result | both trainings, the back-translation, BLEU, COMET and the upload files | low |
+| `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help | extract monolingual text from their Church TM's unused segments, topped up from public text if short; write reverse and combine (the method, checked against known answers and the contamination check); predict before retraining; add Google back-translations to three examples and explain the result | both trainings, the back-translation, BLEU, COMET and the upload files | low |
 
 ### Where the line is crossed
 
@@ -582,9 +582,6 @@ repository's `notes/TASKS.md`.
 - **Learning Suite's assignment texts.** A13 and A14 still carry last year's OpenNMT directions;
   each is rewritten against its notebook. A7's due time differs between Learning Suite and the
   deck.
-- **Where does A13's monolingual text come from?** A8 used all of each student's cleaned data, so
-  the A13 notebook asks students for new sentences in their language. A course-provided source
-  per language would remove that step.
 - **Lecture 6 is overloaded** and nothing has been done about it.
 - **Lecture 19 needs rescoping** around the material now in Lecture 5, and has no notebook.
 - **Deck links to personal Google Drive URLs.** Lecture 4 links the regex notebook twice and its
@@ -599,6 +596,11 @@ repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 15.** A13's monolingual text comes from the student's Church translation memory first
+  (Eric: "they have more data from the Church TMs"): the target side of segments A5 left out,
+  topped up from public text (Wikipedia, MADLAD-400 or CC-100, OPUS) only if that runs short.
+  Both are deduplicated against the A8/A9 split, never carved from A8's training targets. There
+  is no minimum; the student reports how many came from where. The A13 notebook follows on Oct 19.
 - **Oct 14, evening.** Lecture 10, taught today from its rebuild, is to be redone for next year
   (Eric: text-heavy, snapshots of old slides, out of order, repetitive). The redo's themes, from
   an interview: open on "how do you improve on your A9 results?" with decoding as the first
@@ -894,18 +896,21 @@ Notes on the rows that are not simple:
 - [17] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
   Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, test-a9.hyp, and
   A9's training checkpoint, from which both trainings take their epoch count) plus the
-  student's monolingual mono.txt, which Step 1 says where to look for and which stops with
-  instructions if missing. The student writes reverse, which turns the split around for an
-  X-to-English model, and combine, which joins the original and synthetic pairs and drops
-  any whose source is held out; each is checked on a known case, and combine's result by
-  check_contamination against validation and test. The notebook trains X-to-English with
-  A9's configuration and vocabulary, back-translates with translate_to_file (resumable),
-  takes a prediction that stops the run while empty, retrains English-to-X on the combined
-  pairs, scores both systems with A9's BLEU, runs COMET on both, and prints the write-up
-  block from Drive alone (a13-notes.json keeps the prediction and the back-translator's
-  BLEU), so it survives a dropped session. The write-up asks what makes the language
-  low-resource beyond pair counts. Needs a GPU and Drive, so CI does not execute it;
-  tests/test_lecture_13.py runs its cells at toy size.
+  student's monolingual text: mono-tm.txt from their Church TM's unused segments, topped
+  up by an optional mono-public.txt; Step 1 says where to find both, stops with
+  instructions if neither is there, removes sentences in the split and repeats, runs
+  check_contamination against the test set, and saves how many came from each file to
+  a13-notes.json for the write-up. The student writes reverse, which turns the split
+  around for an X-to-English model, and combine, which joins the original and synthetic
+  pairs and drops any whose source is held out; each is checked on a known case, and
+  combine's result by check_contamination against validation and test. The notebook trains
+  X-to-English with A9's configuration and vocabulary, back-translates with
+  translate_to_file (resumable), takes a prediction that stops the run while empty,
+  retrains English-to-X on the combined pairs, scores both systems with A9's BLEU, runs
+  COMET on both, and prints the write-up block from Drive alone (a13-notes.json keeps the
+  prediction and the back-translator's BLEU), so it survives a dropped session. The
+  write-up asks what makes the language low-resource beyond pair counts. Needs a GPU and
+  Drive, so CI does not execute it; tests/test_lecture_13.py runs its cells at toy size.
 
 <!-- END generated:notebook-map -->
 
