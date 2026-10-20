@@ -584,6 +584,15 @@ repository's `notes/TASKS.md`.
   deck.
 - **Lecture 6 is overloaded** and nothing has been done about it.
 - **Lecture 19 needs rescoping** around the material now in Lecture 5, and has no notebook.
+- **What Lectures 15 to 23 and the final project need from the repository**, held until Lectures
+  11 to 13 are done (Eric, Oct 19). None has a notebook, by design, but three may want code:
+  Lecture 18's post-editing activity measures normalized edit distance (a small notebook, or
+  TorchLingo's TER?); Lecture 19's IBM Model 1 worked by hand, set beside 8a's attention
+  alignment, once the lecture is rescoped; and a "starting a project from your own A9 or A14
+  model" page for the final projects, proposed Nov 16.
+- **Do lectures after 12 have students prompt an LLM?** Eric, Oct 19: "almost certainly yes", to
+  be confirmed against these scope notes. If a second notebook does, A12's prompting code becomes
+  a TorchLingo helper; until then it stays in A12's notebook.
 - **Deck links to personal Google Drive URLs.** Lecture 4 links the regex notebook twice and its
   own activity once; Lecture 12 links its assignment notebook. All die with the account. Each is
   now a Colab badge in the repository, but the Drive copies must stay alive while students are in
@@ -596,6 +605,12 @@ repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 19.** Lecture 11 is recorded, not taught in the room, and its "be the judge" activity
+  turns around to Spanish into English, with the English original as the reference, so every
+  student judges as a monolingual rater against a reference (Eric: not every student reads
+  Spanish). Its message: every judge of translation quality, an LLM included, is a metric and has
+  to be tested against people. Both sessions stay on Lectures 11 to 13 and A11 to A13 for now;
+  what later lectures need goes into the open questions below as notes (Eric).
 - **Oct 15.** A13's monolingual text comes from the student's Church translation memory first
   (Eric: "they have more data from the Church TMs"): the target side of segments A5 left out,
   topped up from public text (Wikipedia, MADLAD-400 or CC-100, OPUS) only if that runs short.
