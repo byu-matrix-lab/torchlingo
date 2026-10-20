@@ -179,3 +179,18 @@ reading report belongs here.
 ### 21 to 23 (F2025)
 Writing research articles, MATRIX Lab research, MT applications and jobs, further research.
 Final project presentations close the semester.
+
+**The final project** is one Learning Suite page, "Final Project", in four sections (Proposal,
+Presentation, Write-up, Submission), each linked from its gradebook entry. A student takes one of
+two paths: **investigate a question** (a hypothesis, and one change against a named baseline) or
+**build a component** (a user, a job, and what that user does today as the baseline). Both need:
+- **people and a measure:** for text output, at least three people each judge the same 100 test
+  sentences against the baseline in MTEval, as in A6, beside BLEU or chrF and COMET, and the
+  write-up says whether the people and the metric pick the same winner;
+- **a fair test:** held out, checked for overlap the way A8 checks, and the same for every
+  system;
+- **where it helped and where it hurt;**
+- **reproducibility:** versions, seeds and decoding settings named.
+
+All project work is due Thu Dec 10 at 11:59 pm; the presentations take the final exam slot, Wed
+Dec 16, 11:00 to 14:00.

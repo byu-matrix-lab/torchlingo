@@ -127,7 +127,7 @@ lectures:
   title: Last day of class
 - ids: []
   date: 2026-12-16
-  title: Final exam, 11:00 to 14:00
+  title: Final exam slot, 11:00 to 14:00
 
 # Everything due, in any row of the schedule. The schedule's "Assignment due that day"
 # column is built from these, grouped by due date, so a due date is written once.
@@ -212,8 +212,10 @@ assignments:
   due: 2026-11-16
 - label: '**Paper review assignment**'
   due: 2026-12-09
-- label: Final project **presentations, submission, write-up**
+- label: Final project **submission and write-up**, all work by 11:59 pm
   due: 2026-12-10
+- label: Final project **presentations**, in the final exam slot
+  due: 2026-12-16
 
 # The "Lecture outcomes" table. Its own list because its rows are not the schedule's:
 # Lectures 19 and 20 share a session but have an outcome each, and 21 to 23 share one.
