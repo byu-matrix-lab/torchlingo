@@ -44,6 +44,7 @@ Exits non-zero if any notebook fails, so CI can gate on it.
 """
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -218,24 +219,36 @@ def run_as_student(notebook: Path, options: list[str]) -> tuple[bool, str, float
     return result.returncode == 0, result.stdout + result.stderr, seconds
 
 
-def main_as_student(notebooks: list[Path], options: list[str], jobs: int) -> int:
-    """Run every notebook the student path can supply, and summarize.
+def student_runnable(
+    notebooks: list[Path], install_only: bool, report: bool = True
+) -> tuple[list[Path], list[str]]:
+    """Split notebooks into those the student path can supply and the names of the rest.
 
-    With ``--install-only`` in ``options`` nothing is skipped for what it requires: an
-    install needs no GPU, token or answers. ``student_path.sh`` passes a notebook with
-    no install cell, saying so. ``jobs`` notebooks run at once, each still in its own
-    environment; one at a time, the Colab run of all 23 took 27 minutes in CI.
+    With ``install_only`` nothing is skipped for what it requires: an install needs no
+    GPU, token or answers. ``report`` prints a SKIP line for each one left out.
     """
-    failures, skipped, known = [], [], []
-    install_only = "--install-only" in options
-    runnable = []
+    runnable, skipped = [], []
     for notebook in notebooks:
         unavailable = sorted(set(missing_capabilities(notebook)) & STUDENT_CANNOT)
         if unavailable and not install_only:
             skipped.append(notebook.name)
-            print(f"  SKIP  {notebook.name} (requires {', '.join(unavailable)})")
+            if report:
+                print(f"  SKIP  {notebook.name} (requires {', '.join(unavailable)})")
             continue
         runnable.append(notebook)
+    return runnable, skipped
+
+
+def main_as_student(notebooks: list[Path], options: list[str], jobs: int) -> int:
+    """Run every notebook the student path can supply, and summarize.
+
+    ``student_path.sh`` passes a notebook with no install cell, saying so. ``jobs``
+    notebooks run at once, each still in its own environment; one at a time, the Colab
+    run of all 23 took 27 minutes in CI. The workflow runs one notebook per job instead
+    (``--list``, then ``--only``), so none waits for another or shares its runner.
+    """
+    failures, known = [], []
+    runnable, skipped = student_runnable(notebooks, "--install-only" in options)
 
     print(f"as a student: {len(runnable)} notebooks, {jobs} at a time ...", flush=True)
     with ThreadPoolExecutor(max_workers=max(1, jobs)) as pool:
@@ -291,6 +304,18 @@ def main() -> int:
         help="notebooks to leave out, by file stem (CI leaves out the slowest on pull requests)",
     )
     parser.add_argument(
+        "--only",
+        nargs="+",
+        default=[],
+        metavar="STEM",
+        help="run only these notebooks, by file stem (the workflow runs one per job)",
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="with --as-student: print, as JSON, the stems of the notebooks it would run",
+    )
+    parser.add_argument(
         "--as-student",
         action="store_true",
         help="use each notebook's own install cell and fake Colab, one fresh environment each",
@@ -306,8 +331,8 @@ def main() -> int:
         help="with --as-student: run only the install cells, then the notebook's imports",
     )
     args = parser.parse_args()
-    if (args.colab or args.install_only) and not args.as_student:
-        parser.error("--colab and --install-only go with --as-student")
+    if (args.colab or args.install_only or args.list) and not args.as_student:
+        parser.error("--colab, --install-only and --list go with --as-student")
 
     # Both families, because the course notebooks are the ones students open in the room, on
     # a clock -- a broken one costs twenty minutes of class rather than a confusing evening.
@@ -322,12 +347,15 @@ def main() -> int:
         + sorted(args.course.glob("*.ipynb"))
         if not is_redirect(path)
     ]
-    unknown = sorted(set(args.exclude) - {path.stem for path in notebooks})
-    if unknown:
-        # A typo here would silently run the notebook it meant to leave out, or worse, a
-        # renamed notebook would leave nothing out while the workflow still claims it does.
-        print(f"--exclude names no notebook: {', '.join(unknown)}", file=sys.stderr)
-        return 1
+    for option, stems in (("--exclude", args.exclude), ("--only", args.only)):
+        unknown = sorted(set(stems) - {path.stem for path in notebooks})
+        if unknown:
+            # A typo here would silently run the notebook it meant to leave out, or worse, a
+            # renamed notebook would leave nothing out while the workflow still claims it does.
+            print(f"{option} names no notebook: {', '.join(unknown)}", file=sys.stderr)
+            return 1
+    if args.only:
+        notebooks = [path for path in notebooks if path.stem in args.only]
     for path in notebooks:
         if path.stem in args.exclude:
             print(f"  LEFT OUT  {path.name} (--exclude)", flush=True)
@@ -338,6 +366,10 @@ def main() -> int:
             file=sys.stderr,
         )
         return 1
+    if args.list:
+        runnable, _ = student_runnable(notebooks, args.install_only, report=False)
+        print(json.dumps([path.stem for path in runnable]))
+        return 0
     if args.as_student:
         options = ["--colab"] * args.colab + ["--install-only"] * args.install_only
         return main_as_student(notebooks, options, args.jobs)

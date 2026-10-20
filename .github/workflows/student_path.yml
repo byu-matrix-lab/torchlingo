@@ -11,6 +11,12 @@ name: Notebooks as a student runs them
 # and weekly, to catch drift (a dependency's new release breaking a notebook nobody touched).
 # Task #168; `course` since Task #196. A second job runs every install cell in a copy of
 # Colab's environment (Task #244).
+#
+# One job per notebook (Task #262). Four at a time on one runner, a run took about seven
+# minutes, most of it tutorials 6 and 7 sharing four CPUs with two others; a job each, the run
+# takes about as long as the slowest notebook alone. Every job's name here starts "Notebooks
+# from": promote_course.sh leaves these check runs out by that prefix, and the weekly run puts
+# them on main's head, a commit that may then be promoted.
 
 on:
   schedule:
@@ -23,10 +29,14 @@ permissions:
   contents: read
 
 jobs:
-  student-path:
-    name: Notebooks from their own install cells
+  # Which notebooks to run, by the same rules a run on one runner applies: a notebook needing a
+  # GPU, a token or a student's answers is skipped, and said so here.
+  list:
+    name: Notebooks from their own install cells (which to run)
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 10
+    outputs:
+      notebooks: ${{ steps.list.outputs.notebooks }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,11 +46,37 @@ jobs:
         with:
           python-version: "3.12"
 
-      # pip's download cache, kept between runs. The fresh environments of one run already
-      # share it; this saves each run's first download of torch and the rest. It holds
-      # downloaded files only: pip still resolves every version from the index, so what a
-      # student would get is unchanged. Keyed by run and restoring the latest, so it always
-      # carries the newest wheels.
+      - name: List the notebooks the student path can supply
+        id: list
+        run: |
+          notebooks="$(python scripts/execute_notebooks.py --as-student --list)"
+          echo "$notebooks"
+          echo "notebooks=$notebooks" >> "$GITHUB_OUTPUT"
+
+  student-path:
+    name: Notebooks from their own install cells (${{ matrix.notebook }})
+    needs: list
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      # Every notebook reports, not only the first to fail.
+      fail-fast: false
+      matrix:
+        notebook: ${{ fromJSON(needs.list.outputs.notebooks) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # pip's download cache, kept between runs; it saves each job's download of torch and the
+      # rest. It holds downloaded files only: pip still resolves every version from the
+      # index, so what a student would get is unchanged. Keyed by run and restoring the
+      # latest, so it always carries the newest wheels; the first job of a run to finish
+      # saves it, and the others find the key taken and skip saving.
       - name: Restore pip's download cache
         uses: actions/cache@v4
         with:
@@ -51,10 +87,10 @@ jobs:
       # The CPU build of torch, as the test job uses: the GPU build is gigabytes, and nothing
       # here has a GPU. pip reads this from the environment, including the notebooks' own
       # %pip install cells, so every fresh environment gets it.
-      - name: Run every notebook the student path can supply
+      - name: Run ${{ matrix.notebook }} from its own install cell
         env:
           PIP_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
-        run: python scripts/execute_notebooks.py --as-student
+        run: python scripts/execute_notebooks.py --as-student --only "${{ matrix.notebook }}"
 
   # Every notebook's install cells in a copy of Colab's runtime: its Python and the versions of
   # the packages it ships, as googlecolab/backend-info publishes them, read fresh each run. The
@@ -63,7 +99,7 @@ jobs:
   # environment on another Python. The weekly run is how a new Colab image gets caught.
   # Task #244.
   colab-installs:
-    name: Install cells in Colab's environment
+    name: Notebooks from their own install cells, in Colab's environment
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:

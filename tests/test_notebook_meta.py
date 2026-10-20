@@ -15,6 +15,7 @@ import datetime
 import io
 import json
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -1577,6 +1578,36 @@ class TestTheExecutorSkipsOnCapabilities(unittest.TestCase):
         source = (REPO / "scripts" / "execute_notebooks.py").read_text(encoding="utf-8")
         self.assertIn("COURSE", source)
         self.assertIn("args.course", source)
+
+    def run_executor(self, *args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(REPO / "scripts" / "execute_notebooks.py"), *args],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    def test_the_workflow_list_skips_as_a_run_would(self):
+        """The student-path workflow runs one job per notebook --list names (Task #262):
+        exactly the notebooks a run on one runner would, and every notebook for installs."""
+        listed = json.loads(self.run_executor("--as-student", "--list").stdout)
+        runnable, skipped = self.en.student_runnable(
+            nm.notebooks(), False, report=False
+        )
+        self.assertEqual(listed, [p.stem for p in runnable])
+        self.assertIn("06-diagnosing-failures", listed)
+        self.assertNotIn("lecture-11-comet-on-a6", listed)  # needs Drive and answers
+        self.assertIn("lecture-11-comet-on-a6.ipynb", skipped)
+        everything = json.loads(
+            self.run_executor("--as-student", "--install-only", "--list").stdout
+        )
+        self.assertEqual(len(everything), len(runnable) + len(skipped))
+
+    def test_only_refuses_a_name_that_is_no_notebook(self):
+        result = self.run_executor("--as-student", "--only", "no-such-notebook")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("--only names no notebook: no-such-notebook", result.stderr)
 
 
 class TestWriteMetaWhereverTheBlockSits(unittest.TestCase):
