@@ -158,7 +158,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #254 | **P3** | One way to wait for a GitHub run, shared by the scripts | **hyg** | Open — `promote_course.sh` and `land_pr.sh` each carry a loop, and four more were typed on Oct 16–17 |
 | #255 | **P3** | `student_path.sh --at COMMIT`: run a notebook as it was | **hyg** | Open — showing a fix fails before and passes after took three hand extractions on Oct 16 |
 | #256 | **P3** | Check `TASKS.md` itself: duplicate entries, rows without bodies, empty sections | **hyg** | Open — the Oct 17 clean-up was mostly mechanical |
-| #262 | **P3** | Student path: split the notebooks across parallel jobs | **hyg** | Open — every promotion waits about nine minutes on it. Oct 19 timings (printed since PR #313): install about 30 s a notebook, a full run 112–399 s, and tutorials 6 (399 s) and 7 (308 s) set the length, four at a time on one runner. A job matrix, or faster tutorials 6 and 7, would cut the run to about its slowest notebook |
 | #89 | **P3** | Fail the docs build when a page is off-nav | **hyg** | Open |
 | #91 | **P3** | `metric_comparison.json` records no BLEU signature | **lib** | Open — nothing blocks it |
 | #247 | **P3** | Next offering: the A8 kickoff's cap and dedupe become the student's | **L8a** | Open — the roadmap's one notebook rated **high**; after the term |
