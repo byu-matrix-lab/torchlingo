@@ -3,6 +3,11 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 20.** The final project is one Learning Suite page with two paths, investigate a question
+  or build a component, and both judge their result with people as well as a metric (see
+  Lectures 21 to 23's scope note). The four separate project pages are gone. Work is due Thu Dec
+  10; the presentations move to the final exam slot, Wed Dec 16, 11:00 to 14:00 (Cowork, with
+  Eric).
 - **Oct 19.** Lecture 11 is recorded, not taught in the room, and its "be the judge" activity
   turns around to Spanish into English, with the English original as the reference, so every
   student judges as a monolingual rater against a reference (Eric: not every student reads

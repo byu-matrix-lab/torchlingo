@@ -59,8 +59,8 @@ rewritten against its notebook.
 | — | Wed Dec 2 | Project checkpoint reviews with instructor | | |
 | 21 | Mon Dec 7 | Writing Research Articles; MATRIX Lab research | | F2025 |
 | 22, 23 | Wed Dec 9 | MT Applications and Jobs; Opportunities for Further MT Research | **Paper review assignment** | F2025 |
-| — | Thu Dec 10 | Last day of class | Final project **presentations, submission, write-up** | |
-| — | Wed Dec 16 | Final exam, 11:00 to 14:00 | | |
+| — | Thu Dec 10 | Last day of class | Final project **submission and write-up**, all work by 11:59 pm | |
+| — | Wed Dec 16 | Final exam slot, 11:00 to 14:00 | Final project **presentations**, in the final exam slot | |
 
 An assignment appears on the row of the day it is **due**, which is how Learning Suite lists
 it, at 10:00 unless said otherwise (Learning Suite has A7 at 11:59 pm; the deck says 10:00,
@@ -437,6 +437,21 @@ reading report belongs here.
 Writing research articles, MATRIX Lab research, MT applications and jobs, further research.
 Final project presentations close the semester.
 
+**The final project** is one Learning Suite page, "Final Project", in four sections (Proposal,
+Presentation, Write-up, Submission), each linked from its gradebook entry. A student takes one of
+two paths: **investigate a question** (a hypothesis, and one change against a named baseline) or
+**build a component** (a user, a job, and what that user does today as the baseline). Both need:
+- **people and a measure:** for text output, at least three people each judge the same 100 test
+  sentences against the baseline in MTEval, as in A6, beside BLEU or chrF and COMET, and the
+  write-up says whether the people and the metric pick the same winner;
+- **a fair test:** held out, checked for overlap the way A8 checks, and the same for every
+  system;
+- **where it helped and where it hurt;**
+- **reproducibility:** versions, seeds and decoding settings named.
+
+All project work is due Thu Dec 10 at 11:59 pm; the presentations take the final exam slot, Wed
+Dec 16, 11:00 to 14:00.
+
 ---
 
 ## Notebook index
@@ -605,6 +620,11 @@ repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 20.** The final project is one Learning Suite page with two paths, investigate a question
+  or build a component, and both judge their result with people as well as a metric (see
+  Lectures 21 to 23's scope note). The four separate project pages are gone. Work is due Thu Dec
+  10; the presentations move to the final exam slot, Wed Dec 16, 11:00 to 14:00 (Cowork, with
+  Eric).
 - **Oct 19.** Lecture 11 is recorded, not taught in the room, and its "be the judge" activity
   turns around to Spanish into English, with the English original as the reference, so every
   student judges as a monolingual rater against a reference (Eric: not every student reads
