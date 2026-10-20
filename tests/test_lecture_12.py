@@ -192,6 +192,37 @@ class TestStudentData(NotebookCase):
         self.assertTrue(namespace["test"].src.str.startswith("sentence number").all())
         self.assertTrue(namespace["test"].tgt.str.startswith("lino").all())
 
+    def test_reads_the_real_folders_first_lines_unchanged(self):
+        """Lines as the real A12 files have them (Cowork read all twelve, Oct 19): Efik's
+        opening three, the third English left untranslated; Telugu script; and Yapese's curly
+        apostrophe, which is orthography and must not be normalized away."""
+        real = [
+            ("Jesus is the Christ.", "Jesus edi Christ."),
+            ("This is His Church.", "Emi edi Ufok Abasi Esie"),
+            (
+                "See title page of the Book of Mormon.",
+                "Se title page of the Book of Mormon..",
+            ),
+            (
+                (
+                    "Helping others understand their true identity and purpose is one of "
+                    "the greatest gifts we can give."
+                ),
+                (
+                    "వారి నిజమైన గుర్తింపును మరియు ఉద్దేశమును గ్రహించడానికి ఇతరులకు సహాయపడుట "
+                    "మనము ఇవ్వగల మిక్కిలి గొప్ప బహుమానాలలో ఒకటి."
+                ),
+            ),
+            ("A line with a Yapese word.", "Gidii’en"),
+        ]
+        namespace, _, _ = self.run_notebook(
+            lambda d: write_a12_folder(d, real + pairs(80))
+        )
+        loaded = list(zip(namespace["pairs"].src, namespace["pairs"].tgt))
+        self.assertEqual(len(loaded), 85)
+        for pair in real:
+            self.assertIn(pair, loaded)
+
     def test_reads_windows_line_endings_and_a_byte_order_mark(self):
         namespace, _, _ = self.run_notebook(
             lambda d: write_a12_folder(d, pairs(80), newline="\r\n", bom=True)
