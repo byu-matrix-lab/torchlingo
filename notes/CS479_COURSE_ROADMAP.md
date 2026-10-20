@@ -888,14 +888,19 @@ Notes on the rows that are not simple:
   what a COMET score means, and evaluation against estimation. tests/test_lecture_10.py
   runs its cells with COMET stubbed.
 - [15] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMET-QE-DA on the
-  student's A6 sentences beside BLEU and chrF. The student pastes comet_inputs from A10
-  and writes pairwise_agreement, the sentence-by-sentence measure of whether two metrics
-  prefer the same system, each checked on a known case; a prediction, which stops the run
-  while empty; the notebook says why COMET-QE-DA rather than the gated COMETKiwi. The
-  report gives system scores, each metric's preferred system against the A6 human average
-  ranks, and agreement counts; four summary questions follow, the last on LLM-as-judge and
-  system- against segment-level agreement. tests/test_lecture_11.py runs its cells with
-  COMET stubbed.
+  student's A6 sentences beside BLEU and chrF. Step 1 reads the student's MTEval results
+  file from A6 (a header naming the two systems, a rank per system per ranked sentence,
+  ties allowed), joins it to the sources on whitespace-normalized text, and computes the
+  average ranks. The student pastes comet_inputs from A10 and writes pairwise_agreement,
+  the sentence-by-sentence measure of whether two metrics prefer the same system, each
+  checked on a known case; a prediction, which stops the run while empty; the notebook
+  says why COMET-QE-DA rather than the gated COMETKiwi. The report gives system scores,
+  each metric's preferred system against the A6 human average ranks, and agreement counts,
+  between metrics and between each metric and the student's ranks, human ties left out,
+  read from a11-notes.json, which the scoring cell saves to Drive so the report survives a
+  dropped session; four summary questions follow, the last on LLM-as-judge and system-
+  against segment-level agreement. tests/test_lecture_11.py runs its cells with COMET
+  stubbed.
 - [16] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
   built-in English-Spanish sample from data/example.tsv until the student sets LANGUAGE
   and DATA_DIR, together. The student writes split_pool_and_test (checked on the alphabet,

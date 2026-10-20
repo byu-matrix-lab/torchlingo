@@ -44,6 +44,10 @@ recorded, and its activity judges Spanish into English; the scores are in
 Lectures 11 to 13 and A11 to A13, and later lectures become roadmap notes, so Task #246 is closed
 into the roadmap's open questions, and Cowork holds the MTEval file (Task #229) until Lectures 11
 to 13 are done. Task #169's LLM helper: "almost certainly" needed, to be confirmed.
+
+**2026-10-20: Cowork sent the MTEval sample and the A12 folders.** A11's Step 1 now reads the
+student's MTEval results file and compares each metric with the student's own ranks, sentence by
+sentence (Task #229, closed).
 Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
 from this side, and Tasks #254 to #256 from the session's repeated manual steps.
 
@@ -122,7 +126,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files, and Step 1 says where the A12 shared folder is | **L12** | **Waits on Cowork** (in the Oct 19 hand-off) — on `course` since Oct 19: the loader reads exactly `src.txt` and `tgt.txt`, Step 1 names the A12 page's data link, and the language list matches the folder. Tested on files built to Cowork's description; done when one real folder's first lines confirm it |
 | #123 | **P1** | A14's two-directions case has never been run | **14+** | **Held** (Eric, Oct 19: this session stays on Lectures 11 to 13 for now) — highest uncertainty; needed by Wed Oct 28, when A14 is set; comes before #99 |
 | #99 | **P1** | The A14 notebook: a bidirectional system from A9, tagged and intermingled, scored both ways | **14+** | **Needed by Wed Oct 28**, when A14 is set; after #123, so held with it. Rescoped Oct 17 from a tutorial to the course notebook (see below) |
-| #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on Cowork** for one student's MTEval results file, from Learning Suite (asked in the Oct 19 hand-off; Cowork holds it until Lectures 11 to 13 are done, in Eric's scope) — Cowork confirmed the average-rank definition and that A6 prescribed no layout, so one `.txt` per column stays. Every student has the MTEval results `.tsv` from A6; its columns are unknown, and reading it directly would give a sentence-level human comparison on the ranked 50 |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Open** — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: an LLM helper, once a second notebook prompts an LLM (Eric, Oct 19: later lectures "almost certainly" will, to be confirmed against the roadmap; an open question there). A12's loader stays in its notebook's `# Setup:` cell: it reads exactly two named files, and serves one notebook (Eric, Oct 19) |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
