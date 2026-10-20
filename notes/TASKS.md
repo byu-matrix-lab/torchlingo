@@ -37,6 +37,13 @@ Task #176 is on `course` pending one real A12 folder. The return hand-off,
 `to-cowork/2026-10-19-judges-scored-a12-a13-on-course.md`, asks for that folder's first lines,
 an MTEval results file (Task #229) and what Lectures 14 onward need (Task #246). Task #169's
 LLM helper waits on Eric.
+
+**2026-10-19, afternoon: the baton came back with Lecture 11 turned around.** Lecture 11 is
+recorded, and its activity judges Spanish into English; the scores are in
+`torchlingo-private/course/figures/l11-judges/` (`*_es-en.*`). Eric's scope: both sessions stay on
+Lectures 11 to 13 and A11 to A13, and later lectures become roadmap notes, so Task #246 is closed
+into the roadmap's open questions, and Cowork holds the MTEval file (Task #229) until Lectures 11
+to 13 are done. Task #169's LLM helper: "almost certainly" needed, to be confirmed.
 Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
 from this side, and Tasks #254 to #256 from the session's repeated manual steps.
 
@@ -113,11 +120,10 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
 | #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files, and Step 1 says where the A12 shared folder is | **L12** | **Waits on Cowork** (in the Oct 19 hand-off) — on `course` since Oct 19: the loader reads exactly `src.txt` and `tgt.txt`, Step 1 names the A12 page's data link, and the language list matches the folder. Tested on files built to Cowork's description; done when one real folder's first lines confirm it |
-| #123 | **P1** | A14's two-directions case has never been run | **14+** | Open — highest uncertainty; needed by Wed Oct 28, when A14 is set; comes before #99 |
-| #99 | **P1** | The A14 notebook: a bidirectional system from A9, tagged and intermingled, scored both ways | **14+** | **Needed by Wed Oct 28**, when A14 is set; after #123. Rescoped Oct 17 from a tutorial to the course notebook (see below) |
-| #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on Cowork** for one student's MTEval results file, from Learning Suite (asked in the Oct 19 hand-off) — Cowork confirmed the average-rank definition and that A6 prescribed no layout, so one `.txt` per column stays. Every student has the MTEval results `.tsv` from A6; its columns are unknown, and reading it directly would give a sentence-level human comparison on the ranked 50 |
-| #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Open** — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: an LLM helper (waits on Eric: Cowork could not say whether any lecture after 12 prompts an LLM). A12's loader stays in its notebook's `# Setup:` cell: it reads exactly two named files, and serves one notebook (Eric, Oct 19) |
-| #246 | **P2** | Ask Cowork what Lectures 15 to 23 and the final project need from this side | **14+** | **Waits on Cowork** (asked in the Oct 19 hand-off) — the roadmap has no notebook for them, by design, but Lecture 18's edit-distance activity, Lecture 19's IBM Model 1 and the projects may want code |
+| #123 | **P1** | A14's two-directions case has never been run | **14+** | **Held** (Eric, Oct 19: this session stays on Lectures 11 to 13 for now) — highest uncertainty; needed by Wed Oct 28, when A14 is set; comes before #99 |
+| #99 | **P1** | The A14 notebook: a bidirectional system from A9, tagged and intermingled, scored both ways | **14+** | **Needed by Wed Oct 28**, when A14 is set; after #123, so held with it. Rescoped Oct 17 from a tutorial to the course notebook (see below) |
+| #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on Cowork** for one student's MTEval results file, from Learning Suite (asked in the Oct 19 hand-off; Cowork holds it until Lectures 11 to 13 are done, in Eric's scope) — Cowork confirmed the average-rank definition and that A6 prescribed no layout, so one `.txt` per column stays. Every student has the MTEval results `.tsv` from A6; its columns are unknown, and reading it directly would give a sentence-level human comparison on the ranked 50 |
+| #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Open** — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: an LLM helper, once a second notebook prompts an LLM (Eric, Oct 19: later lectures "almost certainly" will, to be confirmed against the roadmap; an open question there). A12's loader stays in its notebook's `# Setup:` cell: it reads exactly two named files, and serves one notebook (Eric, Oct 19) |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
 | #171 | **P2** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
@@ -158,7 +164,7 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #249 | **P3** | Roadmap gap: what to do when training goes wrong | **lib** | Open — `concepts/training.md` has the loop, not batch size against learning rate or overfitting on a small corpus |
 | #250 | **P3** | Roadmap gap: model size against latency | **lib** | Open — what a student meets when a Colab session is slow |
 | #251 | **P3** | Roadmap gap: teach the training-budget episode | **lib** | Open — "which lever are you pulling?", from `reports/training-budget.md` |
-| #253 | **P3** | Lecture 19: IBM Model 1 by hand, set against 8a's attention alignment | **L19** | **After Cowork rescopes Lecture 19** (Mon Nov 30); asked in #246 |
+| #253 | **P3** | Lecture 19: IBM Model 1 by hand, set against 8a's attention alignment | **L19** | **After Cowork rescopes Lecture 19** (Mon Nov 30); a roadmap open question, held until Lectures 11 to 13 are done |
 
 ## The CS 479 pivot
 
@@ -308,9 +314,9 @@ which students trained before checkpoints described themselves, so `load_model` 
   or aligned `.txt` files, extending `parallel_txt_to_dataframe`. The layout is now known
   (see #176).
 - **An LLM translate helper**, only if a second notebook comes to prompt an LLM. Until then,
-  A12's prompting code serves one notebook and stays where it is. Cowork could not say whether
-  any of Lectures 14 onward will (Oct 19); the one case so far is A11's extra credit, which runs
-  outside the notebook. The question is Eric's.
+  A12's prompting code serves one notebook and stays where it is. Eric, Oct 19: lectures after
+  12 "almost certainly" will, to be confirmed against the roadmap's scope notes (an open question
+  there); the one case so far is A11's extra credit, which runs outside the notebook.
 
 **Done when** no notebook carries plumbing a library helper covers.
 
@@ -547,18 +553,10 @@ Filed 2026-10-17 from a pass over `notes/CS479_COURSE_ROADMAP.md` for what it as
 repository and nothing here tracked: its "What the table cannot say", "Where the line is
 crossed", "Open questions" and "Gaps" sections, and Lectures 14 to 23's scope notes. Lecture 14's
 notebook is Task #99. Lecture 15's A15 runs on Azure, outside the repository, and Lectures 16 to
-18 set no assignment, so none has a row of its own until #246 says otherwise.
-
-### #246 Ask Cowork what Lectures 15 to 23 and the final project need from this side
-
-The roadmap pairs ten sessions with no notebook, by design ("inventing one to fill a row would
-be the redundancy `CLAUDE.md` rules out"). Three may still want code, and only the course side
-knows: Lecture 18's in-class post-editing activity measures normalized edit distance (does it
-want a small notebook, or `torchlingo.evaluation`'s TER?); Lecture 19 works IBM Model 1 by hand
-(#253); and the final projects, proposed Nov 16, may build on a student's A9 or A14 system (does
-the course want a "starting a project from your model" page?). **Done when** the next hand-off
-to Cowork has asked all three and the answers are rows here, or this row is closed as nothing
-needed. Asked together, as `CLAUDE.md`'s "ask everything at once" wants.
+18 set no assignment, so none has a row of its own. What Lectures 15 to 23 and the final project
+may want from the repository (Lecture 18's edit distance, Lecture 19's IBM Model 1, a page on
+starting a project from a student's own model) is an open question in the roadmap, held until
+Lectures 11 to 13 are done (Eric, Oct 19).
 
 ### #247 Next offering: the A8 kickoff's cap and dedupe become the student's
 
@@ -612,8 +610,8 @@ Lecture 19's outcome: "Work IBM Model 1 by hand on a toy pair; explain EM; relat
 alignment to the attention alignment of 8a." The roadmap says the lecture needs rescoping around
 material now in Lecture 5, and has no notebook. A notebook could run EM on a toy corpus and set
 its alignment beside the attention alignment tutorial 4 measures, which is the link the outcome
-names and nothing else in the course makes. **After Cowork rescopes Lecture 19** (asked in
-#246); Mon Nov 30. **Done when** Cowork has said whether the lecture wants it, and if so it is
+names and nothing else in the course makes. **After Cowork rescopes Lecture 19** (a roadmap
+open question, held until Lectures 11 to 13 are done); Mon Nov 30. **Done when** Cowork has said whether the lecture wants it, and if so it is
 built to the course-notebook rules.
 
 ## Code — decoding performance

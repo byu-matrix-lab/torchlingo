@@ -3,6 +3,12 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 19.** Lecture 11 is recorded, not taught in the room, and its "be the judge" activity
+  turns around to Spanish into English, with the English original as the reference, so every
+  student judges as a monolingual rater against a reference (Eric: not every student reads
+  Spanish). Its message: every judge of translation quality, an LLM included, is a metric and has
+  to be tested against people. Both sessions stay on Lectures 11 to 13 and A11 to A13 for now;
+  what later lectures need goes into the open questions below as notes (Eric).
 - **Oct 15.** A13's monolingual text comes from the student's Church translation memory first
   (Eric: "they have more data from the Church TMs"): the target side of segments A5 left out,
   topped up from public text (Wikipedia, MADLAD-400 or CC-100, OPUS) only if that runs short.
