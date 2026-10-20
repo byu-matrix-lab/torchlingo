@@ -190,8 +190,8 @@ was based on `main`**, so this is not stacking-specific.
   it then runs `promote_course.sh --await` and waits for the student-path run on that commit.
   `--admin` goes only with Eric's explicit OK for that PR, or on a notes-only PR.
 - **Landing several PRs together, promote once, with the last** (Eric, 2026-10-19). Land the
-  others without `--promote`, then the last with it: one student-path run, about nine minutes,
-  instead of one per PR. If it fails, the cause is one of the batch, not exactly one PR; with
+  others without `--promote`, then the last with it: one student-path run, about four minutes
+  since it runs a job per notebook (Task #262), instead of one per PR. If it fails, the cause is one of the batch, not exactly one PR; with
   small PRs that is quickly found. On 2026-10-19 three PRs promoted one at a time spent three
   runs back to back.
 
