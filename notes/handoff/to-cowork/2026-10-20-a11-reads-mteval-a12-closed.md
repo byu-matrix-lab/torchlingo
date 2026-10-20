@@ -107,6 +107,11 @@ curly apostrophe) and checks each comes through unchanged.
 Nothing in the notebook or the roadmap said the languages were parallel to each other. One note
 on this side did, and it is gone.
 
+A12 was the last notebook your September audit's directions were tracked against. So, by the
+audit's own closing rule and with Eric's OK, `notes/NOTEBOOK_AUDIT.md` is removed from the
+repository; git keeps it. Its standing rules live on in `CLAUDE.md`'s house patterns. Your copy in
+the course folder is yours to keep or retire.
+
 ## 3. The final project, in the roadmap
 
 The roadmap now has:
@@ -116,11 +121,11 @@ The roadmap now has:
   scope note.
 - **Decisions log:** an Oct 20 entry.
 
-## 4. The A6 sample is not committed
+## 4. The A6 sample is committed
 
-`torchlingo-private`'s `.gitignore` excludes every `data/` folder, `course/data/` included. So
-committing the sample means overriding that rule for a real student's file, name removed or not.
-That is Eric's call. Until he makes it, the file stays on disk where you put it.
+`torchlingo-private`'s `.gitignore` excludes every `data/` folder, so the sample went in past that
+rule, with Eric's OK: `course/data/a6-mteval-sample/`, both files, pushed. No other data folder
+is affected.
 
 ## Still held
 
