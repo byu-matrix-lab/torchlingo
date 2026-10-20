@@ -119,7 +119,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #176 | **P1** | `lecture-12-llm-context`'s loader matches the real A12 files, and Step 1 says where the A12 shared folder is | **L12** | **Waits on Cowork** (in the Oct 19 hand-off) — on `course` since Oct 19: the loader reads exactly `src.txt` and `tgt.txt`, Step 1 names the A12 page's data link, and the language list matches the folder. Tested on files built to Cowork's description; done when one real folder's first lines confirm it |
 | #123 | **P1** | A14's two-directions case has never been run | **14+** | **Held** (Eric, Oct 19: this session stays on Lectures 11 to 13 for now) — highest uncertainty; needed by Wed Oct 28, when A14 is set; comes before #99 |
 | #99 | **P1** | The A14 notebook: a bidirectional system from A9, tagged and intermingled, scored both ways | **14+** | **Needed by Wed Oct 28**, when A14 is set; after #123, so held with it. Rescoped Oct 17 from a tutorial to the course notebook (see below) |
 | #229 | **P1** | A11: fit Step 1 to the A6 files as students actually have them, and to MTEval's definition of average rank | **L11** | **Waits on Cowork** for one student's MTEval results file, from Learning Suite (asked in the Oct 19 hand-off; Cowork holds it until Lectures 11 to 13 are done, in Eric's scope) — Cowork confirmed the average-rank definition and that A6 prescribed no layout, so one `.txt` per column stays. Every student has the MTEval results `.tsv` from A6; its columns are unknown, and reading it directly would give a sentence-level human comparison on the ranked 50 |
@@ -310,9 +309,6 @@ which students trained before checkpoints described themselves, so `load_model` 
 
 **Left:**
 
-- **A12's loader** (`lecture-12-llm-context`, its `# Setup:` cell): a folder loader for one TSV
-  or aligned `.txt` files, extending `parallel_txt_to_dataframe`. The layout is now known
-  (see #176).
 - **An LLM translate helper**, only if a second notebook comes to prompt an LLM. Until then,
   A12's prompting code serves one notebook and stays where it is. Eric, Oct 19: lectures after
   12 "almost certainly" will, to be confirmed against the roadmap's scope notes (an open question
@@ -357,32 +353,6 @@ same shape as #137, which was fixed an hour earlier in the other script: a filte
 have been an error.
 
 Worth checking `scripts/collect_ladder.py` for the same pattern while in there.
-
-### #176 The notebook audit
-
-Cowork audited all eighteen notebooks from a student's seat at Eric's request (2026-09-29):
-[`NOTEBOOK_AUDIT.md`](NOTEBOOK_AUDIT.md). Its second half, "Implementation directions", is
-written to be carried out without asking: six rules for every notebook (standard opener, one
-closing section, prose ceilings, marked setup cells, **no project history**, the text rules in
-force), per-notebook directions with replacement text, and an order of work. The directions are
-the spec; these rows only track which notebooks are done. Eric's test where they leave room:
-**the job of each notebook is to teach.**
-
-One task per group that shares a deadline, so the "Critical for" column stays honest.
-
-- **#176, `lecture-12-llm-context`** (L12): rebuilt on Oct 13 as a runnable notebook, run end to
-  end with a real model, and tested in CI with the model stubbed (`tests/test_lecture_12.py`).
-  Its loader accepts one TSV or two line-aligned text files, a guess at the A12 folder's layout,
-  and looks for a file whose name contains `en`. The real layout (Cowork, Oct 19): one folder per
-  language, `src.txt` (English) and `tgt.txt`, line-aligned, no header, no split; Church general
-  conference text, the same lines in every language; Efik 22,611 lines, Kosraean (folder
-  `Kosrean`) 70,208, Palauan 42,662, Pohnpeian 50,818, Telugu 49,611, Yapese 54,080. Step 1 names
-  "the A12 page's data link" rather than pasting the URL, so a changed link is fixed in one place.
-  **Done when** the loader is checked against one language's real files.
-
-Each PR checks the notebook's prose against its ceiling and runs `scripts/student_path.sh` on it.
-**Done when** every notebook the audit names has had its directions applied; then this section
-and `NOTEBOOK_AUDIT.md` go.
 
 ### #180 Nothing catches a notebook whose Colab badge cannot install TorchLingo
 
