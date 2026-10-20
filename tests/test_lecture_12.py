@@ -204,10 +204,14 @@ class TestStudentData(NotebookCase):
                 "Se title page of the Book of Mormon..",
             ),
             (
-                "Helping others understand their true identity and purpose is one of the "
-                "greatest gifts we can give.",
-                "వారి నిజమైన గుర్తింపును మరియు ఉద్దేశమును గ్రహించడానికి ఇతరులకు సహాయపడుట "
-                "మనము ఇవ్వగల మిక్కిలి గొప్ప బహుమానాలలో ఒకటి.",
+                (
+                    "Helping others understand their true identity and purpose is one of "
+                    "the greatest gifts we can give."
+                ),
+                (
+                    "వారి నిజమైన గుర్తింపును మరియు ఉద్దేశమును గ్రహించడానికి ఇతరులకు సహాయపడుట "
+                    "మనము ఇవ్వగల మిక్కిలి గొప్ప బహుమానాలలో ఒకటి."
+                ),
             ),
             ("A line with a Yapese word.", "Gidii’en"),
         ]
