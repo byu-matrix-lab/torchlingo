@@ -1544,6 +1544,19 @@ class TestStampingKeepsWhatItWasNotAskedToChange(unittest.TestCase):
         self.stamp("--requires", "pip")
         self.assertNotIn("requires", self.stamp("--requires"))
 
+    def test_a_restamp_keeps_the_key_order(self):
+        """Changing one field must not reorder the block, or a one-line change is a reshuffle."""
+        # Not the order --stamp builds a block in, or the test passes without the fix.
+        meta = nm.read_meta(self.path)
+        nm.write_meta(self.path, dict(reversed(list(meta.items()))))
+        before = list(nm.read_meta(self.path))
+        self.assertEqual(list(self.stamp("--note", "replaced")), before)
+
+    def test_a_new_field_goes_after_the_existing_ones(self):
+        before = list(nm.read_meta(self.path))
+        self.assertNotIn("requires", before)
+        self.assertEqual(list(self.stamp("--requires", "pip")), [*before, "requires"])
+
     def test_clearing_one_list_keeps_the_other(self):
         """Clearing is per field: the rest are still carried forward."""
         self.stamp("--leads-to", "A5", "--requires", "pip")
