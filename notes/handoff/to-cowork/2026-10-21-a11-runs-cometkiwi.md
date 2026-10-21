@@ -35,15 +35,11 @@ The additions:
 - **The purpose cell** now shows the lecture's new title, *LLM Judges, Sentences and Spans*,
   taken from your roadmap change.
 
-## 2. It ran here, but not on a Colab GPU
+## 2. How it was checked
 
 The notebook's own cells ran on a CPU here: the login cell with a real token, then real COMET
-and COMETKiwi, on a small test folder, in 19 seconds. Two things only Colab shows, so **one Run
-all from the badge on a T4 is still wanted**, by Eric or by you, with real A6 files, an MTEval
-results file and the `HF_TOKEN` secret:
-
-- that the Notebook access step reads as the cell says;
-- the scoring time on a real A6 set.
+and COMETKiwi, on a small test folder, in 19 seconds. No Colab GPU run is wanted (Eric, Oct 21):
+students already run COMETKiwi in A10, and their setup issues there are resolved.
 
 ## 3. Committed for you
 
@@ -52,5 +48,5 @@ entries) and your hand-off are committed in the same pull request.
 
 ## 4. Tasks
 
-- **The Colab GPU run of A11** stays open, now covering the switch.
+- **The Colab GPU run of A11** is closed (Eric: A10 already proved the path).
 - Nothing new on this side. `A01-directions.md`'s quiz name is yours, in torchlingo-private.
