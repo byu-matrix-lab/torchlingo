@@ -179,6 +179,12 @@ class PartBStraightThrough:
         hyp = (self.a8_dir / "test-a9.hyp").read_text(encoding="utf-8").splitlines()
         self.assertEqual(len(hyp), self.n_test)
 
+    def test_saves_a8s_rescored_translations_for_a11(self):
+        """A11 scores A8 as A9 reported it, from this file; A8's own test.hyp is not touched."""
+        again = self.a8_dir / "test-a8-again.hyp"
+        hyp = again.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(hyp, self.ns["hyp_a8"])
+
     def test_scores_both_systems_on_decoded_text(self):
         for name in ("hyp_a8", "hyp_a9"):
             hypotheses = self.ns[name]

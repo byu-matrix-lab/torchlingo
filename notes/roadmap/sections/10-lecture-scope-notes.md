@@ -130,10 +130,12 @@ its sentence-level evidence; AutoMQM. Closes by introducing the final project. Q
 and xCOMET, one carefully and one skimmed.
 **Notebooks:** `lecture-11-comet-on-a6` (homework, A11): COMET and COMETKiwi on the student's
 A6 sentences beside BLEU and chrF; the student writes `pairwise_agreement`, which counts how
-often two metrics prefer the same system, sentence by sentence.
-**Sets:** A11 (26 points): the default COMET model and COMETKiwi on the A6 outputs, compared
-with the BLEU, chrF and human-ranking numbers already collected; one page answering the
-notebook's four summary questions. Extra credit for xCOMET.
+often two metrics prefer the same system, sentence by sentence. Step 6 turns the same metrics on
+the student's own A8 and A9 test output.
+**Sets:** A11 (30 points): the default COMET model and COMETKiwi on the A6 outputs, compared
+with the BLEU, chrF and human-ranking numbers already collected, and on the student's own A8 and
+A9 systems, compared with A9's BLEU; one page answering the notebook's five summary questions.
+Extra credit for xCOMET.
 
 ### 12. Using LLMs for MT and Expanding Context Awareness (F2025, 32 slides)
 Encoder-only, decoder-only and large language models; MT with decoder-only models;

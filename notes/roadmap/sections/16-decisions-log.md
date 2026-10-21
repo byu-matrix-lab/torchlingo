@@ -3,6 +3,12 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 21, afternoon.** A11 also scores the student's own A8 and A9 systems (Eric: "add the
+  requirement to score on A8 and A9"): COMET, COMETKiwi, BLEU and chrF on their A8 test set, in a
+  new Step 6 of the notebook, and a fifth summary question on whether COMET agrees with BLEU that
+  the pieces helped. Two rubric rows at 2 points each; A11 goes from 26 points to 30. A9's Part B
+  now saves its re-translation of the A8 model, `test-a8-again.hyp`, which A11 prefers over A8's
+  `test.hyp` (Eric).
 - **Oct 21, later.** A11's estimator switches from COMET-QE-DA to COMETKiwi (wmt22-cometkiwi-da),
   the model A10 already runs (Eric): one estimator across both assignments, the newer and stronger
   one; A11 builds on the A10 Hugging Face setup. The in-class judges in Lecture 11 stay COMET-QE.
