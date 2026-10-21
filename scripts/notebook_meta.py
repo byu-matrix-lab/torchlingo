@@ -1355,6 +1355,14 @@ def main(argv: list[str] | None = None) -> int:
                 meta[field] = previous[field]
                 carried.append(field)
 
+        # Keep the block's existing key order, new fields after it. The block was built in
+        # argument order, so restamping only A9's note on 2026-10-21 also moved four keys,
+        # and a one-line change showed as a reshuffled block.
+        meta = {
+            **{k: meta[k] for k in previous if k in meta},
+            **{k: v for k, v in meta.items() if k not in previous},
+        }
+
         # Validate before writing, not after. Stamping an invalid block and reporting it on
         # the next run would leave the notebook worse than it was found.
         bad = problems(args.stamp, meta)
