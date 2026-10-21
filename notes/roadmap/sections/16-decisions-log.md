@@ -3,6 +3,23 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 21, later.** A11's estimator switches from COMET-QE-DA to COMETKiwi (wmt22-cometkiwi-da),
+  the model A10 already runs (Eric): one estimator across both assignments, the newer and stronger
+  one; A11 builds on the A10 Hugging Face setup. The in-class judges in Lecture 11 stay COMET-QE.
+  Content quizzes are renamed "Lecture Quiz N" in Learning Suite (Eric). Every deck's objectives
+  slide, and each content page, now states learning outcomes ("By the end of class, you can:")
+  rather than a list of topics (Eric).
+- **Oct 21.** Lecture 11 is taught live today instead of recorded, with in-class human scoring
+  (the room is the human judge), and the calendar shifts one class: Oct 19 becomes a review day;
+  Lecture 12 moves to Mon Oct 26, 13 to Wed Oct 28, 14 to Mon Nov 2, and Lectures 15 and 16
+  merge on Wed Nov 4, so proposal week and everything after it stay put. Assignment due dates
+  stay as they were, so A12 and A14 now have two days after their lectures (their pages are open
+  earlier). Quizzes follow the lectures: Quiz 11 closes Oct 26, Quiz 12 Oct 28, Quiz 13 Nov 2,
+  Quiz 14 Nov 4, and Quizzes 15 and 16 merge into one closing Nov 9; no content quiz allows late
+  submission (Eric: results are discussed in class the day they are due). Attendance quizzes are
+  renamed to follow the lectures. Reading reports keep their sign-up-sheet dates. The final
+  project allows AI use Level 2, Reviewer, and Path B becomes "a meaningful application of MT
+  for a chosen audience" (Eric).
 - **Oct 20.** The final project is one Learning Suite page with two paths, investigate a question
   or build a component, and both judge their result with people as well as a metric (see
   Lectures 21 to 23's scope note). The four separate project pages are gone. Work is due Thu Dec

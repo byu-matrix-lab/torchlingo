@@ -15,18 +15,35 @@ reference, by length; what is checked is the path, not COMET. Answers to the two
 prediction are written in, and three further tests check that the notebook as shipped stops at the
 first exercise, that it stops without a prediction, and that an agreement count that includes ties
 is rejected.
+
+The Hugging Face login cell is left out of the run and tested on its own, with Colab's secrets
+faked. The gated download's failure, and a notes file saved before the switch to COMETKiwi, each
+have a test.
 """
 
+import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
+from unittest import mock
 
-from notebook_cells import COURSE, code_cells, colab_faked, run_cells, substitute
+from notebook_cells import (
+    COURSE,
+    cell_containing,
+    code_cells,
+    colab_faked,
+    run_cells,
+    substitute,
+)
 from test_lecture_10 import ANSWER as COMET_INPUTS_ANSWER
+from test_lecture_10 import (
+    refuse_download,  # noqa: F401  (the license test imports it from here)
+)
 
 NOTEBOOK = COURSE / "lecture-11-comet-on-a6.ipynb"
-SKIPPED = ("%pip install",)
+SKIPPED = ("%pip install", "userdata.get")
 
 ANSWERS = {
     'raise NotImplementedError("paste comet_inputs from A10, then run this cell again")': (
@@ -143,8 +160,58 @@ class TestLecture11(unittest.TestCase):
         self.assertIn("1 you ranked as a tie are not counted", printed)
         self.assertIn("COMET and you: 4 of 9", printed)
         self.assertIn("Your prediction: COMET agrees with chrF", printed)
-        for label in ("BLEU", "chrF", "COMET", "COMET-QE-DA"):
+        self.assertIn("COMETKiwi and COMET:", printed)
+        for label in ("BLEU", "chrF", "COMET", "COMETKiwi"):
             self.assertIn("system 1", namespace["system_scores"][label])
+
+    def test_a_missing_token_names_notebook_access(self):
+        """Notebook access is per notebook, so a student whose A10 logged in can still hit this."""
+        _, login_cell = cell_containing(code_cells(NOTEBOOK), "userdata.get")
+        colab = ModuleType("google.colab")
+        colab.userdata = SimpleNamespace(get=lambda name: None)
+        google = ModuleType("google")
+        google.colab = colab
+        hub = ModuleType(
+            "huggingface_hub"
+        )  # not installed here; the cell must stop first
+        hub.login = mock.Mock()
+        modules = {"google": google, "google.colab": colab, "huggingface_hub": hub}
+        with (
+            mock.patch.dict(sys.modules, modules),
+            self.assertRaises(RuntimeError) as stopped,
+        ):
+            run_cells([(0, login_cell)])
+        self.assertIn("'Notebook access'", str(stopped.exception))
+        hub.login.assert_not_called()
+
+    def test_an_unaccepted_license_says_what_to_do(self):
+        cells = substitute(
+            lecture_11_cells(ANSWERS),
+            {"import download_model,": "import refuse_download as download_model,"},
+        )
+        with colab_faked(self.drive), self.assertRaises(RuntimeError) as stopped:
+            run_cells(cells)
+        self.assertIn("has not accepted COMETKiwi's license", str(stopped.exception))
+        self.assertIn(
+            "huggingface.co/Unbabel/wmt22-cometkiwi-da", str(stopped.exception)
+        )
+
+    def test_notes_saved_before_the_switch_ask_for_a_rescore(self):
+        with colab_faked(self.drive):
+            run_cells(lecture_11_cells(ANSWERS))
+            notes_file = self.drive / "CS479" / "assignment6" / "a11-notes.json"
+            notes = json.loads(notes_file.read_text(encoding="utf-8"))
+            for scores in (notes["system_scores"], notes["sentence_scores"]):
+                scores["COMET-QE-DA"] = scores.pop("COMETKiwi")
+            notes_file.write_text(json.dumps(notes), encoding="utf-8")
+            report = [
+                c
+                for c in lecture_11_cells(ANSWERS)
+                if "load_from_checkpoint(" not in c[1]
+            ]
+            with self.assertRaises(SystemExit) as stopped:
+                run_cells(report)
+        self.assertIn("saved before A11 switched to COMETKiwi", str(stopped.exception))
 
     def test_the_report_survives_a_dropped_session(self):
         with colab_faked(self.drive):

@@ -43,12 +43,12 @@ rewritten against its notebook.
 | 8c | Wed Oct 7 | Finishing the Transformer, the A8 Debrief, and the Subword Activity | **A8** create and run an NMT model | F2026 |
 | 9 | Mon Oct 12 | Handling Morphology and Terminology in NMT | | F2026 |
 | 10 | Wed Oct 14 | Overview of MT Quality Estimation | **A9** SentencePiece | F2026 rebuilt; redo planned |
-| 11 | Mon Oct 19 | Neural Quality Estimation and Evaluation | **A10** install COMET | F2025 |
-| 12 | Wed Oct 21 | Using LLMs for MT; Expanding Context Awareness | | F2025 |
-| 13 | Mon Oct 26 | Strategies for NMT of Low-Resource Languages | **A11** run COMET on the A6 sentences | F2025 |
-| 14 | Wed Oct 28 | Multilingual NMT and "Zero-shot" NMT | **A12** context and LRL translation | F2025 |
-| 15 | Mon Nov 2 | Overview of Speech-to-Speech MT | **A13** back-translated data | F2025 |
-| 16 | Wed Nov 4 | Automatic Dubbing and Interpretation | **A14** bidirectional MNMT | F2025 |
+| — | Mon Oct 19 | Review Day (Lecture 11 moved to Oct 21 and taught live; Eric, Oct 21) | **A10** install COMET | |
+| 11 | Wed Oct 21 | LLM Judges, Sentences and Spans | | F2026 rebuilt (taught live) |
+| 12 | Mon Oct 26 | Using LLMs for MT; Expanding Context Awareness | **A11** run COMET on the A6 sentences | F2026 draft |
+| 13 | Wed Oct 28 | Strategies for NMT of Low-Resource Languages | **A12** context and LRL translation | F2025 |
+| 14 | Mon Nov 2 | Multilingual NMT and "Zero-shot" NMT | **A13** back-translated data | F2025 |
+| 15, 16 | Wed Nov 4 | Overview of Speech-to-Speech MT; Automatic Dubbing and Interpretation | **A14** bidirectional MNMT | F2025, merged at rebuild |
 | — | Mon Nov 9 | Proposal week: one day of outline reviews with the professor, two days of proposal presentations (Eric and Coulson, Sep 30); which day is which is being set in Learning Suite | | |
 | — | Wed Nov 11 | (proposal week) | **A15** SLT pipeline | |
 | — | Mon Nov 16 | (proposal week) | **Final project proposal** (date may move with the presentation days) | |
@@ -105,11 +105,11 @@ two.
 | A8 | 8a, Wed Sep 30 | Wed Oct 7 | 7 days |
 | A9 | 8c, Wed Oct 7 | **Wed Oct 14** | 7; Eric, Oct 7: one more session, since the subword slides are taught Monday. Part A ran in class on Oct 7, Part B is live |
 | A10 | 10, Wed Oct 14 | Mon Oct 19 | 5: an install, and A11 needs it done |
-| A11 | 11, Mon Oct 19 | **Mon Oct 26** | 7; one session would give 2, too short for running COMET on A6's data |
-| A12 | 12, Wed Oct 21 | Wed Oct 28 | 7 |
-| A13 | 13, Mon Oct 26 | Mon Nov 2 | 7 |
-| A14 | 14, Wed Oct 28 | Wed Nov 4 | 7 |
-| A15 | 15, Mon Nov 2 | Wed Nov 11 | 9; the pipeline belongs to the speech-to-speech lecture, and the Azure account needs the extra days |
+| A11 | 11, Wed Oct 21 | **Mon Oct 26** | 5 since the Oct 21 shift (set at the live Lecture 11; due date kept, Eric, Oct 21) |
+| A12 | 12, Mon Oct 26 | Wed Oct 28 | 2 since the Oct 21 shift (due date kept, Eric, Oct 21); the A12 page and notebook were open from Oct 21 |
+| A13 | 13, Wed Oct 28 | Mon Nov 2 | 5 since the Oct 21 shift (due date kept) |
+| A14 | 14, Mon Nov 2 | Wed Nov 4 | 2 since the Oct 21 shift (due date kept); the A14 page is open earlier |
+| A15 | 15, Wed Nov 4 | Wed Nov 11 | 7 since the Oct 21 shift (Lectures 15 and 16 merged on Nov 4); the pipeline belongs to the speech-to-speech lecture, and the Azure account needs the days |
 
 Costs accepted knowingly: Lecture 17 sits two weeks after Lecture 16 and after the proposal
 presentations, the least damaging place for a gap since Multimodal NMT is the most
@@ -175,7 +175,7 @@ lecture; the scope notes below carry the content, this carries the point.
 | 8c | Finishing the Transformer | Describe multi-head attention, the encoder block and residual stream, and the decoder's masked self-attention and cross-attention; say how order gets into a model with no recurrence; place their own A8 BLEU on the measured capacity curve and say what capacity buys and when; weigh NMT's strengths against its deployment costs. | A8 report back; Quiz 8c |
 | 9 | Morphology, subwords, terminology | Explain the fixed-vocabulary problem and how morphology makes vocabularies explode; segment a sentence with BPE by hand; measure `<unk>` before and after SentencePiece; retrain with one variable changed and attribute the BLEU difference to it. | A9 comparison |
 | 10 | Quality estimation | Distinguish evaluation from estimation; say what COMET and COMET-QE score and what the number means; explain greedy against beam search and why a comparison must pin decoding. | A10; Quiz 10 |
-| 11 | Neural QE and toolkits | Run COMET and COMET-QE on their own A6 data; reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and its system- against segment-level caveat. | A11 |
+| 11 | Neural QE and toolkits | Run COMET and COMETKiwi on their own A6 data; reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and its system- against segment-level caveat. | A11 |
 | 12 | LLMs for MT; context | Prompt a decoder-only model to translate with in-context examples; measure what context buys and where it stops; name the document-level problems (pronouns, consistency). | A12 chart and analysis |
 | 13 | Low-resource strategies | Define low-resource beyond pair counts; execute back-translation end to end and measure whether it helped. | A13 |
 | 14 | Multilingual and zero-shot | Explain tagging and why zero-shot works at all; build a bidirectional system from their A9 one and score both directions. | A14 |
@@ -375,15 +375,20 @@ predicts, and scores two systems with and without a reference. `08-inference-and
 notebook end to end; three write-up questions; two papers, one read carefully and one skimmed,
 which prepare Lecture 11.
 
-### 11. Neural Quality Estimation and Evaluation Toolkits (F2025, 19 slides; rebuild pending)
-What the QE datasets taught (skewed HTER, partial-input baselines, artifacts; Sun, Guzmán and
-Specia 2020), xCOMET's error spans, and LLM-as-judge (GEMBA, AutoMQM) with its system- against
-segment-level caveat. It does not repeat Lecture 10's COMET material. Quiz 11 reads GEMBA and
-xCOMET, one carefully and one skimmed.
-**Notebooks:** `lecture-11-comet-on-a6` (homework, A11): COMET and COMET-QE-DA on the student's
+### 11. LLM Judges, Sentences and Spans (F2026, taught live Wed Oct 21; planned as a recording)
+Renamed from last year's "Neural Quality Estimation and Evaluation Toolkits" (Eric, Oct 20): the
+COMET material it shared with Lecture 10 stays in Lecture 10. The one sentence: every judge of
+translation quality, an LLM included, is a metric, and it has to be tested against people. A
+review of three Lecture 10 slides; an LLM judge as a metric (GEMBA-DA); the viewer as judge on
+eight Spanish-to-English TED sentences against COMET, COMET-QE and an LLM, with and without the
+reference (a fluent hallucination, a wrong source); people still deciding what ships (Kocmi et al.
+2021); systems against sentences (GEMBA; Sun, Guzmán and Specia 2020); xCOMET's error spans and
+its sentence-level evidence; AutoMQM. Closes by introducing the final project. Quiz 11 reads GEMBA
+and xCOMET, one carefully and one skimmed.
+**Notebooks:** `lecture-11-comet-on-a6` (homework, A11): COMET and COMETKiwi on the student's
 A6 sentences beside BLEU and chrF; the student writes `pairwise_agreement`, which counts how
 often two metrics prefer the same system, sentence by sentence.
-**Sets:** A11 (26 points): the default COMET model and COMET-QE-DA on the A6 outputs, compared
+**Sets:** A11 (26 points): the default COMET model and COMETKiwi on the A6 outputs, compared
 with the BLEU, chrF and human-ranking numbers already collected; one page answering the
 notebook's four summary questions. Extra credit for xCOMET.
 
@@ -482,7 +487,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-10-comet-install` | 10 | homework | A10 | install COMET; the student's comet_inputs; two systems scored with and without a reference | no: colab, hf-token, download, pip, exercises |
 | `07-real-translations` | 10 | reading | A11 | a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding held fixed | yes |
 | `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
-| `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMET-QE-DA on the student's A6 sentences, beside BLEU, chrF and their ranking | no: colab, download, pip, exercises |
+| `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMETKiwi on the student's A6 sentences, beside BLEU, chrF and their ranking | no: colab, hf-token, download, pip, exercises |
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download, exercises |
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab, exercises |
 
@@ -508,7 +513,7 @@ outlive one term's calendar.
 | SacreBLEU, chrF | Lecture 6 | automatic scoring, and again in 8, 9, 12, 13, 14 |
 | TorchLingo | Lecture 6 | every model the students train (7, 8, 9, 13, 14), and the metrics and Colab setup in every course notebook that uses it. Notebooks install it from the repository's `course` branch, not PyPI, so a notebook and the library code it calls reach students together; `setup()` prints the exact version, which is what to ask for with a bug report |
 | SentencePiece | Lecture 9 | subword tokenization |
-| Hugging Face account and token | Lecture 10 | COMETKiwi, the reference-free COMET model, is gated; the reference-based COMET model, COMET-QE-DA and Lecture 12's default LLM need no token |
+| Hugging Face account and token | Lecture 10 | COMETKiwi, the reference-free COMET model in A10 and A11, is gated; the reference-based COMET model and Lecture 12's default LLM need no token |
 | COMET / COMET-QE / xCOMET | Lecture 10 | neural evaluation, and again in 11, 13 and 14 |
 | Azure free tier | Lecture 15 | ASR, MT and TTS for the speech pipeline |
 
@@ -620,6 +625,23 @@ repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 21, later.** A11's estimator switches from COMET-QE-DA to COMETKiwi (wmt22-cometkiwi-da),
+  the model A10 already runs (Eric): one estimator across both assignments, the newer and stronger
+  one; A11 builds on the A10 Hugging Face setup. The in-class judges in Lecture 11 stay COMET-QE.
+  Content quizzes are renamed "Lecture Quiz N" in Learning Suite (Eric). Every deck's objectives
+  slide, and each content page, now states learning outcomes ("By the end of class, you can:")
+  rather than a list of topics (Eric).
+- **Oct 21.** Lecture 11 is taught live today instead of recorded, with in-class human scoring
+  (the room is the human judge), and the calendar shifts one class: Oct 19 becomes a review day;
+  Lecture 12 moves to Mon Oct 26, 13 to Wed Oct 28, 14 to Mon Nov 2, and Lectures 15 and 16
+  merge on Wed Nov 4, so proposal week and everything after it stay put. Assignment due dates
+  stay as they were, so A12 and A14 now have two days after their lectures (their pages are open
+  earlier). Quizzes follow the lectures: Quiz 11 closes Oct 26, Quiz 12 Oct 28, Quiz 13 Nov 2,
+  Quiz 14 Nov 4, and Quizzes 15 and 16 merge into one closing Nov 9; no content quiz allows late
+  submission (Eric: results are discussed in class the day they are due). Attendance quizzes are
+  renamed to follow the lectures. Reading reports keep their sign-up-sheet dates. The final
+  project allows AI use Level 2, Reviewer, and Path B becomes "a meaningful application of MT
+  for a chosen audience" (Eric).
 - **Oct 20.** The final project is one Learning Suite page with two paths, investigate a question
   or build a component, and both judge their result with people as well as a metric (see
   Lectures 21 to 23's scope note). The four separate project pages are gone. Work is due Thu Dec
@@ -806,12 +828,11 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 8c | Finishing the Transformer, the A8 Debrief, and the Subword Activity | `lecture-08c-attention-heads` (activity) [12] | `05-transformer-attention` (reference), `06-diagnosing-failures` (reading) |
 | 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [13] | `01-data-and-vocab` (reference) [1] |
 | 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [14] | `07-real-translations` (reading) [4], `08-inference-and-beamsearch` (reading) |
-| 11 | Neural Quality Estimation and Evaluation | `lecture-11-comet-on-a6` (homework) [15] | — |
+| 11 | LLM Judges, Sentences and Spans | `lecture-11-comet-on-a6` (homework) [15] | — |
 | 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [16] | — |
 | 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [17] | — |
 | 14 | Multilingual NMT and "Zero-shot" NMT | — | — |
-| 15 | Overview of Speech-to-Speech MT | — | — |
-| 16 | Automatic Dubbing and Interpretation | — | — |
+| 15, 16 | Overview of Speech-to-Speech MT; Automatic Dubbing and Interpretation | — | — |
 | 17 | Multimodal NMT | — | — |
 | 18 | HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation | — | — |
 | 19, 20 | Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT, PBSMT, SBSMT | — | — |
@@ -907,20 +928,23 @@ Notes on the rows that are not simple:
   A10 grades, followed by three write-up questions: the prediction against the result,
   what a COMET score means, and evaluation against estimation. tests/test_lecture_10.py
   runs its cells with COMET stubbed.
-- [15] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMET-QE-DA on the
-  student's A6 sentences beside BLEU and chrF. Step 1 reads the student's MTEval results
-  file from A6 (a header naming the two systems, a rank per system per ranked sentence,
-  ties allowed), joins it to the sources on whitespace-normalized text, and computes the
-  average ranks. The student pastes comet_inputs from A10 and writes pairwise_agreement,
-  the sentence-by-sentence measure of whether two metrics prefer the same system, each
-  checked on a known case; a prediction, which stops the run while empty; the notebook
-  says why COMET-QE-DA rather than the gated COMETKiwi. The report gives system scores,
-  each metric's preferred system against the A6 human average ranks, and agreement counts,
-  between metrics and between each metric and the student's ranks, human ties left out,
-  read from a11-notes.json, which the scoring cell saves to Drive so the report survives a
-  dropped session; four summary questions follow, the last on LLM-as-judge and system-
-  against segment-level agreement. tests/test_lecture_11.py runs its cells with COMET
-  stubbed.
+- [15] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMETKiwi, the
+  estimator from A10, on the student's A6 sentences beside BLEU and chrF. Step 1 reads the
+  student's MTEval results file from A6 (a header naming the two systems, a rank per
+  system per ranked sentence, ties allowed), joins it to the sources on
+  whitespace-normalized text, and computes the average ranks. The student pastes
+  comet_inputs from A10 and writes pairwise_agreement, the sentence-by-sentence measure of
+  whether two metrics prefer the same system, each checked on a known case; a prediction,
+  which stops the run while empty. COMETKiwi is gated, so a login cell reads the A10
+  Hugging Face token from Colab Secrets and, when it is missing, names Notebook access,
+  which is set per notebook; the scoring cell names the license when the download fails.
+  The report gives system scores, each metric's preferred system against the A6 human
+  average ranks, and agreement counts, between metrics and between each metric and the
+  student's ranks, human ties left out, read from a11-notes.json, which the scoring cell
+  saves to Drive so the report survives a dropped session, and which it refuses if saved
+  before the switch to COMETKiwi; four summary questions follow, the last on LLM-as-judge
+  and system- against segment-level agreement. tests/test_lecture_11.py runs its cells
+  with COMET stubbed.
 - [16] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
   built-in English-Spanish sample from data/example.tsv until the student sets LANGUAGE
   and DATA_DIR, together. The student writes split_pool_and_test (checked on the alphabet,
