@@ -175,7 +175,7 @@ lecture; the scope notes below carry the content, this carries the point.
 | 8c | Finishing the Transformer | Describe multi-head attention, the encoder block and residual stream, and the decoder's masked self-attention and cross-attention; say how order gets into a model with no recurrence; place their own A8 BLEU on the measured capacity curve and say what capacity buys and when; weigh NMT's strengths against its deployment costs. | A8 report back; Quiz 8c |
 | 9 | Morphology, subwords, terminology | Explain the fixed-vocabulary problem and how morphology makes vocabularies explode; segment a sentence with BPE by hand; measure `<unk>` before and after SentencePiece; retrain with one variable changed and attribute the BLEU difference to it. | A9 comparison |
 | 10 | Quality estimation | Distinguish evaluation from estimation; say what COMET and COMET-QE score and what the number means; explain greedy against beam search and why a comparison must pin decoding. | A10; Quiz 10 |
-| 11 | Neural QE and toolkits | Run COMET and COMETKiwi on their own A6 data; reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and its system- against segment-level caveat. | A11 |
+| 11 | Neural QE and toolkits | Run COMET and COMETKiwi on their own A6 data and on their own A8 and A9 test output; reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and its system- against segment-level caveat. | A11 |
 | 12 | LLMs for MT; context | Prompt a decoder-only model to translate with in-context examples; measure what context buys and where it stops; name the document-level problems (pronouns, consistency). | A12 chart and analysis |
 | 13 | Low-resource strategies | Define low-resource beyond pair counts; execute back-translation end to end and measure whether it helped. | A13 |
 | 14 | Multilingual and zero-shot | Explain tagging and why zero-shot works at all; build a bidirectional system from their A9 one and score both directions. | A14 |
@@ -214,7 +214,7 @@ steps.
 | `06-diagnosing-failures` (reading) | a procedure for a model that is not working | read once, then look symptoms up | five planted bugs and their checks | low; it is a lookup table |
 | `01-data-and-vocab` (reference) | the library's view of a corpus | read | everything | low, as reference |
 | `lecture-10-comet-install` | a learned metric, with and without a reference, and the records it scores | write comet_inputs (checked on known cases), predict which system each model prefers, set up the token | the install, both models' scoring, the summary A10 grades | low |
-| `lecture-11-comet-on-a6` | whether metrics agree with each other and with a human, sentence by sentence | reuse comet_inputs, write pairwise_agreement (checked on a known case), predict, and explain the agreement in the summary | loading, all four metrics on every sentence, the report | low |
+| `lecture-11-comet-on-a6` | whether metrics agree with each other and with a human, sentence by sentence | reuse comet_inputs, write pairwise_agreement (checked on a known case), predict, and explain the agreement in the summary | loading, all four metrics on every sentence of A6 and of the A8 test set, the two reports | low |
 | `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
 | `lecture-12-llm-context` | in-context examples and what they buy | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, its wording their own); predict the best context size; reconcile the prediction with the curve | the LLM, the loop, BLEU, the chart and the upload files | low |
@@ -387,10 +387,12 @@ its sentence-level evidence; AutoMQM. Closes by introducing the final project. Q
 and xCOMET, one carefully and one skimmed.
 **Notebooks:** `lecture-11-comet-on-a6` (homework, A11): COMET and COMETKiwi on the student's
 A6 sentences beside BLEU and chrF; the student writes `pairwise_agreement`, which counts how
-often two metrics prefer the same system, sentence by sentence.
-**Sets:** A11 (26 points): the default COMET model and COMETKiwi on the A6 outputs, compared
-with the BLEU, chrF and human-ranking numbers already collected; one page answering the
-notebook's four summary questions. Extra credit for xCOMET.
+often two metrics prefer the same system, sentence by sentence. Step 6 turns the same metrics on
+the student's own A8 and A9 test output.
+**Sets:** A11 (30 points): the default COMET model and COMETKiwi on the A6 outputs, compared
+with the BLEU, chrF and human-ranking numbers already collected, and on the student's own A8 and
+A9 systems, compared with A9's BLEU; one page answering the notebook's five summary questions.
+Extra credit for xCOMET.
 
 ### 12. Using LLMs for MT and Expanding Context Awareness (F2025, 32 slides)
 Encoder-only, decoder-only and large language models; MT with decoder-only models;
@@ -487,7 +489,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-10-comet-install` | 10 | homework | A10 | install COMET; the student's comet_inputs; two systems scored with and without a reference | no: colab, hf-token, download, pip, exercises |
 | `07-real-translations` | 10 | reading | A11 | a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding held fixed | yes |
 | `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
-| `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMETKiwi on the student's A6 sentences, beside BLEU, chrF and their ranking | no: colab, hf-token, download, pip, exercises |
+| `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMETKiwi on the student's A6 sentences, beside BLEU, chrF and their ranking, then on their own A8 and A9 systems | no: colab, hf-token, download, pip, exercises |
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download, exercises |
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab, exercises |
 
@@ -625,6 +627,12 @@ repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 21, afternoon.** A11 also scores the student's own A8 and A9 systems (Eric: "add the
+  requirement to score on A8 and A9"): COMET, COMETKiwi, BLEU and chrF on their A8 test set, in a
+  new Step 6 of the notebook, and a fifth summary question on whether COMET agrees with BLEU that
+  the pieces helped. Two rubric rows at 2 points each; A11 goes from 26 points to 30. A9's Part B
+  now saves its re-translation of the A8 model, `test-a8-again.hyp`, which A11 prefers over A8's
+  `test.hyp` (Eric).
 - **Oct 21, later.** A11's estimator switches from COMET-QE-DA to COMETKiwi (wmt22-cometkiwi-da),
   the model A10 already runs (Eric): one estimator across both assignments, the newer and stronger
   one; A11 builds on the A10 Hugging Face setup. The in-class judges in Lecture 11 stay COMET-QE.
@@ -917,9 +925,10 @@ Notes on the rows that are not simple:
   from test.hyp, then an A9 BLEU prediction in its own cell; the settings Part B needs
   saved to Drive (a9-settings.json). Part B (GPU, outside class): trains for as many
   epochs as A8 did, read from A8's checkpoint, under its own run names (assignment-9,
-  best-a9/, test-a9.hyp); re-scores the saved A8 model with the same code; prints the
-  write-up numbers; says to disconnect the GPU. Reads the A8 split from Drive, so it
-  cannot run in CI; tests/test_lecture_09_part_a.py and _part_b.py run it.
+  best-a9/, test-a9.hyp); re-scores the saved A8 model with the same code, saving its
+  translations as test-a8-again.hyp, which A11 scores with COMET; prints the write-up
+  numbers; says to disconnect the GPU. Reads the A8 split from Drive, so it cannot run in
+  CI; tests/test_lecture_09_part_a.py and _part_b.py run it.
 - [14] **`lecture-10-comet-install`** — A10: installs COMET; the student writes
   comet_inputs, the records COMET scores (reused in A11 on the A6 sentences), checked on
   known cases, and a prediction, which stops the run while empty; then the reference-based
@@ -929,22 +938,27 @@ Notes on the rows that are not simple:
   what a COMET score means, and evaluation against estimation. tests/test_lecture_10.py
   runs its cells with COMET stubbed.
 - [15] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMETKiwi, the
-  estimator from A10, on the student's A6 sentences beside BLEU and chrF. Step 1 reads the
-  student's MTEval results file from A6 (a header naming the two systems, a rank per
-  system per ranked sentence, ties allowed), joins it to the sources on
-  whitespace-normalized text, and computes the average ranks. The student pastes
-  comet_inputs from A10 and writes pairwise_agreement, the sentence-by-sentence measure of
-  whether two metrics prefer the same system, each checked on a known case; a prediction,
-  which stops the run while empty. COMETKiwi is gated, so a login cell reads the A10
-  Hugging Face token from Colab Secrets and, when it is missing, names Notebook access,
-  which is set per notebook; the scoring cell names the license when the download fails.
-  The report gives system scores, each metric's preferred system against the A6 human
-  average ranks, and agreement counts, between metrics and between each metric and the
-  student's ranks, human ties left out, read from a11-notes.json, which the scoring cell
-  saves to Drive so the report survives a dropped session, and which it refuses if saved
-  before the switch to COMETKiwi; four summary questions follow, the last on LLM-as-judge
-  and system- against segment-level agreement. tests/test_lecture_11.py runs its cells
-  with COMET stubbed.
+  estimator from A10, on the student's A6 sentences beside BLEU and chrF, then on their
+  own A8 and A9 systems. Step 1 reads the student's MTEval results file from A6 (a header
+  naming the two systems, a rank per system per ranked sentence, ties allowed), joins it
+  to the sources on whitespace-normalized text, and computes the average ranks. The
+  student pastes comet_inputs from A10 and writes pairwise_agreement, the
+  sentence-by-sentence measure of whether two metrics prefer the same system, each checked
+  on a known case; a prediction, which stops the run while empty. COMETKiwi is gated, so a
+  login cell reads the A10 Hugging Face token from Colab Secrets and, when it is missing,
+  names Notebook access, which is set per notebook; the scoring cell names the license
+  when the download fails. The report gives system scores, each metric's preferred system
+  against the A6 human average ranks, and agreement counts, between metrics and between
+  each metric and the student's ranks, human ties left out, read from a11-notes.json,
+  which the scoring cell saves to Drive so the report survives a dropped session, and
+  which it refuses if saved before the switch to COMETKiwi. Step 6 scores the student's A8
+  and A9 translations of their A8 test set (MyDrive/CS479/assignment8: test.tsv,
+  test-a9.hyp, and test-a8-again.hyp if A9 saved it, else test.hyp) with all four metrics,
+  BLEU as A9 scored it, saved to assignment11/a11-own-notes.json; its report prints which
+  system each metric prefers, COMET-chrF sentence agreement and the first three
+  disagreements. Five summary questions follow, the fourth on LLM-as-judge and system-
+  against segment-level agreement, the fifth on the student's own systems.
+  tests/test_lecture_11.py runs its cells with COMET stubbed.
 - [16] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
   built-in English-Spanish sample from data/example.tsv until the student sets LANGUAGE
   and DATA_DIR, together. The student writes split_pool_and_test (checked on the alphabet,

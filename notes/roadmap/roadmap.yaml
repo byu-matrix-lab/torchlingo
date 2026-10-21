@@ -289,8 +289,9 @@ lecture_outcomes:
   shown_by: A10; Quiz 10
 - lecture: "11"
   topic: Neural QE and toolkits
-  can: Run COMET and COMETKiwi on their own A6 data; reconcile them with BLEU, chrF and their
-    human ranking; state what LLM-as-judge scores and its system- against segment-level caveat.
+  can: Run COMET and COMETKiwi on their own A6 data and on their own A8 and A9 test output;
+    reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and
+    its system- against segment-level caveat.
   shown_by: A11
 - lecture: "12"
   topic: LLMs for MT; context
@@ -484,11 +485,12 @@ notebooks:
     rating: low
   lecture-11-comet-on-a6:
     purpose: COMET and COMETKiwi on the student's A6 sentences, beside BLEU, chrF and their
-      ranking
+      ranking, then on their own A8 and A9 systems
     lesson: whether metrics agree with each other and with a human, sentence by sentence
     student_must: reuse comet_inputs, write pairwise_agreement (checked on a known case), predict,
       and explain the agreement in the summary
-    notebook_does: loading, all four metrics on every sentence, the report
+    notebook_does: loading, all four metrics on every sentence of A6 and of the A8 test set, the
+      two reports
     rating: low
   08-inference-and-beamsearch:
     purpose: greedy against beam, written out and checked against the library; why a comparison

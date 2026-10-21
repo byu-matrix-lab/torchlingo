@@ -4,7 +4,10 @@ The notebook declares ``colab``, ``pip``, ``download`` and ``exercises``, so CI'
 ``unbabel-comet``. These tests run its cells from the notebook file itself on a toy A6 folder in a
 faked Drive: the loading, the MTEval results file and its join to the sources, the two exercises
 and their checks, the scoring loop with BLEU and chrF for real and COMET stubbed, and the report
-A11's summary is written from.
+A11's summary is written from. Step 6 runs too, on a toy A8 folder beside it: the student's own A8
+and A9 translations of their test set, scored the same way and saved to their own file; its tests
+cover a missing A9 file, a file of the wrong length, A9's re-translation of A8 preferred over
+A8's own, and the step run alone in a later session.
 
 The toy MTEval file is saved as a Windows user might leave it, with a byte-order mark and CRLF
 line endings; one ranked sentence differs from its source in spacing only, one is a tie, and one is
@@ -120,6 +123,32 @@ class TestLecture11(unittest.TestCase):
             (a6 / name).write_text("\n".join(lines) + "\n", encoding="utf-8")
         self.mteval = a6 / "mteval_results.tsv"
         self.write_mteval("source\tsystem 1\tsystem 2", self.ranked_rows())
+        self.write_a8_a9()
+
+    def write_a8_a9(self, n: int = 12) -> None:
+        """Step 6's inputs, as A8 and A9 leave them: a test set and each model's translations.
+
+        On even sentences A8 has the reference's words in reverse order and A9 the reference with
+        one word misspelled, so the stub COMET (word overlap) prefers A8 and chrF prefers A9; on
+        odd ones A8 is the reference and A9 its first three words, so both prefer A8.
+        """
+        self.a8 = self.drive / "CS479" / "assignment8"
+        self.a8.mkdir(parents=True, exist_ok=True)
+        refs = [f"the old man walked his small dog {i} times" for i in range(n)]
+        a8 = [
+            " ".join(reversed(r.split())) if i % 2 == 0 else r
+            for i, r in enumerate(refs)
+        ]
+        a9 = [
+            r.replace("walked", "walkd") if i % 2 == 0 else " ".join(r.split()[:3])
+            for i, r in enumerate(refs)
+        ]
+        rows = [f"el viejo paseó a su perro {i} veces\t{r}" for i, r in enumerate(refs)]
+        (self.a8 / "test.tsv").write_text(
+            "\n".join(["src\ttgt", *rows]) + "\n", encoding="utf-8"
+        )
+        (self.a8 / "test.hyp").write_text("\n".join(a8) + "\n", encoding="utf-8")
+        (self.a8 / "test-a9.hyp").write_text("\n".join(a9) + "\n", encoding="utf-8")
 
     @staticmethod
     def ranked_rows() -> list[str]:
@@ -163,6 +192,93 @@ class TestLecture11(unittest.TestCase):
         self.assertIn("COMETKiwi and COMET:", printed)
         for label in ("BLEU", "chrF", "COMET", "COMETKiwi"):
             self.assertIn("system 1", namespace["system_scores"][label])
+
+    def test_scores_the_students_own_a8_and_a9(self):
+        with colab_faked(self.drive):
+            namespace, printed = run_cells(lecture_11_cells(ANSWERS))
+        own = printed[printed.index("=== For the A11 summary: your own systems ===") :]
+        self.assertIn("12 test sentences; A8 from test.hyp, A9 from test-a9.hyp", own)
+        self.assertIn("A8: test.hyp, from the A8 notebook", printed)
+        for label in ("BLEU", "chrF", "COMET", "COMETKiwi"):
+            self.assertIn(label, namespace["own_system"])
+        # Disagreeing on the six even sentences, agreeing on the six odd ones.
+        self.assertIn("COMET and chrF: 6 of 12 (50%)", own)
+        self.assertEqual(own.count("\nSRC "), 3)
+        self.assertIn("REF the old man walked his small dog 0 times", own)
+        self.assertIn("A9  the old man walkd his small dog 0 times", own)
+
+    def test_own_scores_go_to_their_own_file(self):
+        with colab_faked(self.drive):
+            run_cells(lecture_11_cells(ANSWERS))
+        own = self.drive / "CS479" / "assignment11" / "a11-own-notes.json"
+        self.assertEqual(
+            json.loads(own.read_text(encoding="utf-8"))["files"],
+            {"A8": "test.hyp", "A9": "test-a9.hyp"},
+        )
+        a6_notes = self.drive / "CS479" / "assignment6" / "a11-notes.json"
+        self.assertNotIn(
+            "A8",
+            json.loads(a6_notes.read_text(encoding="utf-8"))["system_scores"]["COMET"],
+        )
+
+    def test_prefers_a8_as_a9_rescored_it(self):
+        (self.a8 / "test-a8-again.hyp").write_bytes((self.a8 / "test.hyp").read_bytes())
+        with colab_faked(self.drive):
+            _, printed = run_cells(lecture_11_cells(ANSWERS))
+        self.assertIn("A8 from test-a8-again.hyp", printed)
+        self.assertNotIn("A8: test.hyp, from the A8 notebook", printed)
+
+    def test_step_6_alone_in_a_later_session(self):
+        """Steps 1 to 5 done earlier: the top cells, Steps 1 to 3, then Step 6 alone."""
+        with colab_faked(self.drive):
+            skipped = ('PREDICTION = "', "NOTES.write_text", "notes = json.loads(NOTES")
+            cells = [
+                c
+                for c in lecture_11_cells(ANSWERS)
+                if not any(s in c[1] for s in skipped)
+            ]
+            _, printed = run_cells(cells)
+        self.assertNotIn("=== For the A11 summary ===\n", printed)
+        self.assertIn("=== For the A11 summary: your own systems ===", printed)
+
+    def test_a_missing_a9_file_names_a9(self):
+        (self.a8 / "test-a9.hyp").unlink()
+        with colab_faked(self.drive), self.assertRaises(SystemExit) as stopped:
+            run_cells(lecture_11_cells(ANSWERS))
+        self.assertIn("test-a9.hyp", str(stopped.exception))
+        self.assertIn("Part B of the A9 notebook", str(stopped.exception))
+
+    def test_a_translation_file_of_the_wrong_length_stops(self):
+        lines = (self.a8 / "test-a9.hyp").read_text(encoding="utf-8").splitlines()
+        (self.a8 / "test-a9.hyp").write_text(
+            "\n".join(lines[:-1]) + "\n", encoding="utf-8"
+        )
+        with colab_faked(self.drive), self.assertRaises(SystemExit) as stopped:
+            run_cells(lecture_11_cells(ANSWERS))
+        self.assertIn(
+            "test-a9.hyp has 11 lines and test.tsv has 12", str(stopped.exception)
+        )
+        self.assertIn("your A9 model", str(stopped.exception))
+
+    def test_an_empty_last_translation_is_still_a_line(self):
+        lines = (self.a8 / "test-a9.hyp").read_text(encoding="utf-8").splitlines()
+        (self.a8 / "test-a9.hyp").write_text(
+            "\n".join([*lines[:-1], ""]) + "\n", encoding="utf-8"
+        )
+        with colab_faked(self.drive):
+            namespace, _ = run_cells(lecture_11_cells(ANSWERS))
+        self.assertEqual(namespace["own_hyps"]["A9"][-1], "")
+
+    def test_the_summary_asks_five_questions(self):
+        nb = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
+        summary = next(
+            "".join(c["source"])
+            for c in nb["cells"]
+            if "".join(c["source"]).startswith("## Step 7: the summary")
+        )
+        self.assertIn("these five questions", summary)
+        self.assertIn("5. **Your own systems.**", summary)
+        self.assertNotIn("6. **", summary)
 
     def test_a_missing_token_names_notebook_access(self):
         """Notebook access is per notebook, so a student whose A10 logged in can still hit this."""
@@ -216,7 +332,7 @@ class TestLecture11(unittest.TestCase):
     def test_the_report_survives_a_dropped_session(self):
         with colab_faked(self.drive):
             _, before = run_cells(lecture_11_cells(ANSWERS))
-            # A fresh session: Step 1 and the cells above it, Step 3, and the report; no
+            # A fresh session: Step 1 and the cells above it, Step 3, and the two reports; no
             # comet_inputs, no prediction, no scoring.
             scoring = ("def comet_inputs", 'PREDICTION = "', "load_from_checkpoint(")
             cells = [
@@ -226,10 +342,17 @@ class TestLecture11(unittest.TestCase):
             ]
             namespace, after = run_cells(cells)
         self.assertNotIn("Scored with COMET", after)
-        self.assertEqual(
-            before[before.index("=== For the A11 summary ===") :],
-            after[after.index("=== For the A11 summary ===") :],
-        )
+        self.assertNotIn("Scored A8 and A9", after)
+
+        def reports(printed):
+            """Step 5's report, through the prediction, and Step 6's, to the end."""
+            a6 = printed.index("=== For the A11 summary ===")
+            own = printed.index("=== For the A11 summary: your own systems ===")
+            return printed[
+                a6 : printed.index("\n", printed.index("Your prediction:"))
+            ], printed[own:]
+
+        self.assertEqual(reports(before), reports(after))
         self.assertIn("Your prediction: COMET agrees with chrF", after)
 
     def test_a_failed_check_says_what_the_function_returned(self):
