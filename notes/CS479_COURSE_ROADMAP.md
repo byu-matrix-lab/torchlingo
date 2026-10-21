@@ -217,7 +217,7 @@ steps.
 | `lecture-11-comet-on-a6` | whether metrics agree with each other and with a human, sentence by sentence | reuse comet_inputs, write pairwise_agreement (checked on a known case), predict, and explain the agreement in the summary | loading, all four metrics on every sentence of A6 and of the A8 test set, the two reports | low |
 | `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
-| `lecture-12-llm-context` | in-context examples and what they buy | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, its wording their own); predict the best context size; reconcile the prediction with the curve | the LLM, the loop, BLEU, the chart and the upload files | low |
+| `lecture-12-llm-context` | in-context examples and what they buy, how many and which | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, its wording their own); predict the best context size and whether nearest examples beat random ones; reconcile the prediction with the curve and its spread over three draws; upload the completed notebook | the LLM, three random draws and the nearest examples at each size, NLLB where it covers the language (Telugu), BLEU and chrF, the chart, the rerun record and the upload files | low |
 | `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help | extract monolingual text from their Church TM's unused segments, topped up from public text if short; write reverse and combine (the method, checked against known answers and the contamination check); predict before retraining; add Google back-translations to three examples and explain the result | both trainings, the back-translation, BLEU, COMET and the upload files | low |
 
 ### Where the line is crossed
@@ -627,6 +627,14 @@ repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 21, evening.** The assignment arc plan for A12 to A15 goes ahead, every addition
+  required (Eric: "All of our additions are important and required"), and every notebook
+  assignment submits its completed notebook (Eric). A12's notebook adds chrF beside BLEU, three
+  seeded draws of the examples with their mean and spread, a nearest-examples condition from a
+  500-pair pool, NLLB as a comparison row where it covers the language (Telugu, of the six), a
+  pronoun-or-repeated-term question, and a rerun record; a student who already finished reruns
+  with it (Eric, in the plan). TorchLingo gains sampled and noised-beam decoding for A13's
+  back-translation (Eric: "Then it can be an option in A13").
 - **Oct 21, afternoon.** A11 also scores the student's own A8 and A9 systems (Eric: "add the
   requirement to score on A8 and A9"): COMET, COMETKiwi, BLEU and chrF on their A8 test set, in a
   new Step 6 of the notebook, and a fifth summary question on whether COMET agrees with BLEU that
@@ -965,12 +973,18 @@ Notes on the rows that are not simple:
   including that a different seed gives a different split, then by check_contamination on
   the real split) and build_prompt (checked on a known case), then a prediction, which
   stops the notebook while empty; an open instruction-tuned LLM (default
-  Qwen2.5-1.5B-Instruct, greedy) translates 50 test sentences at 0, 5, 10 and 20
-  in-context examples, scores each with BLEU and its signature, charts it, and writes the
-  upload files (context-k.tsv, test.tsv, bleu-report.tsv, bleu-by-context.png) to Drive.
-  The write-up adds the document-level problems no example pair fixes. Needs a GPU and
-  Drive, so CI does not execute it; tests/test_lecture_12.py runs its cells with the model
-  stubbed.
+  Qwen2.5-1.5B-Instruct, greedy) translates 50 test sentences with no examples, then at 5,
+  10 and 20 in-context examples drawn from a 500-pair pool three ways at random (three
+  seeds, nested) and once as the pool pairs nearest each test sentence (character-trigram
+  overlap, after Moslem et al.); where NLLB-200 covers the language (of the A12 languages,
+  Telugu only) it translates them too, greedily. Every run is scored with BLEU and chrF
+  and their signatures into scores.tsv; the report gives each size's mean and spread over
+  the draws, scores-by-context.png charts both metrics, and a12-rerun.json records the
+  model, seeds, decoding and versions. The write-up asks whether a difference between
+  sizes exceeds the spread, nearest against random, LLM against NLLB, and the
+  document-level problems no example pair fixes, checked on a pronoun or repeated term in
+  the test set; the completed notebook is uploaded with it. Needs a GPU and Drive, so CI
+  does not execute it; tests/test_lecture_12.py runs its cells with both models stubbed.
 - [17] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
   Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, test-a9.hyp, and
   A9's training checkpoint, from which both trainings take their epoch count) plus the

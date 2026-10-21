@@ -5,9 +5,12 @@ a model download that CI should not make. What these tests run is everything els
 notebook file itself: the data cell on the built-in sample and on the A12 folder's layout,
 the prompt, the loop over context sizes, the BLEU report and the files the assignment uploads.
 
-The model cell is left out, and a stand-in ``translate`` takes its place: it returns the
-reference once the prompt holds ten or more examples, and the source otherwise, so BLEU must rise
-with context and the report must show it. What is checked is the path, not an LLM's quality.
+The model cells are left out, and stand-ins take their place. ``translate`` returns the
+reference once the prompt holds ten or more examples, and the source otherwise, so the scores
+must rise with context and the report must show it. ``nllb_translate`` gets the first half of
+the test set right, for a language NLLB covers, and is absent for one it does not. What is
+checked is the path, not an LLM's quality. The pool shrinks from 500 to 25, so the fixtures stay
+small.
 
 Two cells are exercises: ``split_pool_and_test`` and ``build_prompt`` are the student's, and
 raise ``NotImplementedError`` until written. The tests write them in, one straightforward way
@@ -16,6 +19,7 @@ without a prediction, that a split sharing a sentence or ignoring the seed fails
 ``LANGUAGE`` and ``DATA_DIR`` must be set together.
 """
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -25,6 +29,9 @@ from notebook_cells import COURSE, code_cells, colab_faked, run_cells, substitut
 
 NOTEBOOK = COURSE / "lecture-12-llm-context.ipynb"
 MODEL_CELL = "AutoModelForCausalLM"
+NLLB_CELL = "AutoModelForSeq2SeqLM"
+SIZES = {"POOL_SIZE, TEST_SIZE = 500, 50": "POOL_SIZE, TEST_SIZE = 25, 50"}
+DRAWS = (1, 2, 3)
 
 # A student's answers to the two exercises, in place of the line that raises.
 ANSWERS = {
@@ -48,15 +55,18 @@ def notebook_cells(
     predicted: bool = True,
     language: str | None = "Pohnpeian",
 ) -> list[tuple[int, str]]:
-    """Every code cell but the install and the model, pointed at ``data_dir`` if given.
+    """Every code cell but the install and the two models, pointed at ``data_dir`` if given.
 
     With ``data_dir``, ``LANGUAGE`` is set to ``language`` too, unless that is None.
     """
     cells = [
-        c for c in code_cells(NOTEBOOK) if "%pip" not in c[1] and MODEL_CELL not in c[1]
+        c
+        for c in code_cells(NOTEBOOK)
+        if "%pip" not in c[1] and MODEL_CELL not in c[1] and NLLB_CELL not in c[1]
     ]
     swaps = {
         "plt.show()": "plt.close()",
+        **SIZES,
         **(ANSWERS if answered else {}),
         **(PREDICTED if predicted else {}),
     }
@@ -79,17 +89,35 @@ def pairs(n: int) -> list[tuple[str, str]]:
 
 
 def stub_namespace(namespace: dict) -> dict:
-    """What the model cell defines, replaced by a translator that improves with context."""
+    """What the model cells define, replaced by translators whose scores are known.
+
+    ``translate`` improves with context; ``nllb_translate`` exists only for Spanish and Telugu,
+    the languages the notebook's NLLB cell lists (``test_nllb_covers_only_telugu`` holds the two
+    together), and gets half the test set right.
+    """
     namespace["MODEL"] = "stub"
     by_source = {}
 
-    def translate(sentences, examples, batch_size=8):
+    def reference(sentence):
         if not by_source:
             test = namespace["test"]
             by_source.update(zip(test.src, test.tgt))
-        return [by_source[s] if len(examples) >= 10 else s for s in sentences]
+        return by_source[sentence]
+
+    def translate(sentences, examples_for, batch_size=8):
+        return [
+            reference(s) if len(examples) >= 10 else s
+            for s, examples in zip(sentences, examples_for)
+        ]
+
+    def nllb_translate(sentences):
+        half = len(sentences) // 2
+        return [reference(s) for s in sentences[:half]] + list(sentences[half:])
 
     namespace["translate"] = translate
+    namespace["NLLB"] = "stub-nllb"
+    covered = namespace["LANGUAGE"] in ("Spanish", "Telugu")
+    namespace["nllb_translate"] = nllb_translate if covered else None
     return namespace
 
 
@@ -130,38 +158,89 @@ class TestBuiltInSample(NotebookCase):
         namespace, printed, out = self.run_notebook()
 
         self.assertIn("Spanish is not the assignment", printed)
-        uploads = {"test.tsv", "bleu-report.tsv", "bleu-by-context.png"}
-        uploads |= {f"context-{k}.tsv" for k in (0, 5, 10, 20)}
-        uploads |= {f"hyp-{k}.txt" for k in (0, 5, 10, 20)}
+        uploads = {"test.tsv", "scores.tsv", "scores-by-context.png", "a12-rerun.json"}
+        uploads |= {"hyp-0.txt", "hyp-nllb.txt"}
+        for k in (5, 10, 20):
+            uploads |= {f"nearest-{k}.tsv", f"hyp-nearest-{k}.txt"}
+            uploads |= {f"context-{k}-draw{d}.tsv" for d in DRAWS}
+            uploads |= {f"hyp-{k}-draw{d}.txt" for d in DRAWS}
         self.assertEqual({p.name for p in out.iterdir()}, uploads)
 
         self.assertIn("your prediction: context helps up to 10", printed)
-        self.assertIn("bleu-by-context.png.", printed)
+        self.assertIn("a12-rerun.json, then this notebook", printed)
 
-        # Fifty test pairs; each context file holds exactly k pairs, nested; none is a test pair
+        # Fifty test pairs. Each draw's context files hold exactly k pairs, nested within the
+        # draw; the draws differ; none is a test pair.
         test = pd.read_csv(out / "test.tsv", sep="\t", dtype=str, keep_default_na=False)
         self.assertEqual(len(test), 50)
-        contexts = {
-            k: pd.read_csv(
-                out / f"context-{k}.tsv", sep="\t", dtype=str, keep_default_na=False
+
+        def context(k, d):
+            return pd.read_csv(
+                out / f"context-{k}-draw{d}.tsv",
+                sep="\t",
+                dtype=str,
+                keep_default_na=False,
             )
-            for k in (0, 5, 10, 20)
-        }
-        self.assertEqual(
-            {k: len(c) for k, c in contexts.items()}, {0: 0, 5: 5, 10: 10, 20: 20}
+
+        for d in DRAWS:
+            self.assertEqual([len(context(k, d)) for k in (5, 10, 20)], [5, 10, 20])
+            self.assertEqual(list(context(5, d).src), list(context(20, d).src[:5]))
+            self.assertFalse(set(context(20, d).src) & set(test.src))
+        self.assertNotEqual(list(context(5, 1).src), list(context(5, 2).src))
+
+        # The nearest examples: k per test sentence, from the pool, never a test sentence
+        nearest = pd.read_csv(
+            out / "nearest-10.tsv", sep="\t", dtype=str, keep_default_na=False
         )
-        self.assertEqual(list(contexts[5].src), list(contexts[20].src[:5]))
-        self.assertFalse(set(contexts[20].src) & set(test.src))
+        self.assertEqual(len(nearest), 10 * 50)
+        self.assertEqual(set(nearest.test_src), set(test.src))
+        self.assertTrue(set(nearest.src) <= set(namespace["pool"].src))
 
         # The prompt shown at k = 5 has five examples and the sentence to translate
         self.assertEqual(printed.count("English: "), 6)
 
-        # The report: one row per size, a signature, and the rise the stub was built to give
-        report = pd.read_csv(out / "bleu-report.tsv", sep="\t")
-        self.assertEqual(list(report.context), [0, 5, 10, 20])
-        self.assertTrue(report.signature.str.contains("nrefs:1").all())
-        self.assertLess(report.bleu[0], report.bleu[2])
-        self.assertEqual(report.bleu[3], 100.0)
+        # Every run scored with both metrics and signatures; the rise the stub was built to give
+        scores = pd.read_csv(
+            out / "scores.tsv",
+            sep="\t",
+            dtype={"context": str, "draw": str},
+            keep_default_na=False,
+        )
+        self.assertEqual(
+            sorted(set(scores.context)), ["", "0", "10", "20", "5"]
+        )  # whole numbers, not 10.0
+        self.assertEqual(len(scores), 1 + 3 * (3 + 1) + 1)
+        self.assertTrue(scores.bleu_signature.str.contains("nrefs:1").all())
+        self.assertTrue(scores.chrf_signature.str.contains("nc:6").all())
+        by_run = scores.set_index(["condition", "context", "draw"])
+        self.assertLess(by_run.bleu["none", "0", ""], by_run.bleu["random", "10", "1"])
+        self.assertEqual(by_run.bleu["nearest", "20", ""], 100.0)
+        nllb = scores[scores.condition == "NLLB"].iloc[0]
+        self.assertTrue(0 < nllb.chrf < 100)
+
+        # The summary folds the three draws into one line with their spread
+        self.assertIn("random   k = 10  BLEU 100.00", printed)
+        self.assertIn("(draws 100.00 to 100.00", printed)
+
+        rerun = json.loads((out / "a12-rerun.json").read_text(encoding="utf-8"))
+        self.assertEqual(rerun["draw_seeds"], [1, 2, 3])
+        self.assertEqual(rerun["nllb"], "stub-nllb")
+        self.assertIn("greedy", rerun["decoding"])
+
+    def test_nllb_covers_only_telugu(self):
+        """The stub's languages match the notebook's: of the A12 six, NLLB-200 has Telugu."""
+        nllb_cell = next(src for _, src in code_cells(NOTEBOOK) if NLLB_CELL in src)
+        self.assertIn(
+            'NLLB_CODES = {"Spanish": "spa_Latn", "Telugu": "tel_Telu"}', nllb_cell
+        )
+
+    def test_nearest_examples_put_the_most_similar_last(self):
+        namespace, _, _ = self.run_notebook()
+        pool = namespace["pool"]
+        target = pool.src.iloc[7]
+        chosen = namespace["nearest_examples"](target, 3)
+        self.assertEqual(len(chosen), 3)
+        self.assertEqual(chosen[-1], (target, pool.tgt.iloc[7]))
 
     def test_without_a_prediction_it_stops_before_translating(self):
         with self.assertRaises(AssertionError) as stopped:
@@ -188,6 +267,8 @@ class TestStudentData(NotebookCase):
             lambda d: write_a12_folder(d, pairs(80))
         )
         self.assertNotIn("Spanish is not the assignment", printed)
+        self.assertIn("NLLB-200 does not cover Pohnpeian", printed)
+        self.assertNotIn("NLLB", set(namespace["runs"].condition))
         self.assertEqual(len(namespace["pairs"]), 80)
         self.assertTrue(namespace["test"].src.str.startswith("sentence number").all())
         self.assertTrue(namespace["test"].tgt.str.startswith("lino").all())
