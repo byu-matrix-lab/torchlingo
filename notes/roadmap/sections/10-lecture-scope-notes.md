@@ -118,15 +118,20 @@ predicts, and scores two systems with and without a reference. `08-inference-and
 notebook end to end; three write-up questions; two papers, one read carefully and one skimmed,
 which prepare Lecture 11.
 
-### 11. Neural Quality Estimation and Evaluation Toolkits (F2025, 19 slides; rebuild pending)
-What the QE datasets taught (skewed HTER, partial-input baselines, artifacts; Sun, Guzmán and
-Specia 2020), xCOMET's error spans, and LLM-as-judge (GEMBA, AutoMQM) with its system- against
-segment-level caveat. It does not repeat Lecture 10's COMET material. Quiz 11 reads GEMBA and
-xCOMET, one carefully and one skimmed.
-**Notebooks:** `lecture-11-comet-on-a6` (homework, A11): COMET and COMET-QE-DA on the student's
+### 11. LLM Judges, Sentences and Spans (F2026, taught live Wed Oct 21; planned as a recording)
+Renamed from last year's "Neural Quality Estimation and Evaluation Toolkits" (Eric, Oct 20): the
+COMET material it shared with Lecture 10 stays in Lecture 10. The one sentence: every judge of
+translation quality, an LLM included, is a metric, and it has to be tested against people. A
+review of three Lecture 10 slides; an LLM judge as a metric (GEMBA-DA); the viewer as judge on
+eight Spanish-to-English TED sentences against COMET, COMET-QE and an LLM, with and without the
+reference (a fluent hallucination, a wrong source); people still deciding what ships (Kocmi et al.
+2021); systems against sentences (GEMBA; Sun, Guzmán and Specia 2020); xCOMET's error spans and
+its sentence-level evidence; AutoMQM. Closes by introducing the final project. Quiz 11 reads GEMBA
+and xCOMET, one carefully and one skimmed.
+**Notebooks:** `lecture-11-comet-on-a6` (homework, A11): COMET and COMETKiwi on the student's
 A6 sentences beside BLEU and chrF; the student writes `pairwise_agreement`, which counts how
 often two metrics prefer the same system, sentence by sentence.
-**Sets:** A11 (26 points): the default COMET model and COMET-QE-DA on the A6 outputs, compared
+**Sets:** A11 (26 points): the default COMET model and COMETKiwi on the A6 outputs, compared
 with the BLEU, chrF and human-ranking numbers already collected; one page answering the
 notebook's four summary questions. Extra credit for xCOMET.
 

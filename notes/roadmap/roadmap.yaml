@@ -61,30 +61,29 @@ lectures:
   date: 2026-10-14
   title: Overview of MT Quality Estimation
   deck: F2026 rebuilt; redo planned
-- ids: ["11"]
+- ids: []
   date: 2026-10-19
-  title: Neural Quality Estimation and Evaluation
-  deck: F2025
-- ids: ["12"]
+  title: Review Day (Lecture 11 moved to Oct 21 and taught live; Eric, Oct 21)
+- ids: ["11"]
   date: 2026-10-21
-  title: Using LLMs for MT; Expanding Context Awareness
-  deck: F2025
-- ids: ["13"]
+  title: LLM Judges, Sentences and Spans
+  deck: F2026 rebuilt (taught live)
+- ids: ["12"]
   date: 2026-10-26
+  title: Using LLMs for MT; Expanding Context Awareness
+  deck: F2026 draft
+- ids: ["13"]
+  date: 2026-10-28
   title: Strategies for NMT of Low-Resource Languages
   deck: F2025
 - ids: ["14"]
-  date: 2026-10-28
+  date: 2026-11-02
   title: Multilingual NMT and "Zero-shot" NMT
   deck: F2025
-- ids: ["15"]
-  date: 2026-11-02
-  title: Overview of Speech-to-Speech MT
-  deck: F2025
-- ids: ["16"]
+- ids: ["15", "16"]
   date: 2026-11-04
-  title: Automatic Dubbing and Interpretation
-  deck: F2025
+  title: Overview of Speech-to-Speech MT; Automatic Dubbing and Interpretation
+  deck: F2025, merged at rebuild
 - ids: []
   date: 2026-11-09
   title: 'Proposal week: one day of outline reviews with the professor, two days of proposal
@@ -186,28 +185,28 @@ assignments:
   due: 2026-10-26
   set_at: "11"
   emphasize_due: true
-  window: 7; one session would give 2, too short for running COMET on A6's data
+  window: 5 since the Oct 21 shift (set at the live Lecture 11; due date kept, Eric, Oct 21)
 - id: A12
   label: '**A12** context and LRL translation'
   due: 2026-10-28
   set_at: "12"
-  window: '7'
+  window: '2 since the Oct 21 shift (due date kept, Eric, Oct 21); the A12 page and notebook were open from Oct 21'
 - id: A13
   label: '**A13** back-translated data'
   due: 2026-11-02
   set_at: "13"
-  window: '7'
+  window: '5 since the Oct 21 shift (due date kept)'
 - id: A14
   label: '**A14** bidirectional MNMT'
   due: 2026-11-04
   set_at: "14"
-  window: '7'
+  window: '2 since the Oct 21 shift (due date kept); the A14 page is open earlier'
 - id: A15
   label: '**A15** SLT pipeline'
   due: 2026-11-11
   set_at: "15"
-  window: 9; the pipeline belongs to the speech-to-speech lecture, and the Azure account needs
-    the extra days
+  window: 7 since the Oct 21 shift (Lectures 15 and 16 merged on Nov 4); the pipeline belongs
+    to the speech-to-speech lecture, and the Azure account needs the days
 - label: '**Final project proposal** (date may move with the presentation days)'
   due: 2026-11-16
 - label: '**Paper review assignment**'
@@ -290,7 +289,7 @@ lecture_outcomes:
   shown_by: A10; Quiz 10
 - lecture: "11"
   topic: Neural QE and toolkits
-  can: Run COMET and COMET-QE on their own A6 data; reconcile them with BLEU, chrF and their
+  can: Run COMET and COMETKiwi on their own A6 data; reconcile them with BLEU, chrF and their
     human ranking; state what LLM-as-judge scores and its system- against segment-level caveat.
   shown_by: A11
 - lecture: "12"
@@ -484,7 +483,7 @@ notebooks:
     notebook_does: the install, both models' scoring, the summary A10 grades
     rating: low
   lecture-11-comet-on-a6:
-    purpose: COMET and COMET-QE-DA on the student's A6 sentences, beside BLEU, chrF and their
+    purpose: COMET and COMETKiwi on the student's A6 sentences, beside BLEU, chrF and their
       ranking
     lesson: whether metrics agree with each other and with a human, sentence by sentence
     student_must: reuse comet_inputs, write pairwise_agreement (checked on a known case), predict,
@@ -558,8 +557,8 @@ tooling:
   used_for: subword tokenization
 - tool: Hugging Face account and token
   first_needed: Lecture 10
-  used_for: COMETKiwi, the reference-free COMET model, is gated; the reference-based COMET model,
-    COMET-QE-DA and Lecture 12's default LLM need no token
+  used_for: COMETKiwi, the reference-free COMET model in A10 and A11, is gated; the reference-based
+    COMET model and Lecture 12's default LLM need no token
 - tool: COMET / COMET-QE / xCOMET
   first_needed: Lecture 10
   used_for: neural evaluation, and again in 11, 13 and 14
