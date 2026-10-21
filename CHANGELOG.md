@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Two decoding strategies for back-translation, `decode_strategy="sample"` and
+  `"beam+noise"`**, in `translate_batch` (both modules) and `translate_to_file`. Edunov et
+  al. (2018) found that synthetic sources made either way train a better forward model than
+  greedy or beam ones in all but resource-poor settings. `"sample"` draws each token in
+  proportion to its probability, with `temperature` (default 1.0) and optional `top_k`, and is
+  batched like greedy, within a few percent of its speed. `"beam+noise"` runs beam search, then
+  the paper's noise: each word deleted with probability 0.1, replaced by `<blank>` with
+  probability 0.1, and words shuffled no more than three places. Both take a `seed` (default
+  0). Each sentence has its own random stream, so its output does not depend on batch size,
+  chunking or a resume, and `translate_to_file` records the seed (and the sampling settings)
+  in the job's fingerprint. New public functions: `inference.sample_decode`,
+  `inference.add_noise`, and the constant `inference.DECODE_STRATEGIES`.
+
+### Fixed
+- **An unknown `decode_strategy` is now an error.** `translate_batch` used to decode greedily
+  under any name it did not recognize, `"Beam"` included, so a misspelled strategy produced
+  greedy output labelled as something else. A greedy or beam job's `translate_to_file` record
+  is unchanged, so a decode interrupted before this release still resumes.
+
 ## [0.2.8] - 2026-10-14
 
 ### Added

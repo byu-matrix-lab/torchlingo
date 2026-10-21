@@ -207,13 +207,16 @@ def translate_batch(
     max_len: int | None = None,
     device: torch.device | None = None,
     config: Config | None = None,
+    temperature: float = 1.0,
+    top_k: int | None = None,
+    seed: int | Sequence[int] = 0,
 ) -> list[str]:
     """Translate sentences using the optimized decoders.
 
     Mirrors :func:`torchlingo.inference.translate_batch` exactly -- same name,
-    same signature, same output -- but routes beam decoding through this
-    module's :func:`beam_search_decode`. Greedy decoding is already batched in
-    the reference and is reused unchanged.
+    same signature, same output -- but routes beam decoding, "beam+noise"
+    included, through this module's :func:`beam_search_decode`. Greedy decoding
+    and sampling are already batched in the reference and are reused unchanged.
 
     ``decode_strategy`` defaults to ``"greedy"``. Beam search is opt-in here
     exactly as it is in the reference; this module changes how beam search
@@ -224,21 +227,36 @@ def translate_batch(
         sentences: Iterable of raw source sentences.
         src_vocab: Vocabulary implementing BaseVocab.encode(add_special_tokens=True).
         tgt_vocab: Vocabulary implementing BaseVocab.decode(skip_special_tokens=True).
-        decode_strategy: "greedy" or "beam". Defaults to "greedy" -- beam
-            search is opt-in, and usually produces better translations.
-        beam_size: Beam width when decode_strategy == "beam".
+        decode_strategy: One of :data:`torchlingo.inference.DECODE_STRATEGIES`.
+            Defaults to "greedy" -- beam search is opt-in, and usually produces
+            better translations.
+        beam_size: Beam width for "beam" and "beam+noise".
         max_len: Maximum generation length.
         device: Torch device. Defaults to model device.
         config: TorchLingo Config.
+        temperature: For "sample"; see :func:`torchlingo.inference.sample_decode`.
+        top_k: For "sample"; see :func:`torchlingo.inference.sample_decode`.
+        seed: For "sample" and "beam+noise"; see
+            :func:`torchlingo.inference.translate_batch`.
 
     Returns:
         List of decoded text strings aligned with input sentences, identical to
         what :func:`torchlingo.inference.translate_batch` would return.
 
+    Raises:
+        ValueError: If ``decode_strategy`` is not a known strategy.
+
     See Also:
         :func:`torchlingo.inference.translate_batch`: the readable reference.
     """
-    from .inference import greedy_decode
+    from .inference import (
+        _BEAM_STRATEGIES,
+        _check_strategy,
+        _noised,
+        _sentence_seeds,
+        greedy_decode,
+        sample_decode,
+    )
 
     cfg = config if config is not None else get_default_config()
     # Same source of truth as inference.py. The fast path and the reference path
@@ -246,6 +264,9 @@ def translate_batch(
     # whole basis of tests/test_decoding_equivalence.py.
     max_len = max_len if max_len is not None else cfg.max_decode_length
     device = device if device is not None else next(model.parameters()).device
+
+    _check_strategy(decode_strategy)
+    seeds = _sentence_seeds(seed, len(sentences))
 
     encoded = [
         torch.tensor(src_vocab.encode(s, add_special_tokens=True), dtype=torch.long)
@@ -264,7 +285,7 @@ def translate_batch(
         batch_tokens = encoded[start : start + batch_limit]
         padded = pad_sequence(batch_tokens, batch_first=True, padding_value=cfg.pad_idx)
 
-        if decode_strategy == "beam":
+        if decode_strategy in _BEAM_STRATEGIES:
             for row in padded:
                 outputs.append(
                     beam_search_decode(
@@ -276,6 +297,19 @@ def translate_batch(
                         config=cfg,
                     )
                 )
+        elif decode_strategy == "sample":
+            outputs.extend(
+                sample_decode(
+                    model,
+                    padded,
+                    temperature=temperature,
+                    top_k=top_k,
+                    seed=seeds[start : start + batch_limit],
+                    max_len=max_len,
+                    device=device,
+                    config=cfg,
+                )
+            )
         else:
             outputs.extend(
                 greedy_decode(model, padded, max_len=max_len, device=device, config=cfg)
@@ -299,6 +333,8 @@ def translate_batch(
         decoded.append(
             decoded_text.strip() if hasattr(decoded_text, "strip") else decoded_text
         )
+    if decode_strategy == "beam+noise":
+        return _noised(decoded, seeds)
     return decoded
 
 
