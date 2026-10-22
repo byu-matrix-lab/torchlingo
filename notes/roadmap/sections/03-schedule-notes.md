@@ -1,8 +1,9 @@
 An assignment appears on the row of the day it is **due**, which is how Learning Suite lists
 it, at 10:00 unless said otherwise (Learning Suite has A7 at 11:59 pm; the deck says 10:00,
 and the two should agree). A7 is new this year: a short report from Lecture 7's toy-model
-exercise. The SLT pipeline is A15, set at Lecture 15; Lecture 16 sets nothing, and the
-numbering runs 1 to 15 without a gap.
+exercise. The SLT pipeline was A15, set at Lecture 15; it is dropped this term and folded into
+the Final Project as a Path B example (Eric, Oct 22), so the numbering runs 1 to 14. Lecture 16
+sets nothing. One due between lecture days is listed on the row before, with its day and time.
 Lectures 17 to 20 carry no assignments; the final project has taken over. Lecture quizzes run
 through Lecture 20, and 8a and 8b each have their own, one more than last year.
 
