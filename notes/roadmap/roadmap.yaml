@@ -534,19 +534,19 @@ notebooks:
     rating: low
   lecture-13-back-translation:
     purpose: back-translation end to end, from the A9 files and the student's own monolingual text
-    lesson: synthetic pairs whose target side is real, whether they help, and which way of making
-      them helps more; a difference tested, not only measured
+    lesson: synthetic pairs whose target side is real, and whether they help; how much of a
+      change came from the data and how much from decoding; a difference tested, not only
+      measured
     student_must: extract monolingual text from their Church TM's unused segments, topped up from
       public text if short; choose their own reverse model or NLLB as back-translator, which
-      back-translates twice, greedily and by sampling (Eric's call, for time); write reverse and combine (the
+      back-translates by sampling (one retrain, Eric, Oct 22); write reverse and combine (the
       method, checked against known answers and the contamination check); state an "If ...,
-      then ..." hypothesis and a prediction before retraining; rank 25 back-translated sentences
-      with a partner in MTEval; add Google back-translations to two helped and two hurt
-      examples; upload the completed notebook
-    notebook_does: the reverse training (none with NLLB), both back-translations, one retraining
-      per method, all three systems decoded greedily and with beam 5, BLEU, chrF, the paired
-      bootstrap, COMET, the MTEval files and the agreement count, the rerun record and the upload
-      files
+      then ..." hypothesis and a prediction before retraining; say why sampling, from two of
+      their own back-translated sentences; add Google back-translations to two helped and two
+      hurt examples; upload the completed notebook
+    notebook_does: the reverse training (none with NLLB), the sampled back-translation with five
+      greedy ones beside it, one retraining, A9 and A13 decoded greedily and with beam 5, BLEU,
+      chrF, the paired bootstrap, COMET, the rerun record and the upload files
     rating: low
 
 # The "Tooling the semester depends on" table.
