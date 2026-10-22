@@ -9,9 +9,9 @@ Two cells are exercises: ``reverse`` and ``combine`` are the student's, and rais
 ``NotImplementedError`` until written. The tests write them in, one straightforward way each, and
 a hypothesis and a prediction, so what is tested is that the notebook's checks accept a right
 answer and that the path after them works: the split reversed, the monolingual text filtered
-against the split, back-translations written two ways, a training set and a model for each, all
-three systems decoded greedily and with beam and compared with the paired bootstrap, the MTEval
-files and the agreement count, and the write-up. Further tests check that the notebook as shipped
+against the split, sampled back-translations with five greedy ones beside them, one training set
+and one model, both systems decoded greedily and with beam and compared with the paired bootstrap,
+and the write-up. Further tests check that the notebook as shipped
 stops at the first exercise, that it stops without a hypothesis in "If ..., then ..." form or
 without a monolingual file, that the Church TM's text is used before the public text's, that the
 epochs come from A9's checkpoint, that the write-up runs from Drive alone after a dropped
@@ -45,7 +45,6 @@ import torchlingo_harness.nllb
 
 NOTEBOOK = COURSE / "lecture-13-back-translation.ipynb"
 SKIPPED = ('%pip install --quiet "torchlingo', "unbabel-comet", "comet-score")
-METHODS = ("greedy", "sample")
 
 # A student's answers to the two exercises, in place of the line that raises.
 ANSWERS = {
@@ -61,13 +60,12 @@ ANSWERS = {
 HYPOTHESIS = "If I add back-translated data, then BLEU will rise a little"
 PREDICTED = {
     'HYPOTHESIS = ""': f"HYPOTHESIS = {HYPOTHESIS!r}",
-    'PREDICTION = ""': 'PREDICTION = "sampling helps more"',
+    'PREDICTION = ""': 'PREDICTION = "about one BLEU, both ways"',
 }
 READ_EPOCHS = 'EPOCHS = len(a9_state["train_losses"])'
 SETUP_CELL = "def train("
 MONO_CELL = "MONO_FILES = {"
 HYPOTHESIS_CELL = 'HYPOTHESIS = ""'
-AGREEMENT_CELL = "MTEVAL_MINE ="
 WRITE_UP_CELL = "=== For the A13 write-up ==="
 
 
@@ -94,13 +92,6 @@ def lecture_13_cells(
 def cells_with(cells: list[tuple[int, str]], *markers: str) -> list[tuple[int, str]]:
     """The cells containing each marker, in notebook order."""
     return sorted(next(c for c in cells if m in c[1]) for m in markers)
-
-
-def write_mteval(path: Path, sentences, ranks) -> None:
-    """An MTEval results file: `source`, the two systems, then a row of ranks per sentence."""
-    rows = ["source\t" + "\t".join(METHODS)]
-    rows += [f"{s}\t{a}\t{b}" for s, (a, b) in zip(sentences, ranks)]
-    path.write_text("\n".join(rows) + "\n", encoding="utf-8")
 
 
 def build_drive(drive: Path) -> tuple[Path, int, dict]:
@@ -179,38 +170,34 @@ class TestLecture13(unittest.TestCase):
         self.assertTrue((self.a8_dir / "best-a13-reverse" / "model_best.pt").exists())
         self.assertIn("Back-translator: your own reverse model", self.printed)
 
-    def test_back_translates_every_sentence_two_ways(self):
-        back = {}
-        for m in METHODS:
-            path = self.a8_dir / f"mono-used.bt-{m}.en"
-            back[m] = path.read_text(encoding="utf-8").split("\n")[:-1]
-            self.assertEqual(len(back[m]), len(self.train), m)
-            self.assertFalse(
-                [b for b in back[m] if PIECE_MARK in b], "decoded, not pieces"
-            )
-        self.assertNotEqual(back["greedy"], back["sample"], "sampling is not greedy")
+    def test_back_translates_every_sentence_by_sampling(self):
+        path = self.a8_dir / "mono-used.bt-sample.en"
+        back = path.read_text(encoding="utf-8").split("\n")[:-1]
+        self.assertEqual(len(back), len(self.train))
+        self.assertFalse([b for b in back if PIECE_MARK in b], "decoded, not pieces")
         record = json.loads(
             (self.a8_dir / "mono-used.bt-sample.en.progress.json").read_text()
         )
         self.assertEqual((record["decode_strategy"], record["seed"]), ("sample", 479))
+        self.assertFalse((self.a8_dir / "mono-used.bt-greedy.en").exists())
 
-    def test_a_training_set_and_a_model_per_method(self):
+    def test_prints_five_sentences_sampled_beside_greedy(self):
+        shown = self.a8_dir / "mono-shown.bt-greedy.en"
+        self.assertEqual(len(shown.read_text(encoding="utf-8").splitlines()), 5)
+        self.assertEqual(self.printed.count("\nsampled:  "), 5)
+        self.assertEqual(self.printed.count("\ngreedy:   "), 5)
+
+    def test_one_training_set_and_one_model(self):
         used = (self.a8_dir / "mono-used.txt").read_text(encoding="utf-8").splitlines()
-        for m in METHODS:
-            combined = pd.read_csv(
-                self.a8_dir / f"train-a13-{m}.tsv",
-                sep="\t",
-                dtype=str,
-                keep_default_na=False,
-            )
-            self.assertEqual(
-                list(combined.tgt[: len(self.train)]), list(self.train.tgt)
-            )
-            self.assertTrue(set(combined.tgt[len(self.train) :]) <= set(used))
-            self.assertTrue((self.a8_dir / f"best-a13-{m}" / "model_best.pt").exists())
+        combined = pd.read_csv(
+            self.a8_dir / "train-a13.tsv", sep="\t", dtype=str, keep_default_na=False
+        )
+        self.assertEqual(list(combined.tgt[: len(self.train)]), list(self.train.tgt))
+        self.assertTrue(set(combined.tgt[len(self.train) :]) <= set(used))
+        self.assertTrue((self.a8_dir / "best-a13" / "model_best.pt").exists())
 
-    def test_three_systems_decoded_both_ways_and_bootstrapped(self):
-        names = ["a9", *(f"a13-{m}" for m in METHODS)]
+    def test_two_systems_decoded_both_ways_and_bootstrapped(self):
+        names = ["a9", "a13"]
         for decoder in ("greedy", "beam"):
             for name in names:
                 hyp = self.a8_dir / f"test-{name}-{decoder}.hyp"
@@ -223,20 +210,17 @@ class TestLecture13(unittest.TestCase):
             [f"test-{n}-{d}.hyp" for d in ("greedy", "beam") for n in names],
         )
         scores = notes["scores"]["greedy"]
-        self.assertEqual(list(scores), ["A9", "A13 greedy", "A13 sample"])
+        self.assertEqual(list(scores), ["A9", "A13"])
         self.assertIsNone(
             scores["A9"]["bleu_p"], "the baseline has no p against itself"
         )
+        self.assertTrue(0 < scores["A13"]["bleu_p"] <= 1)
+        self.assertGreaterEqual(scores["A13"]["chrf_ci"], 0)
         a9_greedy = (self.a8_dir / "test-a9-greedy.hyp").read_text(encoding="utf-8")
-        for system in ("A13 greedy", "A13 sample"):
-            self.assertTrue(0 < scores[system]["bleu_p"] <= 1)
-            self.assertGreaterEqual(scores[system]["chrf_ci"], 0)
-            name = system.replace("A13 ", "a13-")
-            mine = (self.a8_dir / f"test-{name}-greedy.hyp").read_text(encoding="utf-8")
-            if mine == a9_greedy:
-                # sacreBLEU alone would call identical systems different, at p = 0.001.
-                self.assertEqual(scores[system]["bleu_p"], 1.0, system)
-        self.assertEqual(set(notes["methods_p"]), {"greedy", "beam"})
+        mine = (self.a8_dir / "test-a13-greedy.hyp").read_text(encoding="utf-8")
+        if mine == a9_greedy:
+            # sacreBLEU alone would call identical systems different, at p = 0.001.
+            self.assertEqual(scores["A13"]["bleu_p"], 1.0)
         # A9's greedy decode here is the one A9 itself reported.
         a9 = (self.a8_dir / "test-a9.hyp").read_text(encoding="utf-8").splitlines()
         again = (self.a8_dir / "test-a9-greedy.hyp").read_text(encoding="utf-8")
@@ -245,74 +229,17 @@ class TestLecture13(unittest.TestCase):
             lines = (self.a8_dir / name).read_text(encoding="utf-8").splitlines()
             self.assertEqual(len(lines), self.n_test, name)
 
-    def test_writes_the_mteval_files(self):
-        folder = self.a8_dir / "a13-mteval"
-        reverse_test = pd.read_csv(
-            self.a8_dir / "test-reversed.tsv", sep="\t", dtype=str
-        )
-        source = (folder / "source.txt").read_text(encoding="utf-8").splitlines()
-        reference = (folder / "reference.txt").read_text(encoding="utf-8").splitlines()
-        self.assertEqual(len(source), 25)
-        self.assertTrue(set(source) <= set(reverse_test.src), "in your language")
-        self.assertTrue(set(reference) <= set(reverse_test.tgt), "English")
-        for m in METHODS:
-            lines = (folder / f"{m}.txt").read_text(encoding="utf-8").splitlines()
-            self.assertEqual(len(lines), 25, m)
-        self.assertIn("Not counted yet", self.printed)
-
-    def test_counts_agreement_from_both_mteval_files(self):
-        """Agree, disagree, a tie for one rater, agree: 2 of 3 counted, 4 ranked by both."""
-        folder = self.a8_dir / "a13-mteval"
-        source = (folder / "source.txt").read_text(encoding="utf-8").splitlines()[:5]
-        write_mteval(
-            folder / "mteval-mine.tsv", source[:4], [(1, 2), (1, 2), (1, 1), (2, 1)]
-        )
-        write_mteval(
-            folder / "mteval-partner.tsv",
-            source,
-            [(1, 2), (2, 1), (1, 2), (2, 1), (1, 2)],
-        )
-        try:
-            with colab_faked(self.drive):
-                _, printed = run_cells(
-                    cells_with(lecture_13_cells(), SETUP_CELL, AGREEMENT_CELL)
-                )
-            self.assertIn("you agreed on 2 (67%)", printed)
-            self.assertEqual(
-                self.notes()["rater_agreement"], {"agree": 2, "counted": 3, "ranked": 4}
-            )
-        finally:
-            for name in ("mteval-mine.tsv", "mteval-partner.tsv"):
-                (folder / name).unlink()
-
-    def test_agreement_refuses_files_naming_other_systems(self):
-        folder = self.a8_dir / "a13-mteval"
-        source = (folder / "source.txt").read_text(encoding="utf-8").splitlines()[:2]
-        for name in ("mteval-mine.tsv", "mteval-partner.tsv"):
-            (folder / name).write_text(
-                "source\tsystem 1\tsystem 2\n"
-                + "".join(f"{s}\t1\t2\n" for s in source),
-                encoding="utf-8",
-            )
-        try:
-            with colab_faked(self.drive), self.assertRaises(SystemExit) as stopped:
-                run_cells(cells_with(lecture_13_cells(), SETUP_CELL, AGREEMENT_CELL))
-            self.assertIn("must use your two methods' names", str(stopped.exception))
-        finally:
-            for name in ("mteval-mine.tsv", "mteval-partner.tsv"):
-                (folder / name).unlink()
-
     def test_prints_the_write_up_block_and_the_rerun_record(self):
         self.assertIn("=== For the A13 write-up ===", self.printed)
         self.assertIn(
             f"Hypothesis, written before training: {HYPOTHESIS}", self.printed
         )
-        self.assertIn("greedy  A13 sample", self.printed)
-        self.assertIn("beam    A9", self.printed)
+        self.assertIn("greedy  A13   BLEU", self.printed)
+        self.assertIn("beam    A9    BLEU", self.printed)
         self.assertIn("helped most, by chrF", self.printed)
         self.assertIn("hurt most, by chrF", self.printed)
         rerun = json.loads((self.a8_dir / "a13-rerun.json").read_text(encoding="utf-8"))
-        self.assertEqual(rerun["bt_methods"], list(METHODS))
+        self.assertEqual(rerun["bt_method"], "sample")
         self.assertEqual(rerun["back_translator"], "your reverse model")
         self.assertEqual(rerun["seed"], 479)
 
@@ -322,26 +249,22 @@ class TestLecture13(unittest.TestCase):
             _, printed = run_cells(
                 cells_with(lecture_13_cells(), SETUP_CELL, WRITE_UP_CELL)
             )
-        self.assertIn("A13 greedy", printed)
+        self.assertIn("greedy  A13   BLEU", printed)
         self.assertIn("its BLEU into English on your test set", printed)
         self.assertIn(HYPOTHESIS, printed)
 
-    def test_rerunning_the_training_cell_after_both_finish_trains_nothing(self):
+    def test_rerunning_the_training_cell_after_it_finishes_trains_nothing(self):
         """The notebook says a finished training is skipped when the cell is run again."""
-        model = self.a8_dir / "best-a13-sample" / "model_best.pt"
+        model = self.a8_dir / "best-a13" / "model_best.pt"
         before = model.stat().st_mtime_ns
         with colab_faked(self.drive):
             _, printed = run_cells(
-                cells_with(
-                    lecture_13_cells(),
-                    SETUP_CELL,
-                    'for m in load_notes()["bt_methods"]:\n    print(f"=== English',
-                )
+                cells_with(lecture_13_cells(), SETUP_CELL, 'train("train-a13.tsv"')
             )
         self.assertEqual(
             model.stat().st_mtime_ns, before, "the best model was not rewritten"
         )
-        self.assertEqual(printed.count("Epochs: 1"), 2)
+        self.assertEqual(printed.count("Epochs: 1"), 1)
 
     def test_epochs_come_from_a9s_checkpoint(self):
         with colab_faked(self.drive):

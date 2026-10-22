@@ -197,13 +197,26 @@ def _lecture_label(entry: dict) -> str:
     return ", ".join(str(i) for i in entry.get("ids") or []) or "—"
 
 
-def _due_by_date(doc: dict) -> dict[datetime.date, list[dict]]:
-    """Group the assignments by due date, checking every date is a day in the schedule.
+def _due_when(assignment: dict) -> str:
+    """An assignment's due day, with its time if ``due_time`` gives one: ``Fri Oct 30, 11:59 pm``."""
+    when = day(assignment["due"])
+    return f"{when}, {assignment['due_time']}" if assignment.get("due_time") else when
+
+
+def _due_by_date(doc: dict) -> dict[datetime.date, list[str]]:
+    """Group the assignments' schedule labels by the schedule row each is shown on.
+
+    An assignment due on a lecture day is shown on that row. One due between lecture days
+    (Eric, Oct 22: A12 is due on a Friday) is shown on the last row before its due date, with
+    the date stated, ``(due Fri Oct 30, 11:59 pm)``, so the row does not claim it is due then;
+    one on its row with a ``due_time`` states the time, the schedule's default being 10:00.
+    A ``dropped`` assignment is not due at all and is left out; the window table says why.
 
     Raises:
-        RoadmapError: If an assignment is due on a date with no schedule row. Rendering it
-            anyway would drop it from the schedule without a word, which is the failure the
-            generated column exists to prevent.
+        RoadmapError: If an assignment is due before the first schedule row or after the
+            last. There is no row to show it on, and rendering anyway would drop it from the
+            schedule without a word, which is the failure the generated column exists to
+            prevent. Also if an assignment has neither ``due`` nor ``dropped``.
     """
     dates = [entry["date"] for entry in doc["lectures"]]
     repeated = sorted({d for d in dates if dates.count(d) > 1})
@@ -212,16 +225,28 @@ def _due_by_date(doc: dict) -> dict[datetime.date, list[dict]]:
             f"{DATA}: more than one schedule row on {', '.join(map(str, repeated))}, so "
             "an assignment due that day would be listed twice"
         )
-    grouped: dict[datetime.date, list[dict]] = {}
+    grouped: dict[datetime.date, list[str]] = {}
     stray = []
     for assignment in doc.get("assignments", []):
+        if assignment.get("dropped"):
+            continue
         due = assignment.get("due")
-        if due not in dates:
-            stray.append(f"  {assignment.get('id') or assignment.get('label')}: {due}")
-        grouped.setdefault(due, []).append(assignment)
+        name = assignment.get("id") or assignment.get("label")
+        if not isinstance(due, datetime.date):
+            raise RoadmapError(f"{DATA}: {name} has no due date and is not marked dropped")
+        before = [d for d in dates if d <= due]
+        if not before or due > dates[-1]:
+            stray.append(f"  {name}: {due}")
+            continue
+        label = assignment["label"]
+        if before[-1] != due:
+            label = f"{label} (due {_due_when(assignment)})"
+        elif assignment.get("due_time"):
+            label = f"{label} (due {assignment['due_time']})"
+        grouped.setdefault(before[-1], []).append(label)
     if stray:
         raise RoadmapError(
-            f"{DATA}: these assignments are due on a date with no schedule row, so the "
+            f"{DATA}: these assignments are due outside the schedule's dates, so the "
             "schedule would not show them:\n" + "\n".join(stray)
         )
     return grouped
@@ -239,7 +264,7 @@ def schedule_table(doc: dict) -> str:
     due = _due_by_date(doc)
     rows = []
     for entry in doc["lectures"]:
-        labels = [a["label"] for a in due.get(entry["date"], [])]
+        labels = due.get(entry["date"], [])
         rows.append(
             [
                 _lecture_label(entry),
@@ -257,7 +282,8 @@ def windows_table(doc: dict) -> str:
 
     The "set at" date is the setting lecture's own date and the "due" date the assignment's,
     so neither is restated here. ``emphasize_due`` bolds a due date that moved, as the
-    hand-kept table did.
+    hand-kept table did. A ``dropped`` assignment keeps its row, its due cell saying
+    "dropped" and its window cell the reason, so the table still accounts for it.
 
     Args:
         doc (dict): The parsed data file.
@@ -282,15 +308,18 @@ def windows_table(doc: dict) -> str:
                 f"{DATA}: {assignment.get('id')} is set at lecture {lecture!r}, which is "
                 "not in the schedule"
             )
-        due = day(assignment["due"])
-        if assignment.get("emphasize_due"):
-            due = f"**{due}**"
+        if assignment.get("dropped"):
+            due, window = "dropped", assignment["dropped"]
+        else:
+            due, window = _due_when(assignment), assignment.get("window", "")
+            if assignment.get("emphasize_due"):
+                due = f"**{due}**"
         rows.append(
             [
                 assignment["id"],
                 f"{lecture}, {day(dates[lecture])}",
                 due,
-                assignment.get("window", ""),
+                window,
             ]
         )
     return table(["assignment", "set at", "due", "window"], rows)

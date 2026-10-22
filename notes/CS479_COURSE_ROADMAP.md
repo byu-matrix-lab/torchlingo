@@ -22,8 +22,8 @@ deck as it stands.
 **Dates and assignment texts.** The lecture rows, assignment due dates and quiz names match
 Learning Suite. The assignment descriptions are transcribed in the private repository at
 `torchlingo-private/notes/assignments/` (they never reach the public tree), each with a status
-line. Two Learning Suite texts are still last year's, written for OpenNMT: A13 and A14. Each is
-rewritten against its notebook.
+line. One Learning Suite text is still last year's, written for OpenNMT: A14's, rewritten
+against its notebook once that lands. A13's was rewritten against its notebook on Oct 22.
 
 ---
 
@@ -46,12 +46,12 @@ rewritten against its notebook.
 | — | Mon Oct 19 | Review Day (Lecture 11 moved to Oct 21 and taught live; Eric, Oct 21) | **A10** install COMET | |
 | 11 | Wed Oct 21 | LLM Judges, Sentences and Spans | | F2026 rebuilt (taught live) |
 | 12 | Mon Oct 26 | Using LLMs for MT; Expanding Context Awareness | **A11** run COMET on the A6 sentences | F2026 draft |
-| 13 | Wed Oct 28 | Strategies for NMT of Low-Resource Languages | **A12** context and LRL translation | F2025 |
-| 14 | Mon Nov 2 | Multilingual NMT and "Zero-shot" NMT | **A13** back-translated data | F2025 |
-| 15, 16 | Wed Nov 4 | Overview of Speech-to-Speech MT; Automatic Dubbing and Interpretation | **A14** bidirectional MNMT | F2025, merged at rebuild |
-| — | Mon Nov 9 | Proposal week: one day of outline reviews with the professor, two days of proposal presentations (Eric and Coulson, Sep 30); which day is which is being set in Learning Suite | | |
-| — | Wed Nov 11 | (proposal week) | **A15** SLT pipeline | |
-| — | Mon Nov 16 | (proposal week) | **Final project proposal** (date may move with the presentation days) | |
+| 13 | Wed Oct 28 | Strategies for NMT of Low-Resource Languages | **A12** context and LRL translation (due Fri Oct 30, 11:59 pm) | F2025 |
+| 14 | Mon Nov 2 | Multilingual NMT and "Zero-shot" NMT | | F2025 |
+| 15, 16 | Wed Nov 4 | Overview of Speech-to-Speech MT; Automatic Dubbing and Interpretation | **A13** back-translated data (due 11:59 pm) | F2025, merged at rebuild |
+| — | Mon Nov 9 | Proposal week: outline reviews with the professor (Eric and Coulson, Sep 30) | **A14** bidirectional MNMT (due Tue Nov 10, 11:59 pm) · **Final Project Proposal**, at 10:00 am, the outline-review day | |
+| — | Wed Nov 11 | (proposal week) proposal presentations | | |
+| — | Mon Nov 16 | (proposal week) proposal presentations | | |
 | 17 | Wed Nov 18 | Multimodal NMT | | F2025 |
 | 18 | Mon Nov 23 | HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation | | F2025 |
 | — | Wed Nov 25 | **No class**, Thanksgiving Eve | | |
@@ -65,8 +65,9 @@ rewritten against its notebook.
 An assignment appears on the row of the day it is **due**, which is how Learning Suite lists
 it, at 10:00 unless said otherwise (Learning Suite has A7 at 11:59 pm; the deck says 10:00,
 and the two should agree). A7 is new this year: a short report from Lecture 7's toy-model
-exercise. The SLT pipeline is A15, set at Lecture 15; Lecture 16 sets nothing, and the
-numbering runs 1 to 15 without a gap.
+exercise. The SLT pipeline was A15, set at Lecture 15; it is dropped this term and folded into
+the Final Project as a Path B example (Eric, Oct 22), so the numbering runs 1 to 14. Lecture 16
+sets nothing. One due between lecture days is listed on the row before, with its day and time.
 Lectures 17 to 20 carry no assignments; the final project has taken over. Lecture quizzes run
 through Lecture 20, and 8a and 8b each have their own, one more than last year.
 
@@ -106,10 +107,10 @@ two.
 | A9 | 8c, Wed Oct 7 | **Wed Oct 14** | 7; Eric, Oct 7: one more session, since the subword slides are taught Monday. Part A ran in class on Oct 7, Part B is live |
 | A10 | 10, Wed Oct 14 | Mon Oct 19 | 5: an install, and A11 needs it done |
 | A11 | 11, Wed Oct 21 | **Mon Oct 26** | 5 since the Oct 21 shift (set at the live Lecture 11; due date kept, Eric, Oct 21) |
-| A12 | 12, Mon Oct 26 | Wed Oct 28 | 2 since the Oct 21 shift (due date kept, Eric, Oct 21); the A12 page and notebook were open from Oct 21 |
-| A13 | 13, Wed Oct 28 | Mon Nov 2 | 5 since the Oct 21 shift (due date kept) |
-| A14 | 14, Mon Nov 2 | Wed Nov 4 | 2 since the Oct 21 shift (due date kept); the A14 page is open earlier |
-| A15 | 15, Wed Nov 4 | Wed Nov 11 | 7 since the Oct 21 shift (Lectures 15 and 16 merged on Nov 4); the pipeline belongs to the speech-to-speech lecture, and the Azure account needs the days |
+| A12 | 12, Mon Oct 26 | **Fri Oct 30, 11:59 pm** | 4, Mon Oct 26 to Fri Oct 30 (Eric, Oct 22: moved for breathing room, and no two assignment windows overlap); the A12 page and notebook were open from Oct 21 |
+| A13 | 13, Wed Oct 28 | **Wed Nov 4, 11:59 pm** | 5, Fri Oct 30 to Wed Nov 4, opening when A12 closes (Eric, Oct 22) |
+| A14 | 14, Mon Nov 2 | **Tue Nov 10, 11:59 pm** | 6, Wed Nov 4 to Tue Nov 10, opening when A13 closes; may overlap the Nov 9 outline review, and ends before the Nov 11 proposal presentations (Eric, Oct 22) |
+| A15 | 15, Wed Nov 4 | dropped | this term, folded into the Final Project (Eric, Oct 22): its page unpublished and kept for next year, its 20 points dropped, the speech pipeline named as a Path B example |
 
 Costs accepted knowingly: Lecture 17 sits two weeks after Lecture 16 and after the proposal
 presentations, the least damaging place for a gap since Multimodal NMT is the most
@@ -176,10 +177,10 @@ lecture; the scope notes below carry the content, this carries the point.
 | 9 | Morphology, subwords, terminology | Explain the fixed-vocabulary problem and how morphology makes vocabularies explode; segment a sentence with BPE by hand; measure `<unk>` before and after SentencePiece; retrain with one variable changed and attribute the BLEU difference to it. | A9 comparison |
 | 10 | Quality estimation | Distinguish evaluation from estimation; say what COMET and COMET-QE score and what the number means; explain greedy against beam search and why a comparison must pin decoding. | A10; Quiz 10 |
 | 11 | Neural QE and toolkits | Run COMET and COMETKiwi on their own A6 data and on their own A8 and A9 test output; reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and its system- against segment-level caveat. | A11 |
-| 12 | LLMs for MT; context | Prompt a decoder-only model to translate with in-context examples; measure what context buys and where it stops; name the document-level problems (pronouns, consistency). | A12 chart and analysis |
-| 13 | Low-resource strategies | Define low-resource beyond pair counts; execute back-translation end to end and measure whether it helped. | A13 |
+| 12 | LLMs for MT; context | Prompt a decoder-only model to translate a low-resource language from a few example pairs, with no training; measure how much random and nearest examples improve translation, and tell a real difference from the spread between random draws; explain how examples in the prompt help or hurt when the model's weights never change, and what sentence-by-sentence translation cannot fix. | A12 chart and analysis |
+| 13 | Low-resource strategies | Say what makes a language low-resource beyond its count of sentence pairs; use monolingual text to make up for scarce parallel data (back-translate it with a reverse model, train on the synthetic pairs, and measure whether it helped); tell how much of a change came from the new training data and how much from the decoding method, and test whether a difference is real. | A13 |
 | 14 | Multilingual and zero-shot | Explain tagging and why zero-shot works at all; build a bidirectional system from their A9 one and score both directions. | A14 |
-| 15 | Speech-to-speech MT | Contrast cascade and end-to-end systems and say what each loses; build an ASR to MT to TTS pipeline and say where the errors compound. | A15 |
+| 15 | Speech-to-speech MT | Contrast cascade and end-to-end systems and say what each loses; build an ASR to MT to TTS pipeline and say where the errors compound. | the Final Project's Path B example (A15 dropped this term) |
 | 16 | Dubbing and interpretation | Say what dubbing adds to translation (timing, voice, lip sync) and where current systems fail. | Quiz 16 |
 | 17 | Multimodal NMT | Say when visual context helps translation and how to test the claim. | Quiz 17 |
 | 18 | HAMT and MAHT | Measure post-editing with edit distance; explain why post-editing helps some translators and not others; describe adaptive MT. | In-class activity; Quiz 18 |
@@ -218,7 +219,8 @@ steps.
 | `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
 | `lecture-12-llm-context` | in-context examples and what they buy, how many and which | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, its wording their own); predict the best context size and whether nearest examples beat random ones; reconcile the prediction with the curve and its spread over three draws; upload the completed notebook | the LLM, three random draws and the nearest examples at each size, NLLB where it covers the language (Telugu), BLEU and chrF, the chart, the rerun record and the upload files | low |
-| `lecture-13-back-translation` | synthetic pairs whose target side is real, whether they help, and which way of making them helps more; a difference tested, not only measured | extract monolingual text from their Church TM's unused segments, topped up from public text if short; choose their own reverse model or NLLB as back-translator, which back-translates twice, greedily and by sampling (Eric's call, for time); write reverse and combine (the method, checked against known answers and the contamination check); state an "If ..., then ..." hypothesis and a prediction before retraining; rank 25 back-translated sentences with a partner in MTEval; add Google back-translations to two helped and two hurt examples; upload the completed notebook | the reverse training (none with NLLB), both back-translations, one retraining per method, all three systems decoded greedily and with beam 5, BLEU, chrF, the paired bootstrap, COMET, the MTEval files and the agreement count, the rerun record and the upload files | low |
+| `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help; how much of a change came from the data and how much from decoding; a difference tested, not only measured | extract monolingual text from their Church TM's unused segments, topped up from public text if short; choose their own reverse model or NLLB as back-translator, which back-translates by sampling (one retrain, Eric, Oct 22); write reverse and combine (the method, checked against known answers and the contamination check); state an "If ..., then ..." hypothesis and a prediction before retraining; say why sampling, from two of their own back-translated sentences; add Google back-translations to two helped and two hurt examples; upload the completed notebook | the reverse training (none with NLLB), the sampled back-translation with five greedy ones beside it, one retraining, A9 and A13 decoded greedily and with beam 5, BLEU, chrF, the paired bootstrap, COMET, the rerun record and the upload files | low |
+| `lecture-14-multilingual` | a tag tells one model which way to translate, and why that makes zero-shot possible; whether one shared model matches two one-way models, decoding pinned and the difference tested | write tag and both_directions (the method, checked on a known case, for intermingling, and by the contamination check in both languages); state an "If ..., then ..." hypothesis and a prediction before training; explain the tag from its pieces and from the model's output under the wrong tag; upload the completed notebook | the tags' pieces, the training on twice A9's pairs, each direction decoded greedily and with beam 5 against its one-way model (A9; the A13 reverse model or NLLB), BLEU, chrF, the paired bootstrap, the wrong-tag outputs, the rerun record and the upload files | low |
 
 ### Where the line is crossed
 
@@ -242,7 +244,7 @@ Where each assignment stands against it:
 | A11 | `comet_inputs` again; `pairwise_agreement`; a prediction | a known case; your files' alignment |
 | A12 | `split_pool_and_test`, `build_prompt`; a prediction | known cases; `check_contamination` on the split |
 | A13 | `reverse`, `combine`; a prediction | known cases; `check_contamination` on both held-out sets |
-| A14 | to be built to the rule: tagging the directions and intermingling them | |
+| A14 | `tag`, `both_directions`; a hypothesis and a prediction | a known case; intermingling on the real split; `check_contamination` in both languages |
 
 **The one place still open: the A8 kickoff does the part the assignment says is the student's.**
 The A8 slide on AI use says *yours: the splitting, the verification, the training decisions, and
@@ -409,20 +411,25 @@ What counts as low-resource, mitigation with and without LLMs, evaluation for lo
 languages, data sources, data augmentation. The deck's back-translation workflow is written for
 OpenNMT; the notebook replaces it. Candidate home for the NLLB spotlight (Open questions).
 **Notebooks:** `lecture-13-back-translation` (homework, A13): from the A9 files, the student
-writes the reversal and the combination; two trainings and the back-translation run for them.
-**Sets:** A13: back-translation from A9, compared with A9 on BLEU and COMET.
+writes the reversal and the combination; the reverse model's training (none with NLLB), the
+sampled back-translation and one retraining run for them.
+**Sets:** A13: back-translation from A9, compared with A9 on BLEU, chrF and COMET, decoded
+greedily and with beam, with the paired bootstrap.
 
 ### 14. Multilingual NMT and Zero-shot NMT (F2025, 23 slides)
 Bilingual against multilingual, how zero-shot works, tagging, NLLB, complete MNMT, why the
-Church data suits it. Its handout, "MNMT Guide Using OpenNMT.docx", needs replacing outright.
-**Notebooks:** none yet; A14's is built from A9 to the same rule.
+Church data suits it. The notebook replaces its handout, "MNMT Guide Using OpenNMT.docx".
+**Notebooks:** `lecture-14-multilingual` (homework, A14): from the A9 files, the student writes
+the tagging and the intermingling; the training on twice A9's pairs and the scoring run for them.
 **Sets:** A14: a bidirectional English and X system from A9, directions intermingled, separate
-test sets per direction, BLEU and COMET both ways.
+test sets per direction, each direction compared with its one-way model on BLEU and chrF,
+decoded greedily and with beam, with the paired bootstrap.
 
 ### 15. Overview of Speech-to-Speech MT (F2025, 33 slides)
 Spoken language translation, cascade against end-to-end, Whisper, speech data for projects.
-**Sets:** A15: an ASR, MT and TTS pipeline on a free Azure account, not the Speech Translation
-API; ten spoken sentences in and out, and a video of one; two papers for the quiz.
+**Sets:** nothing this term. A15, an ASR, MT and TTS pipeline on a free Azure account, is
+dropped and folded into the Final Project, whose Path B names a speech-to-speech pipeline as an
+example (Eric, Oct 22); its page is kept for the next offering.
 
 ### 16. Automatic Dubbing and Interpretation (F2025, 34 slides)
 Neural voices, automatic video dubbing, Wav2Lip, HeyGen; the final-project timeline.
@@ -492,6 +499,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMETKiwi on the student's A6 sentences, beside BLEU, chrF and their ranking, then on their own A8 and A9 systems | no: colab, hf-token, download, pip, exercises |
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download, exercises |
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab, exercises |
+| `lecture-14-multilingual` | 14 | homework | A14 | one model translating both ways, from A9's split, pieces and configuration | no: colab, exercises |
 
 **Tutorial numbers** are in course order: 01 data, 02 evaluating, 03 checkpoints, 04 attention,
 05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search.
@@ -526,8 +534,9 @@ outlive one term's calendar.
 The course trains models with TorchLingo, an educational PyTorch NMT library built in the
 MATRIX Lab. Five assignments train a model: the toy model at Lecture 7 (A7), A8, A9, A13 and
 A14. They are cumulative in the artifact, so this is one crossing rather than five, and every
-assignment after A9 starts from A9. A7, A8, A9 and A13 have TorchLingo notebooks; A14's is to be
-built. The A13 and A14 Learning Suite texts and decks still describe OpenNMT.
+assignment after A9 starts from A9. All five have TorchLingo notebooks, A14's since Oct 22.
+A14's Learning Suite text still describes OpenNMT, until it is rewritten against the notebook;
+A13's was rewritten on Oct 22.
 
 **A8's settings**, the course model: d_model 512, 8 heads, 6 + 6 layers, feed-forward 2048 (the
 2017 base configuration, 56.4M parameters at an 8K vocabulary); a 100-token cap applied before
@@ -601,8 +610,8 @@ repository's `notes/TASKS.md`.
   the sparsely gated mixture-of-experts architecture with its regularisation against low-resource
   pairs overfitting, and the deliberate training curriculum, which has no coverage in the course.
   Home is Lecture 13 or 14. The paper's specifics are verified before any number reaches a slide.
-- **Learning Suite's assignment texts.** A13 and A14 still carry last year's OpenNMT directions;
-  each is rewritten against its notebook. A7's due time differs between Learning Suite and the
+- **Learning Suite's assignment texts.** A14 still carries last year's OpenNMT directions,
+  rewritten against its notebook once that lands (A13's was, Oct 22). A7's due time differs between Learning Suite and the
   deck.
 - **Lecture 6 is overloaded** and nothing has been done about it.
 - **Lecture 19 needs rescoping** around the material now in Lecture 5, and has no notebook.
@@ -627,6 +636,18 @@ repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 22.** No two assignment windows overlap (Eric). A12 is due Fri Oct 30 (moved for
+  breathing room, Eric), A13 Wed Nov 4 and A14 Tue Nov 10, all at 11:59 pm, each opening when
+  the one before closes; A14 may overlap the Nov 9 outline review (Eric) and ends before the
+  Nov 11 proposal presentations. The Final Project Proposal is due Mon Nov 9 at 10:00, the
+  outline-review day, with the presentations on Nov 11 and Nov 16. A15 is folded into the Final
+  Project (Eric): its page unpublished and kept for next year, its 20 points dropped, the speech
+  pipeline named as a Path B example. A13 is simplified after Eric asked whether any assignment
+  had grown too complicated for its outcomes: one retrain on sampled back-translations instead
+  of greedy and sampled (the Oct 21 entry's three trainings become two, one with NLLB), the
+  MTEval partner exchange dropped, seven questions, 40 points to 30 (Eric). A12 keeps its work;
+  its outcomes go from five to three, and both pages' outcomes now state the low-resource lesson
+  (Eric). The assignment arc plan is retired into the roadmap (Eric).
 - **Oct 21, evening.** The assignment arc plan for A12 to A15 goes ahead, every addition
   required (Eric: "All of our additions are important and required"), and every notebook
   assignment submits its completed notebook (Eric). A12's notebook adds chrF beside BLEU, three
@@ -853,7 +874,7 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 11 | LLM Judges, Sentences and Spans | `lecture-11-comet-on-a6` (homework) [15] | — |
 | 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [16] | — |
 | 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [17] | — |
-| 14 | Multilingual NMT and "Zero-shot" NMT | — | — |
+| 14 | Multilingual NMT and "Zero-shot" NMT | `lecture-14-multilingual` (homework) [18] | — |
 | 15, 16 | Overview of Speech-to-Speech MT; Automatic Dubbing and Interpretation | — | — |
 | 17 | Multimodal NMT | — | — |
 | 18 | HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation | — | — |
@@ -1000,20 +1021,40 @@ Notes on the rows that are not simple:
   check_contamination against the test set, and saves how many came from each file. The
   student chooses the back-translator, their own reverse model or NLLB-200 (through the
   accessory torchlingo_harness.nllb, where it covers the language, one training fewer),
-  and writes reverse, which turns the split around. Every student back-translates twice,
-  greedily and by sampling (top_k 10 advised with NLLB; beam is left out for time, one
-  sentence at a time); both are written resumably to Drive. They write combine, checked on
-  a known case and by check_contamination against validation and test, applied once per
-  method; state an "If ..., then ..." hypothesis and a prediction, which stop the run
-  while empty; and the notebook retrains English-to-X once per method. A9 and both A13
-  systems decode the test set greedily and with beam 5; BLEU (A9's) and chrF with
-  sacreBLEU's paired bootstrap against A9 and between the two methods (identical outputs
-  reported at p = 1); COMET on all six. Step 6 writes 25 test sentences' back-translations
-  for MTEval and counts agreement between the student's and a partner's ranks. The
-  write-up block reads from Drive alone (a13-notes.json), prints two sentences where
-  back-translation helped most and two where it hurt, and saves a13-rerun.json; the
+  and writes reverse, which turns the split around. Every student back-translates once, by
+  sampling (top_k 10 advised with NLLB; Eric, Oct 22: one retrain, not one per method),
+  written resumably to Drive, with five sentences also made greedily and printed beside
+  the samples. They write combine, checked on a known case and by check_contamination
+  against validation and test; state an "If ..., then ..." hypothesis and a prediction,
+  which stop the run while empty; and the notebook retrains English-to-X once: two
+  trainings, one with NLLB. A9 and A13 decode the test set greedily and with beam 5, four
+  outputs; BLEU (A9's) and chrF with sacreBLEU's paired bootstrap against A9 (identical
+  outputs reported at p = 1); COMET on all four. Seven write-up questions, no partner
+  step. The write-up block reads from Drive alone (a13-notes.json), prints two sentences
+  where back-translation helped most and two where it hurt, and saves a13-rerun.json; the
   completed notebook is uploaded. Needs a GPU and Drive, so CI does not execute it;
   tests/test_lecture_13.py runs its cells at toy size, with NLLB stubbed.
+- [18] **`lecture-14-multilingual`** — Assignment 14 end to end, starting from what
+  Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, and A9's training
+  checkpoint, from which the training takes its epoch count) and what A13 left for the
+  comparison into English: best-a13-reverse/, or NLLB-200 through torchlingo_harness.nllb
+  when a13-notes.json says NLLB back-translated, or neither, in which case only English to
+  X is compared. Step 1 shows how A9's pieces split the tags <2x> and <2en> (no new
+  vocabulary; a character A9 never saw becomes <unk>) and stops if the two tags tokenize
+  the same. The student writes tag and both_directions (each pair once each way, tagged
+  with the language to produce, shuffled with the seed), checked on a known case, for
+  intermingling on the real split, and by check_contamination of both languages' test
+  sentences against every training sentence; states an "If ..., then ..." hypothesis and a
+  prediction, which stop the run while empty; and the notebook trains one model on twice
+  A9's pairs for A9's epochs. Each direction is decoded greedily and with beam 5 and
+  compared with its one-way model (A9 into X; the A13 reverse model or NLLB into English)
+  by BLEU and chrF with sacreBLEU's paired bootstrap (identical outputs reported at p =
+  1). Step 5 gives the model the wrong tag on five sentences each way. Six write-up
+  questions, on the comparison, tagging and why zero-shot works; the write-up block reads
+  from Drive alone (a14-notes.json) and saves a14-rerun.json; the completed notebook is
+  uploaded. No COMET: Cowork's Oct 22 practice table does not ask it of A14, which is kept
+  small. Needs a GPU and Drive, so CI does not execute it; tests/test_lecture_14.py runs
+  its cells at toy size, with NLLB stubbed.
 
 <!-- END generated:notebook-map -->
 
@@ -1027,8 +1068,6 @@ would have improved a past lecture it is marked `reference` rather than dropped.
 
 The table lists notebooks that exist; a notebook not yet written cannot declare anything.
 
-- **Lecture 14 needs a notebook**: A14 builds a two-direction model from A9, to the rule in
-  "Where the line is crossed".
 - **Ten sessions pair with nothing else**: Lectures 1, 2, 15 to 18, 19 and 20 (merged), 21, and 22
   and 23 (merged). Not every lecture wants a notebook, and inventing one to fill a row would be
   the redundancy `CLAUDE.md` rules out.
@@ -1075,6 +1114,26 @@ work in each.
 Two of Eric's rules, in `CLAUDE.md`, govern how notebook outcomes relate: every
 notebook has a purpose and outcome no other notebook shares, judged by how it looks as well as
 by what it teaches; and a course notebook never assumes a tutorial was read.
+
+### Practice before the Final Project
+
+Each Final Project requirement is met at least once in an assignment first. Fall 2026:
+
+| Final Project requirement | Practiced in |
+|---|---|
+| A held-out test with an overlap check | A8, A9, A14 |
+| BLEU or chrF plus COMET | A6, A10, A11, A13 |
+| One change against a named baseline (Path A) | A9, A12, A13, A14 |
+| A hypothesis and a prediction before any score | A9 to A14 |
+| Is the difference real (paired bootstrap) | A13, A14 |
+| Where it helped and where it hurt | A13 (A9 next offering) |
+| Rerunnable (versions, seeds, decoding) | A12 to A14 |
+| The completed notebook submitted | A7, A11 to A14 (A8 to A10 next offering) |
+| At least 3 raters, and their agreement | A6 (one rater); first met in the project itself |
+| An application for an audience (Path B) | the speech-pipeline example on the Final Project page |
+
+The gaps (raters, Path B) are where the project asks for something new; `Next Offering Notes`
+in the course folder carries the fixes.
 
 ---
 

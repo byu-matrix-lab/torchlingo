@@ -15,8 +15,8 @@
   the sparsely gated mixture-of-experts architecture with its regularisation against low-resource
   pairs overfitting, and the deliberate training curriculum, which has no coverage in the course.
   Home is Lecture 13 or 14. The paper's specifics are verified before any number reaches a slide.
-- **Learning Suite's assignment texts.** A13 and A14 still carry last year's OpenNMT directions;
-  each is rewritten against its notebook. A7's due time differs between Learning Suite and the
+- **Learning Suite's assignment texts.** A14 still carries last year's OpenNMT directions,
+  rewritten against its notebook once that lands (A13's was, Oct 22). A7's due time differs between Learning Suite and the
   deck.
 - **Lecture 6 is overloaded** and nothing has been done about it.
 - **Lecture 19 needs rescoping** around the material now in Lecture 5, and has no notebook.
