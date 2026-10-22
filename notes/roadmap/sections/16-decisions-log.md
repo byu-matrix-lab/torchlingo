@@ -3,6 +3,18 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 22.** No two assignment windows overlap (Eric). A12 is due Fri Oct 30 (moved for
+  breathing room, Eric), A13 Wed Nov 4 and A14 Tue Nov 10, all at 11:59 pm, each opening when
+  the one before closes; A14 may overlap the Nov 9 outline review (Eric) and ends before the
+  Nov 11 proposal presentations. The Final Project Proposal is due Mon Nov 9 at 10:00, the
+  outline-review day, with the presentations on Nov 11 and Nov 16. A15 is folded into the Final
+  Project (Eric): its page unpublished and kept for next year, its 20 points dropped, the speech
+  pipeline named as a Path B example. A13 is simplified after Eric asked whether any assignment
+  had grown too complicated for its outcomes: one retrain on sampled back-translations instead
+  of greedy and sampled (the Oct 21 entry's three trainings become two, one with NLLB), the
+  MTEval partner exchange dropped, seven questions, 40 points to 30 (Eric). A12 keeps its work;
+  its outcomes go from five to three, and both pages' outcomes now state the low-resource lesson
+  (Eric). The assignment arc plan is retired into the roadmap (Eric).
 - **Oct 21, evening.** The assignment arc plan for A12 to A15 goes ahead, every addition
   required (Eric: "All of our additions are important and required"), and every notebook
   assignment submits its completed notebook (Eric). A12's notebook adds chrF beside BLEU, three

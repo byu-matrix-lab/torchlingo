@@ -4,7 +4,7 @@ The course trains models with TorchLingo, an educational PyTorch NMT library bui
 MATRIX Lab. Five assignments train a model: the toy model at Lecture 7 (A7), A8, A9, A13 and
 A14. They are cumulative in the artifact, so this is one crossing rather than five, and every
 assignment after A9 starts from A9. A7, A8, A9 and A13 have TorchLingo notebooks; A14's is to be
-built. The A13 and A14 Learning Suite texts and decks still describe OpenNMT.
+built. A14's Learning Suite text still describes OpenNMT; A13's was rewritten on Oct 22.
 
 **A8's settings**, the course model: d_model 512, 8 heads, 6 + 6 layers, feed-forward 2048 (the
 2017 base configuration, 56.4M parameters at an 8K vocabulary); a 100-token cap applied before

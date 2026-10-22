@@ -152,8 +152,10 @@ What counts as low-resource, mitigation with and without LLMs, evaluation for lo
 languages, data sources, data augmentation. The deck's back-translation workflow is written for
 OpenNMT; the notebook replaces it. Candidate home for the NLLB spotlight (Open questions).
 **Notebooks:** `lecture-13-back-translation` (homework, A13): from the A9 files, the student
-writes the reversal and the combination; two trainings and the back-translation run for them.
-**Sets:** A13: back-translation from A9, compared with A9 on BLEU and COMET.
+writes the reversal and the combination; the reverse model's training (none with NLLB), the
+sampled back-translation and one retraining run for them.
+**Sets:** A13: back-translation from A9, compared with A9 on BLEU, chrF and COMET, decoded
+greedily and with beam, with the paired bootstrap.
 
 ### 14. Multilingual NMT and Zero-shot NMT (F2025, 23 slides)
 Bilingual against multilingual, how zero-shot works, tagging, NLLB, complete MNMT, why the
@@ -164,8 +166,9 @@ test sets per direction, BLEU and COMET both ways.
 
 ### 15. Overview of Speech-to-Speech MT (F2025, 33 slides)
 Spoken language translation, cascade against end-to-end, Whisper, speech data for projects.
-**Sets:** A15: an ASR, MT and TTS pipeline on a free Azure account, not the Speech Translation
-API; ten spoken sentences in and out, and a video of one; two papers for the quiz.
+**Sets:** nothing this term. A15, an ASR, MT and TTS pipeline on a free Azure account, is
+dropped and folded into the Final Project, whose Path B names a speech-to-speech pipeline as an
+example (Eric, Oct 22); its page is kept for the next offering.
 
 ### 16. Automatic Dubbing and Interpretation (F2025, 34 slides)
 Neural voices, automatic video dubbing, Wav2Lip, HeyGen; the final-project timeline.

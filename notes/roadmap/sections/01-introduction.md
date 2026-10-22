@@ -16,5 +16,5 @@ deck as it stands.
 **Dates and assignment texts.** The lecture rows, assignment due dates and quiz names match
 Learning Suite. The assignment descriptions are transcribed in the private repository at
 `torchlingo-private/notes/assignments/` (they never reach the public tree), each with a status
-line. Two Learning Suite texts are still last year's, written for OpenNMT: A13 and A14. Each is
-rewritten against its notebook.
+line. One Learning Suite text is still last year's, written for OpenNMT: A14's, rewritten
+against its notebook once that lands. A13's was rewritten against its notebook on Oct 22.

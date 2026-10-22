@@ -86,14 +86,13 @@ lectures:
   deck: F2025, merged at rebuild
 - ids: []
   date: 2026-11-09
-  title: 'Proposal week: one day of outline reviews with the professor, two days of proposal
-    presentations (Eric and Coulson, Sep 30); which day is which is being set in Learning Suite'
+  title: 'Proposal week: outline reviews with the professor (Eric and Coulson, Sep 30)'
 - ids: []
   date: 2026-11-11
-  title: (proposal week)
+  title: (proposal week) proposal presentations
 - ids: []
   date: 2026-11-16
-  title: (proposal week)
+  title: (proposal week) proposal presentations
 - ids: ["17"]
   date: 2026-11-18
   title: Multimodal NMT
@@ -188,27 +187,34 @@ assignments:
   window: 5 since the Oct 21 shift (set at the live Lecture 11; due date kept, Eric, Oct 21)
 - id: A12
   label: '**A12** context and LRL translation'
-  due: 2026-10-28
+  due: 2026-10-30
+  due_time: 11:59 pm
   set_at: "12"
-  window: '2 since the Oct 21 shift (due date kept, Eric, Oct 21); the A12 page and notebook were open from Oct 21'
+  emphasize_due: true
+  window: '4, Mon Oct 26 to Fri Oct 30 (Eric, Oct 22: moved for breathing room, and no two
+    assignment windows overlap); the A12 page and notebook were open from Oct 21'
 - id: A13
   label: '**A13** back-translated data'
-  due: 2026-11-02
+  due: 2026-11-04
+  due_time: 11:59 pm
   set_at: "13"
-  window: '5 since the Oct 21 shift (due date kept)'
+  emphasize_due: true
+  window: '5, Fri Oct 30 to Wed Nov 4, opening when A12 closes (Eric, Oct 22)'
 - id: A14
   label: '**A14** bidirectional MNMT'
-  due: 2026-11-04
+  due: 2026-11-10
+  due_time: 11:59 pm
   set_at: "14"
-  window: '2 since the Oct 21 shift (due date kept); the A14 page is open earlier'
+  emphasize_due: true
+  window: '6, Wed Nov 4 to Tue Nov 10, opening when A13 closes; may overlap the Nov 9 outline
+    review, and ends before the Nov 11 proposal presentations (Eric, Oct 22)'
 - id: A15
   label: '**A15** SLT pipeline'
-  due: 2026-11-11
   set_at: "15"
-  window: 7 since the Oct 21 shift (Lectures 15 and 16 merged on Nov 4); the pipeline belongs
-    to the speech-to-speech lecture, and the Azure account needs the days
-- label: '**Final project proposal** (date may move with the presentation days)'
-  due: 2026-11-16
+  dropped: 'this term, folded into the Final Project (Eric, Oct 22): its page unpublished and
+    kept for next year, its 20 points dropped, the speech pipeline named as a Path B example'
+- label: '**Final Project Proposal**, at 10:00 am, the outline-review day'
+  due: 2026-11-09
 - label: '**Paper review assignment**'
   due: 2026-12-09
 - label: Final project **submission and write-up**, all work by 11:59 pm
@@ -295,13 +301,19 @@ lecture_outcomes:
   shown_by: A11
 - lecture: "12"
   topic: LLMs for MT; context
-  can: Prompt a decoder-only model to translate with in-context examples; measure what context
-    buys and where it stops; name the document-level problems (pronouns, consistency).
+  can: Prompt a decoder-only model to translate a low-resource language from a few example
+    pairs, with no training; measure how much random and nearest examples improve translation,
+    and tell a real difference from the spread between random draws; explain how examples in
+    the prompt help or hurt when the model's weights never change, and what
+    sentence-by-sentence translation cannot fix.
   shown_by: A12 chart and analysis
 - lecture: "13"
   topic: Low-resource strategies
-  can: Define low-resource beyond pair counts; execute back-translation end to end and measure
-    whether it helped.
+  can: Say what makes a language low-resource beyond its count of sentence pairs; use
+    monolingual text to make up for scarce parallel data (back-translate it with a reverse
+    model, train on the synthetic pairs, and measure whether it helped); tell how much of a
+    change came from the new training data and how much from the decoding method, and test
+    whether a difference is real.
   shown_by: A13
 - lecture: "14"
   topic: Multilingual and zero-shot
@@ -312,7 +324,7 @@ lecture_outcomes:
   topic: Speech-to-speech MT
   can: Contrast cascade and end-to-end systems and say what each loses; build an ASR to MT to
     TTS pipeline and say where the errors compound.
-  shown_by: A15
+  shown_by: the Final Project's Path B example (A15 dropped this term)
 - lecture: "16"
   topic: Dubbing and interpretation
   can: Say what dubbing adds to translation (timing, voice, lip sync) and where current systems
