@@ -48,6 +48,14 @@ to 13 are done. Task #169's LLM helper: "almost certainly" needed, to be confirm
 **2026-10-20: Cowork sent the MTEval sample and the A12 folders.** A11's Step 1 now reads the
 student's MTEval results file and compares each metric with the student's own ranks, sentence by
 sentence (Task #229, closed).
+
+**2026-10-21: the arc plan's A12 and A13 are on `course`, and the baton went to Cowork.**
+Sampled and noised-beam decoding and the NLLB accessory (Task #267, PR #327), A12's required
+additions (PR #328) and the A13 rewrite (Task #268, PR #329) landed. Task #270, A14's rewrite,
+is Tasks #123 and #99 here, waiting on the A14 due date, which Eric sent to Cowork. Filed:
+Task #271 (A15, later), Task #272 (batched beam) and Task #273 (the install-only check before
+merge).
+
 Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
 from this side, and Tasks #254 to #256 from the session's repeated manual steps.
 
@@ -123,10 +131,11 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #123 | **P1** | A14's two-directions case has never been run | **14+** | **Held** (Eric, Oct 19: this session stays on Lectures 11 to 13 for now) — highest uncertainty; needed by Wed Oct 28, when A14 is set; comes before #99 |
-| #99 | **P1** | The A14 notebook: a bidirectional system from A9, tagged and intermingled, scored both ways | **14+** | **Needed by Wed Oct 28**, when A14 is set; after #123, so held with it. Rescoped Oct 17 from a tutorial to the course notebook (see below) |
+| #123 | **P1** | A14's two-directions case has never been run | **14+** | **Waiting on Cowork for A14's due date** (Eric, Oct 21: a week later, a smaller run by Nov 4, or optional this term; asked in `to-cowork/2026-10-21-c-a12-a13-on-course.md`) — highest uncertainty; comes before #99 |
+| #99 | **P1** | The A14 notebook: a bidirectional system from A9, tagged and intermingled, scored both ways | **14+** | **Waiting on A14's due date**, with #123; after #123. The arc plan adds a stated decoder for every direction compared, the paired bootstrap and a write-up question on tagging and zero-shot. Rescoped Oct 17 from a tutorial to the course notebook (see below) |
 | #271 | **P2** | An A15 notebook: speech to speech around the student's own MT | **L15** | **Later** (Eric, Oct 21). The arc plan's A15 (`Roadmap/Assignment Arc Plan_v3.md`, course folder): the student's best of A8, A9 or A13 in the middle, Whisper for speech recognition and MMS for synthesis where Azure falls short, word error rate on the 10 sentences, and one sentence traced through all three stages. Due Wed Nov 11 |
-| #272 | **P2** | Batch beam search across sentences, not only across beams | **L13** | Open — `inference_fast.beam_search_decode` decodes one sentence at a time: measured Oct 21 at A9's size (d512, 6+6 layers, vocabulary 8,000, Apple GPU, an untrained model running the full 40 tokens), 372 ms a sentence against greedy's 7.3, so beam back-translation of 100,000 sentences is about 10 hours. A13 steers students with their own reverse model to greedy and sampling. Output must stay token-identical (`tests/test_decoding_equivalence.py`) |
+| #272 | **P2** | Batch beam search across sentences, not only across beams | **L13** | Open — `inference_fast.beam_search_decode` decodes one sentence at a time: measured Oct 21 at A9's size (d512, 6+6 layers, vocabulary 8,000, Apple GPU, an untrained model running the full 40 tokens), 372 ms a sentence against greedy's 7.3, so beam back-translation of 100,000 sentences is about 10 hours. A13 back-translates greedily and by sampling only, for time (Eric). Output must stay token-identical (`tests/test_decoding_equivalence.py`) |
+| #273 | **P2** | Run the install-only student check on the notebooks a PR changes, before it merges | **hyg** | Open — PR #329's COMET cell read a setup-cell helper, harmless to a student running from the top, and `student_path.sh --colab --install-only` caught it only after promotion, on `course` 6405a02 (fixed in PR #331). Extend `merge_check.sh` or `land_pr.sh` to run it on each changed notebook with an install cell (about 35 s each; needs uv), not a new tool |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Open** — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: an LLM helper, once a second notebook prompts an LLM (Eric, Oct 19: later lectures "almost certainly" will, to be confirmed against the roadmap; an open question there). A12's loader stays in its notebook's `# Setup:` cell: it reads exactly two named files, and serves one notebook (Eric, Oct 19) |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
