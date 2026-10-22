@@ -32,9 +32,11 @@ more.
 |---|---|---|
 | `"greedy"` | Takes the single highest-probability token at every step | Quick checks, debugging, during training |
 | `"beam"` | Keeps `beam_size` hypotheses and picks the best complete one | Reporting results, final translations |
+| `"sample"` | Draws each token at random, in proportion to its probability | Making back-translations; see [below](#sampling-and-noise-for-back-translation) |
+| `"beam+noise"` | Beam search, then deletes, blanks and shuffles words in the output | Making back-translations |
 
-Beam search costs roughly `beam_size` times more computation. That cost is the reason
-the rest of this page exists.
+Any other name is an error. Beam search costs roughly `beam_size` times more
+computation. That cost is the reason most of this page exists.
 
 ### You have already met this algorithm
 
@@ -559,6 +561,63 @@ It refuses to append to a file from a different job. Beside the output it keeps 
 rerun with other sentences, a reordered list or other settings stops with an error instead of
 writing translations that no longer line up with their sources. Pass `overwrite=True` to
 start again on purpose.
+
+The same resuming works for a translator that is not a TorchLingo model:
+`translate_lines_to_file(translate, sentences, path, settings)` calls
+`translate(chunk, first)` on one chunk at a time, and records `settings`, whatever decides
+the output, beside the file. A13 uses it to back-translate with NLLB-200 through
+`torchlingo_harness.nllb`, an accessory that ships with TorchLingo but is not part of it:
+`import torchlingo` never loads it.
+
+## Sampling and noise for back-translation
+
+Everything above is about finding the *best* translation. Back-translation wants something
+else. There, a reverse model translates monolingual target-language text into synthetic
+sources, and a forward model trains on the result. Edunov, Ott, Auli and Grangier (2018),
+[*Understanding Back-Translation at Scale*](https://arxiv.org/abs/1808.09381), found that
+the best translations make poor training sources. Beam output is the model's most regular
+phrasing, and a model trained on it learns little it did not know. Two strategies that make
+*worse* translations trained a *better* forward model, in all but resource-poor settings:
+
+- **Sampling** (`"sample"`): at each step, draw the next token at random, in proportion to its
+  probability. A token the model gives 30% is chosen about 30% of the time, so the output is
+  one plausible translation among many rather than the single most likely one.
+- **Noised beam** (`"beam+noise"`): beam search, then corrupt each output. Delete each word
+  with probability 0.1, replace each with a filler (`<blank>`) with probability 0.1, and
+  shuffle the words, moving none more than three places. This is `add_noise`, which you can
+  also call on any text.
+
+```python
+from torchlingo.inference import translate_to_file
+
+synthetic = translate_to_file(
+    reverse_model, monolingual, tgt_vocab, src_vocab, "/content/drive/MyDrive/CS479/mono.bt",
+    decode_strategy="sample", seed=0,        # or "beam+noise", with beam_size
+)
+```
+
+"In all but resource-poor settings" is the important part. With little parallel data the
+reverse model is weak, its samples are mostly noise, and beam or greedy output can win. Which
+side of that line your language falls on is something you can measure.
+
+Sampling takes three settings:
+
+| Setting | Default | Effect |
+|---|---|---|
+| `temperature` | 1.0 | Divides the scores before they become probabilities. Below 1 sharpens toward greedy (near 0 it *is* greedy); above 1 flattens toward uniform. |
+| `top_k` | `None` | Draw only among the `k` most likely tokens. Edunov et al. also tried 10. |
+| `seed` | 0 | Fixes the random choices, so a run is reproducible. |
+
+Both random strategies give each sentence its own random stream, derived from the seed and
+the sentence's position. A sentence therefore comes out the same whatever batch size you use,
+however `translate_to_file` chunks the job, and however often it was interrupted and resumed.
+The seed is part of the job's fingerprint, so resuming with a different seed is refused like
+any other change of settings. Sampling is batched exactly as greedy is, and runs within a few
+percent of its speed. Noised beam runs at beam search's speed; the noise itself costs about a
+second per 100,000 sentences.
+
+Neither strategy is for scoring a system: a BLEU score on sampled output measures luck as much
+as the model.
 
 ## Exercises
 

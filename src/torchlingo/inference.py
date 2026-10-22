@@ -23,6 +23,11 @@ depending on backend behavior.
 Any batched reimplementation of beam search must preserve this rule. Selecting
 with ``topk`` over a flattened ``(batch * beam, vocab)`` tensor will otherwise
 break ties differently and silently change output.
+
+The two random strategies, ``"sample"`` and ``"beam+noise"``, are reproducible
+in a different sense: their output is fixed by a ``seed``, and each sentence has
+its own random stream, so a sentence comes out the same whatever batch or chunk
+it is decoded in.
 """
 
 from __future__ import annotations
@@ -30,8 +35,9 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import random
 import warnings
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -43,6 +49,17 @@ from torch.nn.utils.rnn import pad_sequence
 from .config import Config, get_default_config
 from .data_processing.vocab import BaseVocab
 from .models.transformer_simple import create_causal_mask
+
+# Every value decode_strategy accepts. "sample" and "beam+noise" are the two that
+# Edunov et al. (2018) found make better back-translations; see sample_decode and
+# add_noise.
+DECODE_STRATEGIES = ("greedy", "beam", "sample", "beam+noise")
+_BEAM_STRATEGIES = ("beam", "beam+noise")
+
+# The word add_noise substitutes for a replaced one. Not a vocabulary's own unknown
+# token: noise is applied to text, and a forward model's tokenizer would split a
+# literal "<unk>" into pieces anyway. What matters is that it is always the same.
+NOISE_FILLER = "<blank>"
 
 # Beam decoding more sentences than this through the reference implementation is
 # slow enough to be worth flagging. Tuned to stay quiet for the tutorials and
@@ -306,6 +323,127 @@ def attention_for_sequence(
     return weights[0]
 
 
+def _check_decodable(model: nn.Module, what: str) -> None:
+    """Raise unless ``model`` exposes a Transformer or an LSTM decoding interface."""
+    is_transformer = hasattr(model, "encode") and hasattr(model, "decode")
+    is_lstm = all(
+        hasattr(model, attr) for attr in ("src_embed", "encoder", "decoder", "output")
+    )
+    if not (is_transformer or is_lstm):
+        raise ValueError(f"Model must expose encode/decode or LSTM modules for {what}.")
+
+
+def _check_strategy(decode_strategy: str) -> None:
+    """Raise on a strategy name this module does not implement.
+
+    Before 2026-10-21 any unrecognized name, ``"Beam"`` included, quietly decoded
+    greedily, and the result was labelled with the name that was asked for.
+    """
+    if decode_strategy not in DECODE_STRATEGIES:
+        raise ValueError(
+            f"Unknown decode_strategy {decode_strategy!r}; "
+            f"choose one of {', '.join(repr(s) for s in DECODE_STRATEGIES)}."
+        )
+
+
+def _sentence_seed(seed: int, index: int) -> int:
+    """The seed for sentence ``index`` of a job seeded with ``seed``.
+
+    Hashed rather than ``seed + index``, so jobs seeded 0 and 1 do not share all
+    but one of their sentences' random streams.
+    """
+    digest = hashlib.sha256(f"{seed}:{index}".encode()).digest()
+    return int.from_bytes(digest[:8], "little") >> 1
+
+
+def _sentence_seeds(seed: int | Sequence[int], count: int) -> list[int]:
+    """One seed per sentence: derived from an int, or given explicitly as a list."""
+    if isinstance(seed, int):
+        return [_sentence_seed(seed, i) for i in range(count)]
+    seeds = [int(s) for s in seed]
+    if len(seeds) != count:
+        raise ValueError(f"Got {len(seeds)} seeds for {count} sentences.")
+    return seeds
+
+
+def _decode_steps(
+    model: nn.Module,
+    src_chunk: torch.Tensor,
+    max_len: int,
+    device: torch.device,
+    cfg: Config,
+    choose: Callable[[torch.Tensor, int], torch.Tensor],
+) -> list[list[int]]:
+    """Run the decoder one token at a time, letting ``choose`` pick each token.
+
+    Greedy decoding and sampling differ in one line: given the logits for the next
+    position, ``(batch, vocab)``, and the step number, which token comes next.
+    Everything else -- encoding once, growing the prefix, stopping at EOS -- is this
+    loop, written once for both.
+    """
+    is_transformer = hasattr(model, "encode") and hasattr(model, "decode")
+    src_chunk = src_chunk.to(device)
+    batch_size = src_chunk.size(0)
+    ys = torch.full((batch_size, 1), cfg.sos_idx, device=device, dtype=torch.long)
+    finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
+
+    with torch.no_grad():
+        if is_transformer:
+            pad_mask = src_chunk.eq(cfg.pad_idx)
+            memory = model.encode(src_chunk, src_key_padding_mask=pad_mask)
+        else:
+            # A model exposing encode_source/decode_step drives its own decoder,
+            # so the encoder outputs -- and any attention over them -- reach this
+            # path. Reimplementing the loop here is what silently dropped them
+            # before. Duck-typed LSTM models without those methods keep the
+            # inline loop.
+            uses_model_step = hasattr(model, "encode_source") and hasattr(
+                model, "decode_step"
+            )
+            if uses_model_step:
+                enc_out, hidden, src_pad_mask = model.encode_source(src_chunk)
+            else:
+                src_emb = model.src_embed(src_chunk)
+                _, hidden = model.encoder(src_emb)
+            tgt_embed = getattr(model, "tgt_embed", None) or getattr(
+                model, "src_embed", None
+            )
+
+        for step in range(max_len):
+            if is_transformer:
+                # The model's own helper, not
+                # nn.Transformer.generate_square_subsequent_mask, which returns
+                # a float mask. The padding masks below are boolean, and PyTorch
+                # deprecated mixing the two: passing a float attn_mask beside a
+                # boolean key_padding_mask warns on every call and is scheduled
+                # for removal. Both are boolean now, which is also what the
+                # training path has always used.
+                tgt_mask = create_causal_mask(ys.size(1), device)
+                logits = model.decode(
+                    ys,
+                    memory,
+                    src_key_padding_mask=pad_mask,
+                    tgt_key_padding_mask=ys.eq(cfg.pad_idx),
+                    tgt_mask=tgt_mask,
+                )
+            else:
+                last_token = ys[:, -1].unsqueeze(1)
+                if uses_model_step:
+                    logits, hidden, _weights = model.decode_step(
+                        last_token, hidden, enc_out, src_pad_mask
+                    )
+                else:
+                    emb = tgt_embed(last_token)
+                    dec_out, hidden = model.decoder(emb, hidden)
+                    logits = model.output(dec_out)
+            next_token = choose(logits[:, -1, :], step)
+            ys = torch.cat([ys, next_token.unsqueeze(1)], dim=1)
+            finished |= next_token.eq(cfg.eos_idx)
+            if finished.all():
+                break
+    return ys.cpu().tolist()
+
+
 def greedy_decode(
     model: nn.Module,
     src: torch.Tensor,
@@ -362,102 +500,18 @@ def greedy_decode(
     device = device if device is not None else next(model.parameters()).device
 
     model.eval()
+    _check_decodable(model, "greedy decoding")
 
     batch_limit = max(1, cfg.batch_size)
 
-    is_transformer = hasattr(model, "encode") and hasattr(model, "decode")
-    is_lstm = all(
-        hasattr(model, attr) for attr in ("src_embed", "encoder", "decoder", "output")
-    )
-
-    if not (is_transformer or is_lstm):
-        raise ValueError(
-            "Model must expose encode/decode or LSTM modules for greedy decoding."
-        )
-
-    def _decode_transformer(src_chunk: torch.Tensor) -> list[list[int]]:
-        src_chunk = src_chunk.to(device)
-        pad_mask = src_chunk.eq(cfg.pad_idx)
-        with torch.no_grad():
-            memory = model.encode(src_chunk, src_key_padding_mask=pad_mask)
-            ys = torch.full(
-                (src_chunk.size(0), 1), cfg.sos_idx, device=device, dtype=torch.long
-            )
-            finished = torch.zeros(src_chunk.size(0), dtype=torch.bool, device=device)
-            for _ in range(max_len):
-                # The model's own helper, not
-                # nn.Transformer.generate_square_subsequent_mask, which returns
-                # a float mask. The padding masks below are boolean, and PyTorch
-                # deprecated mixing the two: passing a float attn_mask beside a
-                # boolean key_padding_mask warns on every call and is scheduled
-                # for removal. Both are boolean now, which is also what the
-                # training path has always used.
-                tgt_mask = create_causal_mask(ys.size(1), device)
-                out = model.decode(
-                    ys,
-                    memory,
-                    src_key_padding_mask=pad_mask,
-                    tgt_key_padding_mask=ys.eq(cfg.pad_idx),
-                    tgt_mask=tgt_mask,
-                )
-                next_token = out[:, -1, :].argmax(-1)
-                ys = torch.cat([ys, next_token.unsqueeze(1)], dim=1)
-                finished |= next_token.eq(cfg.eos_idx)
-                if finished.all():
-                    break
-        return ys.cpu().tolist()
-
-    def _decode_lstm(src_chunk: torch.Tensor) -> list[list[int]]:
-        src_chunk = src_chunk.to(device)
-        # A model exposing encode_source/decode_step drives its own decoder, so
-        # the encoder outputs -- and any attention over them -- reach this path.
-        # Reimplementing the loop here is what silently dropped them before.
-        # Duck-typed LSTM models without those methods keep the inline loop.
-        uses_model_step = hasattr(model, "encode_source") and hasattr(
-            model, "decode_step"
-        )
-        with torch.no_grad():
-            if uses_model_step:
-                enc_out, hidden, src_pad_mask = model.encode_source(src_chunk)
-            else:
-                src_emb = model.src_embed(src_chunk)
-                _, hidden = model.encoder(src_emb)
-                enc_out = None
-                src_pad_mask = None
-
-            batch_size = src_chunk.size(0)
-            ys = torch.full(
-                (batch_size, 1), cfg.sos_idx, device=device, dtype=torch.long
-            )
-            finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
-
-            tgt_embed = getattr(model, "tgt_embed", None) or getattr(
-                model, "src_embed", None
-            )
-
-            for _ in range(max_len):
-                last_token = ys[:, -1].unsqueeze(1)
-                if uses_model_step:
-                    logits, hidden, _weights = model.decode_step(
-                        last_token, hidden, enc_out, src_pad_mask
-                    )
-                else:
-                    emb = tgt_embed(last_token)
-                    dec_out, hidden = model.decoder(emb, hidden)
-                    logits = model.output(dec_out)
-                next_token = logits[:, -1, :].argmax(-1)
-                ys = torch.cat([ys, next_token.unsqueeze(1)], dim=1)
-                finished |= next_token.eq(cfg.eos_idx)
-                if finished.all():
-                    break
-        return ys.cpu().tolist()
+    def most_likely(logits: torch.Tensor, step: int) -> torch.Tensor:
+        return logits.argmax(-1)
 
     decoded: list[list[int]] = []
     for src_chunk in src.split(batch_limit):
-        if is_transformer:
-            decoded.extend(_decode_transformer(src_chunk))
-        else:
-            decoded.extend(_decode_lstm(src_chunk))
+        decoded.extend(
+            _decode_steps(model, src_chunk, max_len, device, cfg, most_likely)
+        )
 
     if not return_attention:
         return decoded
@@ -470,6 +524,194 @@ def greedy_decode(
         for i, tokens in enumerate(decoded)
     ]
     return decoded, weights
+
+
+def _sample_tokens(
+    logits: torch.Tensor,
+    draws: torch.Tensor,
+    temperature: float,
+    top_k: int | None,
+) -> torch.Tensor:
+    """Pick one token per row of ``logits``, using that row's uniform draw in [0, 1).
+
+    Inverse-CDF sampling: lay the probabilities end to end on [0, 1) and take the
+    token whose stretch the draw lands in. A likely token owns a long stretch, so it
+    is hit often; an unlikely one, rarely.
+    """
+    logits = logits.float() / temperature
+    if top_k is not None and top_k < logits.size(-1):
+        kth_best = logits.topk(top_k, dim=-1).values[:, -1:]
+        logits = logits.masked_fill(logits < kth_best, float("-inf"))
+    cdf = F.softmax(logits, dim=-1).cumsum(dim=-1)
+    # Scaled by the last entry, which rounding can leave a hair away from 1.
+    # right=True skips tokens of probability zero, whose stretch is empty.
+    targets = (draws.to(cdf.dtype) * cdf[:, -1]).unsqueeze(1)
+    picks = torch.searchsorted(cdf, targets, right=True).squeeze(1)
+    return picks.clamp(max=logits.size(-1) - 1)
+
+
+def sample_decode(
+    model: nn.Module,
+    src: torch.Tensor,
+    temperature: float = 1.0,
+    top_k: int | None = None,
+    seed: int | Sequence[int] = 0,
+    max_len: int | None = None,
+    device: torch.device | None = None,
+    config: Config | None = None,
+) -> list[list[int]]:
+    """Sample a translation from the model's distribution, one token at a time.
+
+    Greedy decoding takes the most likely next token every step. Sampling instead
+    *draws* the next token at random, in proportion to its probability, so a token
+    the model gives 30% is chosen about 30% of the time. The output is one
+    plausible translation rather than the single most likely path, and repeated
+    draws differ.
+
+    That variety is the point in back-translation. Edunov et al. (2018),
+    "Understanding Back-Translation at Scale", found that synthetic sources made by
+    sampling train a better forward model than greedy or beam ones in all but
+    resource-poor settings: beam output is too regular to teach much.
+
+    Batched exactly as :func:`greedy_decode` is, chunk by ``config.batch_size``,
+    and about as fast.
+
+    Args:
+        model: Seq2seq model (Transformer or LSTM).
+        src: Source tensor (batch, src_len).
+        temperature: Divides the logits before the softmax. 1.0 samples from the
+            model's own distribution; below 1 sharpens it toward greedy (near 0 it
+            *is* greedy); above 1 flattens it toward uniform. Must be positive.
+        top_k: If set, sample only among the ``top_k`` most likely tokens at each
+            step (Edunov et al. also report top-10). None samples from the full
+            vocabulary.
+        seed: Makes the output reproducible. Sentence ``i`` of ``src`` gets its own
+            random stream, derived from ``seed`` and ``i``, so a sentence's sample
+            does not depend on the batch size or on which other sentences are
+            decoded with it. A list gives each sentence its seed explicitly.
+        max_len: Maximum decoded length. Defaults to ``config.max_decode_length``.
+        device: Torch device. Defaults to the model's.
+        config: TorchLingo Config providing special token indices.
+
+    Returns:
+        One decoded token ID sequence per sentence, starting with SOS, as
+        :func:`greedy_decode` returns them.
+
+    Raises:
+        ValueError: If ``temperature`` is not positive, ``top_k`` is less than 1,
+            or a list ``seed`` does not have one entry per sentence.
+
+    Example:
+        >>> import torch
+        >>> from torchlingo.models import SimpleTransformer
+        >>> torch.manual_seed(0)  # doctest: +ELLIPSIS
+        <torch._C.Generator object at ...>
+        >>> model = SimpleTransformer(src_vocab_size=30, tgt_vocab_size=30,
+        ...                           d_model=16, n_heads=2,
+        ...                           num_encoder_layers=1, num_decoder_layers=1)
+        >>> src = torch.tensor([[2, 5, 9, 3]])
+        >>> first = sample_decode(model, src, seed=7, max_len=6)
+        >>> first == sample_decode(model, src, seed=7, max_len=6)
+        True
+    """
+    cfg = config if config is not None else get_default_config()
+    max_len = max_len if max_len is not None else cfg.max_decode_length
+    device = device if device is not None else next(model.parameters()).device
+    if temperature <= 0:
+        raise ValueError(
+            f"temperature must be positive, got {temperature}. "
+            "For the most likely token every step, use greedy decoding."
+        )
+    if top_k is not None and top_k < 1:
+        raise ValueError(f"top_k must be at least 1, or None, got {top_k}.")
+
+    model.eval()
+    _check_decodable(model, "sampling")
+
+    # Every random number a sentence will use, drawn up front from its own
+    # generator: one per step. Drawn on the CPU, which gives the same numbers on
+    # every machine, and moved to the device once per chunk.
+    seeds = _sentence_seeds(seed, src.size(0))
+    draws = torch.stack(
+        [torch.rand(max_len, generator=torch.Generator().manual_seed(s)) for s in seeds]
+    )
+
+    batch_limit = max(1, cfg.batch_size)
+    decoded: list[list[int]] = []
+    for start in range(0, src.size(0), batch_limit):
+        chunk_draws = draws[start : start + batch_limit].to(device)
+
+        def draw(logits: torch.Tensor, step: int, d=chunk_draws) -> torch.Tensor:
+            return _sample_tokens(logits, d[:, step], temperature, top_k)
+
+        chunk = src[start : start + batch_limit]
+        decoded.extend(_decode_steps(model, chunk, max_len, device, cfg, draw))
+    return decoded
+
+
+def add_noise(
+    text: str,
+    seed: int = 0,
+    delete_prob: float = 0.1,
+    replace_prob: float = 0.1,
+    max_distance: int = 3,
+    filler: str = NOISE_FILLER,
+) -> str:
+    """Corrupt a sentence the way Edunov et al. (2018) noise beam back-translations.
+
+    Three operations on the sentence's words, in order: delete each word with
+    probability ``delete_prob``; replace each remaining word with ``filler`` with
+    probability ``replace_prob``; then shuffle the words, but never move one more
+    than ``max_distance`` places from where it started. The defaults are the paper's.
+
+    Why corrupt a translation on purpose: beam search returns the model's most
+    regular output, and a forward model trained on it learns little it did not
+    know. Noise makes the synthetic source harder to translate, so the forward
+    model has to lean on what the source says rather than how it is phrased.
+
+    Words are whatever whitespace separates, so a language written without spaces
+    between words (Chinese, Japanese, Thai) gets its noise per run of text between
+    spaces, which is not what the paper meant by a word.
+
+    Args:
+        text: The sentence to corrupt.
+        seed: Makes the noise reproducible: one seed, one result.
+        delete_prob: Probability of deleting each word.
+        replace_prob: Probability of replacing each word left with ``filler``.
+        max_distance: The furthest any word may move in the shuffle. 0 keeps
+            the order.
+        filler: The word substituted for replaced words.
+
+    Returns:
+        The corrupted sentence, its words joined by single spaces. At least one
+        word survives deletion, so a non-empty sentence stays non-empty.
+
+    Example:
+        >>> add_noise("a b c d e f", seed=1, delete_prob=0.0, replace_prob=0.0,
+        ...           max_distance=0)
+        'a b c d e f'
+        >>> add_noise("the cat sat on the mat", seed=3)
+        '<blank> sat cat the on'
+    """
+    words = text.split()
+    if not words:
+        return text
+    rng = random.Random(seed)
+    kept = [word for word in words if rng.random() >= delete_prob]
+    if not kept:
+        kept = [rng.choice(words)]
+    kept = [filler if rng.random() < replace_prob else word for word in kept]
+    # Lample et al. (2018): add a random offset in [0, max_distance + 1) to each
+    # position and sort. A word more than max_distance places further on starts at
+    # least max_distance + 1 ahead and can only gain, so it can never be overtaken.
+    keys = [i + rng.random() * (max_distance + 1) for i in range(len(kept))]
+    order = sorted(range(len(kept)), key=keys.__getitem__)
+    return " ".join(kept[i] for i in order)
+
+
+def _noised(translations: list[str], seeds: Sequence[int]) -> list[str]:
+    """Apply :func:`add_noise` to each translation with that sentence's seed."""
+    return [add_noise(text, seed=s) for text, s in zip(translations, seeds)]
 
 
 def beam_search_decode(
@@ -672,6 +914,9 @@ def translate_batch(
     max_len: int | None = None,
     device: torch.device | None = None,
     config: Config | None = None,
+    temperature: float = 1.0,
+    top_k: int | None = None,
+    seed: int | Sequence[int] = 0,
 ) -> list[str]:
     """Translate a batch of raw sentences using provided vocabularies.
 
@@ -683,15 +928,29 @@ def translate_batch(
         sentences: Iterable of raw source sentences.
         src_vocab: Vocabulary implementing BaseVocab.encode(add_special_tokens=True).
         tgt_vocab: Vocabulary implementing BaseVocab.decode(skip_special_tokens=True).
-        decode_strategy: "greedy" or "beam". Defaults to "greedy" -- beam
-            search is opt-in, and usually produces better translations.
-        beam_size: Beam width when decode_strategy == "beam".
+        decode_strategy: One of :data:`DECODE_STRATEGIES`. Defaults to
+            "greedy" -- beam search is opt-in, and usually produces better
+            translations. "sample" draws each token at random (see
+            :func:`sample_decode`); "beam+noise" runs beam search, then corrupts
+            each translation with :func:`add_noise`. Those two are for making
+            back-translations, not for scoring a system.
+        beam_size: Beam width for "beam" and "beam+noise".
         max_len: Maximum generation length.
         device: Torch device. Defaults to model device.
         config: TorchLingo Config.
+        temperature: For "sample": below 1 sharpens the distribution toward
+            greedy, above 1 flattens it.
+        top_k: For "sample": draw only among the ``top_k`` most likely tokens.
+        seed: For "sample" and "beam+noise": fixes the random choices. Sentence
+            ``i`` gets its own stream derived from ``seed`` and ``i``, so its
+            output does not depend on ``config.batch_size``. A list gives one seed
+            per sentence. Ignored by "greedy" and "beam", which are not random.
 
     Returns:
         List of decoded text strings aligned with input sentences.
+
+    Raises:
+        ValueError: If ``decode_strategy`` is not one of :data:`DECODE_STRATEGIES`.
 
     Warns:
         UserWarning: Once per process, when beam decoding more than
@@ -710,8 +969,10 @@ def translate_batch(
     max_len = max_len if max_len is not None else cfg.max_decode_length
     device = device if device is not None else next(model.parameters()).device
 
-    if decode_strategy == "beam":
+    _check_strategy(decode_strategy)
+    if decode_strategy in _BEAM_STRATEGIES:
         _warn_if_large_beam_input(len(sentences))
+    seeds = _sentence_seeds(seed, len(sentences))
 
     encoded = [
         torch.tensor(src_vocab.encode(s, add_special_tokens=True), dtype=torch.long)
@@ -732,7 +993,7 @@ def translate_batch(
         batch_tokens = encoded[start : start + batch_limit]
         padded = pad_sequence(batch_tokens, batch_first=True, padding_value=cfg.pad_idx)
 
-        if decode_strategy == "beam":
+        if decode_strategy in _BEAM_STRATEGIES:
             for row in padded:
                 tokens = beam_search_decode(
                     model,
@@ -743,6 +1004,19 @@ def translate_batch(
                     config=cfg,
                 )
                 outputs.append(tokens)
+        elif decode_strategy == "sample":
+            outputs.extend(
+                sample_decode(
+                    model,
+                    padded,
+                    temperature=temperature,
+                    top_k=top_k,
+                    seed=seeds[start : start + batch_limit],
+                    max_len=max_len,
+                    device=device,
+                    config=cfg,
+                )
+            )
         else:
             outputs.extend(
                 greedy_decode(model, padded, max_len=max_len, device=device, config=cfg)
@@ -768,6 +1042,8 @@ def translate_batch(
         decoded.append(
             decoded_text.strip() if hasattr(decoded_text, "strip") else decoded_text
         )
+    if decode_strategy == "beam+noise":
+        return _noised(decoded, seeds)
     return decoded
 
 
@@ -820,6 +1096,9 @@ def translate_to_file(
     chunk_size: int = 512,
     overwrite: bool = False,
     verbose: bool = True,
+    temperature: float = 1.0,
+    top_k: int | None = None,
+    seed: int = 0,
 ) -> list[str]:
     """Translate many sentences into a file, resuming where an interrupted run stopped.
 
@@ -839,8 +1118,8 @@ def translate_to_file(
         tgt_vocab: Target vocabulary.
         output_path: The file to write, one translation per line. Put it on Google Drive in
             Colab, so a disconnect does not take it with the runtime.
-        decode_strategy: "greedy" or "beam".
-        beam_size: Beam width when decode_strategy == "beam".
+        decode_strategy: One of :data:`DECODE_STRATEGIES`; see :func:`translate_batch`.
+        beam_size: Beam width for "beam" and "beam+noise".
         max_len: Maximum generation length. Defaults to ``config.max_decode_length``.
         device: Torch device. Defaults to the model's.
         config: TorchLingo Config.
@@ -848,13 +1127,20 @@ def translate_to_file(
             one chunk.
         overwrite: Start again from the first sentence, discarding an existing output file.
         verbose: Print progress after each chunk.
+        temperature: For "sample"; see :func:`sample_decode`.
+        top_k: For "sample"; see :func:`sample_decode`.
+        seed: For "sample" and "beam+noise". Recorded with the job, so a rerun with another
+            seed is refused rather than appended. Each sentence's random stream depends on
+            the seed and its position in ``sentences`` only, so the file is the same
+            whatever ``chunk_size`` is and however often the run was interrupted.
 
     Returns:
         All ``len(sentences)`` translations, read back from the file.
 
     Raises:
         ValueError: If ``output_path`` holds lines from a different job, or more lines than
-            there are sentences, and ``overwrite`` is False.
+            there are sentences, and ``overwrite`` is False; or if ``decode_strategy`` is
+            not one of :data:`DECODE_STRATEGIES`.
 
     Example:
         >>> import tempfile, torch
@@ -873,14 +1159,96 @@ def translate_to_file(
     from .inference_fast import translate_batch as fast_translate_batch
 
     cfg = config if config is not None else get_default_config()
+    _check_strategy(decode_strategy)
     max_len = max_len if max_len is not None else cfg.max_decode_length
-    output_path = Path(output_path)
-    progress_path = output_path.with_name(output_path.name + _PROGRESS_SUFFIX)
     settings = {
         "decode_strategy": decode_strategy,
-        "beam_size": beam_size if decode_strategy == "beam" else None,
+        "beam_size": beam_size if decode_strategy in _BEAM_STRATEGIES else None,
         "max_len": max_len,
     }
+    # Added only for the strategies that use them: a greedy or beam job keeps the record
+    # it had before sampling existed, so a decode interrupted then still resumes now.
+    if decode_strategy == "sample":
+        settings.update(temperature=temperature, top_k=top_k, seed=seed)
+    elif decode_strategy == "beam+noise":
+        settings["seed"] = seed
+    seeds = _sentence_seeds(seed, len(sentences))
+
+    def decode(chunk: list[str], first: int) -> list[str]:
+        return fast_translate_batch(
+            model,
+            chunk,
+            src_vocab,
+            tgt_vocab,
+            decode_strategy=decode_strategy,
+            beam_size=beam_size,
+            max_len=max_len,
+            device=device,
+            config=cfg,
+            temperature=temperature,
+            top_k=top_k,
+            seed=seeds[first : first + len(chunk)],
+        )
+
+    return translate_lines_to_file(
+        decode,
+        sentences,
+        output_path,
+        settings,
+        chunk_size=chunk_size,
+        overwrite=overwrite,
+        verbose=verbose,
+    )
+
+
+def translate_lines_to_file(
+    translate: Callable[[list[str], int], list[str]],
+    sentences: Sequence[str],
+    output_path: str | Path,
+    settings: dict,
+    chunk_size: int = 512,
+    overwrite: bool = False,
+    verbose: bool = True,
+) -> list[str]:
+    """Run any translator over many sentences into a file, resuming where a run stopped.
+
+    The resumable half of :func:`translate_to_file`, for a translator that is not a TorchLingo
+    model, such as the NLLB one in the accessory ``torchlingo_harness``. ``translate`` is called on one chunk
+    at a time, and each chunk's translations are on disk before the next is decoded. A rerun
+    with the same arguments counts the lines already written and continues after them; a file
+    from a different job is refused rather than appended to.
+
+    Args:
+        translate: Called as ``translate(chunk, first)``, where ``chunk`` is a list of
+            sentences and ``first`` is the index of its first sentence in ``sentences``;
+            returns one translation per sentence.
+        sentences: Every source sentence of the job, in order. Pass the same list on a rerun.
+        output_path: The file to write, one translation per line.
+        settings: Everything besides the sentences that decides the output: the model, the
+            decoding strategy, seeds. Recorded beside the file, and a rerun with different
+            settings is refused. Must be JSON-serializable.
+        chunk_size: Sentences decoded between writes.
+        overwrite: Start again from the first sentence, discarding an existing output file.
+        verbose: Print progress after each chunk.
+
+    Returns:
+        All ``len(sentences)`` translations, read back from the file.
+
+    Raises:
+        ValueError: If ``output_path`` holds lines from a different job, or more lines than
+            there are sentences, and ``overwrite`` is False; or if ``translate`` returns the
+            wrong number of translations for a chunk.
+
+    Example:
+        >>> import tempfile
+        >>> shout = lambda chunk, first: [s.upper() for s in chunk]
+        >>> out = tempfile.mkdtemp() + "/shout.txt"
+        >>> translate_lines_to_file(shout, ["a", "b", "c"], out, {"translator": "shout"},
+        ...                         chunk_size=2, verbose=False)
+        ['A', 'B', 'C']
+    """
+    output_path = Path(output_path)
+    progress_path = output_path.with_name(output_path.name + _PROGRESS_SUFFIX)
     job = _fingerprint(sentences, settings)
 
     done = 0
@@ -915,18 +1283,13 @@ def translate_to_file(
     progress_path.write_text(json.dumps(job, indent=2) + "\n", encoding="utf-8")
 
     for start in range(done, len(sentences), max(1, chunk_size)):
-        chunk = sentences[start : start + max(1, chunk_size)]
-        translations = fast_translate_batch(
-            model,
-            chunk,
-            src_vocab,
-            tgt_vocab,
-            decode_strategy=decode_strategy,
-            beam_size=beam_size,
-            max_len=max_len,
-            device=device,
-            config=cfg,
-        )
+        chunk = list(sentences[start : start + max(1, chunk_size)])
+        translations = translate(chunk, start)
+        if len(translations) != len(chunk):
+            raise ValueError(
+                f"The translator returned {len(translations)} translations for a chunk of "
+                f"{len(chunk)} sentences; it must return exactly one per sentence."
+            )
         # One line per sentence, always: a newline inside a translation would shift every
         # later line out of alignment with its source.
         lines = "".join(
@@ -947,8 +1310,13 @@ def translate_to_file(
 
 
 __all__ = [
+    "DECODE_STRATEGIES",
+    "NOISE_FILLER",
+    "add_noise",
     "beam_search_decode",
     "greedy_decode",
+    "sample_decode",
     "translate_batch",
+    "translate_lines_to_file",
     "translate_to_file",
 ]
