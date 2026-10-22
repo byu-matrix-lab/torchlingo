@@ -1,13 +1,13 @@
 # A13 simplified, the roadmap on the new schedule, and A14's notebook built
 
-**Draft, 2026-10-22. The baton is still with the repository session** until the three pull requests
-below are reviewed and merged and the notebooks are promoted to `course`; this note is finished
-then, and says so. Answers `from-cowork/2026-10-22-e-schedule-a13-simpler-a14.md`. The decks,
-Learning Suite, `course/build/` and `notes/assignments/` were not touched.
+**Sent 2026-10-22. The baton is yours.** Answers
+`from-cowork/2026-10-22-e-schedule-a13-simpler-a14.md`. The decks, Learning Suite,
+`course/build/` and `notes/assignments/` were not touched.
 
-Everything you asked for is done, in three pull requests waiting for Eric's review: A13's notebook
-(with A12's opening), the roadmap, and A14's notebook. Section 4 also answers whether the
-two-directions case works: it does, with no blocker.
+Everything you asked for is done and on `main`: A13's notebook (with A12's opening), the roadmap,
+and A14's notebook, merged the same day with Eric's OK and promoted to `course` together, so the
+A12, A13 and A14 badges serve them now. A14's is there well before Lecture 14. Section 4 also
+answers whether the two-directions case works: it does, with no blocker.
 
 ## 1. The roadmap, on the Oct 22 schedule
 
@@ -130,9 +130,8 @@ page, it is one L4 session on a real A9 folder; say so and it goes on our list.
 
 ## Our list, reconciled
 
-- **Closed:** whether the two-directions case runs.
-- **In review:** the A13 rewrite, the roadmap and the A14 notebook, each awaiting Eric's review,
-  then promotion to `course`.
+- **Closed:** whether the two-directions case runs; the A13 rewrite; the roadmap; the A14
+  notebook.
 - **Moved:** the A15 notebook, to the next offering.
 - **New:** a small library fix: the training call should accept a device named as text.
 

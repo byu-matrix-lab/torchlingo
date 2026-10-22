@@ -63,7 +63,8 @@ to one retrain on sampled back-translations, no partner step, seven questions, w
 opening outcomes (Task #274, PR #334); the roadmap's schedule, outcomes, practice table and
 decisions log, with `render_roadmap.py` taking due dates between lecture rows and a dropped
 assignment (Task #275, PR #335); and the A14 notebook (Task #99, PR #336), after Task #123's toy
-run found the two-directions path works with A9's pieces. Task #271 moves to the next offering;
+run found the two-directions path works with A9's pieces. All three landed the same day by
+admin merge (Eric's OK) and were promoted together. Task #271 moves to the next offering;
 Task #278 filed.
 
 Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
@@ -82,11 +83,6 @@ with the Cowork session rebuilding the CS 479 decks.
 
 "In review" means the work is written and sitting in an open pull request; the task
 is not finished until that PR merges, and only then does the row disappear.
-
-**Task #99 has an external deadline.** It comes from
-`notes/CS479_COURSE_ROADMAP.md`, is sequenced against a calendar nobody here controls, and
-outranks everything else in this file until A14 is set at Lecture 14, Mon Nov 2 (Cowork needs the
-notebook on `main` by then to write the page, which opens Wed Nov 4). See "The CS 479 pivot" below for the schedule and the reasoning.
 
 ### Reading the "Critical for" column
 
@@ -142,9 +138,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #99 | **P1** | The A14 notebook: a bidirectional system from A9, tagged and intermingled, scored both ways | **14+** | **In review, PR #336.** Needed on `main` by Mon Nov 2, then promoted. After PR #335 lands, `sections/14-torchlingo-pivot.md` still says A14's notebook is "to be built" (left out of PR #336 to avoid a conflict) |
-| #274 | **P1** | A13's notebook to the simplified page: one retrain on sampled back-translations, no partner step, seven questions; A12's opening outcomes | **L13** | **In review, PR #334.** Needed on `main` by Wed Oct 28, then promoted; A13 opens Fri Oct 30 |
-| #275 | **P1** | The roadmap to the Oct 22 schedule: due dates between lecture rows, A15 dropped, outcomes, the practice table, the decisions log | **hyg** | **In review, PR #335.** Conflicts with PRs #334 and #336 only in the generated roadmap; re-render whichever lands later |
 | #272 | **P2** | Batch beam search across sentences, not only across beams | **L13** | Open — `inference_fast.beam_search_decode` decodes one sentence at a time: measured Oct 21 at A9's size (d512, 6+6 layers, vocabulary 8,000, Apple GPU, an untrained model running the full 40 tokens), 372 ms a sentence against greedy's 7.3, so beam back-translation of 100,000 sentences is about 10 hours. A13 back-translates by sampling only (Eric, Oct 22). Output must stay token-identical (`tests/test_decoding_equivalence.py`) |
 | #273 | **P2** | Run the install-only student check on the notebooks a PR changes, before it merges | **hyg** | Open — PR #329's COMET cell read a setup-cell helper, harmless to a student running from the top, and `student_path.sh --colab --install-only` caught it only after promotion, on `course` 6405a02 (fixed in PR #331). Extend `merge_check.sh` or `land_pr.sh` to run it on each changed notebook with an install cell (about 35 s each; needs uv), not a new tool |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Open** — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: an LLM helper, once a second notebook prompts an LLM (Eric, Oct 19: later lectures "almost certainly" will, to be confirmed against the roadmap; an open question there). A12's loader stays in its notebook's `# Setup:` cell: it reads exactly two named files, and serves one notebook (Eric, Oct 19) |
@@ -209,33 +202,6 @@ session) and in **`notes/handoff/briefing.md`**. Both are kept current; restatin
 produced two copies that disagreed within days.
 
 What stays below are the dated tasks themselves.
-
-### #99 The A14 notebook: a bidirectional system from A9
-
-Bidirectional English and X from the A9 system, directions intermingled, separate test sets per
-direction, target-language tagging, BLEU and chrF both ways (no COMET: Cowork's Oct 22 practice
-table does not ask it of A14). Replaces the "MNMT Guide Using OpenNMT.docx" handout. **Needed on
-`main` by Mon Nov 2**, Lecture 14; A14 opens Wed Nov 4 and is due Tue Nov 10.
-
-**Rescoped 2026-10-17 from a tutorial to the course notebook.** It was filed as a tutorial, but
-A14 is where a student builds this system, and `CLAUDE.md` puts a lesson an assignment needs in
-the course notebook, which never assumes a tutorial was read. A separate tutorial on the same
-system would read as a repeat. If a library-documentation page on `preprocessing.multilingual`
-is still wanted afterwards, it links to this notebook rather than retraining the same thing.
-
-**Built to the rule in the roadmap's "Where the line is crossed"**, as A12 and A13 are: the
-student writes the tagging and the intermingling as short functions that raise
-`NotImplementedError`, each checked on a known case and then by `check_contamination` on both
-directions' held-out sets; a prediction stops the run before training (does the reverse
-direction score higher or lower than A9's?); the notebook supplies the training, decoding and
-scoring. It starts from what Lecture 9's Part B leaves on Drive, as `lecture-13-back-translation`
-does, and the write-up asks why tagging works at all, Lecture 14's conceptual outcome.
-
-**Done when** `lecture-14-...` is in `docs/docs/course/` with its metadata, roadmap row, a
-`tests/notebook_cells.py` test at toy size, and `student_path.sh --colab --install-only` passing,
-and is promoted to `course` by Nov 2. The A14 Learning Suite text is Cowork's, rewritten against
-the notebook; the hand-off that announces the notebook asks for it.
-
 
 ### #108 Nothing releases the device allocator's cache
 
@@ -532,7 +498,7 @@ deadline.
 Filed 2026-10-17 from a pass over `notes/CS479_COURSE_ROADMAP.md` for what it asks of the
 repository and nothing here tracked: its "What the table cannot say", "Where the line is
 crossed", "Open questions" and "Gaps" sections, and Lectures 14 to 23's scope notes. Lecture 14's
-notebook is Task #99. Lecture 15's A15 is dropped this term (Eric, Oct 22), and Lectures 16 to
+notebook exists (`lecture-14-multilingual`, Oct 22). Lecture 15's A15 is dropped this term (Eric, Oct 22), and Lectures 16 to
 18 set no assignment, so none has a row of its own. What Lectures 15 to 23 and the final project
 may want from the repository (Lecture 18's edit distance, Lecture 19's IBM Model 1, a page on
 starting a project from a student's own model) is an open question in the roadmap, held until
