@@ -44,7 +44,7 @@ from test_lecture_09_part_b import (
 import torchlingo_harness.nllb
 
 NOTEBOOK = COURSE / "lecture-13-back-translation.ipynb"
-SKIPPED = ('%pip install --quiet "torchlingo', "comet-score")
+SKIPPED = ('%pip install --quiet "torchlingo', "unbabel-comet", "comet-score")
 METHODS = ("greedy", "sample")
 
 # A student's answers to the two exercises, in place of the line that raises.
