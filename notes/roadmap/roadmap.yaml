@@ -536,6 +536,20 @@ notebooks:
       bootstrap, COMET, the MTEval files and the agreement count, the rerun record and the upload
       files
     rating: low
+  lecture-14-multilingual:
+    purpose: one model translating both ways, from A9's split, pieces and configuration
+    lesson: a tag tells one model which way to translate, and why that makes zero-shot possible;
+      whether one shared model matches two one-way models, decoding pinned and the difference
+      tested
+    student_must: write tag and both_directions (the method, checked on a known case, for
+      intermingling, and by the contamination check in both languages); state an "If ...,
+      then ..." hypothesis and a prediction before training; explain the tag from its pieces and
+      from the model's output under the wrong tag; upload the completed notebook
+    notebook_does: the tags' pieces, the training on twice A9's pairs, each direction decoded
+      greedily and with beam 5 against its one-way model (A9; the A13 reverse model or NLLB),
+      BLEU, chrF, the paired bootstrap, the wrong-tag outputs, the rerun record and the upload
+      files
+    rating: low
 
 # The "Tooling the semester depends on" table.
 tooling:

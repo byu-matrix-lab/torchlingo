@@ -20,7 +20,7 @@ Where each assignment stands against it:
 | A11 | `comet_inputs` again; `pairwise_agreement`; a prediction | a known case; your files' alignment |
 | A12 | `split_pool_and_test`, `build_prompt`; a prediction | known cases; `check_contamination` on the split |
 | A13 | `reverse`, `combine`; a prediction | known cases; `check_contamination` on both held-out sets |
-| A14 | to be built to the rule: tagging the directions and intermingling them | |
+| A14 | `tag`, `both_directions`; a hypothesis and a prediction | a known case; intermingling on the real split; `check_contamination` in both languages |
 
 **The one place still open: the A8 kickoff does the part the assignment says is the student's.**
 The A8 slide on AI use says *yours: the splitting, the verification, the training decisions, and

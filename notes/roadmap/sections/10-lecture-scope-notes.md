@@ -158,7 +158,8 @@ writes the reversal and the combination; two trainings and the back-translation 
 ### 14. Multilingual NMT and Zero-shot NMT (F2025, 23 slides)
 Bilingual against multilingual, how zero-shot works, tagging, NLLB, complete MNMT, why the
 Church data suits it. Its handout, "MNMT Guide Using OpenNMT.docx", needs replacing outright.
-**Notebooks:** none yet; A14's is built from A9 to the same rule.
+**Notebooks:** `lecture-14-multilingual` (homework, A14): from the A9 files, the student writes
+the tagging and the intermingling; the training on twice A9's pairs and the scoring run for them.
 **Sets:** A14: a bidirectional English and X system from A9, directions intermingled, separate
 test sets per direction, BLEU and COMET both ways.
 
