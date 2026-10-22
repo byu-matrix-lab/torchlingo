@@ -510,11 +510,15 @@ notebooks:
     rating: low, as reading
   lecture-12-llm-context:
     purpose: in-context translation with 0 to 20 examples, on the student's A12 language
-    lesson: in-context examples and what they buy
+    lesson: in-context examples and what they buy, how many and which
     student_must: write split_pool_and_test and build_prompt (the method, each checked for sizes,
       reproducibility and contamination, and for the prompt's required contents, its wording
-      their own); predict the best context size; reconcile the prediction with the curve
-    notebook_does: the LLM, the loop, BLEU, the chart and the upload files
+      their own); predict the best context size and whether nearest examples beat random ones;
+      reconcile the prediction with the curve and its spread over three draws; upload the
+      completed notebook
+    notebook_does: the LLM, three random draws and the nearest examples at each size, NLLB where
+      it covers the language (Telugu), BLEU and chrF, the chart, the rerun record and the upload
+      files
     rating: low
   lecture-13-back-translation:
     purpose: back-translation end to end, from the A9 files and the student's own monolingual text

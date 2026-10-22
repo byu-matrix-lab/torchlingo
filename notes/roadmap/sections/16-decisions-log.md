@@ -3,6 +3,20 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 21, evening.** The assignment arc plan for A12 to A15 goes ahead, every addition
+  required (Eric: "All of our additions are important and required"), and every notebook
+  assignment submits its completed notebook (Eric). A12's notebook adds chrF beside BLEU, three
+  seeded draws of the examples with their mean and spread, a nearest-examples condition from a
+  500-pair pool, NLLB as a comparison row where it covers the language (Telugu, of the six), a
+  pronoun-or-repeated-term question, and a rerun record; a student who already finished reruns
+  with it (Eric, in the plan). TorchLingo gains sampled and noised-beam decoding for A13's
+  back-translation (Eric: "Then it can be an option in A13"). For A13's rewrite: the embedding
+  filter is cut (Eric); comparing two back-translation methods is required, three trainings in
+  all, two with NLLB (Eric), and the two are greedy and sampling, for every student: beam
+  back-translates one sentence at a time, about 10 hours for 100,000 (Eric: "greedy against
+  sampling for the sake of time"); beam stays in scoring the test set; NLLB is called from `torchlingo_harness`, an accessory shipped with
+  TorchLingo and kept out of the library (Eric: "keep TorchLingo lean and pedagogical"). The A15
+  notebook is deferred to `TASKS.md` (Eric).
 - **Oct 21, afternoon.** A11 also scores the student's own A8 and A9 systems (Eric: "add the
   requirement to score on A8 and A9"): COMET, COMETKiwi, BLEU and chrF on their A8 test set, in a
   new Step 6 of the notebook, and a fifth summary question on whether COMET agrees with BLEU that
