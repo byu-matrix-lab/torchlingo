@@ -1161,8 +1161,6 @@ def translate_to_file(
     cfg = config if config is not None else get_default_config()
     _check_strategy(decode_strategy)
     max_len = max_len if max_len is not None else cfg.max_decode_length
-    output_path = Path(output_path)
-    progress_path = output_path.with_name(output_path.name + _PROGRESS_SUFFIX)
     settings = {
         "decode_strategy": decode_strategy,
         "beam_size": beam_size if decode_strategy in _BEAM_STRATEGIES else None,
@@ -1174,8 +1172,84 @@ def translate_to_file(
         settings.update(temperature=temperature, top_k=top_k, seed=seed)
     elif decode_strategy == "beam+noise":
         settings["seed"] = seed
-    job = _fingerprint(sentences, settings)
     seeds = _sentence_seeds(seed, len(sentences))
+
+    def decode(chunk: list[str], first: int) -> list[str]:
+        return fast_translate_batch(
+            model,
+            chunk,
+            src_vocab,
+            tgt_vocab,
+            decode_strategy=decode_strategy,
+            beam_size=beam_size,
+            max_len=max_len,
+            device=device,
+            config=cfg,
+            temperature=temperature,
+            top_k=top_k,
+            seed=seeds[first : first + len(chunk)],
+        )
+
+    return translate_lines_to_file(
+        decode,
+        sentences,
+        output_path,
+        settings,
+        chunk_size=chunk_size,
+        overwrite=overwrite,
+        verbose=verbose,
+    )
+
+
+def translate_lines_to_file(
+    translate: Callable[[list[str], int], list[str]],
+    sentences: Sequence[str],
+    output_path: str | Path,
+    settings: dict,
+    chunk_size: int = 512,
+    overwrite: bool = False,
+    verbose: bool = True,
+) -> list[str]:
+    """Run any translator over many sentences into a file, resuming where a run stopped.
+
+    The resumable half of :func:`translate_to_file`, for a translator that is not a TorchLingo
+    model, such as the NLLB one in the accessory ``torchlingo_harness``. ``translate`` is called on one chunk
+    at a time, and each chunk's translations are on disk before the next is decoded. A rerun
+    with the same arguments counts the lines already written and continues after them; a file
+    from a different job is refused rather than appended to.
+
+    Args:
+        translate: Called as ``translate(chunk, first)``, where ``chunk`` is a list of
+            sentences and ``first`` is the index of its first sentence in ``sentences``;
+            returns one translation per sentence.
+        sentences: Every source sentence of the job, in order. Pass the same list on a rerun.
+        output_path: The file to write, one translation per line.
+        settings: Everything besides the sentences that decides the output: the model, the
+            decoding strategy, seeds. Recorded beside the file, and a rerun with different
+            settings is refused. Must be JSON-serializable.
+        chunk_size: Sentences decoded between writes.
+        overwrite: Start again from the first sentence, discarding an existing output file.
+        verbose: Print progress after each chunk.
+
+    Returns:
+        All ``len(sentences)`` translations, read back from the file.
+
+    Raises:
+        ValueError: If ``output_path`` holds lines from a different job, or more lines than
+            there are sentences, and ``overwrite`` is False; or if ``translate`` returns the
+            wrong number of translations for a chunk.
+
+    Example:
+        >>> import tempfile
+        >>> shout = lambda chunk, first: [s.upper() for s in chunk]
+        >>> out = tempfile.mkdtemp() + "/shout.txt"
+        >>> translate_lines_to_file(shout, ["a", "b", "c"], out, {"translator": "shout"},
+        ...                         chunk_size=2, verbose=False)
+        ['A', 'B', 'C']
+    """
+    output_path = Path(output_path)
+    progress_path = output_path.with_name(output_path.name + _PROGRESS_SUFFIX)
+    job = _fingerprint(sentences, settings)
 
     done = 0
     if output_path.exists() and not overwrite:
@@ -1209,21 +1283,13 @@ def translate_to_file(
     progress_path.write_text(json.dumps(job, indent=2) + "\n", encoding="utf-8")
 
     for start in range(done, len(sentences), max(1, chunk_size)):
-        chunk = sentences[start : start + max(1, chunk_size)]
-        translations = fast_translate_batch(
-            model,
-            chunk,
-            src_vocab,
-            tgt_vocab,
-            decode_strategy=decode_strategy,
-            beam_size=beam_size,
-            max_len=max_len,
-            device=device,
-            config=cfg,
-            temperature=temperature,
-            top_k=top_k,
-            seed=seeds[start : start + len(chunk)],
-        )
+        chunk = list(sentences[start : start + max(1, chunk_size)])
+        translations = translate(chunk, start)
+        if len(translations) != len(chunk):
+            raise ValueError(
+                f"The translator returned {len(translations)} translations for a chunk of "
+                f"{len(chunk)} sentences; it must return exactly one per sentence."
+            )
         # One line per sentence, always: a newline inside a translation would shift every
         # later line out of alignment with its source.
         lines = "".join(
@@ -1251,5 +1317,6 @@ __all__ = [
     "greedy_decode",
     "sample_decode",
     "translate_batch",
+    "translate_lines_to_file",
     "translate_to_file",
 ]

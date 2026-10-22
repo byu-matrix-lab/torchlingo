@@ -562,6 +562,13 @@ rerun with other sentences, a reordered list or other settings stops with an err
 writing translations that no longer line up with their sources. Pass `overwrite=True` to
 start again on purpose.
 
+The same resuming works for a translator that is not a TorchLingo model:
+`translate_lines_to_file(translate, sentences, path, settings)` calls
+`translate(chunk, first)` on one chunk at a time, and records `settings`, whatever decides
+the output, beside the file. A13 uses it to back-translate with NLLB-200 through
+`torchlingo_harness.nllb`, an accessory that ships with TorchLingo but is not part of it:
+`import torchlingo` never loads it.
+
 ## Sampling and noise for back-translation
 
 Everything above is about finding the *best* translation. Back-translation wants something

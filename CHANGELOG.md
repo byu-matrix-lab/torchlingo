@@ -20,6 +20,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   chunking or a resume, and `translate_to_file` records the seed (and the sampling settings)
   in the job's fingerprint. New public functions: `inference.sample_decode`,
   `inference.add_noise`, and the constant `inference.DECODE_STRATEGIES`.
+- **`inference.translate_lines_to_file(translate, sentences, path, settings)`**: the resumable
+  half of `translate_to_file`, for any translator: `translate(chunk, first)` is called a chunk at
+  a time, and a rerun continues after the last finished line, refusing a file from another job.
+  `translate_to_file` is now built on it, its behaviour unchanged.
+- **`torchlingo_harness`, an accessory package shipped beside `torchlingo`, not part of it.**
+  `import torchlingo` never loads it (Eric: keep TorchLingo lean and pedagogical). Its one
+  module, `torchlingo_harness.nllb`, loads NLLB-200 (`load_nllb(src_lang, tgt_lang)`) and
+  decodes it with TorchLingo's four strategies, for A12's comparison row and A13's
+  back-translation. It needs `transformers`, which Colab ships and TorchLingo does not require.
 
 ### Fixed
 - **An unknown `decode_strategy` is now an error.** `translate_batch` used to decode greedily
