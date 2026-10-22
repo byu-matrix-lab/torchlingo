@@ -526,7 +526,7 @@ notebooks:
       them helps more; a difference tested, not only measured
     student_must: extract monolingual text from their Church TM's unused segments, topped up from
       public text if short; choose their own reverse model or NLLB as back-translator, which
-      back-translates twice, greedily and by sampling (Eric: for time); write reverse and combine (the
+      back-translates twice, greedily and by sampling (Eric's call, for time); write reverse and combine (the
       method, checked against known answers and the contamination check); state an "If ...,
       then ..." hypothesis and a prediction before retraining; rank 25 back-translated sentences
       with a partner in MTEval; add Google back-translations to two helped and two hurt
