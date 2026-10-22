@@ -1000,20 +1000,20 @@ Notes on the rows that are not simple:
   check_contamination against the test set, and saves how many came from each file. The
   student chooses the back-translator, their own reverse model or NLLB-200 (through the
   accessory torchlingo_harness.nllb, where it covers the language, one training fewer),
-  and writes reverse, which turns the split around. They choose two back-translation
-  methods of greedy, beam, sample and beam+noise (with speed and NLLB top_k guidance);
-  both are written resumably to Drive. They write combine, checked on a known case and by
-  check_contamination against validation and test, applied once per method; state an "If
-  ..., then ..." hypothesis and a prediction, which stop the run while empty; and the
-  notebook retrains English-to-X once per method. A9 and both A13 systems decode the test
-  set greedily and with beam 5; BLEU (A9's) and chrF with sacreBLEU's paired bootstrap
-  against A9 and between the two methods (identical outputs reported at p = 1); COMET on
-  all six. Step 6 writes 25 test sentences' back-translations for MTEval and counts
-  agreement between the student's and a partner's ranks. The write-up block reads from
-  Drive alone (a13-notes.json), prints two sentences where back-translation helped most
-  and two where it hurt, and saves a13-rerun.json; the completed notebook is uploaded.
-  Needs a GPU and Drive, so CI does not execute it; tests/test_lecture_13.py runs its
-  cells at toy size, with NLLB stubbed.
+  and writes reverse, which turns the split around. Every student back-translates twice,
+  greedily and by sampling (top_k 10 advised with NLLB; beam is left out for time, one
+  sentence at a time); both are written resumably to Drive. They write combine, checked on
+  a known case and by check_contamination against validation and test, applied once per
+  method; state an "If ..., then ..." hypothesis and a prediction, which stop the run
+  while empty; and the notebook retrains English-to-X once per method. A9 and both A13
+  systems decode the test set greedily and with beam 5; BLEU (A9's) and chrF with
+  sacreBLEU's paired bootstrap against A9 and between the two methods (identical outputs
+  reported at p = 1); COMET on all six. Step 6 writes 25 test sentences' back-translations
+  for MTEval and counts agreement between the student's and a partner's ranks. The
+  write-up block reads from Drive alone (a13-notes.json), prints two sentences where
+  back-translation helped most and two where it hurt, and saves a13-rerun.json; the
+  completed notebook is uploaded. Needs a GPU and Drive, so CI does not execute it;
+  tests/test_lecture_13.py runs its cells at toy size, with NLLB stubbed.
 
 <!-- END generated:notebook-map -->
 
