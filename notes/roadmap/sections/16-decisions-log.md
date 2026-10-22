@@ -12,7 +12,9 @@ place, with who made it.
   with it (Eric, in the plan). TorchLingo gains sampled and noised-beam decoding for A13's
   back-translation (Eric: "Then it can be an option in A13"). For A13's rewrite: the embedding
   filter is cut (Eric); comparing two back-translation methods is required, three trainings in
-  all, two with NLLB (Eric); NLLB is called from `torchlingo_harness`, an accessory shipped with
+  all, two with NLLB (Eric), and the two are greedy and sampling, for every student: beam
+  back-translates one sentence at a time, about 10 hours for 100,000 (Eric: "greedy against
+  sampling for the sake of time"); beam stays in scoring the test set; NLLB is called from `torchlingo_harness`, an accessory shipped with
   TorchLingo and kept out of the library (Eric: "keep TorchLingo lean and pedagogical"). The A15
   notebook is deferred to `TASKS.md` (Eric).
 - **Oct 21, afternoon.** A11 also scores the student's own A8 and A9 systems (Eric: "add the
