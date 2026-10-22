@@ -159,10 +159,12 @@ greedily and with beam, with the paired bootstrap.
 
 ### 14. Multilingual NMT and Zero-shot NMT (F2025, 23 slides)
 Bilingual against multilingual, how zero-shot works, tagging, NLLB, complete MNMT, why the
-Church data suits it. Its handout, "MNMT Guide Using OpenNMT.docx", needs replacing outright.
-**Notebooks:** none yet; A14's is built from A9 to the same rule.
+Church data suits it. The notebook replaces its handout, "MNMT Guide Using OpenNMT.docx".
+**Notebooks:** `lecture-14-multilingual` (homework, A14): from the A9 files, the student writes
+the tagging and the intermingling; the training on twice A9's pairs and the scoring run for them.
 **Sets:** A14: a bidirectional English and X system from A9, directions intermingled, separate
-test sets per direction, BLEU and COMET both ways.
+test sets per direction, each direction compared with its one-way model on BLEU and chrF,
+decoded greedily and with beam, with the paired bootstrap.
 
 ### 15. Overview of Speech-to-Speech MT (F2025, 33 slides)
 Spoken language translation, cascade against end-to-end, Whisper, speech data for projects.
