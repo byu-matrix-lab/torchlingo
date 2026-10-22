@@ -218,7 +218,7 @@ steps.
 | `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
 | `lecture-12-llm-context` | in-context examples and what they buy, how many and which | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, its wording their own); predict the best context size and whether nearest examples beat random ones; reconcile the prediction with the curve and its spread over three draws; upload the completed notebook | the LLM, three random draws and the nearest examples at each size, NLLB where it covers the language (Telugu), BLEU and chrF, the chart, the rerun record and the upload files | low |
-| `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help | extract monolingual text from their Church TM's unused segments, topped up from public text if short; write reverse and combine (the method, checked against known answers and the contamination check); predict before retraining; add Google back-translations to three examples and explain the result | both trainings, the back-translation, BLEU, COMET and the upload files | low |
+| `lecture-13-back-translation` | synthetic pairs whose target side is real, whether they help, and which way of making them helps more; a difference tested, not only measured | extract monolingual text from their Church TM's unused segments, topped up from public text if short; choose their own reverse model or NLLB as back-translator, which back-translates twice, greedily and by sampling (Eric's call, for time); write reverse and combine (the method, checked against known answers and the contamination check); state an "If ..., then ..." hypothesis and a prediction before retraining; rank 25 back-translated sentences with a partner in MTEval; add Google back-translations to two helped and two hurt examples; upload the completed notebook | the reverse training (none with NLLB), both back-translations, one retraining per method, all three systems decoded greedily and with beam 5, BLEU, chrF, the paired bootstrap, COMET, the MTEval files and the agreement count, the rerun record and the upload files | low |
 
 ### Where the line is crossed
 
@@ -991,24 +991,29 @@ Notes on the rows that are not simple:
   document-level problems no example pair fixes, checked on a pronoun or repeated term in
   the test set; the completed notebook is uploaded with it. Needs a GPU and Drive, so CI
   does not execute it; tests/test_lecture_12.py runs its cells with both models stubbed.
-- [17] **`lecture-13-back-translation`** — Assignment 13 end to end, starting from what
-  Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, test-a9.hyp, and
-  A9's training checkpoint, from which both trainings take their epoch count) plus the
-  student's monolingual text: mono-tm.txt from their Church TM's unused segments, topped
-  up by an optional mono-public.txt; Step 1 says where to find both, stops with
-  instructions if neither is there, removes sentences in the split and repeats, runs
-  check_contamination against the test set, and saves how many came from each file to
-  a13-notes.json for the write-up. The student writes reverse, which turns the split
-  around for an X-to-English model, and combine, which joins the original and synthetic
-  pairs and drops any whose source is held out; each is checked on a known case, and
-  combine's result by check_contamination against validation and test. The notebook trains
-  X-to-English with A9's configuration and vocabulary, back-translates with
-  translate_to_file (resumable), takes a prediction that stops the run while empty,
-  retrains English-to-X on the combined pairs, scores both systems with A9's BLEU, runs
-  COMET on both, and prints the write-up block from Drive alone (a13-notes.json keeps the
-  prediction and the back-translator's BLEU), so it survives a dropped session. The
-  write-up asks what makes the language low-resource beyond pair counts. Needs a GPU and
-  Drive, so CI does not execute it; tests/test_lecture_13.py runs its cells at toy size.
+- [17] **`lecture-13-back-translation`** — Assignment 13 end to end, as a small Path A,
+  starting from what Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/,
+  test-a9.hyp, and A9's training checkpoint, from which every training takes its epoch
+  count) plus the student's monolingual text: mono-tm.txt from their Church TM's unused
+  segments, topped up by an optional mono-public.txt (OPUS, Wikipedia, MADLAD-400,
+  CC-100), with a note on domain; Step 1 removes sentences in the split and repeats, runs
+  check_contamination against the test set, and saves how many came from each file. The
+  student chooses the back-translator, their own reverse model or NLLB-200 (through the
+  accessory torchlingo_harness.nllb, where it covers the language, one training fewer),
+  and writes reverse, which turns the split around. Every student back-translates twice,
+  greedily and by sampling (top_k 10 advised with NLLB; beam is left out for time, one
+  sentence at a time); both are written resumably to Drive. They write combine, checked on
+  a known case and by check_contamination against validation and test, applied once per
+  method; state an "If ..., then ..." hypothesis and a prediction, which stop the run
+  while empty; and the notebook retrains English-to-X once per method. A9 and both A13
+  systems decode the test set greedily and with beam 5; BLEU (A9's) and chrF with
+  sacreBLEU's paired bootstrap against A9 and between the two methods (identical outputs
+  reported at p = 1); COMET on all six. Step 6 writes 25 test sentences' back-translations
+  for MTEval and counts agreement between the student's and a partner's ranks. The
+  write-up block reads from Drive alone (a13-notes.json), prints two sentences where
+  back-translation helped most and two where it hurt, and saves a13-rerun.json; the
+  completed notebook is uploaded. Needs a GPU and Drive, so CI does not execute it;
+  tests/test_lecture_13.py runs its cells at toy size, with NLLB stubbed.
 
 <!-- END generated:notebook-map -->
 
