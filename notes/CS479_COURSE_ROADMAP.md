@@ -634,7 +634,11 @@ place, with who made it.
   500-pair pool, NLLB as a comparison row where it covers the language (Telugu, of the six), a
   pronoun-or-repeated-term question, and a rerun record; a student who already finished reruns
   with it (Eric, in the plan). TorchLingo gains sampled and noised-beam decoding for A13's
-  back-translation (Eric: "Then it can be an option in A13").
+  back-translation (Eric: "Then it can be an option in A13"). For A13's rewrite: the embedding
+  filter is cut (Eric); comparing two back-translation methods is required, three trainings in
+  all, two with NLLB (Eric); NLLB is called from `torchlingo_harness`, an accessory shipped with
+  TorchLingo and kept out of the library (Eric: "keep TorchLingo lean and pedagogical"). The A15
+  notebook is deferred to `TASKS.md` (Eric).
 - **Oct 21, afternoon.** A11 also scores the student's own A8 and A9 systems (Eric: "add the
   requirement to score on A8 and A9"): COMET, COMETKiwi, BLEU and chrF on their A8 test set, in a
   new Step 6 of the notebook, and a fifth summary question on whether COMET agrees with BLEU that
