@@ -1,6 +1,6 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-10-17. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-10-22. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
@@ -56,6 +56,16 @@ is Tasks #123 and #99 here, waiting on the A14 due date, which Eric sent to Cowo
 Task #271 (A15, later), Task #272 (batched beam) and Task #273 (the install-only check before
 merge).
 
+**2026-10-22: the baton came back with a new schedule, a simpler A13 and A14's go.** No two
+assignment windows overlap: A12 is due Fri Oct 30, A13 Wed Nov 4, A14 Tue Nov 10, and A15 is
+dropped this term, folded into the Final Project (Eric). On this side: A13's notebook simplified
+to one retrain on sampled back-translations, no partner step, seven questions, with A12's
+opening outcomes (Task #274, PR #334); the roadmap's schedule, outcomes, practice table and
+decisions log, with `render_roadmap.py` taking due dates between lecture rows and a dropped
+assignment (Task #275, PR #335); and the A14 notebook (Task #99, PR #336), after Task #123's toy
+run found the two-directions path works with A9's pieces. Task #271 moves to the next offering;
+Task #278 filed.
+
 Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
 from this side, and Tasks #254 to #256 from the session's repeated manual steps.
 
@@ -75,7 +85,8 @@ is not finished until that PR merges, and only then does the row disappear.
 
 **Task #99 has an external deadline.** It comes from
 `notes/CS479_COURSE_ROADMAP.md`, is sequenced against a calendar nobody here controls, and
-outranks everything else in this file until A14 is set at Lecture 14, Wed Oct 28. See "The CS 479 pivot" below for the schedule and the reasoning.
+outranks everything else in this file until A14 is set at Lecture 14, Mon Nov 2 (Cowork needs the
+notebook on `main` by then to write the page, which opens Wed Nov 4). See "The CS 479 pivot" below for the schedule and the reasoning.
 
 ### Reading the "Critical for" column
 
@@ -99,10 +110,10 @@ dates are not lecture-critical, and several with no date are.
 | **L8a/8b** | the halves of the split | |
 | **L9** | Morphology and Terminology in NMT — **has already run** | Mon Oct 12 |
 | **L10** | Overview of MT Quality Estimation — **has already run** | Wed Oct 14 · A9 due · A10 set (install COMET) |
-| **L11** | Neural Quality Estimation and Evaluation | Mon Oct 19 · A10 due · A11 set |
-| **L12** | Using LLMs for MT; Expanding Context Awareness | Wed Oct 21 · A12 set |
-| **L13** | Strategies for NMT of Low-Resource Languages | Mon Oct 26 · A11 due · A13 set (back-translation) |
-| **14+** | Lecture 14 onward: multilingual and zero-shot, speech, and later | from Wed Oct 28 · A14 set |
+| **L11** | LLM Judges, Sentences and Spans — **has already run** | Wed Oct 21 · A11 set |
+| **L12** | Using LLMs for MT; Expanding Context Awareness | Mon Oct 26 · A11 due · A12 set (due Fri Oct 30) |
+| **L13** | Strategies for NMT of Low-Resource Languages | Wed Oct 28 · A13 set (opens Fri Oct 30, due Wed Nov 4) |
+| **14+** | Lecture 14 onward: multilingual and zero-shot, speech, and later | from Mon Nov 2 · A14 set (opens Wed Nov 4, due Tue Nov 10) |
 | **lib** | library, tooling or docs work **no lecture depends on** | |
 | **hyg** | roadmap and process integrity — **critical, but not to one lecture** | |
 
@@ -131,10 +142,10 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #123 | **P1** | A14's two-directions case has never been run | **14+** | **Waiting on Cowork for A14's due date** (Eric, Oct 21: a week later, a smaller run by Nov 4, or optional this term; asked in `to-cowork/2026-10-21-c-a12-a13-on-course.md`) — highest uncertainty; comes before #99 |
-| #99 | **P1** | The A14 notebook: a bidirectional system from A9, tagged and intermingled, scored both ways | **14+** | **Waiting on A14's due date**, with #123; after #123. The arc plan adds a stated decoder for every direction compared, the paired bootstrap and a write-up question on tagging and zero-shot. Rescoped Oct 17 from a tutorial to the course notebook (see below) |
-| #271 | **P2** | An A15 notebook: speech to speech around the student's own MT | **L15** | **Later** (Eric, Oct 21). The arc plan's A15 (`Roadmap/Assignment Arc Plan_v3.md`, course folder): the student's best of A8, A9 or A13 in the middle, Whisper for speech recognition and MMS for synthesis where Azure falls short, word error rate on the 10 sentences, and one sentence traced through all three stages. Due Wed Nov 11 |
-| #272 | **P2** | Batch beam search across sentences, not only across beams | **L13** | Open — `inference_fast.beam_search_decode` decodes one sentence at a time: measured Oct 21 at A9's size (d512, 6+6 layers, vocabulary 8,000, Apple GPU, an untrained model running the full 40 tokens), 372 ms a sentence against greedy's 7.3, so beam back-translation of 100,000 sentences is about 10 hours. A13 back-translates greedily and by sampling only, for time (Eric). Output must stay token-identical (`tests/test_decoding_equivalence.py`) |
+| #99 | **P1** | The A14 notebook: a bidirectional system from A9, tagged and intermingled, scored both ways | **14+** | **In review, PR #336.** Needed on `main` by Mon Nov 2, then promoted. After PR #335 lands, `sections/14-torchlingo-pivot.md` still says A14's notebook is "to be built" (left out of PR #336 to avoid a conflict) |
+| #274 | **P1** | A13's notebook to the simplified page: one retrain on sampled back-translations, no partner step, seven questions; A12's opening outcomes | **L13** | **In review, PR #334.** Needed on `main` by Wed Oct 28, then promoted; A13 opens Fri Oct 30 |
+| #275 | **P1** | The roadmap to the Oct 22 schedule: due dates between lecture rows, A15 dropped, outcomes, the practice table, the decisions log | **hyg** | **In review, PR #335.** Conflicts with PRs #334 and #336 only in the generated roadmap; re-render whichever lands later |
+| #272 | **P2** | Batch beam search across sentences, not only across beams | **L13** | Open — `inference_fast.beam_search_decode` decodes one sentence at a time: measured Oct 21 at A9's size (d512, 6+6 layers, vocabulary 8,000, Apple GPU, an untrained model running the full 40 tokens), 372 ms a sentence against greedy's 7.3, so beam back-translation of 100,000 sentences is about 10 hours. A13 back-translates by sampling only (Eric, Oct 22). Output must stay token-identical (`tests/test_decoding_equivalence.py`) |
 | #273 | **P2** | Run the install-only student check on the notebooks a PR changes, before it merges | **hyg** | Open — PR #329's COMET cell read a setup-cell helper, harmless to a student running from the top, and `student_path.sh --colab --install-only` caught it only after promotion, on `course` 6405a02 (fixed in PR #331). Extend `merge_check.sh` or `land_pr.sh` to run it on each changed notebook with an install cell (about 35 s each; needs uv), not a new tool |
 | #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Open** — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: an LLM helper, once a second notebook prompts an LLM (Eric, Oct 19: later lectures "almost certainly" will, to be confirmed against the roadmap; an open question there). A12's loader stays in its notebook's `# Setup:` cell: it reads exactly two named files, and serves one notebook (Eric, Oct 19) |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
@@ -143,6 +154,8 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
 | #243 | **P2** | An architectural review of TorchLingo, pedagogy first | **lib** | Open — a review, reported before any change (Eric, Oct 14) |
+| #271 | **P3** | An A15 notebook: speech to speech around the student's own MT | **L15** | **Next offering.** A15 is dropped this term, folded into the Final Project as a Path B example; its page is kept for next year (Eric, Oct 22). The arc plan's A15: the student's best of A8, A9 or A13 in the middle, Whisper for speech recognition and MMS for synthesis where Azure falls short, word error rate on the 10 sentences, and one sentence traced through all three stages |
+| #278 | **P3** | `train_model` accepts `device` as a string | **lib** | Open — `train_model(device="cpu")` raises `AttributeError` at `device.type` (`training.py`); every notebook passes a `torch.device`, so no student meets it. Found Oct 22 in Task #123's toy run |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
@@ -200,9 +213,9 @@ What stays below are the dated tasks themselves.
 ### #99 The A14 notebook: a bidirectional system from A9
 
 Bidirectional English and X from the A9 system, directions intermingled, separate test sets per
-direction, target-language tagging, BLEU and COMET both ways. Replaces the
-"MNMT Guide Using OpenNMT.docx" handout. **Needed by Wed Oct 28**, when Lecture 14 sets A14
-(due Wed Nov 4); it was filed as due Nov 2, A14's old place in the calendar.
+direction, target-language tagging, BLEU and chrF both ways (no COMET: Cowork's Oct 22 practice
+table does not ask it of A14). Replaces the "MNMT Guide Using OpenNMT.docx" handout. **Needed on
+`main` by Mon Nov 2**, Lecture 14; A14 opens Wed Nov 4 and is due Tue Nov 10.
 
 **Rescoped 2026-10-17 from a tutorial to the course notebook.** It was filed as a tutorial, but
 A14 is where a student builds this system, and `CLAUDE.md` puts a lesson an assignment needs in
@@ -220,7 +233,7 @@ does, and the write-up asks why tagging works at all, Lecture 14's conceptual ou
 
 **Done when** `lecture-14-...` is in `docs/docs/course/` with its metadata, roadmap row, a
 `tests/notebook_cells.py` test at toy size, and `student_path.sh --colab --install-only` passing,
-and is promoted to `course` by Oct 28. The A14 Learning Suite text is Cowork's, rewritten against
+and is promoted to `course` by Nov 2. The A14 Learning Suite text is Cowork's, rewritten against
 the notebook; the hand-off that announces the notebook asks for it.
 
 
@@ -514,28 +527,12 @@ being gone. `torchlingo.diagnostics` already does the alignment and contaminatio
 convergence is now a design question rather than a rescue, and should not be decided under
 deadline.
 
-### #123 A14's two-directions case has never been run
-
-**Needed by Wed Oct 28, when Lecture 14 sets A14. Highest uncertainty by evidence.** It was
-filed as due Mon Nov 2, A14's old place in the calendar.
-
-`preprocessing.multilingual` has never been exercised at "two directions, intermingled,
-separate test sets per direction", which is precisely what Assignment 14 asks for. Lecture
-14's handout is a Word document written for OpenNMT and needs replacing outright.
-
-Distinct from **#99**, which is the tutorial. This is the question of whether the code path
-works at all, and it should be answered before a notebook is written on top of it.
-
-The notebook starts from A9 (Eric, Oct 13: every assignment after A9 does): its split,
-SentencePiece model and configuration, as `lecture-13-back-translation` does. A9's shared
-SentencePiece model already covers both languages, so two directions need no new vocabulary.
-
 ## What the rest of the roadmap needs from this side
 
 Filed 2026-10-17 from a pass over `notes/CS479_COURSE_ROADMAP.md` for what it asks of the
 repository and nothing here tracked: its "What the table cannot say", "Where the line is
 crossed", "Open questions" and "Gaps" sections, and Lectures 14 to 23's scope notes. Lecture 14's
-notebook is Task #99. Lecture 15's A15 runs on Azure, outside the repository, and Lectures 16 to
+notebook is Task #99. Lecture 15's A15 is dropped this term (Eric, Oct 22), and Lectures 16 to
 18 set no assignment, so none has a row of its own. What Lectures 15 to 23 and the final project
 may want from the repository (Lecture 18's edit distance, Lecture 19's IBM Model 1, a page on
 starting a project from a student's own model) is an open question in the roadmap, held until
