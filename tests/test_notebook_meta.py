@@ -610,6 +610,34 @@ class TestAssignmentsAreParsed(unittest.TestCase):
         with self.assertRaises(ValueError):
             nm.assignments()
 
+    def test_an_assignment_due_between_rows_is_due_on_the_row_before(self):
+        """Where the schedule shows it: Eric, Oct 22, A12 is due on a Friday."""
+
+        def change(doc):
+            row = first_lecture_row(doc)
+            doc["assignments"].append(
+                {
+                    "id": "A98",
+                    "label": "x",
+                    "due": row["date"] + datetime.timedelta(days=1),
+                }
+            )
+            self.lecture = nm.lecture_id(row["ids"][0])
+
+        scratch_roadmap(self, change)
+        self.assertEqual(nm.assignments()["A98"], self.lecture)
+
+    def test_a_dropped_assignment_is_not_an_assignment(self):
+        """So a notebook still leading to it is flagged."""
+
+        def change(doc):
+            doc["assignments"].append(
+                {"id": "A98", "label": "x", "dropped": "folded into the project"}
+            )
+
+        scratch_roadmap(self, change)
+        self.assertNotIn("A98", nm.assignments())
+
     def test_a_deliverable_without_an_id_is_not_an_assignment(self):
         """The proposal and the paper review are on the schedule but are no notebook's
         `leads_to`; they carry no id, so they cannot be named by a made-up one."""

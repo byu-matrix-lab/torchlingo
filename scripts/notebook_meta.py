@@ -309,12 +309,14 @@ def assignments() -> dict[str, str | None]:
 
     Returns:
         dict: Assignment id to the lecture identifier it is due on, or None when it falls on
-        a row that is not a lecture, such as the last day of class. Deliverables without an
-        ``id`` -- the project proposal, the paper review -- are not included.
+        a row that is not a lecture, such as the last day of class. One due between rows is
+        due on the row before, where the schedule shows it. Deliverables without an ``id``
+        -- the project proposal, the paper review -- are not included, nor is a ``dropped``
+        assignment, so a notebook still leading to one is flagged.
 
     Raises:
         ValueError: If an ``id`` is not ``A`` plus digits and at most one lowercase letter,
-            or an assignment is due on a date with no schedule row.
+            or an assignment is due outside the schedule's dates.
     """
     on_date: dict = {}
     for entry in _schedule():
@@ -327,20 +329,22 @@ def assignments() -> dict[str, str | None]:
 
     due: dict[str, str | None] = {}
     bad: list[str] = []
+    dates = sorted(d for d in on_date if d is not None)
     for entry in rr.load().get("assignments") or []:
-        if not isinstance(entry, dict) or "id" not in entry:
+        if not isinstance(entry, dict) or "id" not in entry or entry.get("dropped"):
             continue
         name = entry["id"]
+        when = entry.get("due")
+        dated = isinstance(when, type(dates[0])) if dates else False
+        before = [d for d in dates if dated and d <= when]
         if not isinstance(name, str) or not ASSIGNMENT_ID.match(name):
             bad.append(
                 f"  id {name!r} is not A plus digits and at most one lowercase letter"
             )
-        elif entry.get("due") not in on_date:
-            bad.append(
-                f"  {name} is due {entry.get('due')!r}, which is no schedule row"
-            )
+        elif not before or when > dates[-1]:
+            bad.append(f"  {name} is due {when!r}, outside the schedule's dates")
         else:
-            due[name] = on_date[entry["due"]]
+            due[name] = on_date[before[-1]]
     if bad:
         raise ValueError(
             f"{rr.DATA}: {len(bad)} assignment(s) cannot be read:\n"

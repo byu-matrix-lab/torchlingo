@@ -119,9 +119,48 @@ class TestTheDueColumnComesFromAssignments(unittest.TestCase):
         row = schedule_row(rr.schedule_table(self.doc), self.a9["due"])
         self.assertIn(f"{self.a9['label']}{rr.SAME_DAY}**A99** another", row)
 
-    def test_a_due_date_off_the_schedule_is_an_error(self):
+    def test_a_due_date_outside_the_schedule_is_an_error(self):
         """Rendering it anyway would drop it from the schedule without a word."""
-        self.a9["due"] = datetime.date(2026, 1, 1)
+        for outside in (datetime.date(2026, 1, 1), datetime.date(2027, 1, 1)):
+            self.a9["due"] = outside
+            with self.assertRaises(rr.RoadmapError) as caught:
+                rr.schedule_table(self.doc)
+            self.assertIn("A9", str(caught.exception))
+
+    def test_a_due_date_between_rows_is_shown_on_the_row_before_with_its_date(self):
+        """Eric, Oct 22: A12 is due on a Friday, a day with no lecture."""
+        before = next(d for d in self.dates if d > self.a9["due"])
+        between = before + datetime.timedelta(days=1)
+        self.assertNotIn(between, self.dates)
+        self.a9.update(due=between, due_time="11:59 pm")
+        row = schedule_row(rr.schedule_table(self.doc), before)
+        self.assertIn(f"{self.a9['label']} (due {rr.day(between)}, 11:59 pm)", row)
+        window = next(
+            line
+            for line in rr.windows_table(self.doc).splitlines()
+            if line.startswith("| A9 |")
+        )
+        self.assertIn(f"{rr.day(between)}, 11:59 pm", window)
+
+    def test_a_due_time_on_a_lecture_day_is_stated(self):
+        self.a9["due_time"] = "11:59 pm"
+        row = schedule_row(rr.schedule_table(self.doc), self.a9["due"])
+        self.assertIn(f"{self.a9['label']} (due 11:59 pm)", row)
+
+    def test_a_dropped_assignment_leaves_the_schedule_and_keeps_its_window_row(self):
+        old = self.a9.pop("due")
+        self.a9["dropped"] = "folded into the final project"
+        self.assertNotIn(self.a9["label"], rr.schedule_table(self.doc))
+        window = next(
+            line
+            for line in rr.windows_table(self.doc).splitlines()
+            if line.startswith("| A9 |")
+        )
+        self.assertIn("| dropped | folded into the final project |", window)
+        self.assertNotIn(rr.day(old), window)
+
+    def test_an_assignment_neither_due_nor_dropped_is_an_error(self):
+        del self.a9["due"]
         with self.assertRaises(rr.RoadmapError) as caught:
             rr.schedule_table(self.doc)
         self.assertIn("A9", str(caught.exception))
