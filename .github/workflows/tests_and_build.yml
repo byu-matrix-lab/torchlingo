@@ -46,12 +46,19 @@ on:
   schedule:
     - cron: '0 7 * * 1'
 
-# A new push to a pull request makes its earlier run moot, so that run is cancelled rather than
-# left holding runners. Pushes to main and tags each run to completion: a release must not be
-# cancelled by the next merge.
+# A new push makes the earlier run on the same pull request, or on main, moot, so that run is
+# cancelled rather than left holding runners. On 2026-10-22 three PRs landed in a row; the runs
+# on the two intermediate main commits kept running beside the third, nine workflows shared the
+# runners, and a 52-second check took twelve minutes. Only the last commit was promoted, and
+# promote_course.sh reads only the commit it promotes.
+#
+# Tags run to completion, since a release must not be cancelled: each tag is its own ref, so its
+# own group, and no push to main reaches it. The event is in the group so a push to main never
+# cancels the weekly scheduled run, which shares main's ref. A cancelled run is not a failed
+# one, so notify_red.yml stays quiet about it.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
 jobs:
   lint:

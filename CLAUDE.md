@@ -189,11 +189,14 @@ was based on `main`**, so this is not stacking-specific.
   another PR closed), then the worktree, only if it is clean, and the branch. With `--promote`
   it then runs `promote_course.sh --await` and waits for the student-path run on that commit.
   `--admin` goes only with Eric's explicit OK for that PR, or on a notes-only PR.
-- **Landing several PRs together, promote once, with the last** (Eric, 2026-10-19). Land the
-  others without `--promote`, then the last with it: one student-path run, about four minutes
-  since it runs a job per notebook (Task #262), instead of one per PR. If it fails, the cause is one of the batch, not exactly one PR; with
+- **Landing several PRs together, promote once, with the last** (Eric, 2026-10-19):
+  `scripts/land_pr.sh 334 335 336 --promote` lands them in that order, each checked against
+  the `main` the one before left, and promotes only the last. That is one student-path run,
+  about four minutes since it runs a job per notebook (Task #262), instead of one per PR. If it fails, the cause is one of the batch, not exactly one PR; with
   small PRs that is quickly found. On 2026-10-19 three PRs promoted one at a time spent three
-  runs back to back.
+  runs back to back. Add `--no-wait` to skip waiting for that run; promotion has happened by
+  then, and the script prints the command that checks it. Each push to `main` cancels the CI
+  run on the commit before it, so a batch leaves one run per workflow, not one per merge.
 
 ### Retargeting a PR dismisses its approvals
 

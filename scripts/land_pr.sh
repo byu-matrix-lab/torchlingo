@@ -21,10 +21,24 @@
 # Usage:
 #   scripts/land_pr.sh PR                     steps 1-6
 #   scripts/land_pr.sh PR --promote           ... then 7 and 8
+#   scripts/land_pr.sh PR --promote --no-wait ... then 7 only; prints how to check step 8
 #   scripts/land_pr.sh PR --admin [--promote] merge with --admin, past required reviews
+#   scripts/land_pr.sh PR PR ... [flags]      several, in the order given; --promote applies
+#                                             to the last only
 #
 # --admin is passed only on Eric's explicit OK for that PR, or for a PR that touches only
 # notes/ (CLAUDE.md memory: notes-only PRs may self-merge). This script never decides that.
+# Given several PRs, --admin applies to every one, so the OK must cover them all.
+#
+# SEVERAL PRS. Each is landed as it would be alone, steps 1-6, so each merge_check runs against
+# the main the previous merge left (CLAUDE.md: "When several PRs merge in a row"). Only the last
+# is promoted, with one student-path run for the batch (Eric, 2026-10-19). The first failure
+# stops the batch, and the PRs after it are left open. The stop names every PR the batch already
+# merged that `course` does not have, with the command to promote them, since a stop before the
+# last PR leaves them on main where no student gets them.
+#
+# --no-wait, because by step 8 the promotion has happened: the wait verifies, it does not
+# gate. On 2026-10-22 it was ten of the batch's thirty minutes.
 #
 # Stops at the first step that fails and says which; every later step is left undone, so
 # nothing is cleaned up after a merge that went wrong. Prints a timestamped line per step, and
@@ -36,27 +50,75 @@ set -uo pipefail
 REPO="byu-matrix-lab/torchlingo"
 
 usage() {
-  echo "usage: scripts/land_pr.sh PR [--admin] [--promote]   (see the header for more)" >&2
+  echo "usage: scripts/land_pr.sh PR [PR ...] [--admin] [--promote [--no-wait]]   (see the header for more)" >&2
   exit 2
 }
 
-PR=""
+PRS=()
 ADMIN=""   # a flag, not an array: an empty array is "unbound" under set -u in macOS's bash 3.2
 PROMOTE=0
+WAIT=1
 for arg in "$@"; do
   case "$arg" in
     --admin) ADMIN="--admin" ;;
     --promote) PROMOTE=1 ;;
+    --no-wait) WAIT=0 ;;
     -h | --help) usage ;;
     *[!0-9]*) echo "not a PR number: $arg" >&2; usage ;;
-    *) PR="$arg" ;;
+    *) PRS+=("$arg") ;;
   esac
 done
-[[ -n "$PR" ]] || usage
+[[ ${#PRS[@]} -gt 0 ]] || usage
+[[ $WAIT -eq 1 || $PROMOTE -eq 1 ]] || { echo "--no-wait goes with --promote" >&2; usage; }
 
 # The main checkout, wherever this was started: a worktree's common git dir is the main one's.
 MAIN="$(cd "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")" && pwd)" || exit 2
 cd "$MAIN" || exit 2
+
+# What a batch stopped at PR $1 left behind. A PR landed before the stop, or by it, is on main
+# but not on course, since only the last is promoted, and its fix may be one students need.
+# So name each one, and the command that promotes them.
+batch_stopped() {
+  local n info merged="" unpromoted=""
+  echo "STOPPED: the batch stopped at PR #$1; the PRs after it are still open" >&2
+  git fetch --quiet origin course 2>/dev/null
+  for n in "${PRS[@]}"; do
+    info="$(gh pr view "$n" --repo "$REPO" --json state,mergeCommit \
+      --jq '"\(.state) \(.mergeCommit.oid // "-")"' 2>&1)" ||
+      { echo "  PR #$n: could not tell whether it merged: $info" >&2; continue; }
+    if [[ "${info%% *}" == MERGED ]]; then
+      merged="${merged:+$merged,} PR #$n"
+      git merge-base --is-ancestor "${info#* }" origin/course 2>/dev/null ||
+        unpromoted="${unpromoted:+$unpromoted,} PR #$n"
+    fi
+    [[ "$n" == "$1" ]] && break
+  done
+  [[ -n "$merged" ]] && echo "merged to main:$merged" >&2
+  if [[ -n "$unpromoted" ]]; then
+    echo "not on course, so students do not have them yet:$unpromoted" >&2
+    echo "  promote them with:  scripts/promote_course.sh --await" >&2
+  fi
+}
+
+# Several PRs: land each by running this script on it alone, promoting with the last. The main
+# checkout's copy, since landing the first may remove the worktree this was started from.
+if [[ ${#PRS[@]} -gt 1 ]]; then
+  last="${PRS[${#PRS[@]}-1]}"
+  for n in "${PRS[@]}"; do
+    flags=()
+    [[ -n "$ADMIN" ]] && flags+=("$ADMIN")
+    if [[ "$n" == "$last" && $PROMOTE -eq 1 ]]; then
+      flags+=("--promote")
+      [[ $WAIT -eq 0 ]] && flags+=("--no-wait")
+    fi
+    "$MAIN/scripts/land_pr.sh" "$n" ${flags[@]+"${flags[@]}"} || {
+      batch_stopped "$n"
+      exit 1
+    }
+  done
+  exit 0
+fi
+PR="${PRS[0]}"
 LOG="${TMPDIR:-/tmp}/land-pr-$PR-$(date +%Y%m%d-%H%M%S).log"
 
 step() { echo "$(date -u +%H:%M:%SZ)  $*"; }
@@ -149,6 +211,12 @@ step "7/8 promote_course.sh --await ${sha:0:7}"
 "$MAIN/scripts/promote_course.sh" --await "$sha" >>"$LOG" 2>&1 ||
   stop "promote_course.sh refused: $(tail -n 1 "$LOG")"
 step "    $(tail -n 1 "$LOG")"
+
+if [[ $WAIT -eq 0 ]]; then
+  step "done: PR #$PR landed as ${sha:0:7} and promoted; the student-path run was not waited for."
+  echo "Check it with:  gh run list --repo $REPO --workflow student_path.yml --branch course --commit $sha"
+  exit 0
+fi
 
 # The push to course starts this run. Polled every 30 seconds for up to 60 minutes; a failed
 # call is "not yet", except an authentication failure, which stops at once.
