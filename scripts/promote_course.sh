@@ -140,6 +140,13 @@ if [ -n "$pending" ] || [ -n "$failed" ]; then
     for run in $(tr ' ' '\n' <<<"$stranded_runs" | sort -u); do
       echo "Re-run the stranded jobs with:  gh run rerun $run --failed" >&2
     done
+    # A push to main cancels the run on the commit before it, so an older commit of main may
+    # have no finished run. Its successor holds it, and is the one to promote.
+    if grep -q '^completed cancelled .* workflow tests_and_build' <<<"$failed" &&
+        [ "$target" != "$(git rev-parse origin/main)" ]; then
+      echo "A later push to main superseded this run. Promote main's head instead:" >&2
+      echo "  scripts/promote_course.sh --await" >&2
+    fi
   fi
   exit 1
 fi
