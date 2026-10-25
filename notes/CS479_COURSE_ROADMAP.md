@@ -512,7 +512,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download, exercises |
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab, exercises |
 | `lecture-14-multilingual` | 14 | homework | A14 | NLLB-200 fine-tuned both ways on A9's split, against NLLB off the shelf and the student's own one-way models | no: colab, exercises |
-| `09-fine-tuning-nllb` | 14 | reading | | fine-tuning NLLB-200 on the student's A8 split, against NLLB off the shelf and A9 trained from scratch; a borrowed language code where NLLB does not cover the language | no: colab, download, exercises |
+| `09-fine-tuning-nllb` | 14 | reading | A14 | fine-tuning NLLB-200 on the student's A8 split, against NLLB off the shelf and A9 trained from scratch; a borrowed language code where NLLB does not cover the language | no: colab, download, exercises |
 
 **Tutorial numbers** are in course order: 01 data, 02 evaluating, 03 checkpoints, 04 attention,
 05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search.
@@ -973,10 +973,10 @@ Notes on the rows that are not simple:
   empty. NLLB is scored off the shelf and after fine-tuning, greedy and beam 5, BLEU and
   chrF, beside the student's A9 test-a9.hyp when present; training uses AdamW, gradient
   accumulation, bfloat16 autocast where the GPU has it, and a TrainingCheckpointer on
-  Drive (resumes; keeps the best by validation loss). Leads to the Final Project, which
-  has no assignment id, so leads_to is empty. Needs a GPU with more memory than a T4, and
-  Drive, so CI does not execute it; tests/test_tutorial_09.py runs its cells with NLLB
-  stubbed.
+  Drive (resumes; keeps the best by validation loss). It is the reading for A14, which
+  fine-tunes NLLB both ways with the library's fine_tune, and the start of most Final
+  Projects. Needs a GPU with more memory than a T4, and Drive, so CI does not execute it;
+  tests/test_tutorial_09.py runs its cells with NLLB stubbed.
 - [6] **`lecture-04-regex-refresher`** — A twenty-minute tour of Python regular
   expressions, which the sixteen cleaning steps are written in, ending with re.sub for
   collapsing whitespace and stripping tags. Lecture 4's deck links it and Learning Suite
