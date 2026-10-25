@@ -6,5 +6,6 @@ shortcut. That code lives here, outside the ``torchlingo`` package, so the libra
 ``import torchlingo`` never loads it, and nothing in ``torchlingo`` depends on it.
 
 Modules:
-    nllb: Meta's NLLB-200, decoded the ways TorchLingo decodes, for A12 and A13.
+    nllb: Meta's NLLB-200, decoded the ways TorchLingo decodes, for A12 and A13, and
+        fine-tuned on a student's pairs, both directions at once, for A14.
 """

@@ -20,7 +20,7 @@ Where each assignment stands against it:
 | A11 | `comet_inputs` again; `pairwise_agreement`; a prediction | a known case; your files' alignment |
 | A12 | `split_pool_and_test`, `build_prompt` (with the sentence before); two predictions | known cases; `check_contamination` on the split |
 | A13 | `reverse`, `combine`; a prediction | known cases; `check_contamination` on both held-out sets |
-| A14 | `tag`, `both_directions`; a hypothesis and a prediction | a known case; intermingling on the real split; `check_contamination` in both languages |
+| A14 | the language's code (a reasoned borrow if NLLB lacks it); `tag`, `both_directions`; a hypothesis, a prediction and a step budget; a third language for zero-shot | a known case; intermingling on the real split; `check_contamination` in both languages; codes checked against NLLB's list |
 
 **The one place still open: the A8 kickoff does the part the assignment says is the student's.**
 The A8 slide on AI use says *yours: the splitting, the verification, the training decisions, and

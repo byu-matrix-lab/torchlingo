@@ -6,6 +6,14 @@ place, with who made it.
 - **Oct 25.** One task list for course work (Eric): `torchlingo-private/notes/course/TASKS.md`,
   shared by both sessions, with the course side's log and next-offering notes beside it. The
   public `notes/TASKS.md` keeps library and notebook engineering.
+- **Oct 25.** A14 is rebuilt on fine-tuning NLLB-200, both directions in one run (Eric: go, with
+  one Colab run before A14 opens Nov 4). Two short real runs here made the case: German 25.8 to
+  32.4 BLEU, and Efik, borrowing Igbo's code, 3.6 to 18.5, after 300 steps each. A14 keeps its
+  three outcomes, with NLLB's language codes as the tags, and adds a fourth, what fine-tuning
+  buys over the model off the shelf and over A9 trained from scratch; COMET is in. Tutorial 9,
+  fine-tuning one direction step by step, is its reading. Eric's frame for the notebooks: not a
+  deep-learning class but an application of deep learning, so students are told the ingredients
+  while their decisions and code stay on the translation problem.
 - **Oct 24.** A12 gains a fourth outcome, context for disambiguation beside in-context learning
   (Eric: "both in-context learning and (separately) contextual disambiguation"). The Lecture 12
   notebook's new Step 6 gives the model the sentence before each test sentence, with its
