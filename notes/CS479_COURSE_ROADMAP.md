@@ -1061,13 +1061,14 @@ Notes on the rows that are not simple:
   model, seeds, decoding and versions. Step 6 then adds context of the other kind: after a
   second prediction, the 5 examples of draw 1 plus the sentence before each test sentence
   (the line above it in the files, with its translation; build_prompt's before argument,
-  checked in Step 2) against a placebo (draw 1's sixth example in the same slot, same
-  label), written with every pronoun-bearing test sentence marked to before-5.tsv. The
-  write-up asks whether a difference between sizes exceeds the spread, nearest against
-  random, LLM against NLLB, whether the sentence before beat the placebo by more than the
-  spread, and whether it settled a pronoun or term in two of the student's own test
-  sentences; the completed notebook is uploaded with it. Needs a GPU and Drive, so CI does
-  not execute it; tests/test_lecture_12.py runs its cells with both models stubbed.
+  checked in Step 2) against a placebo (a different pool pair for each sentence, the next
+  in draw 1's order after its five, in the same slot, same label), written with every
+  pronoun-bearing test sentence marked to before-5.tsv. The write-up asks whether a
+  difference between sizes exceeds the spread, nearest against random, LLM against NLLB,
+  whether the sentence before beat the placebo by more than the spread, and whether it
+  settled a pronoun or term in two of the student's own test sentences; the completed
+  notebook is uploaded with it. Needs a GPU and Drive, so CI does not execute it;
+  tests/test_lecture_12.py runs its cells with both models stubbed.
 - [17] **`lecture-13-back-translation`** — Assignment 13 end to end, as a small Path A,
   starting from what Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/,
   test-a9.hyp, and A9's training checkpoint, from which every training takes its epoch
