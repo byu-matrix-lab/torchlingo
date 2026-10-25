@@ -1,7 +1,12 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-10-22. Numbered for reference in conversation.
+Opened 2026-08-22, last updated 2026-10-25. Numbered for reference in conversation.
 Completed work is removed rather than marked done — git history is the record.
+
+**This list is library and notebook engineering.** Course work (decks, Learning Suite, the
+assignment pages, and anything waiting on Cowork or Eric for a course decision) is in the one
+list both sessions share, `torchlingo-private/notes/course/TASKS.md` (Eric, 2026-10-25). Task
+numbers are kept across the two, so a number names the same task in either file.
 
 **Numbers here are task numbers, and they collide with pull request numbers.**
 The two ranges have grown up together, so almost every number names one of each. Say
@@ -67,6 +72,20 @@ run found the two-directions path works with A9's pieces. All three landed the s
 admin merge (Eric's OK) and were promoted together. Task #271 moves to the next offering;
 Task #278 filed.
 
+**2026-10-24 and 25: the baton came back with A12's sentence before, and a fine-tuning
+tutorial.** A12 gains a fourth outcome, context for disambiguation: Cowork's Step 6 in the
+Lecture 12 notebook, reviewed here, landed and on `course` before A12 opens (PR #339). The
+roadmap took the Final Project's seven parts and the late-semester shift (PR #340). Landing got
+faster: a push to `main` cancels the run it supersedes, and `land_pr.sh` lands several PRs with
+one promotion (PR #338). Tasks #160, #120 and #253 moved to the course list. A12's placebo is
+drawn per sentence, its chart survives tied draws, and it ran end to end on Efik (PR #341).
+Tutorial 9, fine-tuning NLLB, landed (PR #342), with Adafactor after AdamW's checkpoints
+measured 6.9 GB each. Eric chose **go** on rebuilding A14 on it, with one Colab run first:
+A14 is rebuilt both ways with COMET (PR #343), on `torchlingo_harness.nllb.fine_tune`. Filed:
+Task #279 (that Colab run), and Tasks #281 to #294 from a two-lens review of every notebook
+(Eric's request): code that belongs in the library, and where students decide. The P1 to P3
+criteria were rewritten with Eric and every row re-ranked.
+
 Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
 from this side, and Tasks #254 to #256 from the session's repeated manual steps.
 
@@ -130,30 +149,56 @@ lecture at all", and those are opposite answers to the question the column asks.
 generated map that has drifted, a gate that reports without blocking, or a task list that
 describes last week will mislead every lecture at once rather than one of them.
 
-**P1 to P3 rank the work; the table is sorted by it** (Eric, 2026-10-05). **P1**: students are
-blocked now, or a lecture or due date within about three weeks needs it. **P2**: matters this
-term, or guards `main` and the students' path, but nothing near is waiting on it. **P3**:
-library-only, a lecture that has already run, or after the term. Re-rank when the calendar
-moves; "Critical for" says *which* lecture, P says *how soon*.
+**P1 to P3 rank the work; the table is sorted by it** (criteria Eric approved Oct 25, replacing
+those of Oct 5):
+
+- **P1: a student meets it within about three weeks.** Something students run or are graded on
+  in that window is broken, missing, or unverified on the path they will actually take; or a
+  dated promise to Eric or Cowork falls inside the window.
+- **P2: it makes this term's assignment notebooks load-bearing and correct, or guards what
+  students are served.** A lesson an assignment leaves to a tutorial; a decision, prediction or
+  interpretation missing from a coming assignment; a standing rule that shipped code breaks;
+  protection for `main` and `course`; or something Eric asked for, with no date.
+- **P3: everything else.** Library refactors that change nothing students see this term,
+  tutorials (students treat them as optional, even when required: Eric, Oct 25), lectures that
+  have already run, the next offering, and housekeeping.
+
+Within a level, the earlier date comes first. A tutorial-only task is P3 unless it breaks a
+standing rule. Re-rank when the calendar moves; "Critical for" says *which* lecture, P says *how
+soon*. Re-ranked Oct 25: Tasks #272, #169, #171 and #82 went from P2 to P3, and Task #280, the
+two-lens review of every notebook, became Tasks #281 to #294.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #272 | **P2** | Batch beam search across sentences, not only across beams | **L13** | Open — `inference_fast.beam_search_decode` decodes one sentence at a time: measured Oct 21 at A9's size (d512, 6+6 layers, vocabulary 8,000, Apple GPU, an untrained model running the full 40 tokens), 372 ms a sentence against greedy's 7.3, so beam back-translation of 100,000 sentences is about 10 hours. A13 back-translates by sampling only (Eric, Oct 22). Output must stay token-identical (`tests/test_decoding_equivalence.py`) |
+| #279 | **P1** | One Colab L4 run of the rebuilt A14 before it opens | **14+** | Open — Eric's condition for the go (Oct 25): Eric or Coulson runs `lecture-14-multilingual` once on an L4 on a real A8 language, before Wed Nov 4. Nothing has run on Colab yet: the bfloat16 path, L4 memory, the download and the real step time are unmeasured (this Mac's GPU, float32: about 3 to 7 s a step). Fix whatever it finds, then the Colab install-only check |
+| #281 | **P2** | No assignment notebook leaves a lesson to a tutorial | **L13** | Open — Eric, Oct 25: students treat tutorials as optional, so the assignment notebooks are load-bearing. For each, list what it relies on that only a tutorial teaches, and bring the essential part inline, the tutorial linked for depth. A13 first (opens Oct 30), then A14 (Nov 4) |
+| #284 | **P2** | A13 and A14 ask which differences are real | **L13** | Open — after the bootstrap tables, the student says for each comparison whether it is real, checked against the saved *p* with "you said ...; p = ...". From the review |
+| #285 | **P2** | A13's markdown names the training ingredients it uses | **L13** | Open — gradient clipping, dropout, the learning rate: Eric's frame, an application of deep learning, its ingredients named. Lectures already run are Task #292 |
+| #282 | **P2** | Tutorial 9 and A14 must not look alike | **14+** | Open — they share the code table, the borrowing check and the off-the-shelf baseline. A14 keeps them, being the assignment; Tutorial 9 gets a purpose no assignment has, proposed to Eric first, and the shared helpers move into `torchlingo_harness` |
+| #283 | **P2** | Tutorials 4, 6, 7 and 8 train without a `TrainingCheckpointer` | **hyg** | Open — the standing rule in `CLAUDE.md`, broken in shipped code: one `train_model` call in tutorials 4, 7 and 8, four in tutorial 6 |
+| #286 | **P2** | Record Eric's two notebook principles in `CLAUDE.md` | **hyg** | Open — tutorials are optional to students, so assignments are load-bearing; and an application of deep learning, its ingredients named and explained, the student's decisions and code on translation (Eric, Oct 25) |
 | #273 | **P2** | Run the install-only student check on the notebooks a PR changes, before it merges | **hyg** | Open — PR #329's COMET cell read a setup-cell helper, harmless to a student running from the top, and `student_path.sh --colab --install-only` caught it only after promotion, on `course` 6405a02 (fixed in PR #331). Extend `merge_check.sh` or `land_pr.sh` to run it on each changed notebook with an install cell (about 35 s each; needs uv), not a new tool |
-| #169 | **P2** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Open** — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: an LLM helper, once a second notebook prompts an LLM (Eric, Oct 19: later lectures "almost certainly" will, to be confirmed against the roadmap; an open question there). A12's loader stays in its notebook's `# Setup:` cell: it reads exactly two named files, and serves one notebook (Eric, Oct 19) |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
-| #160 | **P2** | An NLLB spotlight lecture — data, architecture **and** curriculum | **L13** | **Cowork designs it** (Eric, Sep 27), home at Lecture 13 or 14; our part is verifying the paper's numbers |
-| #171 | **P2** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
-| #82 | **P2** | Add an on-target language check to `torchlingo.diagnostics` | **14+** | Open |
 | #243 | **P2** | An architectural review of TorchLingo, pedagogy first | **lib** | Open — a review, reported before any change (Eric, Oct 14) |
+| #287 | **P3** | `load_model` takes a configuration for checkpoints saved before Oct 14 | **lib** | Open — it raises `ValueError` on files that do not record the model's settings (before PR #280), which covers most students' A8 and A9 models, so A8 to A14 rebuild models by hand. With a fallback, the notebooks can call it, next offering |
+| #288 | **P3** | One COMET helper in `torchlingo.evaluation` | **lib** | Open — the install block is in A10, A11, A13 and A14, the scoring loop in A10, A11 and A14; A13 uses COMET's command line. Keep the student's own `comet_inputs` where that is the lesson. COMET's install pins `transformers` below 5 |
+| #289 | **P3** | `paired_bootstrap` and a score table in `torchlingo.evaluation` | **lib** | Open — near-identical in A13 and A14, the identical-output *p* = 1 fix included; Final Projects will want it |
+| #290 | **P3** | Notes and rerun-record helpers in `torchlingo.colab` | **lib** | Open — `load_notes` and `save_note` in A13 and A14; the rerun record in A12, A13, A14 and Tutorial 9, with library versions added by hand each time |
+| #291 | **P3** | NLLB plumbing through the accessory | **lib** | Open — A12's cell 20 reloads NLLB and decodes greedily by hand where `load_nllb` does it; Tutorial 9's cell 14 resumes decodes by hand where `translate_lines_to_file` does it |
+| #292 | **P3** | Decisions and named ingredients in the lectures already run | **L5** | Open — stopping cells: Lecture 5 (predict *c*), A8 (predict the duplicate share, then print the most repeated), A9's Part B (the choice its markdown promises), A11 (will COMET confirm A9's BLEU verdict?); name gradient clipping, dropout and the learning rate in Lectures 7, 8a and 9; and Lecture 8c's student code is tensor plumbing, where a `which_head` exercise would be about translation. Next offering |
+| #293 | **P3** | Should tutorials 1 to 8 have stopping cells? | **hyg** | Open — none has a prediction, decision or TODO. Eric decides; candidates from the review: tutorial 1's ids, tutorial 2's ship decision, tutorial 3's rebuild prediction, tutorial 4's alignment accuracy, tutorial 6's which check catches the broken corpus |
+| #294 | **P3** | Small duplications across notebooks | **lib** | Open — the tiny phrase model in Lecture 7 and tutorials 3 and 8; attention capture written twice (8b by wrapping, 8c with hooks); a `read_lines` in five notebooks; tutorial 7 rebuilds a model by hand where `load_model` works; tutorial 6 repeats one `train_model` call four times |
+| #272 | **P3** | Batch beam search across sentences, not only across beams | **lib** | Open — `inference_fast.beam_search_decode` decodes one sentence at a time: measured Oct 21 at A9's size (d512, 6+6 layers, vocabulary 8,000, Apple GPU, an untrained model running the full 40 tokens), 372 ms a sentence against greedy's 7.3, so beam back-translation of 100,000 sentences is about 10 hours. A13 back-translates by sampling only (Eric, Oct 22), so no student waits on it. Output must stay token-identical (`tests/test_decoding_equivalence.py`) |
+| #169 | **P3** | Wrap the plumbing, keep the lesson inline, in every notebook | **hyg** | **Open** — 0.2.8's `course_dir`, `load_model` and the `translate_to_file` decodes moved A9, A11, A12, A13, 8a, 8b, 8c, Lecture 7 and tutorial 5; left: an LLM helper, once a second notebook prompts an LLM (Eric, Oct 19: later lectures "almost certainly" will, to be confirmed against the roadmap; an open question there). A12's loader stays in its notebook's `# Setup:` cell: it reads exactly two named files, and serves one notebook (Eric, Oct 19). Tasks #287 to #291 are its next pieces |
+| #171 | **P3** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
+| #82 | **P3** | Add an on-target language check to `torchlingo.diagnostics` | **lib** | Open |
 | #271 | **P3** | An A15 notebook: speech to speech around the student's own MT | **L15** | **Next offering.** A15 is dropped this term, folded into the Final Project as a Path B example; its page is kept for next year (Eric, Oct 22). The arc plan's A15: the student's best of A8, A9 or A13 in the middle, Whisper for speech recognition and MMS for synthesis where Azure falls short, word error rate on the 10 sentences, and one sentence traced through all three stages |
 | #278 | **P3** | `train_model` accepts `device` as a string | **lib** | Open — `train_model(device="cpu")` raises `AttributeError` at `device.type` (`training.py`); every notebook passes a `torch.device`, so no student meets it. Found Oct 22 in Task #123's toy run |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
 | #49 | **P3** | The shipped checkpoint predates the enlarged corpus | **L8b** | Open — `train_pairs` 64,311 against a corpus of 86,430 |
-| #120 | **P3** | The grader now has a source repository | **L4/L5** | **Blocked on Eric** — the repo is private and unlicensed; then point the Lecture 4 and 5 decks at it |
 | #129 | **P3** | Extract a shared `~/Projects/hpc` | **lib** | Open — after #128 gives a second implementation to diff |
 | #101 | **P3** | Give the tutorials stable unique names | **hyg** | Open — **a semester boundary**, not mid-course |
 | #108 | **P3** | Nothing releases the device allocator's cache | **lib** | Open — **demoted**: length, not cache, is the driver |
@@ -182,7 +227,6 @@ moves; "Critical for" says *which* lecture, P says *how soon*.
 | #249 | **P3** | Roadmap gap: what to do when training goes wrong | **lib** | Open — `concepts/training.md` has the loop, not batch size against learning rate or overfitting on a small corpus |
 | #250 | **P3** | Roadmap gap: model size against latency | **lib** | Open — what a student meets when a Colab session is slow |
 | #251 | **P3** | Roadmap gap: teach the training-budget episode | **lib** | Open — "which lever are you pulling?", from `reports/training-budget.md` |
-| #253 | **P3** | Lecture 19: IBM Model 1 by hand, set against 8a's attention alignment | **L19** | **After Cowork rescopes Lecture 19** (Mon Nov 30); a roadmap open question, held until Lectures 11 to 13 are done |
 
 ## The CS 479 pivot
 
@@ -367,26 +411,6 @@ hygiene checks. **Done when** that check exists, with tests that fail on tutoria
 before PR #184 and tutorial 2 as it was before PR #192, and it passes on every notebook as they
 are now.
 
-### #160 An NLLB spotlight lecture — data, architecture **and** curriculum
-
-Eric, 2026-09-27: "NLLB is generally state of the art and deserves this level of attention." The
-course currently treats NLLB as a data story. His point is that data is one leg of three, and the
-architectural and training-curriculum decisions are the ones students never hear.
-
-The three-act shape, handed to Cowork in the 2026-09-27 outgoing entry: **data** (LASER3 bitext
-mining, back-translation, FLORES-200 as the benchmark that made 200-language comparison possible,
-and the quality and toxicity filtering), **architecture** (sparsely gated mixture-of-experts, the
-regularization that stops low-resource pairs being swamped, and the fact that the runnable dense
-models are *distillations* of the big sparse one), and **curriculum** (pairs introduced on a
-schedule rather than all at once, with high- and low-resource balance managed deliberately).
-
-Slots naturally at Lecture 13 or 14 — it is the worked example both currently lack.
-
-**Our half, and the only part that is ours:** the structure above is from memory of the 2022
-paper, not a fresh read. Expert counts, parameter counts, the exact regularization name and the
-curriculum schedule all need verifying against the paper before they reach a slide. Offered to
-Cowork; do it when they ask, and do not let the remembered figures propagate first.
-
 ### #22 `examples/` and `scripts/` are outside the lint gate
 
 CI runs `ruff check src tests` and `ruff format --check src tests`. Both other source trees are
@@ -456,43 +480,6 @@ student meets.
   alignment slide and Lecture 5's corpus slide. **A retrain must be announced in a hand-off** so
   the slides follow, and must keep writing `trained_minutes` and `train_pairs`.
 
-### #120 The grader now has a source repository
-
-**Resolved 2026-09-26, and it went the good way.** Eric supplied the source:
-**<https://github.com/byu-matrix-lab/data-cleaning-pipeline-grader>**, in the lab's own
-organisation.
-
-That retires the finding Cowork raised the same day. Their trace had found only four
-PyInstaller binaries and an `Instructions.md` in a personal OneDrive — 27 MB Windows, 25 MB
-Intel Mac, 105 MB M-series, **301 MB Linux**, the Windows and M-series builds dating from
-September 2023, with no license, no version, and nothing matching in `byu-matrix-lab`. The
-conclusion drawn from that, that the course would lose the tool whenever the account was
-reclaimed, no longer holds.
-
-**Inspected 2026-09-26, and it is in better shape than the binaries suggested.** One
-`grader.py` of 16 KB plus a README — no build, no PyInstaller, nothing to sign. The README
-documents usage: `python3 grader.py source target output`, with a fourth argument `False`
-for non-UTF-8 input. Running from source **deletes the download-and-override-Gatekeeper step
-entirely**, on all three platforms, which was the part that actually bit students.
-
-**Two blockers, both Eric's, before the decks can point at it:**
-
-1. **It is `PRIVATE`.** Twenty-four students cannot clone a private repository in the lab org.
-2. **It has no license** — `licenseInfo` is null, so strictly nobody has been granted the
-   right to use or redistribute it. That is also what made the OneDrive arrangement fragile.
-   A permissive license additionally settles whether TorchLingo could ever absorb the checks.
-
-**Then, in order:** verify it runs on a student-shaped input (ours, small), then Cowork
-updates the Lecture 4 and 5 decks to clone it rather than download binaries.
-
-**One caveat:** last pushed **2024-09-17**, so it predates the current assignments. Worth
-checking its checks still match what Lectures 4 and 5 ask for before a deck points at it.
-
-**Dropped:** the diagnostics-rewrite contingency. It was only ever justified by the source
-being gone. `torchlingo.diagnostics` already does the alignment and contamination halves, so
-convergence is now a design question rather than a rescue, and should not be decided under
-deadline.
-
 ## What the rest of the roadmap needs from this side
 
 Filed 2026-10-17 from a pass over `notes/CS479_COURSE_ROADMAP.md` for what it asks of the
@@ -549,16 +536,6 @@ training longer helped and more data did not, and the first attempt to answer it
 way only a control run caught (`notes/reports/training-budget.md`). The roadmap says the episode
 is worth teaching directly. **Done when** a docs page (or a section of `concepts/training.md`,
 beside #249) tells it to students, with the report's numbers included from its JSON, not typed.
-
-### #253 Lecture 19: IBM Model 1 by hand, set against 8a's attention alignment
-
-Lecture 19's outcome: "Work IBM Model 1 by hand on a toy pair; explain EM; relate statistical
-alignment to the attention alignment of 8a." The roadmap says the lecture needs rescoping around
-material now in Lecture 5, and has no notebook. A notebook could run EM on a toy corpus and set
-its alignment beside the attention alignment tutorial 4 measures, which is the link the outcome
-names and nothing else in the course makes. **After Cowork rescopes Lecture 19** (a roadmap
-open question, held until Lectures 11 to 13 are done); Mon Nov 30. **Done when** Cowork has said whether the lecture wants it, and if so it is
-built to the course-notebook rules.
 
 ## Code — decoding performance
 
