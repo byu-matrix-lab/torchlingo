@@ -17,7 +17,7 @@ Each Final Project requirement is met at least once in an assignment first. Fall
 |---|---|
 | A held-out test with an overlap check | A8, A9, A14 |
 | BLEU or chrF plus COMET | A6, A10, A11, A13 |
-| One change against a named baseline (Path A) | A9, A12, A13, A14 |
+| One change against a named baseline (Path A) | A9, A12, A13, A14; the page's Path A example grows A14 to more languages |
 | A hypothesis and a prediction before any score | A9 to A14 |
 | Is the difference real (paired bootstrap) | A13, A14 |
 | Where it helped and where it hurt | A13 (A9 next offering) |
@@ -26,5 +26,5 @@ Each Final Project requirement is met at least once in an assignment first. Fall
 | At least 3 raters, and their agreement | A6 (one rater); first met in the project itself |
 | An application for an audience (Path B) | the speech-pipeline example on the Final Project page |
 
-The gaps (raters, Path B) are where the project asks for something new; `Next Offering Notes`
-in the course folder carries the fixes.
+The gaps (raters, Path B) are where the project asks for something new;
+`torchlingo-private/notes/course/NEXT-OFFERING.md` carries the fixes.

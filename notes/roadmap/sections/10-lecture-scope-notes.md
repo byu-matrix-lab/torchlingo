@@ -109,7 +109,7 @@ Evaluation against estimation, QE features and shared tasks, COMET and COMET-QE 
 score; and the decoding block: greedy, beam search with a worked example, and why a comparison
 must pin decoding. Taught Oct 14 from the `_v2` rebuild; Eric judged it text-heavy, out of order
 and repetitive, and a redo for next year is planned around seven themes (decisions log, Oct 14;
-the plan is `Roadmap/Lecture 10 Redo Plan_v1.md` in the course folder).
+the plan is `Working Notes/Lecture 10 Redo Plan_v1.md` in the course folder).
 **Notebooks:** `lecture-10-comet-install` (homework, A10): the student writes `comet_inputs`,
 predicts, and scores two systems with and without a reference. `08-inference-and-beamsearch`
 (reading): greedy and beam search written out, and why a comparison holds decoding fixed.
@@ -164,7 +164,10 @@ Church data suits it. The notebook replaces its handout, "MNMT Guide Using OpenN
 the tagging and the intermingling; the training on twice A9's pairs and the scoring run for them.
 **Sets:** A14: a bidirectional English and X system from A9, directions intermingled, separate
 test sets per direction, each direction compared with its one-way model on BLEU and chrF,
-decoded greedily and with beam, with the paired bootstrap.
+decoded greedily and with beam, with the paired bootstrap. The Final Project page's Path A
+example grows it (Eric, Oct 24): one multilingual model over English, the student's language
+and two or three others from the Church data, against the one-way A9 model, with a zero-shot
+comparison between two of the others.
 
 ### 15. Overview of Speech-to-Speech MT (F2025, 33 slides)
 Spoken language translation, cascade against end-to-end, Whisper, speech data for projects.
@@ -183,7 +186,7 @@ Whether visual context helps, video-guided MT, VaTeX and MAD, ablations, project
 Interactive translation, CAT tools, post-editing and normalized edit distance, adaptive MT and
 whether LLMs can do it. In-class activity.
 
-### 19 and 20, merged. Word Alignment, and Previous MT Paradigms (F2025, 39 and 44 slides; Mon Nov 30)
+### 19 and 20, merged. Word Alignment, and Previous MT Paradigms (F2025, 39 and 44 slides; Wed Dec 2)
 The IBM models worked through, then the Vauquois triangle, RBMT, EBMT and phrase-based SMT,
 which word alignment was built for. One deck of about 30 slides at the rebuild; the Och and Ney
 reading report belongs here.

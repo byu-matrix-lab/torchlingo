@@ -31,36 +31,36 @@ against its notebook once that lands. A13's was rewritten against its notebook o
 
 | # | Date | Lecture | Assignment due that day | Deck |
 |---|---|---|---|---|
-| 1 | Wed Sep 2 | Course Overview and History of MT | **A1** read the syllabus; MT history | F2026 |
-| 2 | Wed Sep 9 | Translation Challenges for MT | **A2** rank translation challenges for your language | F2026 |
-| 3 | Mon Sep 14 | Introduction to Word Embeddings | **A3** multilingual embedding space | F2026 |
+| 1 | Wed Sep 2 | Course Overview and History of MT | **A1** MT Topics and History | F2026 |
+| 2 | Wed Sep 9 | Translation Challenges for MT | **A2** Translation Challenges | F2026 |
+| 3 | Mon Sep 14 | Introduction to Word Embeddings | **A3** Word Embeddings | F2026 |
 | 4 | Wed Sep 16 | Data Preparation for MT Training | | F2026 |
-| 5 | Mon Sep 21 | Data Preparation for MT Training, Part 2 | **A4** initial cleaning steps | F2026 |
-| 6 | Wed Sep 23 | Automatic and Human MT Evaluation | **A5** complete cleaning pipeline | F2026 |
-| 7 | Mon Sep 28 | Research Paper Reviews; Intro to Neural Networks | **A6** human vs. automatic evaluation | F2026 |
-| 8a | Wed Sep 30 | Neural MT: Encoder-Decoder, and Why Attention Was Invented | **A7** toy-model report | F2026 |
+| 5 | Mon Sep 21 | Data Preparation for MT Training, Part 2 | **A4** Data Cleaning, First Steps | F2026 |
+| 6 | Wed Sep 23 | Automatic and Human MT Evaluation | **A5** Data Cleaning Pipeline | F2026 |
+| 7 | Mon Sep 28 | Research Paper Reviews; Intro to Neural Networks | **A6** Human vs. Automatic Evaluation | F2026 |
+| 8a | Wed Sep 30 | Neural MT: Encoder-Decoder, and Why Attention Was Invented | **A7** A Toy Model in TorchLingo | F2026 |
 | 8b | Mon Oct 5 | Neural MT: The Transformer | | F2026 |
-| 8c | Wed Oct 7 | Finishing the Transformer, the A8 Debrief, and the Subword Activity | **A8** create and run an NMT model | F2026 |
+| 8c | Wed Oct 7 | Finishing the Transformer, the A8 Debrief, and the Subword Activity | **A8** NMT on Your Data | F2026 |
 | 9 | Mon Oct 12 | Handling Morphology and Terminology in NMT | | F2026 |
-| 10 | Wed Oct 14 | Overview of MT Quality Estimation | **A9** SentencePiece | F2026 rebuilt; redo planned |
-| — | Mon Oct 19 | Review Day (Lecture 11 moved to Oct 21 and taught live; Eric, Oct 21) | **A10** install COMET | |
+| 10 | Wed Oct 14 | Overview of MT Quality Estimation | **A9** Subwords with SentencePiece | F2026 rebuilt; redo planned |
+| — | Mon Oct 19 | Review Day (Lecture 11 moved to Oct 21 and taught live; Eric, Oct 21) | **A10** COMET Setup and QE Reading | |
 | 11 | Wed Oct 21 | LLM Judges, Sentences and Spans | | F2026 rebuilt (taught live) |
-| 12 | Mon Oct 26 | Using LLMs for MT; Expanding Context Awareness | **A11** run COMET on the A6 sentences | F2026 draft |
-| 13 | Wed Oct 28 | Strategies for NMT of Low-Resource Languages | **A12** context and LRL translation (due Fri Oct 30, 11:59 pm) | F2025 |
+| 12 | Mon Oct 26 | Using LLMs for MT; Expanding Context Awareness | **A11** Evaluating with COMET | F2026 draft |
+| 13 | Wed Oct 28 | Strategies for NMT of Low-Resource Languages | **A12** Context in LLM Translation (due Fri Oct 30, 11:59 pm) | F2025 |
 | 14 | Mon Nov 2 | Multilingual NMT and "Zero-shot" NMT | | F2025 |
-| 15, 16 | Wed Nov 4 | Overview of Speech-to-Speech MT; Automatic Dubbing and Interpretation | **A13** back-translated data (due 11:59 pm) | F2025, merged at rebuild |
-| — | Mon Nov 9 | Proposal week: outline reviews with the professor (Eric and Coulson, Sep 30) | **A14** bidirectional MNMT (due Tue Nov 10, 11:59 pm) · **Final Project Proposal**, at 10:00 am, the outline-review day | |
-| — | Wed Nov 11 | (proposal week) proposal presentations | | |
+| 15, 16 | Wed Nov 4 | Overview of Speech-to-Speech MT; Automatic Dubbing and Interpretation | **A13** Back-Translation (due 11:59 pm) | F2025, merged at rebuild |
+| — | Mon Nov 9 | Proposal week: outline reviews with the professor (Eric and Coulson, Sep 30) | **A14** Multilingual NMT, Both Directions (due Tue Nov 10, 11:59 pm) · **Final Project 1** proposal outline review (5), by appointment | |
+| — | Wed Nov 11 | (proposal week) proposal presentations | **Final Project 2** proposal (20), at 10:00 am, the first presentation day | |
 | — | Mon Nov 16 | (proposal week) proposal presentations | | |
 | 17 | Wed Nov 18 | Multimodal NMT | | F2025 |
-| 18 | Mon Nov 23 | HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation | | F2025 |
+| — | Mon Nov 23 | Project checkpoint reviews with the instructor, by appointment; no class meets (Eric, Oct 23) | **Final Project 3** checkpoint review (5), by appointment | |
 | — | Wed Nov 25 | **No class**, Thanksgiving Eve | | |
-| 19, 20 | Mon Nov 30 | Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT, PBSMT, SBSMT | | F2025, merged at rebuild |
-| — | Wed Dec 2 | Project checkpoint reviews with instructor | | |
+| 18 | Mon Nov 30 | HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation | | F2025 |
+| 19, 20 | Wed Dec 2 | Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT, PBSMT, SBSMT | | F2025, merged at rebuild |
 | 21 | Mon Dec 7 | Writing Research Articles; MATRIX Lab research | | F2025 |
 | 22, 23 | Wed Dec 9 | MT Applications and Jobs; Opportunities for Further MT Research | **Paper review assignment** | F2025 |
-| — | Thu Dec 10 | Last day of class | Final project **submission and write-up**, all work by 11:59 pm | |
-| — | Wed Dec 16 | Final exam slot, 11:00 to 14:00 | Final project **presentations**, in the final exam slot | |
+| — | Thu Dec 10 | Last day of class | **Final Project 4** written report (40, ACL template), by 11:59 pm · **Final Project 5** submission (35), by 11:59 pm | |
+| — | Wed Dec 16 | Final exam slot, 11:00 to 14:00 | **Final Project 6** presentation (20; 6 minutes, 2 of them for questions) · **Final Project 7** peer feedback (5), a form on every other presentation | |
 
 An assignment appears on the row of the day it is **due**, which is how Learning Suite lists
 it, at 10:00 unless said otherwise (Learning Suite has A7 at 11:59 pm; the deck says 10:00,
@@ -68,15 +68,18 @@ and the two should agree). A7 is new this year: a short report from Lecture 7's 
 exercise. The SLT pipeline was A15, set at Lecture 15; it is dropped this term and folded into
 the Final Project as a Path B example (Eric, Oct 22), so the numbering runs 1 to 14. Lecture 16
 sets nothing. One due between lecture days is listed on the row before, with its day and time.
-Lectures 17 to 20 carry no assignments; the final project has taken over. Lecture quizzes run
-through Lecture 20, and 8a and 8b each have their own, one more than last year.
+Lectures 17 to 20 carry no assignments; the final project has taken over, in seven parts with
+dates of their own (Eric, Oct 23). Mon Nov 23 is checkpoint reviews, with no lecture, so
+Lecture 18 moved to Mon Nov 30 and Lectures 19 and 20 to Wed Dec 2, their quizzes with them.
+Lecture quizzes run through Lecture 20, and 8a and 8b each have their own, one more than last
+year.
 
 **Paper reviews** run alongside: 24 papers on the sign-up sheet (Google Sheet "CS 479 Fall
-2026", tab "Reading Report"), presented Oct 5 through Nov 30 at one or two per session, each
+2026", tab "Reading Report"), presented Oct 5 through Dec 2 at one or two per session, each
 placed next to the lecture its topic belongs with, and the sheet's LECTURE TOPIC ALIGNMENT
 column says which. From Oct 12 on, that column is one lecture off from the schedule (the QE
 papers of Oct 12 land on Lecture 9, COMET on Lecture 10); the unassigned Och and Ney slot on
-Nov 23 belongs on Nov 30, the merged alignment session. Dec 7 and Dec 9 are open slots if a
+Nov 23 belongs on Dec 2, the merged alignment session, since no class meets on Nov 23. Dec 7 and Dec 9 are open slots if a
 student has to move.
 
 ---
@@ -86,7 +89,7 @@ student has to move.
 Lecture 8 is three sessions: 8a on Wed Sep 30, 8b on Mon Oct 5 and 8c on Wed Oct 7. The first
 extra session (Sep 27) was Mon Nov 16, which last year held a report on the TAUS conference, a
 2025 event that does not recur; the second (Oct 7, when 8b's unreached slides and the A8 debrief
-filled the Oct 7 session) comes from merging Lectures 19 and 20 on Mon Nov 30: Lecture 19 had
+filled the Oct 7 session) comes from merging Lectures 19 and 20 (on Wed Dec 2 since Oct 23): Lecture 19 had
 already lost its sentence-alignment half to Lecture 5, and its word-alignment half, the IBM
 models, is the natural opening of the previous-paradigms lecture. Lectures 9 to 18 each sit two
 sessions later than last year's calendar. Lecture *numbers* did not change, so every notebook's
@@ -115,7 +118,7 @@ two.
 Costs accepted knowingly: Lecture 17 sits two weeks after Lecture 16 and after the proposal
 presentations, the least damaging place for a gap since Multimodal NMT is the most
 self-contained lecture in the run; there is no catch-up session if the proposal presentations
-overrun Nov 16; and the merged Nov 30 session has to be built from two 40-slide decks.
+overrun Nov 16; and the merged Dec 2 session has to be built from two 40-slide decks.
 
 ---
 
@@ -368,7 +371,7 @@ Evaluation against estimation, QE features and shared tasks, COMET and COMET-QE 
 score; and the decoding block: greedy, beam search with a worked example, and why a comparison
 must pin decoding. Taught Oct 14 from the `_v2` rebuild; Eric judged it text-heavy, out of order
 and repetitive, and a redo for next year is planned around seven themes (decisions log, Oct 14;
-the plan is `Roadmap/Lecture 10 Redo Plan_v1.md` in the course folder).
+the plan is `Working Notes/Lecture 10 Redo Plan_v1.md` in the course folder).
 **Notebooks:** `lecture-10-comet-install` (homework, A10): the student writes `comet_inputs`,
 predicts, and scores two systems with and without a reference. `08-inference-and-beamsearch`
 (reading): greedy and beam search written out, and why a comparison holds decoding fixed.
@@ -423,7 +426,10 @@ Church data suits it. The notebook replaces its handout, "MNMT Guide Using OpenN
 the tagging and the intermingling; the training on twice A9's pairs and the scoring run for them.
 **Sets:** A14: a bidirectional English and X system from A9, directions intermingled, separate
 test sets per direction, each direction compared with its one-way model on BLEU and chrF,
-decoded greedily and with beam, with the paired bootstrap.
+decoded greedily and with beam, with the paired bootstrap. The Final Project page's Path A
+example grows it (Eric, Oct 24): one multilingual model over English, the student's language
+and two or three others from the Church data, against the one-way A9 model, with a zero-shot
+comparison between two of the others.
 
 ### 15. Overview of Speech-to-Speech MT (F2025, 33 slides)
 Spoken language translation, cascade against end-to-end, Whisper, speech data for projects.
@@ -442,7 +448,7 @@ Whether visual context helps, video-guided MT, VaTeX and MAD, ablations, project
 Interactive translation, CAT tools, post-editing and normalized edit distance, adaptive MT and
 whether LLMs can do it. In-class activity.
 
-### 19 and 20, merged. Word Alignment, and Previous MT Paradigms (F2025, 39 and 44 slides; Mon Nov 30)
+### 19 and 20, merged. Word Alignment, and Previous MT Paradigms (F2025, 39 and 44 slides; Wed Dec 2)
 The IBM models worked through, then the Vauquois triangle, RBMT, EBMT and phrase-based SMT,
 which word alignment was built for. One deck of about 30 slides at the rebuild; the Och and Ney
 reading report belongs here.
@@ -588,8 +594,9 @@ available with `norm_first=True`.
 metadata declaring which lecture it serves and what it starts, and CI that executes every
 notebook it can and tests the rest from their own cells. Students install TorchLingo from the
 `course` branch, which moves only when `main`'s checks have passed. The two sessions exchange files under `notes/handoff/`, one file per
-hand-off; course-side items are tracked in `CS479-TASKS.md`, repository items in the
-repository's `notes/TASKS.md`.
+hand-off. Course work is tracked in one list both sessions share,
+`torchlingo-private/notes/course/TASKS.md` (since Oct 25); library and notebook engineering in
+this repository's `notes/TASKS.md`.
 
 ---
 
@@ -636,10 +643,50 @@ repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 25.** One task list for course work (Eric): `torchlingo-private/notes/course/TASKS.md`,
+  shared by both sessions, with the course side's log and next-offering notes beside it. The
+  public `notes/TASKS.md` keeps library and notebook engineering.
 - **Oct 24.** A12 gains a fourth outcome, context for disambiguation beside in-context learning
   (Eric: "both in-context learning and (separately) contextual disambiguation"). The Lecture 12
   notebook's new Step 6 gives the model the sentence before each test sentence, with its
   translation, against a placebo pair in the same slot; nine questions; A12 is 30 points (Eric).
+  Also Oct 24 (Eric):
+  - **Final Project, Path A example:** the page's Path A takes one from Lecture 14 (Eric: "a
+    great final project idea. path A even"). One multilingual model over English, the student's
+    language and two or three others from the Church data, against the one-way A9 model, with a
+    zero-shot comparison between two of the others.
+  - **Presentations stay in the final exam slot.** Moving them into class would cost Lectures 21
+    to 23 and a week of project time.
+  - **Shorter assignment names** in Learning Suite, numbers unchanged: "Assignment 12 - Context in
+    LLM Translation", "Assignment 14 - Multilingual NMT, Both Directions", and so on.
+  - **A stretch task** on each assignment, about 20% of its points, with AI at Level 2 (Reviewer)
+    for the stretch task only. Live for A12, A13 and the Paper Review; A14's follows the Oct 29
+    decision below.
+  - **A fine-tuning tutorial**, Tutorial 9 on NLLB, to fill the course's largest gap: nothing
+    teaches fine-tuning a pretrained model, which is how most Final Projects will get their
+    results. A14 is rebuilt on it if it is ready by Thu Oct 29 (go or no-go then).
+- **Oct 23.** The Final Project has seven parts, each its own gradebook entry, "Final Project 1"
+  to "Final Project 7" (Eric):
+
+  | Part | Points | When |
+  |---|---|---|
+  | 1. Proposal outline review | 5 | Nov 9 |
+  | 2. Proposal | 20 | Nov 11, 10:00 |
+  | 3. Checkpoint review | 5 | Nov 23 |
+  | 4. Written report | 40 | Dec 10 |
+  | 5. Submission | 35 | Dec 10 |
+  | 6. Presentation | 20 | Dec 16 |
+  | 7. Peer feedback | 5 | Dec 16 |
+
+  - The project itself is 100: parts 3 to 6. Parts 1, 2 and 7 are graded separately.
+  - The proposal moves from Nov 9 to Nov 11.
+  - The written report (was "write-up") uses the ACL template only.
+  - Presentations are at most 6 minutes, 2 of them for questions.
+  - Peer feedback is new: four questions on every other presentation, by name, on a Google Form.
+  - The optional LLM-judge prompts moved to their own page.
+  - The checkpoint reviews take Mon Nov 23, with no lecture. Lecture 18 moves to Nov 30, and
+    Lectures 19 and 20 to Dec 2.
+  - No A14 timing run is needed: "plan for about twice your A9 training" stays (Eric).
 - **Oct 22.** No two assignment windows overlap (Eric). A12 is due Fri Oct 30 (moved for
   breathing room, Eric), A13 Wed Nov 4 and A14 Tue Nov 10, all at 11:59 pm, each opening when
   the one before closes; A14 may overlap the Nov 9 outline review (Eric) and ends before the
@@ -1132,7 +1179,7 @@ Each Final Project requirement is met at least once in an assignment first. Fall
 |---|---|
 | A held-out test with an overlap check | A8, A9, A14 |
 | BLEU or chrF plus COMET | A6, A10, A11, A13 |
-| One change against a named baseline (Path A) | A9, A12, A13, A14 |
+| One change against a named baseline (Path A) | A9, A12, A13, A14; the page's Path A example grows A14 to more languages |
 | A hypothesis and a prediction before any score | A9 to A14 |
 | Is the difference real (paired bootstrap) | A13, A14 |
 | Where it helped and where it hurt | A13 (A9 next offering) |
@@ -1141,8 +1188,8 @@ Each Final Project requirement is met at least once in an assignment first. Fall
 | At least 3 raters, and their agreement | A6 (one rater); first met in the project itself |
 | An application for an audience (Path B) | the speech-pipeline example on the Final Project page |
 
-The gaps (raters, Path B) are where the project asks for something new; `Next Offering Notes`
-in the course folder carries the fixes.
+The gaps (raters, Path B) are where the project asks for something new;
+`torchlingo-private/notes/course/NEXT-OFFERING.md` carries the fixes.
 
 ---
 

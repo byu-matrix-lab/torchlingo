@@ -57,5 +57,6 @@ available with `norm_first=True`.
 metadata declaring which lecture it serves and what it starts, and CI that executes every
 notebook it can and tests the rest from their own cells. Students install TorchLingo from the
 `course` branch, which moves only when `main`'s checks have passed. The two sessions exchange files under `notes/handoff/`, one file per
-hand-off; course-side items are tracked in `CS479-TASKS.md`, repository items in the
-repository's `notes/TASKS.md`.
+hand-off. Course work is tracked in one list both sessions share,
+`torchlingo-private/notes/course/TASKS.md` (since Oct 25); library and notebook engineering in
+this repository's `notes/TASKS.md`.
