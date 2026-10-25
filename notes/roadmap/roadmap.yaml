@@ -330,8 +330,9 @@ lecture_outcomes:
   shown_by: A13
 - lecture: "14"
   topic: Multilingual and zero-shot
-  can: Explain tagging and why zero-shot works at all; build a bidirectional system from their
-    A9 one and score both directions.
+  can: Explain tagging and why zero-shot works at all; fine-tune a pretrained multilingual model
+    in both directions from their A9 split, and measure what it buys over the same model off the
+    shelf and over their A9 model trained from scratch.
   shown_by: A14
 - lecture: "15"
   topic: Speech-to-speech MT
@@ -574,18 +575,22 @@ notebooks:
       chrF, the paired bootstrap, COMET, the rerun record and the upload files
     rating: low
   lecture-14-multilingual:
-    purpose: one model translating both ways, from A9's split, pieces and configuration
-    lesson: a tag tells one model which way to translate, and why that makes zero-shot possible;
-      whether one shared model matches two one-way models, decoding pinned and the difference
-      tested
-    student_must: write tag and both_directions (the method, checked on a known case, for
-      intermingling, and by the contamination check in both languages); state an "If ...,
-      then ..." hypothesis and a prediction before training; explain the tag from its pieces and
-      from the model's output under the wrong tag; upload the completed notebook
-    notebook_does: the tags' pieces, the training on twice A9's pairs, each direction decoded
-      greedily and with beam 5 against its one-way model (A9; the A13 reverse model or NLLB),
-      BLEU, chrF, the paired bootstrap, the wrong-tag outputs, the rerun record and the upload
-      files
+    purpose: NLLB-200 fine-tuned both ways on A9's split, against NLLB off the shelf and the
+      student's own one-way models
+    lesson: a language code tells one model which way to translate, and why that makes zero-shot
+      possible; whether one shared model matches two one-way models, decoding held fixed and the
+      difference tested; what fine-tuning a pretrained model buys over the same model off the
+      shelf and over a model trained from scratch
+    student_must: choose their language's code (borrowing one, with a reason, if NLLB does not
+      cover it); write tag and both_directions (checked on a known case, for intermingling, and
+      by the contamination check in both languages); state an "If ..., then ..." hypothesis and a
+      prediction, and set a step budget, before training; choose a third language for the
+      zero-shot test; explain the code from the model's output under the wrong one; upload the
+      completed notebook
+    notebook_does: NLLB off the shelf, the fine-tuning (torchlingo_harness.nllb.fine_tune), each
+      direction decoded greedily and with beam 5 against NLLB off the shelf and its one-way model
+      (A9; the A13 reverse model), BLEU, chrF, the paired bootstrap, COMET, the wrong-code and
+      third-language outputs, the rerun record and the upload files
     rating: low
 
 # The "Tooling the semester depends on" table.

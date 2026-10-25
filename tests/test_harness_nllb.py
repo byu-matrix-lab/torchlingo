@@ -1,16 +1,22 @@
-"""torchlingo_harness.nllb: NLLB-200 decoded the ways TorchLingo decodes (A12, A13).
+"""torchlingo_harness.nllb: NLLB-200 decoded the ways TorchLingo decodes (A12, A13), and
+fine-tuned on a student's pairs (A14).
 
 CI has no ``transformers`` and should not download 2.4 GB, so these run the translator against a
 stand-in model and tokenizer that record what ``generate`` was asked for. What is checked is
 the mapping from TorchLingo's four strategies to Hugging Face's arguments, the noise, and the
-record a resumable job keeps; not NLLB's translations.
+record a resumable job keeps; not NLLB's translations. Fine-tuning is checked the same way: the
+sequences it trains on, the steps, the checkpoints and the stop when Drive is too full.
 """
 
+import contextlib
+import io
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
 import torch
 
@@ -154,6 +160,128 @@ class TestTranslateLinesToFile(unittest.TestCase):
             verbose=False,
         )
         self.assertEqual(lines, ["0:a", "0:b", "2:c"])
+
+
+class _WordTokenizer:
+    """NLLB's tokenizer in miniature: words for pieces, codes as their own ids."""
+
+    pad_token_id, eos_token_id = 1, 2
+
+    def __init__(self):
+        self.ids = {"eng_Latn": 10, "spa_Latn": 11}
+
+    def tokenize(self, text):
+        return text.split()
+
+    def convert_tokens_to_ids(self, tokens):
+        if isinstance(tokens, str):
+            return self.ids.setdefault(tokens, 100 + len(self.ids))
+        return [self.convert_tokens_to_ids(t) for t in tokens]
+
+
+class _Learner(torch.nn.Module):
+    """One weight, whose loss training lowers."""
+
+    def __init__(self):
+        super().__init__()
+        self.weight = torch.nn.Parameter(torch.ones(1))
+
+    def forward(self, input_ids, attention_mask, labels):
+        return SimpleNamespace(loss=(self.weight**2).sum())
+
+
+class _Adafactor(torch.optim.SGD):
+    """Adafactor's arguments, SGD's update: CI has no transformers."""
+
+    def __init__(self, params, lr, **options):
+        super().__init__(params, lr=lr)
+
+
+def _pairs(n):
+    import pandas as pd
+
+    rows = [(f"word{i} go", f"palabra{i}", "eng_Latn", "spa_Latn") for i in range(n)]
+    rows += [(f"palabra{i}", f"word{i} go", "spa_Latn", "eng_Latn") for i in range(n)]
+    return pd.DataFrame(rows, columns=["src", "tgt", "src_code", "tgt_code"])
+
+
+class TestFineTune(unittest.TestCase):
+    """fine_tune and coded_batch, for A14: what NLLB trains on, and a resumable run."""
+
+    def setUp(self):
+        # Only these two entries, put back as they were; restoring all of sys.modules would
+        # unload the parts of torch an optimizer step loads.
+        optimization = SimpleNamespace(Adafactor=_Adafactor)
+        for name, fake in (
+            ("transformers", SimpleNamespace(optimization=optimization)),
+            ("transformers.optimization", optimization),
+        ):
+            self.addCleanup(self._restore, name, sys.modules.get(name))
+            sys.modules[name] = fake
+        self.folder = Path(tempfile.mkdtemp())
+
+    @staticmethod
+    def _restore(name, original):
+        if original is None:
+            sys.modules.pop(name, None)
+        else:
+            sys.modules[name] = original
+
+    def run_fine_tune(self, steps=6):
+        from torchlingo.training_checkpoint import TrainingCheckpointer
+        from torchlingo_harness.nllb import fine_tune
+
+        model = _Learner()
+        checkpointer = TrainingCheckpointer(
+            "t", checkpoint_dir=self.folder, verbose=False
+        )
+        with contextlib.redirect_stdout(io.StringIO()) as printed:
+            state = fine_tune(
+                model,
+                _WordTokenizer(),
+                _pairs(20),
+                _pairs(5),
+                checkpointer,
+                steps=steps,
+                device=torch.device("cpu"),
+                batch_size=4,
+                eval_every=3,
+            )
+        return model, state, printed.getvalue()
+
+    def test_each_row_carries_its_own_codes(self):
+        from torchlingo_harness.nllb import coded_batch
+
+        tok = _WordTokenizer()
+        batch = coded_batch(tok, _pairs(1), torch.device("cpu"))
+        word, go, palabra = tok.convert_tokens_to_ids(["word0", "go", "palabra0"])
+        self.assertEqual(
+            batch["input_ids"].tolist(), [[10, word, go, 2], [11, palabra, 2, 1]]
+        )
+        self.assertEqual(
+            batch["labels"].tolist(), [[11, palabra, 2, -100], [10, word, go, 2]]
+        )
+        self.assertEqual(batch["attention_mask"].tolist(), [[1, 1, 1, 1], [1, 1, 1, 0]])
+
+    def test_trains_the_steps_asked_and_keeps_the_best(self):
+        model, state, printed = self.run_fine_tune()
+        self.assertEqual(state.global_step, 6)
+        self.assertEqual(len(state.val_losses), 2)  # at steps 3 and 6
+        self.assertLess(model.weight.item(), 1.0)
+        self.assertTrue((self.folder / "best.pt").is_file())
+        self.assertIn("step      3", printed)
+
+    def test_a_finished_run_is_not_repeated(self):
+        self.run_fine_tune()
+        _, state, printed = self.run_fine_tune()
+        self.assertEqual(state.global_step, 6)
+        self.assertNotIn("step      3", printed)
+
+    def test_it_stops_before_training_when_the_folder_is_too_full(self):
+        full = mock.patch("shutil.disk_usage", return_value=SimpleNamespace(free=2e9))
+        with full, self.assertRaises(SystemExit) as stopped:
+            self.run_fine_tune()
+        self.assertIn("2.0 GB free", str(stopped.exception))
 
 
 if __name__ == "__main__":

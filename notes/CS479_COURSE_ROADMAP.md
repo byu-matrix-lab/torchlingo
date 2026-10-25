@@ -182,7 +182,7 @@ lecture; the scope notes below carry the content, this carries the point.
 | 11 | Neural QE and toolkits | Run COMET and COMETKiwi on their own A6 data and on their own A8 and A9 test output; reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and its system- against segment-level caveat. | A11 |
 | 12 | LLMs for MT; context | Prompt a decoder-only model to translate a low-resource language from a few example pairs, with no training; measure how much random and nearest examples improve translation, and tell a real difference from the spread between random draws; explain how examples in the prompt help or hurt when the model's weights never change, and what sentence-by-sentence translation cannot fix; give the model the sentence before, with its translation, and measure whether it resolves a pronoun or a repeated term the sentence alone leaves ambiguous, and why a score over the whole test set can miss it. | A12 chart and analysis |
 | 13 | Low-resource strategies | Say what makes a language low-resource beyond its count of sentence pairs; use monolingual text to make up for scarce parallel data (back-translate it with a reverse model, train on the synthetic pairs, and measure whether it helped); tell how much of a change came from the new training data and how much from the decoding method, and test whether a difference is real. | A13 |
-| 14 | Multilingual and zero-shot | Explain tagging and why zero-shot works at all; build a bidirectional system from their A9 one and score both directions. | A14 |
+| 14 | Multilingual and zero-shot | Explain tagging and why zero-shot works at all; fine-tune a pretrained multilingual model in both directions from their A9 split, and measure what it buys over the same model off the shelf and over their A9 model trained from scratch. | A14 |
 | 15 | Speech-to-speech MT | Contrast cascade and end-to-end systems and say what each loses; build an ASR to MT to TTS pipeline and say where the errors compound. | the Final Project's Path B example (A15 dropped this term) |
 | 16 | Dubbing and interpretation | Say what dubbing adds to translation (timing, voice, lip sync) and where current systems fail. | Quiz 16 |
 | 17 | Multimodal NMT | Say when visual context helps translation and how to test the claim. | Quiz 17 |
@@ -224,7 +224,7 @@ steps.
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
 | `lecture-12-llm-context` | in-context examples and what they buy, how many and which; then the sentence before, context for disambiguation, against a placebo pair | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, with and without the sentence before, its wording their own); predict the best context size and whether nearest examples beat random ones, then what the sentence before changes; reconcile both predictions with the results and the spread over three draws; find two of their own test sentences whose pronoun or term refers into the sentence before; upload the completed notebook | the LLM, three random draws and the nearest examples at each size, NLLB where it covers the language (Telugu), the sentence-before and placebo runs at k = 5 with the pronoun sentences marked, BLEU and chrF, the chart, the rerun record and the upload files | low |
 | `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help; how much of a change came from the data and how much from decoding; a difference tested, not only measured | extract monolingual text from their Church TM's unused segments, topped up from public text if short; choose their own reverse model or NLLB as back-translator, which back-translates by sampling (one retrain, Eric, Oct 22); write reverse and combine (the method, checked against known answers and the contamination check); state an "If ..., then ..." hypothesis and a prediction before retraining; say why sampling, from two of their own back-translated sentences; add Google back-translations to two helped and two hurt examples; upload the completed notebook | the reverse training (none with NLLB), the sampled back-translation with five greedy ones beside it, one retraining, A9 and A13 decoded greedily and with beam 5, BLEU, chrF, the paired bootstrap, COMET, the rerun record and the upload files | low |
-| `lecture-14-multilingual` | a tag tells one model which way to translate, and why that makes zero-shot possible; whether one shared model matches two one-way models, decoding pinned and the difference tested | write tag and both_directions (the method, checked on a known case, for intermingling, and by the contamination check in both languages); state an "If ..., then ..." hypothesis and a prediction before training; explain the tag from its pieces and from the model's output under the wrong tag; upload the completed notebook | the tags' pieces, the training on twice A9's pairs, each direction decoded greedily and with beam 5 against its one-way model (A9; the A13 reverse model or NLLB), BLEU, chrF, the paired bootstrap, the wrong-tag outputs, the rerun record and the upload files | low |
+| `lecture-14-multilingual` | a language code tells one model which way to translate, and why that makes zero-shot possible; whether one shared model matches two one-way models, decoding held fixed and the difference tested; what fine-tuning a pretrained model buys over the same model off the shelf and over a model trained from scratch | choose their language's code (borrowing one, with a reason, if NLLB does not cover it); write tag and both_directions (checked on a known case, for intermingling, and by the contamination check in both languages); state an "If ..., then ..." hypothesis and a prediction, and set a step budget, before training; choose a third language for the zero-shot test; explain the code from the model's output under the wrong one; upload the completed notebook | NLLB off the shelf, the fine-tuning (torchlingo_harness.nllb.fine_tune), each direction decoded greedily and with beam 5 against NLLB off the shelf and its one-way model (A9; the A13 reverse model), BLEU, chrF, the paired bootstrap, COMET, the wrong-code and third-language outputs, the rerun record and the upload files | low |
 
 ### Where the line is crossed
 
@@ -248,7 +248,7 @@ Where each assignment stands against it:
 | A11 | `comet_inputs` again; `pairwise_agreement`; a prediction | a known case; your files' alignment |
 | A12 | `split_pool_and_test`, `build_prompt` (with the sentence before); two predictions | known cases; `check_contamination` on the split |
 | A13 | `reverse`, `combine`; a prediction | known cases; `check_contamination` on both held-out sets |
-| A14 | `tag`, `both_directions`; a hypothesis and a prediction | a known case; intermingling on the real split; `check_contamination` in both languages |
+| A14 | the language's code (a reasoned borrow if NLLB lacks it); `tag`, `both_directions`; a hypothesis, a prediction and a step budget; a third language for zero-shot | a known case; intermingling on the real split; `check_contamination` in both languages; codes checked against NLLB's list |
 
 **The one place still open: the A8 kickoff does the part the assignment says is the student's.**
 The A8 slide on AI use says *yours: the splitting, the verification, the training decisions, and
@@ -423,11 +423,16 @@ greedily and with beam, with the paired bootstrap.
 ### 14. Multilingual NMT and Zero-shot NMT (F2025, 23 slides)
 Bilingual against multilingual, how zero-shot works, tagging, NLLB, complete MNMT, why the
 Church data suits it. The notebook replaces its handout, "MNMT Guide Using OpenNMT.docx".
-**Notebooks:** `lecture-14-multilingual` (homework, A14): from the A9 files, the student writes
-the tagging and the intermingling; the training on twice A9's pairs and the scoring run for them.
-**Sets:** A14: a bidirectional English and X system from A9, directions intermingled, separate
-test sets per direction, each direction compared with its one-way model on BLEU and chrF,
-decoded greedily and with beam, with the paired bootstrap. The Final Project page's Path A
+**Notebooks:** `lecture-14-multilingual` (homework, A14), rebuilt on fine-tuning NLLB-200 (Eric,
+Oct 25: go): from the A9 split, the student chooses their language's code (borrowing one if NLLB
+does not cover it) and writes the tagging and the intermingling; the library fine-tunes NLLB
+both ways at once, and the scoring runs for them. `09-fine-tuning-nllb` (reading): fine-tuning
+one direction step by step.
+**Sets:** A14: NLLB fine-tuned in both directions on A9's split, directions intermingled,
+separate test sets per direction, each direction compared with NLLB off the shelf and with its
+one-way model (A9; the A13 reverse model) on BLEU, chrF and COMET, decoded greedily and with
+beam, with the paired bootstrap; the wrong code, and a third language (zero-shot). The Final
+Project page's Path A
 example grows it (Eric, Oct 24): one multilingual model over English, the student's language
 and two or three others from the Church data, against the one-way A9 model, with a zero-shot
 comparison between two of the others.
@@ -506,7 +511,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMETKiwi on the student's A6 sentences, beside BLEU, chrF and their ranking, then on their own A8 and A9 systems | no: colab, hf-token, download, pip, exercises |
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download, exercises |
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab, exercises |
-| `lecture-14-multilingual` | 14 | homework | A14 | one model translating both ways, from A9's split, pieces and configuration | no: colab, exercises |
+| `lecture-14-multilingual` | 14 | homework | A14 | NLLB-200 fine-tuned both ways on A9's split, against NLLB off the shelf and the student's own one-way models | no: colab, exercises |
 | `09-fine-tuning-nllb` | 14 | reading | | fine-tuning NLLB-200 on the student's A8 split, against NLLB off the shelf and A9 trained from scratch; a borrowed language code where NLLB does not cover the language | no: colab, download, exercises |
 
 **Tutorial numbers** are in course order: 01 data, 02 evaluating, 03 checkpoints, 04 attention,
@@ -648,6 +653,14 @@ place, with who made it.
 - **Oct 25.** One task list for course work (Eric): `torchlingo-private/notes/course/TASKS.md`,
   shared by both sessions, with the course side's log and next-offering notes beside it. The
   public `notes/TASKS.md` keeps library and notebook engineering.
+- **Oct 25.** A14 is rebuilt on fine-tuning NLLB-200, both directions in one run (Eric: go, with
+  one Colab run before A14 opens Nov 4). Two short real runs here made the case: German 25.8 to
+  32.4 BLEU, and Efik, borrowing Igbo's code, 3.6 to 18.5, after 300 steps each. A14 keeps its
+  three outcomes, with NLLB's language codes as the tags, and adds a fourth, what fine-tuning
+  buys over the model off the shelf and over A9 trained from scratch; COMET is in. Tutorial 9,
+  fine-tuning one direction step by step, is its reading. Eric's frame for the notebooks: not a
+  deep-learning class but an application of deep learning, so students are told the ingredients
+  while their decisions and code stay on the translation problem.
 - **Oct 24.** A12 gains a fourth outcome, context for disambiguation beside in-context learning
   (Eric: "both in-context learning and (separately) contextual disambiguation"). The Lecture 12
   notebook's new Step 6 gives the model the sentence before each test sentence, with its
@@ -1106,27 +1119,28 @@ Notes on the rows that are not simple:
   where back-translation helped most and two where it hurt, and saves a13-rerun.json; the
   completed notebook is uploaded. Needs a GPU and Drive, so CI does not execute it;
   tests/test_lecture_13.py runs its cells at toy size, with NLLB stubbed.
-- [19] **`lecture-14-multilingual`** — Assignment 14 end to end, starting from what
-  Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/, and A9's training
-  checkpoint, from which the training takes its epoch count) and what A13 left for the
-  comparison into English: best-a13-reverse/, or NLLB-200 through torchlingo_harness.nllb
-  when a13-notes.json says NLLB back-translated, or neither, in which case only English to
-  X is compared. Step 1 shows how A9's pieces split the tags <2x> and <2en> (no new
-  vocabulary; a character A9 never saw becomes <unk>) and stops if the two tags tokenize
-  the same. The student writes tag and both_directions (each pair once each way, tagged
-  with the language to produce, shuffled with the seed), checked on a known case, for
-  intermingling on the real split, and by check_contamination of both languages' test
-  sentences against every training sentence; states an "If ..., then ..." hypothesis and a
-  prediction, which stop the run while empty; and the notebook trains one model on twice
-  A9's pairs for A9's epochs. Each direction is decoded greedily and with beam 5 and
-  compared with its one-way model (A9 into X; the A13 reverse model or NLLB into English)
-  by BLEU and chrF with sacreBLEU's paired bootstrap (identical outputs reported at p =
-  1). Step 5 gives the model the wrong tag on five sentences each way. Six write-up
-  questions, on the comparison, tagging and why zero-shot works; the write-up block reads
-  from Drive alone (a14-notes.json) and saves a14-rerun.json; the completed notebook is
-  uploaded. No COMET: Cowork's Oct 22 practice table does not ask it of A14, which is kept
-  small. Needs a GPU and Drive, so CI does not execute it; tests/test_lecture_14.py runs
-  its cells at toy size, with NLLB stubbed.
+- [19] **`lecture-14-multilingual`** — Assignment 14, rebuilt on fine-tuning NLLB-200
+  (Eric, Oct 25: go), starting from what Lecture 9's Part B leaves on Drive (A9's split,
+  spm.model, a9-settings.json, best-a9/) and, for the comparison into English, A13's
+  best-a13-reverse/ when present. The student sets LANGUAGE (its NLLB code from a table
+  checked against NLLB's tokenizer; Hmong is the uncovered A8 language, and the student
+  then borrows a covered code with a reason and the chrF of each candidate off the shelf),
+  writes tag and both_directions (each pair once each way with src_code and tgt_code,
+  shuffled with the seed), checked on a known case, for intermingling and by
+  check_contamination of both languages' test sentences; NLLB off the shelf decodes both
+  test sets before training; an "If ..., then ..." hypothesis, a prediction and a step
+  budget stop the run while empty; torchlingo_harness.nllb.fine_tune trains both
+  directions at once (Adafactor, accumulation, bfloat16 where available, a
+  TrainingCheckpointer on Drive, best by validation loss, a Drive-space check). Each
+  direction compares A14, NLLB off the shelf and the student's one-way model (A9; the A13
+  reverse model) greedy and beam 5 by BLEU and chrF with sacreBLEU's paired bootstrap
+  against A14, then COMET (wmt22-comet-da through its Python API, last because its install
+  pins transformers below 5). Step 6 gives the wrong code both ways and asks for a third
+  language the student chooses (zero-shot). Seven write-up questions; the write-up block
+  reads from Drive alone (a14-notes.json) and saves a14-rerun.json; the completed notebook
+  is uploaded. Tutorial 9 goes through the fine-tuning step by step, for depth. Needs a
+  GPU with more memory than a T4, and Drive, so CI does not execute it;
+  tests/test_lecture_14.py runs its cells with NLLB and COMET stubbed.
 
 <!-- END generated:notebook-map -->
 

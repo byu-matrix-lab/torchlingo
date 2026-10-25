@@ -160,11 +160,16 @@ greedily and with beam, with the paired bootstrap.
 ### 14. Multilingual NMT and Zero-shot NMT (F2025, 23 slides)
 Bilingual against multilingual, how zero-shot works, tagging, NLLB, complete MNMT, why the
 Church data suits it. The notebook replaces its handout, "MNMT Guide Using OpenNMT.docx".
-**Notebooks:** `lecture-14-multilingual` (homework, A14): from the A9 files, the student writes
-the tagging and the intermingling; the training on twice A9's pairs and the scoring run for them.
-**Sets:** A14: a bidirectional English and X system from A9, directions intermingled, separate
-test sets per direction, each direction compared with its one-way model on BLEU and chrF,
-decoded greedily and with beam, with the paired bootstrap. The Final Project page's Path A
+**Notebooks:** `lecture-14-multilingual` (homework, A14), rebuilt on fine-tuning NLLB-200 (Eric,
+Oct 25: go): from the A9 split, the student chooses their language's code (borrowing one if NLLB
+does not cover it) and writes the tagging and the intermingling; the library fine-tunes NLLB
+both ways at once, and the scoring runs for them. `09-fine-tuning-nllb` (reading): fine-tuning
+one direction step by step.
+**Sets:** A14: NLLB fine-tuned in both directions on A9's split, directions intermingled,
+separate test sets per direction, each direction compared with NLLB off the shelf and with its
+one-way model (A9; the A13 reverse model) on BLEU, chrF and COMET, decoded greedily and with
+beam, with the paired bootstrap; the wrong code, and a third language (zero-shot). The Final
+Project page's Path A
 example grows it (Eric, Oct 24): one multilingual model over English, the student's language
 and two or three others from the Church data, against the one-way A9 model, with a zero-shot
 comparison between two of the others.

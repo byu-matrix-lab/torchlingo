@@ -14,6 +14,10 @@ NLLB without changing how it asks for greedy, beam, sampled or noised-beam outpu
 :func:`torchlingo.inference.translate_lines_to_file` for a decode that survives a dropped
 session.
 
+:func:`fine_tune` trains NLLB further on a student's pairs, both directions at once if the rows
+say so, with :func:`coded_batch` building what it trains on: A14 fine-tunes NLLB that way, and
+Tutorial 9 writes the same loop out step by step.
+
 It needs Hugging Face ``transformers``, which Colab ships and TorchLingo does not require; it is
 imported only when :func:`load_nllb` is called.
 
@@ -201,4 +205,207 @@ def load_nllb(
     )
 
 
-__all__ = ["FLORES_200_LIST", "NLLB_MODEL", "NLLBTranslator", "load_nllb"]
+def coded_batch(tokenizer, frame, device: torch.device, max_pieces: int = 126) -> dict:
+    """Tokenize pairs whose rows carry their own language codes, as NLLB trains on them.
+
+    Each source becomes its code, its pieces and ``</s>``; each target the same with its own
+    code. The codes come from the rows, not from the tokenizer's ``src_lang`` and
+    ``tgt_lang``, so one batch can hold both directions of a bidirectional training set.
+
+    Args:
+        tokenizer: NLLB's tokenizer.
+        frame: A DataFrame with columns ``src``, ``tgt``, ``src_code`` and ``tgt_code``.
+        device: Where the tensors go.
+        max_pieces: The longest sentence kept, in pieces, before the code and ``</s>``.
+
+    Returns:
+        ``input_ids``, ``attention_mask`` and ``labels``, padded; padding in the labels is
+        ``-100``, which the model's loss skips.
+    """
+
+    def coded(texts, codes):
+        return [
+            [tokenizer.convert_tokens_to_ids(code)]
+            + tokenizer.convert_tokens_to_ids(tokenizer.tokenize(text))[:max_pieces]
+            + [tokenizer.eos_token_id]
+            for text, code in zip(texts, codes)
+        ]
+
+    def padded(rows, fill):
+        width = max(map(len, rows))
+        return torch.tensor(
+            [r + [fill] * (width - len(r)) for r in rows], device=device
+        )
+
+    sources = coded(frame.src, frame.src_code)
+    targets = coded(frame.tgt, frame.tgt_code)
+    input_ids = padded(sources, tokenizer.pad_token_id)
+    return {
+        "input_ids": input_ids,
+        "attention_mask": (input_ids != tokenizer.pad_token_id).long(),
+        "labels": padded(targets, -100),
+    }
+
+
+def fine_tune(
+    model,
+    tokenizer,
+    train,
+    val,
+    checkpointer,
+    *,
+    steps: int,
+    device: torch.device,
+    batch_size: int = 16,
+    accumulate: int = 2,
+    learning_rate: float = 1e-4,
+    warmup: int = 100,
+    eval_every: int = 500,
+    val_pairs: int = 500,
+    seed: int = 479,
+    space_needed_gb: float = 8.0,
+):
+    """Fine-tune NLLB on pairs with their language codes, resumably; keep the best checkpoint.
+
+    The loop Tutorial 9 writes out, for notebooks whose lesson is elsewhere: Adafactor, whose
+    small state keeps a checkpoint near the size of the weights (Adam's made each one about
+    7 GB for NLLB's 600M parameters); gradient accumulation; bfloat16 arithmetic where the GPU
+    has it; and a :class:`~torchlingo.training_checkpoint.TrainingCheckpointer`, so a dropped
+    session resumes, and a finished run is not repeated. The data order is seeded per pass
+    over the training set, so a resumed run sees the batches an uninterrupted one would.
+
+    Args:
+        model: NLLB, in float32, on ``device``. Left holding the best checkpoint's weights.
+        tokenizer: NLLB's tokenizer.
+        train: Training pairs, columns ``src``, ``tgt``, ``src_code`` and ``tgt_code``.
+        val: Validation pairs, the same columns; the first ``val_pairs`` are used.
+        checkpointer: Where the run is saved, and resumed from.
+        steps: Optimizer steps in all, counting any already taken.
+        device: Where the model is.
+        batch_size: Pairs per forward pass.
+        accumulate: Batches per optimizer step.
+        learning_rate: Adafactor's, fixed after a linear warmup.
+        warmup: Steps of warmup.
+        eval_every: Steps between validation checks, each of which saves.
+        val_pairs: How many validation pairs a check uses.
+        seed: Seeds the model's dropout and the data order.
+        space_needed_gb: Stop before training if the checkpoint folder has less free space,
+            since a save that fails an hour in loses the hour. A third of it when resuming.
+
+    Returns:
+        The checkpointer's state: steps taken, validation losses, the best of them.
+
+    Raises:
+        SystemExit: If the checkpoint folder has too little free space.
+    """
+    import contextlib
+    import shutil
+    import time
+
+    from transformers.optimization import Adafactor
+
+    per_pass = max(1, len(train) // batch_size)
+    orders: dict[int, object] = {}
+
+    def micro_batch(k):
+        n = k // per_pass
+        if n not in orders:
+            orders.clear()
+            orders[n] = train.sample(frac=1, random_state=seed + n)
+        start = (k % per_pass) * batch_size
+        return coded_batch(tokenizer, orders[n][start : start + batch_size], device)
+
+    bf16 = device.type == "cuda" and torch.cuda.is_bf16_supported()
+
+    def amp():
+        if bf16:
+            return torch.autocast("cuda", dtype=torch.bfloat16)
+        return contextlib.nullcontext()
+
+    def validation_loss():
+        model.eval()
+        held_out, total = val[:val_pairs], 0.0
+        with torch.no_grad(), amp():
+            for start in range(0, len(held_out), batch_size):
+                chunk = held_out[start : start + batch_size]
+                total += model(
+                    **coded_batch(tokenizer, chunk, device)
+                ).loss.item() * len(chunk)
+        model.train()
+        return total / len(held_out)
+
+    torch.manual_seed(seed)
+    optimizer = Adafactor(
+        model.parameters(),
+        lr=learning_rate,
+        scale_parameter=False,
+        relative_step=False,
+        warmup_init=False,
+    )
+    scheduler = torch.optim.lr_scheduler.LambdaLR(
+        optimizer, lambda step: min(1.0, (step + 1) / warmup)
+    )
+    resuming = checkpointer.has_checkpoint()
+    needed = space_needed_gb / 3 if resuming else space_needed_gb
+    folder = checkpointer.path_for("latest").parent
+    folder.mkdir(parents=True, exist_ok=True)
+    free = shutil.disk_usage(folder).free / 1e9
+    if free < needed:
+        raise SystemExit(
+            f"{folder} has {free:.1f} GB free and the checkpoints need about {needed:.0f} GB. "
+            "Free some space (Drive's trash counts until emptied), then run this again."
+        )
+    if resuming:
+        checkpointer.load(model, optimizer, scheduler, map_location=device)
+    state = checkpointer.state
+
+    model.train()
+    started, first_step, losses = time.monotonic(), state.global_step, []
+    while state.global_step < steps:
+        step_loss = 0.0
+        for a in range(accumulate):
+            with amp():
+                batch = micro_batch(state.global_step * accumulate + a)
+                loss = model(**batch).loss / accumulate
+            loss.backward()
+            step_loss += loss.item()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        optimizer.step()
+        scheduler.step()
+        optimizer.zero_grad()
+        state.global_step += 1
+        losses.append(step_loss)
+        if state.global_step - first_step == 20:
+            per_step = (time.monotonic() - started) / 20
+            left = (steps - state.global_step) * per_step / 60
+            print(
+                f"{per_step:.2f} s a step: about {left:.0f} more minutes for {steps:,} steps."
+            )
+        if state.global_step % eval_every == 0 or state.global_step == steps:
+            val_loss = validation_loss()
+            best = val_loss < state.best_val_loss
+            state.val_losses.append(val_loss)
+            state.best_val_loss = min(state.best_val_loss, val_loss)
+            print(
+                f"step {state.global_step:6,}   training loss {sum(losses) / len(losses):.3f}"
+                f"   validation loss {val_loss:.3f}{'   best so far' if best else ''}"
+            )
+            losses = []
+            checkpointer.save(model, optimizer, scheduler, is_best=best)
+        elif checkpointer.should_save():
+            checkpointer.save(model, optimizer, scheduler)
+
+    if checkpointer.has_checkpoint("best"):
+        checkpointer.load(model, which="best", map_location=device, restore_rng=False)
+    model.eval()
+    return state
+
+
+__all__ = [
+    "FLORES_200_LIST",
+    "NLLB_MODEL",
+    "NLLBTranslator",
+    "coded_batch",
+    "fine_tune",
+    "load_nllb",
+]
