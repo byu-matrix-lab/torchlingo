@@ -15,6 +15,8 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from typing import ClassVar
+from unittest import mock
 
 import pandas as pd
 import torch
@@ -153,8 +155,28 @@ def pairs(n: int) -> list[tuple[str, str]]:
     ]
 
 
+class FakeAdafactor(torch.optim.SGD):
+    """Adafactor's arguments, SGD's update: the training cell imports it from transformers."""
+
+    made_with: ClassVar[dict] = {}
+
+    def __init__(self, params, lr, **options):
+        FakeAdafactor.made_with = {"lr": lr, **options}
+        super().__init__(params, lr=lr)
+
+
 class NotebookCase(unittest.TestCase):
     def setUp(self):
+        # Only these two entries, put back as they were: restoring all of sys.modules would
+        # unload the parts of torch an optimizer step loads, and torch cannot load them twice.
+        optimization = SimpleNamespace(Adafactor=FakeAdafactor)
+        fakes = {
+            "transformers": SimpleNamespace(optimization=optimization),
+            "transformers.optimization": optimization,
+        }
+        for name, fake in fakes.items():
+            self.addCleanup(self._restore_module, name, sys.modules.get(name))
+            sys.modules[name] = fake
         scratch = tempfile.TemporaryDirectory()
         self.addCleanup(scratch.cleanup)
         self.drive = Path(scratch.name)
@@ -164,6 +186,13 @@ class NotebookCase(unittest.TestCase):
             self.drive / "data" / "example.tsv", sep="\t", index=False
         )
         self.out = self.drive / "CS479" / "tutorial9"
+
+    @staticmethod
+    def _restore_module(name, original):
+        if original is None:
+            sys.modules.pop(name, None)
+        else:
+            sys.modules[name] = original
 
     def cells(self, swaps: dict) -> list[tuple[int, str]]:
         return substitute(
@@ -234,6 +263,25 @@ class TestEndToEnd(NotebookCase):
         self.assertEqual((run["steps"], run["target_code"]), (6, "spa_Latn"))
         self.assertEqual(len(namespace["state"].val_losses), 2)  # at steps 3 and 6
         self.assertIn("of 200 greedy translations changed", printed)
+
+    def test_adafactor_with_a_fixed_rate_so_checkpoints_fit_a_drive(self):
+        """AdamW's state made each checkpoint 6.9 GB, two of them on a 15 GB Drive (Oct 25)."""
+        self.run_notebook()
+        self.assertEqual(
+            FakeAdafactor.made_with,
+            {
+                "lr": 1e-4,
+                "scale_parameter": False,
+                "relative_step": False,
+                "warmup_init": False,
+            },
+        )
+
+    def test_it_stops_before_training_when_drive_is_too_full(self):
+        full = mock.patch("shutil.disk_usage", return_value=SimpleNamespace(free=2e9))
+        with full, self.assertRaises(SystemExit) as stopped:
+            self.run_notebook()
+        self.assertIn("2.0 GB free", str(stopped.exception))
 
     def test_a_rerun_resumes_from_the_checkpoint_rather_than_training_again(self):
         self.run_notebook()
