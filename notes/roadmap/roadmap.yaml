@@ -517,6 +517,15 @@ notebooks:
     notebook_does: loading, all four metrics on every sentence of A6 and of the A8 test set, the
       two reports
     rating: low
+  09-fine-tuning-nllb:
+    purpose: fine-tuning NLLB-200 on the student's A8 split, against NLLB off the shelf and A9
+      trained from scratch; a borrowed language code where NLLB does not cover the language
+    aside: (reading; GPU, and more memory than a T4)
+    lesson: a pretrained model as the starting point, and language codes as A14's tags at scale
+    student_must: write with_codes (checked by hand and against NLLB's tokenizer); choose and
+      justify a borrowed code if uncovered; set a step budget; predict the gain
+    notebook_does: the data, NLLB, decoding and scoring, and a resumable training loop
+    rating: medium
   08-inference-and-beamsearch:
     purpose: greedy against beam, written out and checked against the library; why a comparison
       holds decoding fixed, as A9 does
