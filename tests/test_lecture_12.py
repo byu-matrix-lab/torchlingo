@@ -30,7 +30,11 @@ from notebook_cells import COURSE, code_cells, colab_faked, run_cells, substitut
 NOTEBOOK = COURSE / "lecture-12-llm-context.ipynb"
 MODEL_CELL = "AutoModelForCausalLM"
 NLLB_CELL = "AutoModelForSeq2SeqLM"
-SIZES = {"POOL_SIZE, TEST_SIZE = 500, 50": "POOL_SIZE, TEST_SIZE = 25, 50"}
+# The smallest pool Step 6 accepts: draw 1's five plus a placebo for each test sentence.
+TEST_SIZE = 30
+SIZES = {
+    "POOL_SIZE, TEST_SIZE = 500, 50": f"POOL_SIZE, TEST_SIZE = {5 + TEST_SIZE}, {TEST_SIZE}"
+}
 DRAWS = (1, 2, 3)
 
 # A student's answers to the two exercises, in place of the line that raises.
@@ -176,10 +180,10 @@ class TestBuiltInSample(NotebookCase):
         self.assertIn("your prediction: context helps up to 10", printed)
         self.assertIn("a12-rerun.json, then this notebook", printed)
 
-        # Fifty test pairs. Each draw's context files hold exactly k pairs, nested within the
-        # draw; the draws differ; none is a test pair.
+        # TEST_SIZE test pairs. Each draw's context files hold exactly k pairs, nested within
+        # the draw; the draws differ; none is a test pair.
         test = pd.read_csv(out / "test.tsv", sep="\t", dtype=str, keep_default_na=False)
-        self.assertEqual(len(test), 50)
+        self.assertEqual(len(test), TEST_SIZE)
 
         def context(k, d):
             return pd.read_csv(
@@ -199,7 +203,7 @@ class TestBuiltInSample(NotebookCase):
         nearest = pd.read_csv(
             out / "nearest-10.tsv", sep="\t", dtype=str, keep_default_na=False
         )
-        self.assertEqual(len(nearest), 10 * 50)
+        self.assertEqual(len(nearest), 10 * TEST_SIZE)
         self.assertEqual(set(nearest.test_src), set(test.src))
         self.assertTrue(set(nearest.src) <= set(namespace["pool"].src))
 
@@ -219,8 +223,21 @@ class TestBuiltInSample(NotebookCase):
         # The none row, three draws and nearest at each size, NLLB, and Step 6's two.
         self.assertEqual(len(scores), 1 + 3 * (3 + 1) + 1 + 2)
 
-        # Step 6: each test sentence's sentence before is the line above it in the sample, and
-        # the placebo is draw 1's sixth example; the table marks the pronoun sentences.
+        # Step 6: each test sentence's sentence before is the line above it in the sample; each
+        # has its own placebo, a pool pair that is not one of draw 1's five, and only those
+        # with a sentence before get one; the table marks the pronoun sentences.
+        five, placebos = namespace["five"], namespace["placebos"]
+        self.assertEqual(
+            len(placebos), len(test), "every test sentence needs a placebo slot"
+        )
+        given = [p for p, b in zip(placebos, namespace["befores"]) if b is not None]
+        self.assertEqual(len(given), sum(p is not None for p in placebos))
+        self.assertEqual(len(set(given)), len(given), "a placebo pair was given twice")
+        self.assertFalse(
+            set(given) & set(five), "a placebo is one of the five examples"
+        )
+        pool_pairs = set(zip(namespace["pool"].src, namespace["pool"].tgt))
+        self.assertLessEqual(set(given), pool_pairs)
         table = pd.read_csv(
             out / "before-5.tsv", sep="\t", dtype=str, keep_default_na=False
         )
