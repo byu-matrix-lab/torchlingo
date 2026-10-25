@@ -177,7 +177,7 @@ lecture; the scope notes below carry the content, this carries the point.
 | 9 | Morphology, subwords, terminology | Explain the fixed-vocabulary problem and how morphology makes vocabularies explode; segment a sentence with BPE by hand; measure `<unk>` before and after SentencePiece; retrain with one variable changed and attribute the BLEU difference to it. | A9 comparison |
 | 10 | Quality estimation | Distinguish evaluation from estimation; say what COMET and COMET-QE score and what the number means; explain greedy against beam search and why a comparison must pin decoding. | A10; Quiz 10 |
 | 11 | Neural QE and toolkits | Run COMET and COMETKiwi on their own A6 data and on their own A8 and A9 test output; reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and its system- against segment-level caveat. | A11 |
-| 12 | LLMs for MT; context | Prompt a decoder-only model to translate a low-resource language from a few example pairs, with no training; measure how much random and nearest examples improve translation, and tell a real difference from the spread between random draws; explain how examples in the prompt help or hurt when the model's weights never change, and what sentence-by-sentence translation cannot fix. | A12 chart and analysis |
+| 12 | LLMs for MT; context | Prompt a decoder-only model to translate a low-resource language from a few example pairs, with no training; measure how much random and nearest examples improve translation, and tell a real difference from the spread between random draws; explain how examples in the prompt help or hurt when the model's weights never change, and what sentence-by-sentence translation cannot fix; give the model the sentence before, with its translation, and measure whether it resolves a pronoun or a repeated term the sentence alone leaves ambiguous, and why a score over the whole test set can miss it. | A12 chart and analysis |
 | 13 | Low-resource strategies | Say what makes a language low-resource beyond its count of sentence pairs; use monolingual text to make up for scarce parallel data (back-translate it with a reverse model, train on the synthetic pairs, and measure whether it helped); tell how much of a change came from the new training data and how much from the decoding method, and test whether a difference is real. | A13 |
 | 14 | Multilingual and zero-shot | Explain tagging and why zero-shot works at all; build a bidirectional system from their A9 one and score both directions. | A14 |
 | 15 | Speech-to-speech MT | Contrast cascade and end-to-end systems and say what each loses; build an ASR to MT to TTS pipeline and say where the errors compound. | the Final Project's Path B example (A15 dropped this term) |
@@ -218,7 +218,7 @@ steps.
 | `lecture-11-comet-on-a6` | whether metrics agree with each other and with a human, sentence by sentence | reuse comet_inputs, write pairwise_agreement (checked on a known case), predict, and explain the agreement in the summary | loading, all four metrics on every sentence of A6 and of the A8 test set, the two reports | low |
 | `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
-| `lecture-12-llm-context` | in-context examples and what they buy, how many and which | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, its wording their own); predict the best context size and whether nearest examples beat random ones; reconcile the prediction with the curve and its spread over three draws; upload the completed notebook | the LLM, three random draws and the nearest examples at each size, NLLB where it covers the language (Telugu), BLEU and chrF, the chart, the rerun record and the upload files | low |
+| `lecture-12-llm-context` | in-context examples and what they buy, how many and which; then the sentence before, context for disambiguation, against a placebo pair | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, with and without the sentence before, its wording their own); predict the best context size and whether nearest examples beat random ones, then what the sentence before changes; reconcile both predictions with the results and the spread over three draws; find two of their own test sentences whose pronoun or term refers into the sentence before; upload the completed notebook | the LLM, three random draws and the nearest examples at each size, NLLB where it covers the language (Telugu), the sentence-before and placebo runs at k = 5 with the pronoun sentences marked, BLEU and chrF, the chart, the rerun record and the upload files | low |
 | `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help; how much of a change came from the data and how much from decoding; a difference tested, not only measured | extract monolingual text from their Church TM's unused segments, topped up from public text if short; choose their own reverse model or NLLB as back-translator, which back-translates by sampling (one retrain, Eric, Oct 22); write reverse and combine (the method, checked against known answers and the contamination check); state an "If ..., then ..." hypothesis and a prediction before retraining; say why sampling, from two of their own back-translated sentences; add Google back-translations to two helped and two hurt examples; upload the completed notebook | the reverse training (none with NLLB), the sampled back-translation with five greedy ones beside it, one retraining, A9 and A13 decoded greedily and with beam 5, BLEU, chrF, the paired bootstrap, COMET, the rerun record and the upload files | low |
 | `lecture-14-multilingual` | a tag tells one model which way to translate, and why that makes zero-shot possible; whether one shared model matches two one-way models, decoding pinned and the difference tested | write tag and both_directions (the method, checked on a known case, for intermingling, and by the contamination check in both languages); state an "If ..., then ..." hypothesis and a prediction before training; explain the tag from its pieces and from the model's output under the wrong tag; upload the completed notebook | the tags' pieces, the training on twice A9's pairs, each direction decoded greedily and with beam 5 against its one-way model (A9; the A13 reverse model or NLLB), BLEU, chrF, the paired bootstrap, the wrong-tag outputs, the rerun record and the upload files | low |
 
@@ -242,7 +242,7 @@ Where each assignment stands against it:
 | A9 | `unknown_rate`; `VOCAB_SIZE` with a reason; a BLEU prediction | a known-answer case; Part B reloads the saved settings |
 | A10 | `comet_inputs`; a prediction | known cases, including lists of different lengths |
 | A11 | `comet_inputs` again; `pairwise_agreement`; a prediction | a known case; your files' alignment |
-| A12 | `split_pool_and_test`, `build_prompt`; a prediction | known cases; `check_contamination` on the split |
+| A12 | `split_pool_and_test`, `build_prompt` (with the sentence before); two predictions | known cases; `check_contamination` on the split |
 | A13 | `reverse`, `combine`; a prediction | known cases; `check_contamination` on both held-out sets |
 | A14 | `tag`, `both_directions`; a hypothesis and a prediction | a known case; intermingling on the real split; `check_contamination` in both languages |
 
@@ -636,6 +636,10 @@ repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 24.** A12 gains a fourth outcome, context for disambiguation beside in-context learning
+  (Eric: "both in-context learning and (separately) contextual disambiguation"). The Lecture 12
+  notebook's new Step 6 gives the model the sentence before each test sentence, with its
+  translation, against a placebo pair in the same slot; nine questions; A12 is 30 points (Eric).
 - **Oct 22.** No two assignment windows overlap (Eric). A12 is due Fri Oct 30 (moved for
   breathing room, Eric), A13 Wed Nov 4 and A14 Tue Nov 10, all at 11:59 pm, each opening when
   the one before closes; A14 may overlap the Nov 9 outline review (Eric) and ends before the
@@ -1007,11 +1011,16 @@ Notes on the rows that are not simple:
   Telugu only) it translates them too, greedily. Every run is scored with BLEU and chrF
   and their signatures into scores.tsv; the report gives each size's mean and spread over
   the draws, scores-by-context.png charts both metrics, and a12-rerun.json records the
-  model, seeds, decoding and versions. The write-up asks whether a difference between
-  sizes exceeds the spread, nearest against random, LLM against NLLB, and the
-  document-level problems no example pair fixes, checked on a pronoun or repeated term in
-  the test set; the completed notebook is uploaded with it. Needs a GPU and Drive, so CI
-  does not execute it; tests/test_lecture_12.py runs its cells with both models stubbed.
+  model, seeds, decoding and versions. Step 6 then adds context of the other kind: after a
+  second prediction, the 5 examples of draw 1 plus the sentence before each test sentence
+  (the line above it in the files, with its translation; build_prompt's before argument,
+  checked in Step 2) against a placebo (draw 1's sixth example in the same slot, same
+  label), written with every pronoun-bearing test sentence marked to before-5.tsv. The
+  write-up asks whether a difference between sizes exceeds the spread, nearest against
+  random, LLM against NLLB, whether the sentence before beat the placebo by more than the
+  spread, and whether it settled a pronoun or term in two of the student's own test
+  sentences; the completed notebook is uploaded with it. Needs a GPU and Drive, so CI does
+  not execute it; tests/test_lecture_12.py runs its cells with both models stubbed.
 - [17] **`lecture-13-back-translation`** — Assignment 13 end to end, as a small Path A,
   starting from what Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/,
   test-a9.hyp, and A9's training checkpoint, from which every training takes its epoch
