@@ -54,6 +54,7 @@ DECIDED = {
     'PREDICTION = ""': 'PREDICTION = "well above A9, a little above off the shelf"',
     "STEPS = 3000": "STEPS = 6",
     'THIRD = ""': 'THIRD = "fra_Latn"',
+    'EXPECT = ""': 'EXPECT = "copies, copies, and French that keeps the meaning"',
 }
 SETUP_CELL = "def scratch_translate("
 NLLB_CELL = "def use_fine_tuned("
@@ -449,6 +450,20 @@ class TestTheStops(unittest.TestCase):
             'THIRD = "eng_Latn"',
         )
         self.assertIn("third language you can read", self.stopped(cells))
+
+    def test_it_stops_until_the_student_says_what_they_expect(self):
+        swaps = {
+            'EXPECT = "copies, copies, and French that keeps the meaning"': 'EXPECT = ""'
+        }
+        cells = cells_with(
+            substitute(lecture_14_cells(), swaps),
+            SETUP_CELL,
+            NLLB_CELL,
+            LANGUAGE_CELL,
+            BORROW_CELL,
+            "assert EXPECT.strip()",
+        )
+        self.assertIn("Write what you expect in EXPECT", self.stopped(cells))
 
     def test_an_uncovered_language_stops_for_candidates_then_borrows(self):
         hmong = {'LANGUAGE = "German"': 'LANGUAGE = "Hmong"'}
