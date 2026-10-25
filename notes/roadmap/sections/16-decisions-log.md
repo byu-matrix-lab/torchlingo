@@ -3,10 +3,50 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 25.** One task list for course work (Eric): `torchlingo-private/notes/course/TASKS.md`,
+  shared by both sessions, with the course side's log and next-offering notes beside it. The
+  public `notes/TASKS.md` keeps library and notebook engineering.
 - **Oct 24.** A12 gains a fourth outcome, context for disambiguation beside in-context learning
   (Eric: "both in-context learning and (separately) contextual disambiguation"). The Lecture 12
   notebook's new Step 6 gives the model the sentence before each test sentence, with its
   translation, against a placebo pair in the same slot; nine questions; A12 is 30 points (Eric).
+  Also Oct 24 (Eric):
+  - **Final Project, Path A example:** the page's Path A takes one from Lecture 14 (Eric: "a
+    great final project idea. path A even"). One multilingual model over English, the student's
+    language and two or three others from the Church data, against the one-way A9 model, with a
+    zero-shot comparison between two of the others.
+  - **Presentations stay in the final exam slot.** Moving them into class would cost Lectures 21
+    to 23 and a week of project time.
+  - **Shorter assignment names** in Learning Suite, numbers unchanged: "Assignment 12 - Context in
+    LLM Translation", "Assignment 14 - Multilingual NMT, Both Directions", and so on.
+  - **A stretch task** on each assignment, about 20% of its points, with AI at Level 2 (Reviewer)
+    for the stretch task only. Live for A12, A13 and the Paper Review; A14's follows the Oct 29
+    decision below.
+  - **A fine-tuning tutorial**, Tutorial 9 on NLLB, to fill the course's largest gap: nothing
+    teaches fine-tuning a pretrained model, which is how most Final Projects will get their
+    results. A14 is rebuilt on it if it is ready by Thu Oct 29 (go or no-go then).
+- **Oct 23.** The Final Project has seven parts, each its own gradebook entry, "Final Project 1"
+  to "Final Project 7" (Eric):
+
+  | Part | Points | When |
+  |---|---|---|
+  | 1. Proposal outline review | 5 | Nov 9 |
+  | 2. Proposal | 20 | Nov 11, 10:00 |
+  | 3. Checkpoint review | 5 | Nov 23 |
+  | 4. Written report | 40 | Dec 10 |
+  | 5. Submission | 35 | Dec 10 |
+  | 6. Presentation | 20 | Dec 16 |
+  | 7. Peer feedback | 5 | Dec 16 |
+
+  - The project itself is 100: parts 3 to 6. Parts 1, 2 and 7 are graded separately.
+  - The proposal moves from Nov 9 to Nov 11.
+  - The written report (was "write-up") uses the ACL template only.
+  - Presentations are at most 6 minutes, 2 of them for questions.
+  - Peer feedback is new: four questions on every other presentation, by name, on a Google Form.
+  - The optional LLM-judge prompts moved to their own page.
+  - The checkpoint reviews take Mon Nov 23, with no lecture. Lecture 18 moves to Nov 30, and
+    Lectures 19 and 20 to Dec 2.
+  - No A14 timing run is needed: "plan for about twice your A9 training" stays (Eric).
 - **Oct 22.** No two assignment windows overlap (Eric). A12 is due Fri Oct 30 (moved for
   breathing room, Eric), A13 Wed Nov 4 and A14 Tue Nov 10, all at 11:59 pm, each opening when
   the one before closes; A14 may overlap the Nov 9 outline review (Eric) and ends before the

@@ -97,21 +97,22 @@ lectures:
   date: 2026-11-18
   title: Multimodal NMT
   deck: F2025
-- ids: ["18"]
+- ids: []
   date: 2026-11-23
-  title: HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation
-  deck: F2025
+  title: Project checkpoint reviews with the instructor, by appointment; no class meets (Eric,
+    Oct 23)
 - ids: []
   date: 2026-11-25
   title: '**No class**, Thanksgiving Eve'
-- ids: ["19", "20"]
+- ids: ["18"]
   date: 2026-11-30
+  title: HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation
+  deck: F2025
+- ids: ["19", "20"]
+  date: 2026-12-02
   title: 'Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT,
     PBSMT, SBSMT'
   deck: F2025, merged at rebuild
-- ids: []
-  date: 2026-12-02
-  title: Project checkpoint reviews with instructor
 - ids: ["21"]
   date: 2026-12-07
   title: Writing Research Articles; MATRIX Lab research
@@ -140,53 +141,53 @@ lectures:
 #   window         that table's window column, verbatim.
 assignments:
 - id: A1
-  label: '**A1** read the syllabus; MT history'
+  label: '**A1** MT Topics and History'
   due: 2026-09-02
 - id: A2
-  label: '**A2** rank translation challenges for your language'
+  label: '**A2** Translation Challenges'
   due: 2026-09-09
 - id: A3
-  label: '**A3** multilingual embedding space'
+  label: '**A3** Word Embeddings'
   due: 2026-09-14
 - id: A4
-  label: '**A4** initial cleaning steps'
+  label: '**A4** Data Cleaning, First Steps'
   due: 2026-09-21
 - id: A5
-  label: '**A5** complete cleaning pipeline'
+  label: '**A5** Data Cleaning Pipeline'
   due: 2026-09-23
 - id: A6
-  label: '**A6** human vs. automatic evaluation'
+  label: '**A6** Human vs. Automatic Evaluation'
   due: 2026-09-28
 - id: A7
-  label: '**A7** toy-model report'
+  label: '**A7** A Toy Model in TorchLingo'
   due: 2026-09-30
   set_at: "7"
   window: '2, deliberately: three numbers and two sentences from an exercise started in class'
 - id: A8
-  label: '**A8** create and run an NMT model'
+  label: '**A8** NMT on Your Data'
   due: 2026-10-07
   set_at: "8a"
   window: 7 days
 - id: A9
-  label: '**A9** SentencePiece'
+  label: '**A9** Subwords with SentencePiece'
   due: 2026-10-14
   set_at: "8c"
   emphasize_due: true
   window: '7; Eric, Oct 7: one more session, since the subword slides are taught Monday. Part
     A ran in class on Oct 7, Part B is live'
 - id: A10
-  label: '**A10** install COMET'
+  label: '**A10** COMET Setup and QE Reading'
   due: 2026-10-19
   set_at: "10"
   window: '5: an install, and A11 needs it done'
 - id: A11
-  label: '**A11** run COMET on the A6 sentences'
+  label: '**A11** Evaluating with COMET'
   due: 2026-10-26
   set_at: "11"
   emphasize_due: true
   window: 5 since the Oct 21 shift (set at the live Lecture 11; due date kept, Eric, Oct 21)
 - id: A12
-  label: '**A12** context and LRL translation'
+  label: '**A12** Context in LLM Translation'
   due: 2026-10-30
   due_time: 11:59 pm
   set_at: "12"
@@ -194,14 +195,14 @@ assignments:
   window: '4, Mon Oct 26 to Fri Oct 30 (Eric, Oct 22: moved for breathing room, and no two
     assignment windows overlap); the A12 page and notebook were open from Oct 21'
 - id: A13
-  label: '**A13** back-translated data'
+  label: '**A13** Back-Translation'
   due: 2026-11-04
   due_time: 11:59 pm
   set_at: "13"
   emphasize_due: true
   window: '5, Fri Oct 30 to Wed Nov 4, opening when A12 closes (Eric, Oct 22)'
 - id: A14
-  label: '**A14** bidirectional MNMT'
+  label: '**A14** Multilingual NMT, Both Directions'
   due: 2026-11-10
   due_time: 11:59 pm
   set_at: "14"
@@ -209,17 +210,27 @@ assignments:
   window: '6, Wed Nov 4 to Tue Nov 10, opening when A13 closes; may overlap the Nov 9 outline
     review, and ends before the Nov 11 proposal presentations (Eric, Oct 22)'
 - id: A15
-  label: '**A15** SLT pipeline'
+  label: '**A15** Speech Translation Pipeline'
   set_at: "15"
   dropped: 'this term, folded into the Final Project (Eric, Oct 22): its page unpublished and
     kept for next year, its 20 points dropped, the speech pipeline named as a Path B example'
-- label: '**Final Project Proposal**, at 10:00 am, the outline-review day'
+# The Final Project's seven parts, each its own gradebook entry, "Final Project 1 - ..." to
+# "Final Project 7 - ..." (Eric, Oct 23). The project itself is 100: parts 3 to 6.
+- label: '**Final Project 1** proposal outline review (5), by appointment'
   due: 2026-11-09
+- label: '**Final Project 2** proposal (20), at 10:00 am, the first presentation day'
+  due: 2026-11-11
+- label: '**Final Project 3** checkpoint review (5), by appointment'
+  due: 2026-11-23
 - label: '**Paper review assignment**'
   due: 2026-12-09
-- label: Final project **submission and write-up**, all work by 11:59 pm
+- label: '**Final Project 4** written report (40, ACL template), by 11:59 pm'
   due: 2026-12-10
-- label: Final project **presentations**, in the final exam slot
+- label: '**Final Project 5** submission (35), by 11:59 pm'
+  due: 2026-12-10
+- label: '**Final Project 6** presentation (20; 6 minutes, 2 of them for questions)'
+  due: 2026-12-16
+- label: '**Final Project 7** peer feedback (5), a form on every other presentation'
   due: 2026-12-16
 
 # The "Lecture outcomes" table. Its own list because its rows are not the schedule's:
