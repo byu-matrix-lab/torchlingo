@@ -138,6 +138,7 @@ nav:
     - Diagnosing Failures: tutorials/06-diagnosing-failures.ipynb
     - Translating Unseen Sentences: tutorials/07-real-translations.ipynb
     - Inference and Beam Search: tutorials/08-inference-and-beamsearch.ipynb
+    - Fine-Tuning a Pretrained Model: tutorials/09-fine-tuning-nllb.ipynb
   # CS 479 in-class notebooks, archived here rather than in Google Drive so the
   # repository is the one copy a deck can link to. Numbered by lecture, which is
   # why they do not line up with the tutorial numbers above.

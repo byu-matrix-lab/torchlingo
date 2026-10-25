@@ -1611,7 +1611,11 @@ class TestTheExecutorSkipsOnCapabilities(unittest.TestCase):
         )
 
     def test_a_notebook_declaring_nothing_is_runnable(self):
-        for path in [p for p in nm.notebooks() if p.parent == nm.TUTORIALS]:
+        # Most tutorials declare nothing; tutorial 9, fine-tuning NLLB, is the first that
+        # needs a GPU, and is tested from its own cells instead (tests/test_tutorial_09.py).
+        undeclared = [p for p in nm.notebooks() if not nm.read_meta(p).get("requires")]
+        self.assertGreater(len(undeclared), 5)
+        for path in undeclared:
             self.assertEqual(self.en.missing_capabilities(path), [], path.name)
 
     def test_the_executor_looks_at_both_families(self):
