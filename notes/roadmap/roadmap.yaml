@@ -305,7 +305,9 @@ lecture_outcomes:
     pairs, with no training; measure how much random and nearest examples improve translation,
     and tell a real difference from the spread between random draws; explain how examples in
     the prompt help or hurt when the model's weights never change, and what
-    sentence-by-sentence translation cannot fix.
+    sentence-by-sentence translation cannot fix; give the model the sentence before, with its
+    translation, and measure whether it resolves a pronoun or a repeated term the sentence alone
+    leaves ambiguous, and why a score over the whole test set can miss it.
   shown_by: A12 chart and analysis
 - lecture: "13"
   topic: Low-resource strategies
@@ -522,15 +524,18 @@ notebooks:
     rating: low, as reading
   lecture-12-llm-context:
     purpose: in-context translation with 0 to 20 examples, on the student's A12 language
-    lesson: in-context examples and what they buy, how many and which
+    lesson: in-context examples and what they buy, how many and which; then the sentence before,
+      context for disambiguation, against a placebo pair
     student_must: write split_pool_and_test and build_prompt (the method, each checked for sizes,
-      reproducibility and contamination, and for the prompt's required contents, its wording
-      their own); predict the best context size and whether nearest examples beat random ones;
-      reconcile the prediction with the curve and its spread over three draws; upload the
+      reproducibility and contamination, and for the prompt's required contents, with and
+      without the sentence before, its wording their own); predict the best context size and
+      whether nearest examples beat random ones, then what the sentence before changes;
+      reconcile both predictions with the results and the spread over three draws; find two of
+      their own test sentences whose pronoun or term refers into the sentence before; upload the
       completed notebook
     notebook_does: the LLM, three random draws and the nearest examples at each size, NLLB where
-      it covers the language (Telugu), BLEU and chrF, the chart, the rerun record and the upload
-      files
+      it covers the language (Telugu), the sentence-before and placebo runs at k = 5 with the
+      pronoun sentences marked, BLEU and chrF, the chart, the rerun record and the upload files
     rating: low
   lecture-13-back-translation:
     purpose: back-translation end to end, from the A9 files and the student's own monolingual text

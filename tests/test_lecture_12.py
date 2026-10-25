@@ -43,10 +43,15 @@ ANSWERS = {
         'lines = [f"Translate the English sentence into {LANGUAGE}.", ""]\n'
         "    for src, tgt in examples:\n"
         '        lines += [f"English: {src}", f"{LANGUAGE}: {tgt}", ""]\n'
+        "    if before is not None:\n"
+        '        lines += [f"The sentence before, in English: {before[0]}", f"In {LANGUAGE}: {before[1]}", ""]\n'
         '    return "\\n".join(lines + [f"English: {sentence}", f"{LANGUAGE}:"])'
     ),
 }
-PREDICTED = {'PREDICTION = ""': 'PREDICTION = "context helps up to 10"'}
+PREDICTED = {
+    'PREDICTION = ""': 'PREDICTION = "context helps up to 10"',
+    'PREDICTION_BEFORE = ""': 'PREDICTION_BEFORE = "it settles a pronoun or two"',
+}
 
 
 def notebook_cells(
@@ -104,7 +109,8 @@ def stub_namespace(namespace: dict) -> dict:
             by_source.update(zip(test.src, test.tgt))
         return by_source[sentence]
 
-    def translate(sentences, examples_for, batch_size=8):
+    def translate(sentences, examples_for, befores=None, batch_size=8):
+        befores = befores or [None] * len(sentences)
         return [
             reference(s) if len(examples) >= 10 else s
             for s, examples in zip(sentences, examples_for)
@@ -160,6 +166,7 @@ class TestBuiltInSample(NotebookCase):
         self.assertIn("Spanish is not the assignment", printed)
         uploads = {"test.tsv", "scores.tsv", "scores-by-context.png", "a12-rerun.json"}
         uploads |= {"hyp-0.txt", "hyp-nllb.txt"}
+        uploads |= {"before-5.tsv", "hyp-5-before.txt", "hyp-5-placebo.txt"}
         for k in (5, 10, 20):
             uploads |= {f"nearest-{k}.tsv", f"hyp-nearest-{k}.txt"}
             uploads |= {f"context-{k}-draw{d}.tsv" for d in DRAWS}
@@ -209,7 +216,35 @@ class TestBuiltInSample(NotebookCase):
         self.assertEqual(
             sorted(set(scores.context)), ["", "0", "10", "20", "5"]
         )  # whole numbers, not 10.0
-        self.assertEqual(len(scores), 1 + 3 * (3 + 1) + 1)
+        # The none row, three draws and nearest at each size, NLLB, and Step 6's two.
+        self.assertEqual(len(scores), 1 + 3 * (3 + 1) + 1 + 2)
+
+        # Step 6: each test sentence's sentence before is the line above it in the sample, and
+        # the placebo is draw 1's sixth example; the table marks the pronoun sentences.
+        table = pd.read_csv(
+            out / "before-5.tsv", sep="\t", dtype=str, keep_default_na=False
+        )
+        lines, test = namespace["lines"], namespace["test"]
+        for row, line in zip(table.itertuples(), test.line):
+            if line > 0:
+                self.assertEqual(row.before_src, lines.src.iloc[line - 1])
+                self.assertEqual(row.before_tgt, lines.tgt.iloc[line - 1])
+        self.assertEqual(
+            list(table.columns),
+            [
+                "test_src",
+                "before_src",
+                "before_tgt",
+                "reference",
+                "hyp_5",
+                "hyp_placebo",
+                "hyp_before",
+                "pronouns",
+            ],
+        )
+        self.assertEqual(
+            set(scores.condition) & {"before", "placebo"}, {"before", "placebo"}
+        )
         self.assertTrue(scores.bleu_signature.str.contains("nrefs:1").all())
         self.assertTrue(scores.chrf_signature.str.contains("nc:6").all())
         by_run = scores.set_index(["condition", "context", "draw"])

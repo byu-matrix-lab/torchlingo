@@ -18,7 +18,7 @@ Where each assignment stands against it:
 | A9 | `unknown_rate`; `VOCAB_SIZE` with a reason; a BLEU prediction | a known-answer case; Part B reloads the saved settings |
 | A10 | `comet_inputs`; a prediction | known cases, including lists of different lengths |
 | A11 | `comet_inputs` again; `pairwise_agreement`; a prediction | a known case; your files' alignment |
-| A12 | `split_pool_and_test`, `build_prompt`; a prediction | known cases; `check_contamination` on the split |
+| A12 | `split_pool_and_test`, `build_prompt` (with the sentence before); two predictions | known cases; `check_contamination` on the split |
 | A13 | `reverse`, `combine`; a prediction | known cases; `check_contamination` on both held-out sets |
 | A14 | `tag`, `both_directions`; a hypothesis and a prediction | a known case; intermingling on the real split; `check_contamination` in both languages |
 

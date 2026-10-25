@@ -3,6 +3,10 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 24.** A12 gains a fourth outcome, context for disambiguation beside in-context learning
+  (Eric: "both in-context learning and (separately) contextual disambiguation"). The Lecture 12
+  notebook's new Step 6 gives the model the sentence before each test sentence, with its
+  translation, against a placebo pair in the same slot; nine questions; A12 is 30 points (Eric).
 - **Oct 22.** No two assignment windows overlap (Eric). A12 is due Fri Oct 30 (moved for
   breathing room, Eric), A13 Wed Nov 4 and A14 Tue Nov 10, all at 11:59 pm, each opening when
   the one before closes; A14 may overlap the Nov 9 outline review (Eric) and ends before the
