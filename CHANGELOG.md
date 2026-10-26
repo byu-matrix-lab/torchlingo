@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.9] - 2026-10-25
+
 ### Added
 - **`colab.Notes(path)`**, with `.load()` and `.save(**items)`: a notebook's notes in one JSON
   file on Drive, so a write-up runs after a dropped session with only the setup cell. Each
@@ -55,6 +57,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   module, `torchlingo_harness.nllb`, loads NLLB-200 (`load_nllb(src_lang, tgt_lang)`) and
   decodes it with TorchLingo's four strategies, for A12's comparison row and A13's
   back-translation. It needs `transformers`, which Colab ships and TorchLingo does not require.
+- **`torchlingo_harness.nllb.fine_tune(model, tokenizer, train, val, checkpointer, steps=...)`**
+  fine-tunes NLLB on pairs that carry their language codes (`src_code`, `tgt_code`), for A14.
+  It uses Adafactor, whose small state keeps a checkpoint near the size of the weights (about
+  2.3 GB for the 600M model, against about 7 GB with AdamW), gradient accumulation, warmup,
+  and bfloat16 where the GPU has it. It resumes through a `TrainingCheckpointer`, seeds the
+  data order per pass so a resumed run sees the same batches, keeps the best checkpoint by
+  validation loss, and checks for free disk space before it trains.
+  **`nllb.coded_batch(tokenizer, frame, device)`** builds one such batch, each sentence led
+  by its row's code, so one batch can hold both directions.
 
 ### Fixed
 - **An unknown `decode_strategy` is now an error.** `translate_batch` used to decode greedily
