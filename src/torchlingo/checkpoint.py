@@ -33,6 +33,7 @@ from typing import Any, NamedTuple
 import torch
 from torch import nn
 
+from .config import Config
 from .data_processing.vocab import BaseVocab, CharVocab, SentencePieceVocab, SimpleVocab
 from .models import SimpleSeq2SeqLSTM, SimpleTransformer
 
@@ -297,6 +298,8 @@ def load_model(
     *,
     src_vocab: BaseVocab | None = None,
     tgt_vocab: BaseVocab | None = None,
+    config: Config | None = None,
+    model_class: str = "SimpleTransformer",
 ) -> LoadedModel:
     """Rebuild a trained model and its vocabularies from one checkpoint file.
 
@@ -307,6 +310,11 @@ def load_model(
     repository's ``data/pretrained/model.pt``, whose SentencePiece model is a
     separate file: pass that vocabulary in.
 
+    A file saved before TorchLingo recorded the model's settings (before
+    October 14, 2026, such as an early A8 or A9 model) holds only the weights.
+    Pass the ``Config`` the model was trained with and its vocabularies, and
+    ``load_model`` builds the model from them, as the training notebook did.
+
     Args:
         path: The checkpoint file.
         device: Where to put the model. Defaults to CUDA if available, else CPU.
@@ -315,16 +323,22 @@ def load_model(
             file saved without one).
         tgt_vocab: The same for the target side. When only ``src_vocab`` is
             given and the file carries no target vocabulary, it serves both.
+        config: The ``Config`` the model was trained with. Used only for a file
+            that does not record the model's settings; a file that does is
+            built from its own.
+        model_class: The model's class name, ``"SimpleTransformer"`` or
+            ``"SimpleSeq2SeqLSTM"``, for a file that does not record it.
 
     Returns:
         A :class:`LoadedModel`: ``model`` (in ``eval()`` mode), ``src_vocab``
         and ``tgt_vocab``, which unpack in that order.
 
     Raises:
-        ValueError: If the file does not record the model's settings, as files
-            saved before this version do not; if a vocabulary is neither in the
-            file nor given; or if a vocabulary's size does not match the model's,
-            which means it is not the vocabulary the model was trained with.
+        ValueError: If the file does not record the model's settings and no
+            ``config`` is given; if a vocabulary is neither in the file nor
+            given; if a vocabulary's size does not match the model's, which
+            means it is not the vocabulary the model was trained with; or if the
+            weights do not fit the model ``config`` describes.
 
     Examples:
         >>> import tempfile
@@ -344,16 +358,23 @@ def load_model(
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     raw = torch.load(path, map_location="cpu", weights_only=True)
-    config = raw.get("model_config") if isinstance(raw, dict) else None
-    if not config or "model_state_dict" not in raw:
-        raise ValueError(
-            f"{path} holds weights but not the settings the model was built with: it "
-            "was saved before TorchLingo recorded them. Build the model and the "
-            "vocabularies as the notebook that trained it did, then load the weights "
-            "with model.load_state_dict(load_checkpoint(path)['model_state_dict'])."
+    settings = raw.get("model_config") if isinstance(raw, dict) else None
+    if not settings or "model_state_dict" not in raw:
+        if config is None:
+            raise ValueError(
+                f"{path} holds weights but not the settings the model was built "
+                "with: it was saved before TorchLingo recorded them. Pass the "
+                "Config it was trained with and its vocabularies, as in "
+                "load_model(path, config=config, src_vocab=..., tgt_vocab=...), "
+                "or build the model as the notebook that trained it did and load "
+                "the weights with "
+                "model.load_state_dict(load_checkpoint(path)['model_state_dict'])."
+            )
+        return _load_unrecorded(
+            path, raw, device, config, model_class, src_vocab, tgt_vocab
         )
 
-    config = dict(config)
+    config = dict(settings)
     # data/pretrained/model.pt records one shared vocabulary size, not two.
     if "vocab_size" in raw:
         config.setdefault("src_vocab_size", raw["vocab_size"])
@@ -386,3 +407,43 @@ def load_model(
     model.to(device)
     model.eval()
     return LoadedModel(model, src, tgt)
+
+
+def _load_unrecorded(
+    path: str | Path,
+    raw: Any,
+    device: torch.device | str,
+    config: Config,
+    model_class: str,
+    src_vocab: BaseVocab | None,
+    tgt_vocab: BaseVocab | None,
+) -> LoadedModel:
+    """load_model for a file without the model's settings: build it from ``config``."""
+    if model_class not in MODEL_CLASSES:
+        raise ValueError(
+            f"model_class must be one of {sorted(MODEL_CLASSES)}, got {model_class!r}."
+        )
+    if src_vocab is None:
+        raise ValueError(
+            f"{path} carries no vocabularies; pass src_vocab= (and tgt_vocab=, "
+            "unless one vocabulary serves both sides) to load_model."
+        )
+    tgt = tgt_vocab if tgt_vocab is not None else src_vocab
+    # train_model's older files nest the weights; a bare state_dict is the weights.
+    if isinstance(raw, dict) and "model_state_dict" in raw:
+        state = raw["model_state_dict"]
+    else:
+        state = raw
+    model = MODEL_CLASSES[model_class](len(src_vocab), len(tgt), config=config)
+    try:
+        model.load_state_dict(state)
+    except RuntimeError as mismatch:
+        raise ValueError(
+            f"the weights in {path} do not fit a {model_class} built from this "
+            "Config and these vocabularies: the model was trained with different "
+            "settings (such as d_model or the number of layers) or different "
+            f"vocabularies. PyTorch's report: {mismatch}"
+        ) from mismatch
+    model.to(device)
+    model.eval()
+    return LoadedModel(model, src_vocab, tgt)

@@ -27,11 +27,24 @@ short text.
 """
 
 from pathlib import Path
+from typing import Any, NamedTuple
 
 import sacrebleu
 import torch
 
 from .data_processing.vocab import BaseVocab
+
+COMET_MODEL = "Unbabel/wmt22-comet-da"
+
+_COMET_INSTALL = (
+    "COMET is not installed. In Colab, install it as the course notebooks do (A14's "
+    "COMET cell): its other requirements first, then `%pip install --no-deps "
+    "unbabel-comet`, because a plain install replaces Colab's numpy. Elsewhere: "
+    "pip install unbabel-comet."
+)
+
+# Loaded COMET models by name: loading one takes most of a minute, so it happens once.
+_comet_models: dict[str, Any] = {}
 
 
 def _needs_char_tokenization(text_samples: list[str]) -> bool:
@@ -594,3 +607,217 @@ def save_translations(
             f.write(f"chrF: {chrf.score:.2f}\n")
 
     print(f"Translations saved to {output_path}")
+
+
+class CometScores(NamedTuple):
+    """What :func:`comet_score` returns: the system score and each sentence's."""
+
+    system: float
+    sentences: list[float]
+
+
+def comet_score(
+    sources: list[str],
+    translations: list[str],
+    references: list[str],
+    model: str | Any = COMET_MODEL,
+    batch_size: int = 64,
+    gpus: int | None = None,
+) -> CometScores:
+    """Score translations with COMET, a learned metric that reads the source too.
+
+    BLEU and chrF count overlapping words and characters; COMET is a neural
+    model trained to predict how people rate a translation, given the source,
+    the translation and a reference. It catches a fluent paraphrase that BLEU
+    misses, but it was trained mostly on high-resource languages, so treat its
+    scores *into* a low-resource language with care.
+
+    COMET is an optional, heavy dependency, imported only when this runs. The
+    first call downloads and loads the model (most of a minute); later calls
+    with the same name reuse it.
+
+    Args:
+        sources: The source sentences.
+        translations: The system's translations, one per source.
+        references: The reference translations, one per source.
+        model: A COMET model name from the Hugging Face Hub (default
+            ``Unbabel/wmt22-comet-da``, which needs no token), or a model already
+            loaded with ``comet.load_from_checkpoint``.
+        batch_size: Sentences per batch.
+        gpus: GPUs to use. Defaults to 1 if CUDA is available, else 0.
+
+    Returns:
+        A :class:`CometScores`: ``system``, the mean, and ``sentences``, one
+        score per sentence, in order.
+
+    Raises:
+        ValueError: If the three lists differ in length.
+        ImportError: If COMET is not installed, with how to install it.
+
+    Examples:
+        >>> scores = comet_score(["Hallo Welt"], ["Hello world"],
+        ...                      ["Hello, world"])          # doctest: +SKIP
+        >>> round(scores.system, 2)                         # doctest: +SKIP
+        0.95
+    """
+    if not len(sources) == len(translations) == len(references):
+        raise ValueError(
+            f"comet_score needs one translation and one reference per source; got "
+            f"{len(sources)} sources, {len(translations)} translations and "
+            f"{len(references)} references."
+        )
+    if isinstance(model, str):
+        if model not in _comet_models:
+            try:
+                from comet import download_model, load_from_checkpoint
+            except ImportError as missing:
+                raise ImportError(_COMET_INSTALL) from missing
+            _comet_models[model] = load_from_checkpoint(download_model(model))
+        model = _comet_models[model]
+    if gpus is None:
+        gpus = 1 if torch.cuda.is_available() else 0
+    data = [
+        {"src": s, "mt": m, "ref": r}
+        for s, m, r in zip(sources, translations, references)
+    ]
+    out = model.predict(data, batch_size=batch_size, gpus=gpus, progress_bar=False)
+    return CometScores(float(out.system_score), [float(x) for x in out.scores])
+
+
+def paired_bootstrap(
+    systems: dict[str, list[str]],
+    references: list[str],
+    baseline: str | None = None,
+    tokenize: str = "13a",
+    n_samples: int = 1000,
+) -> dict[str, dict[str, float | None]]:
+    """BLEU and chrF for several systems, each with a 95% interval and a p against one.
+
+    A difference of a point or two between two systems on a test set of a few
+    hundred sentences can be luck: which sentences happened to be in the test
+    set. The paired bootstrap resamples the test set ``n_samples`` times, scores
+    every system on each resample, and reports how often the gap against the
+    baseline vanishes. A small p (below 0.05, say) means the difference is
+    unlikely to be luck. This is sacreBLEU's own test, seeded by sacreBLEU, so
+    the same inputs give the same numbers.
+
+    Two systems with identical outputs get p = 1 (no difference at all), where
+    sacreBLEU would report its smallest p and call them different.
+
+    Args:
+        systems: Each system's name and its translations, in test-set order.
+        references: One reference per test sentence.
+        baseline: The system the others are tested against. Defaults to the
+            first in ``systems``.
+        tokenize: sacreBLEU's BLEU tokenizer: ``"13a"`` (its default) for
+            languages written with spaces, ``"flores200"`` for spBLEU on those
+            without.
+        n_samples: Resamples of the test set.
+
+    Returns:
+        For each system, in the order given with the baseline first:
+        ``bleu``, ``bleu_ci`` (the interval's half-width), ``bleu_p``, and the
+        same three for chrF (character n-grams only, sacreBLEU's default), each
+        rounded to four places so the result saves to JSON as shown. The
+        baseline's p values are ``None``.
+
+    Raises:
+        ValueError: If there are fewer than two systems, the baseline is not one
+            of them, or a system's translations and the references differ in
+            length.
+
+    Examples:
+        >>> refs = ["the cat sat on the mat", "a dog ran in the park"] * 10
+        >>> scores = paired_bootstrap(
+        ...     {"mine": list(refs), "copy": list(refs), "short": ["the cat"] * 20},
+        ...     refs, n_samples=100)
+        >>> list(scores), scores["copy"]["bleu_p"], scores["mine"]["bleu_p"]
+        (['mine', 'copy', 'short'], 1.0, None)
+    """
+    from sacrebleu.metrics import BLEU, CHRF
+    from sacrebleu.significance import PairedTest
+
+    if len(systems) < 2:
+        raise ValueError("paired_bootstrap compares systems; give it at least two.")
+    baseline = baseline if baseline is not None else next(iter(systems))
+    if baseline not in systems:
+        raise ValueError(
+            f"baseline {baseline!r} is not one of the systems: {sorted(systems)}"
+        )
+    for name, hyps in systems.items():
+        if len(hyps) != len(references):
+            raise ValueError(
+                f"{name!r} has {len(hyps)} translations for {len(references)} "
+                "references."
+            )
+    names = [baseline] + [n for n in systems if n != baseline]
+    metrics = {"BLEU": BLEU(tokenize=tokenize), "chrF": CHRF()}
+    _, result = PairedTest(
+        [(n, list(systems[n])) for n in names],
+        metrics,
+        [list(references)],
+        test_type="bs",
+        n_samples=n_samples,
+    )()
+    bleu, chrf = (result[key] for key in result if key != "System")
+
+    def number(x: Any) -> float | None:
+        return None if x is None else round(float(x), 4)
+
+    scores = {
+        n: {
+            "bleu": number(b.score),
+            "bleu_ci": number(b.ci),
+            "bleu_p": number(b.p_value),
+            "chrf": number(c.score),
+            "chrf_ci": number(c.ci),
+            "chrf_p": number(c.p_value),
+        }
+        for n, b, c in zip(names, bleu, chrf)
+    }
+    for n in names[1:]:
+        if list(systems[n]) == list(systems[baseline]):
+            scores[n].update(bleu_p=1.0, chrf_p=1.0)
+    return scores
+
+
+def format_scores(
+    scores: dict[str, dict[str, float | None]],
+    comet: dict[str, float] | None = None,
+) -> str:
+    """Lay out :func:`paired_bootstrap`'s result as a table, one system a line.
+
+    Args:
+        scores: What :func:`paired_bootstrap` returned (or the same read back
+            from JSON).
+        comet: Optionally, each system's COMET score, as
+            ``comet_score(...).system``; a system missing from it shows
+            "not scored".
+
+    Returns:
+        The table, as text to print.
+
+    Examples:
+        >>> print(format_scores(
+        ...     {"A14": {"bleu": 30.1, "bleu_ci": 1.2, "bleu_p": None,
+        ...              "chrf": 55.0, "chrf_ci": 0.9, "chrf_p": None},
+        ...      "A9": {"bleu": 22.4, "bleu_ci": 1.1, "bleu_p": 0.001,
+        ...             "chrf": 48.2, "chrf_ci": 1.0, "chrf_p": 0.001}},
+        ...     comet={"A14": 0.8123}))
+        A14   BLEU  30.10 +/- 1.20  chrF  55.00 +/- 0.90  COMET 0.8123
+        A9    BLEU  22.40 +/- 1.10  chrF  48.20 +/- 1.00  COMET not scored   p = 0.001 (BLEU), 0.001 (chrF)
+    """
+    width = max(len(name) for name in scores) + 2
+    lines = []
+    for name, s in scores.items():
+        line = (
+            f"{name:<{width}}BLEU {s['bleu']:6.2f} +/- {s['bleu_ci']:<5.2f} "
+            f"chrF {s['chrf']:6.2f} +/- {s['chrf_ci']:<5.2f}"
+        )
+        if comet is not None:
+            value = comet.get(name)
+            line += f"  COMET {'not scored' if value is None else f'{value:.4f}'}"
+        if s.get("bleu_p") is not None:
+            line += f"   p = {s['bleu_p']:.3f} (BLEU), {s['chrf_p']:.3f} (chrF)"
+        lines.append(line.rstrip())
+    return "\n".join(lines)
