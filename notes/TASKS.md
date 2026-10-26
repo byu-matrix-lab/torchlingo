@@ -84,7 +84,11 @@ measured 6.9 GB each. Eric chose **go** on rebuilding A14 on it, with one Colab 
 A14 is rebuilt both ways with COMET (PR #343), on `torchlingo_harness.nllb.fine_tune`. Filed:
 Task #279 (that Colab run), and Tasks #281 to #294 from a two-lens review of every notebook
 (Eric's request): code that belongs in the library, and where students decide. The P1 to P3
-criteria were rewritten with Eric and every row re-ranked.
+criteria were rewritten with Eric and every row re-ranked. Then, the same day: A13 and A14 ask
+which differences are real, and A13 names its training ingredients (PR #345); tutorials 4, 6, 7
+and 8 checkpoint every run (PR #346); `CLAUDE.md` records Eric's two principles (PR #347); and
+Tutorial 9 became "how much fine-tuning is enough, and what it costs", so that it and A14 do not
+look alike (PR #348). Filed: Task #295, a batch landing stuck on a last PR that triggers no CI.
 
 Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
 from this side, and Tasks #254 to #256 from the session's repeated manual steps.
@@ -160,7 +164,7 @@ those of Oct 5):
   interpretation missing from a coming assignment; a standing rule that shipped code breaks;
   protection for `main` and `course`; or something Eric asked for, with no date.
 - **P3: everything else.** Library refactors that change nothing students see this term,
-  tutorials (students treat them as optional, even when required: Eric, Oct 25), lectures that
+  tutorials (they carry no points, so students pressed for time skip them: Eric, Oct 25), lectures that
   have already run, the next offering, and housekeeping.
 
 Within a level, the earlier date comes first. A tutorial-only task is P3 unless it breaks a
@@ -170,17 +174,13 @@ two-lens review of every notebook, became Tasks #281 to #294.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #279 | **P1** | One Colab L4 run of the rebuilt A14 before it opens | **14+** | Open — Eric's condition for the go (Oct 25): Eric or Coulson runs `lecture-14-multilingual` once on an L4 on a real A8 language, before Wed Nov 4. Nothing has run on Colab yet: the bfloat16 path, L4 memory, the download and the real step time are unmeasured (this Mac's GPU, float32: about 3 to 7 s a step). Fix whatever it finds, then the Colab install-only check |
-| #281 | **P2** | No assignment notebook leaves a lesson to a tutorial | **L13** | Open — Eric, Oct 25: students treat tutorials as optional, so the assignment notebooks are load-bearing. For each, list what it relies on that only a tutorial teaches, and bring the essential part inline, the tutorial linked for depth. A13 first (opens Oct 30), then A14 (Nov 4) |
-| #284 | **P2** | A13 and A14 ask which differences are real | **L13** | Open — after the bootstrap tables, the student says for each comparison whether it is real, checked against the saved *p* with "you said ...; p = ...". From the review |
-| #285 | **P2** | A13's markdown names the training ingredients it uses | **L13** | Open — gradient clipping, dropout, the learning rate: Eric's frame, an application of deep learning, its ingredients named. Lectures already run are Task #292 |
-| #282 | **P2** | Tutorial 9 and A14 must not look alike | **14+** | Open — they share the code table, the borrowing check and the off-the-shelf baseline. A14 keeps them, being the assignment; Tutorial 9 gets a purpose no assignment has, proposed to Eric first, and the shared helpers move into `torchlingo_harness` |
-| #283 | **P2** | Tutorials 4, 6, 7 and 8 train without a `TrainingCheckpointer` | **hyg** | Open — the standing rule in `CLAUDE.md`, broken in shipped code: one `train_model` call in tutorials 4, 7 and 8, four in tutorial 6 |
-| #286 | **P2** | Record Eric's two notebook principles in `CLAUDE.md` | **hyg** | Open — tutorials are optional to students, so assignments are load-bearing; and an application of deep learning, its ingredients named and explained, the student's decisions and code on translation (Eric, Oct 25) |
+| #279 | **P1** | One Colab L4 run of the rebuilt A14 before it opens | **14+** | Open — Eric's condition for the go (Oct 25): Eric or Coulson runs `lecture-14-multilingual` once on an L4 on a real A8 language, before Wed Nov 4. Postponed to Mon Oct 26 (Eric). The Colab install-only check passed on the promoted notebook (Oct 25), so the install cells are known good; the bfloat16 path, L4 memory, the download and the real step time are not (this Mac's GPU, float32: about 3 to 7 s a step). Open: who runs it, and whose A9 files: a student-like `MyDrive/CS479/assignment8`, or a test folder built from the course's German split with a correctly sized A9 model. Fix whatever it finds before Nov 4 |
+| #295 | **P2** | A batch whose last PR triggers no CI promotes nothing | **hyg** | Open — found Oct 25: `land_pr.sh 345 346 347 --promote` merged all three, then waited to promote PR #347's commit, which changed only `CLAUDE.md`, so CI's path filter ran nothing on it and `promote_course.sh --await` waited for a run that never comes. Promoted PR #346's commit by hand instead (the trees differ only in `CLAUDE.md`). Fix in the existing tools: promote the newest commit of the batch whose checks ran, or have `promote_course.sh` accept a commit whose only changes since a checked commit are files CI does not watch; and the batch's stop report should name that commit, not `main`'s head |
 | #273 | **P2** | Run the install-only student check on the notebooks a PR changes, before it merges | **hyg** | Open — PR #329's COMET cell read a setup-cell helper, harmless to a student running from the top, and `student_path.sh --colab --install-only` caught it only after promotion, on `course` 6405a02 (fixed in PR #331). Extend `merge_check.sh` or `land_pr.sh` to run it on each changed notebook with an install cell (about 35 s each; needs uv), not a new tool |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #243 | **P2** | An architectural review of TorchLingo, pedagogy first | **lib** | Open — a review, reported before any change (Eric, Oct 14) |
+| #281 | **P3** | No assignment notebook leaves a lesson to a tutorial: A7 to A11 | **L7** | Open — Eric, Oct 25: tutorials carry no points, so students pressed for time skip them, and the assignment notebooks are load-bearing. Done Oct 25 for A12 to A14, the assignments still to come: A12 relies on no tutorial; A13 and A14 gained a sentence each on beam search and chrF (PR #345). A7 to A11 have run; audit them for the next offering |
 | #287 | **P3** | `load_model` takes a configuration for checkpoints saved before Oct 14 | **lib** | Open — it raises `ValueError` on files that do not record the model's settings (before PR #280), which covers most students' A8 and A9 models, so A8 to A14 rebuild models by hand. With a fallback, the notebooks can call it, next offering |
 | #288 | **P3** | One COMET helper in `torchlingo.evaluation` | **lib** | Open — the install block is in A10, A11, A13 and A14, the scoring loop in A10, A11 and A14; A13 uses COMET's command line. Keep the student's own `comet_inputs` where that is the lesson. COMET's install pins `transformers` below 5 |
 | #289 | **P3** | `paired_bootstrap` and a score table in `torchlingo.evaluation` | **lib** | Open — near-identical in A13 and A14, the identical-output *p* = 1 fix included; Final Projects will want it |

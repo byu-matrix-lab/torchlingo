@@ -5,8 +5,9 @@
 Suite, `course/build/` and `notes/assignments/` were not touched.
 
 **The go or no-go: go.** Eric chose it on Oct 25, with one Colab run of the rebuilt A14 before it
-opens on Nov 4. A14 is rebuilt on fine-tuning NLLB-200 in both directions, with Tutorial 9 as its
-reading. What that asks of you before Lecture 14 on Nov 2 is in "Asked of you" at the end.
+opens on Nov 4 (set for Monday). A14 is rebuilt on fine-tuning NLLB-200 in both directions, and
+carries everything it needs; Tutorial 9, after it, asks how much fine-tuning is enough and what it
+costs. What that asks of you before Lecture 14 on Nov 2 is in "Asked of you" at the end.
 
 ## 1. A12 (your sections 5 and 7): live before Monday, and run on Efik
 
@@ -65,23 +66,34 @@ Lecture 19 (now on Dec 2). The others you named had already been closed. Wrappin
 plumbing stays on our list as engineering, and there was no row for A14's timing to drop. Our
 `notes/TASKS.md` now opens with a line pointing to the shared list.
 
-## 4. Tutorial 9: fine-tuning NLLB (your section 10, part 1)
+## 4. Tutorial 9 (your section 10, part 1), and then a purpose of its own
 
-**Landed and on `course` on Oct 25; the student-path check passed.**
-`docs/docs/tutorials/09-fine-tuning-nllb.ipynb`, "Fine-Tuning a Pretrained Model": reading, on
-the student's A8 split or a built-in sample, on an A100, L4 or G4. As you asked: off-the-shelf
-NLLB first, greedy and beam; the student writes the code-tagged sequences NLLB trains on
-(checked by hand, then against NLLB's own tokenizer), sets a step budget and predicts the gain;
-the training checkpoints to Drive and resumes; the report sets NLLB off the shelf, fine-tuned
-NLLB and the student's A9 side by side, with sentences fine-tuning changed.
+**What you asked for was built first, and landed:** a fine-tuning tutorial on the student's A8
+split: off-the-shelf NLLB as the number to beat, the code-tagged sequences NLLB trains on, a
+borrowed code where NLLB lacks the language, a step budget, a resumable run, and NLLB set
+beside A9. Once A14 was rebuilt on it (section 5), the two looked alike, and Eric's rule,
+below, is that an assignment and a tutorial must not. **So A14 now carries all of that, and
+Tutorial 9 was given a purpose no assignment has** (Eric chose it): **"How Much Fine-Tuning Is
+Enough, and What Does It Cost?"** Read after A14, with A14's language code, on the student's
+split or a built-in sample:
+
+- a **learning curve**: one fine-tuning run, scored after 100, 300 and 1,000 steps, against the
+  student's predictions;
+- **forgetting**: what training only English into their language did to the direction not
+  trained, and to a third language they can read;
+- **a learning rate set too high**, and what it does to the loss and the output.
+
+About fifteen minutes of training on an L4, by estimate. It leads to the Final Project rather
+than to A14, so its place on your tutorial map is after A14.
 
 **Languages NLLB does not cover**, checked against NLLB-200's own list: of the A8 languages,
-**Hmong** only; of the A12 languages, Efik, Kosraean, Palauan, Pohnpeian and Yapese. The notebook
-names them, and asks the student to reason out a covered language to borrow (family, script,
-vocabulary, word order, region), test two or three candidates by chrF, and say why. It never
-names the answer.
+**Hmong** only; of the A12 languages, Efik, Kosraean, Palauan, Pohnpeian and Yapese. A14's
+Step 1 names Hmong, and asks the student to reason out a covered language to borrow (family,
+script, vocabulary, word order, region), test two or three candidates by chrF, and say why. It
+never names the answer.
 
-**Real runs here**, on this Mac's GPU, 300 steps each:
+**Real runs here**, of the first version, on this Mac's GPU, 300 steps each: the evidence for
+the go on A14.
 
 | | off the shelf | fine-tuned, greedy | fine-tuned, beam |
 |---|---|---|---|
@@ -92,9 +104,9 @@ The borrowing check ranked Igbo and Hausa well above Yoruba for Efik. **The L4 t
 measured:** Eric chose to decide on these runs, so the training cell prints its own estimate for
 the student's budget, and the Colab run before Nov 4 will give the first real number.
 
-**Drive space.** A first version's checkpoints were 6.9 GB each, more than a free Drive holds;
-the tutorial now uses the Adafactor optimizer, at 2.3 GB each, and checks for about 8 GB free
-before training. The same goes for A14.
+**Drive space.** The first version's checkpoints were 6.9 GB each, more than a free Drive
+holds; fine-tuning now uses the Adafactor optimizer, at 2.3 GB each, and checks for about 8 GB
+free before training, in A14 and Tutorial 9 alike.
 
 ## 5. A14, rebuilt (your section 10, part 2, and section 2)
 
@@ -121,7 +133,8 @@ NLLB's language codes as the tags:
 4. **A hypothesis, a prediction, a budget; then fine-tune**, both directions at once.
 5. **Score each direction:** A14, NLLB off the shelf, and the student's one-way model (A9 into
    their language; the A13 reverse model into English, if they have one), greedy and beam,
-   BLEU and chrF with the paired bootstrap.
+   BLEU and chrF with the paired bootstrap. Then the student **says which differences are
+   real**, and the cell checks each answer against the *p*.
 6. **The wrong code, and a pair nobody trained:** the student chooses a third language they can
    read and asks for it from their own (zero-shot), writing down first what they expect from
    each. This is also where the stretch task starts.
@@ -137,20 +150,29 @@ ingredients named while the student stays on the translation problem), the train
 call, and the notebook's markdown says what it does: every weight trained a little at a small
 learning rate, gradient accumulation, bfloat16, Adafactor, the best checkpoint kept.
 
+## 6. A13 too, before it opens
+
+On `course` since Oct 25, in A13's notebook: after the bootstrap table, the student **says
+whether A13's difference from A9 is real**, greedy and beam, and the cell checks each answer
+against the *p*; Step 4 now names what the training does (epochs, training and validation loss,
+warmup, dropout, gradient clipping); Step 5 says in a sentence what beam search and chrF are.
+No step was renumbered and no question changed, so A13's page needs nothing, unless you want
+its Step 5 bullet to mention the new cell.
+
 ## Our list, reconciled
 
 - **Moved to the shared course list:** the three rows in section 3.
 - **Closed:** A12's sentence-before review and landing; the roadmap updates; the task-list move;
-  the A12 run on a real language; Tutorial 9.
-- **Open on this side:** one Colab L4 run of the rebuilt A14 before Nov 4, by Eric or Coulson,
-  and fixing anything it finds; then what a review of every notebook found (Eric's request,
-  Oct 25), now ranked on our list.
-- **New, for both sides to know.** Eric, Oct 25: students treat tutorials as optional even when
-  they are required, so **the assignment notebooks must be load-bearing**: anything an
-  assignment needs is taught in the assignment, and a tutorial is for depth. We will audit
-  every assignment notebook for lessons it leaves to a tutorial, A13 first, and make Tutorial 9
-  and A14 stop looking alike (A14 keeps what they share; Tutorial 9 gets a purpose of its own).
-  Assignment pages and decks that call a tutorial "required reading" for an assignment are worth
+  the A12 run on a real language; Tutorial 9, and its new purpose; A14 rebuilt; A13 and A14's
+  "which differences are real?" cells; the audit of A12 to A14 for lessons left to a tutorial
+  (A12 relies on none); four tutorials that trained without a checkpointer.
+- **Open on this side:** one Colab L4 run of the rebuilt A14 before Nov 4, set for Monday Oct
+  26, and fixing anything it finds; then the rest of what a review of every notebook found
+  (Eric's request, Oct 25), ranked on our list, most of it for the next offering.
+- **New, for both sides to know.** Eric, Oct 25: tutorials carry no points, so students pressed
+  for time are likely to skip them, and so **the assignment notebooks must be load-bearing**: anything an
+  assignment needs is taught in the assignment, and a tutorial is for depth. Assignment pages
+  and decks that call a tutorial "required reading" for an assignment are worth
   checking against the same rule. And the framing for every notebook: not a deep-learning class
   but an application of deep learning, so the ingredients are named and explained while the
   student's decisions stay on translation.
@@ -165,6 +187,7 @@ learning rate, gradient accumulation, bfloat16, Adafactor, the best checkpoint k
    question than the current six.
 2. **The Lecture 14 deck's A14 slide**, as a new version: NLLB's language codes as the tags, and
    fine-tuning both ways.
-3. **Both charts on the Assignments page:** A14's arrows, and Tutorial 9 on the tutorial map,
-   leading to A14 (its `leads_to` says so).
+3. **Both charts on the Assignments page:** A14's arrows, and Tutorial 9 on the tutorial map
+   after A14, leading to the Final Project (its `leads_to` is empty, since the Final Project has
+   no assignment number).
 4. **A14's stretch task** from your proposal, starting from Step 6's wrong-code cell.
