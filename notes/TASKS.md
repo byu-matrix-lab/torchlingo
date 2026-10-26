@@ -90,6 +90,13 @@ and 8 checkpoint every run (PR #346); `CLAUDE.md` records Eric's two principles 
 Tutorial 9 became "how much fine-tuning is enough, and what it costs", so that it and A14 do not
 look alike (PR #348). Filed: Task #295, a batch landing stuck on a last PR that triggers no CI.
 
+**2026-10-26: Hand-off G, the roadmap as the one source.** Cowork answered all four asks of
+the Oct 25 hand-off and opened PR #356 itself. This side generated the Assignments page's two
+charts from `roadmap.yaml` (Task #297), with `FP` as a `leads_to` target so Tutorial 9 can name
+the Final Project. Eric: tutorials are required reading. Task #281 gained Eric's next-offering
+proposals. A one-off comparison found every transcript's title and Total row matching the
+roadmap; a standing check waits on Cowork giving the transcripts a due-date field.
+
 Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
 from this side, and Tasks #254 to #256 from the session's repeated manual steps.
 
@@ -164,7 +171,8 @@ those of Oct 5):
   interpretation missing from a coming assignment; a standing rule that shipped code breaks;
   protection for `main` and `course`; or something Eric asked for, with no date.
 - **P3: everything else.** Library refactors that change nothing students see this term,
-  tutorials (they carry no points, so students pressed for time skip them: Eric, Oct 25), lectures that
+  tutorials (required reading, Eric, Oct 26, but they carry no points, so students pressed
+  for time skip them: Eric, Oct 25), lectures that
   have already run, the next offering, and housekeeping.
 
 Within a level, the earlier date comes first. A tutorial-only task is P3 unless it breaks a
@@ -174,6 +182,7 @@ two-lens review of every notebook, became Tasks #281 to #294.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
+| #297 | **P1** | Land PR #356, then open and land the charts PR | **14+** | Open — PR #356 (Cowork's: Tutorials 4 and 8 `leads_to`, points in `roadmap.yaml`) is `CLEAN` on `merge_check.sh` (Oct 26), waiting on Eric's OK to merge. The charts work (Hand-off G, section 4) is committed on local branch `roadmap-charts`, on top of it, preflight green; open its PR once PR #356 is on `main`. Cowork needs the charts before Lecture 14 (Mon Nov 2). Then promote, since Tutorials 4, 8 and 9's purpose cells change |
 | #279 | **P1** | One Colab L4 run of the rebuilt A14 before it opens | **14+** | Open — Eric's condition for the go (Oct 25): Eric or Coulson runs `lecture-14-multilingual` once on an L4 on a real A8 language, before Wed Nov 4. Postponed to Mon Oct 26 (Eric). The Colab install-only check passed on the promoted notebook (Oct 25), so the install cells are known good; the bfloat16 path, L4 memory, the download and the real step time are not (this Mac's GPU, float32: about 3 to 7 s a step). Open: who runs it, and whose A9 files: a student-like `MyDrive/CS479/assignment8`, or a test folder built from the course's German split with a correctly sized A9 model. Fix whatever it finds before Nov 4 |
 | #295 | **P2** | A batch whose last PR triggers no CI promotes nothing | **hyg** | Open — found Oct 25: `land_pr.sh 345 346 347 --promote` merged all three, then waited to promote PR #347's commit, which changed only `CLAUDE.md`, so CI's path filter ran nothing on it and `promote_course.sh --await` waited for a run that never comes. Promoted PR #346's commit by hand instead (the trees differ only in `CLAUDE.md`). Fix in the existing tools: promote the newest commit of the batch whose checks ran, or have `promote_course.sh` accept a commit whose only changes since a checked commit are files CI does not watch; and the batch's stop report should name that commit, not `main`'s head |
 | #296 | **P3** | `merge_check.sh` fails every release PR | **hyg** | Open — found Oct 25 on PR #354, 0.2.8 to 0.2.9: preflight in the scratch worktree failed only `tests/test_version_consistency.py`, because the venv's editable install still reports the main checkout's 0.2.8 while the tree's `pyproject.toml` says 0.2.9, so `land_pr.sh` stops on any version bump. PR #354 was merged by hand once CI, which installs fresh, passed on it merged with `main`. Fix in the existing tools: have preflight compare against the tree's own metadata (build it in the scratch worktree, or skip the installed-metadata check when the tree's version differs from the installed one and say so) |
@@ -181,7 +190,7 @@ two-lens review of every notebook, became Tasks #281 to #294.
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #243 | **P2** | An architectural review of TorchLingo, pedagogy first | **lib** | Open — a review, reported before any change (Eric, Oct 14) |
-| #281 | **P3** | No assignment notebook leaves a lesson to a tutorial: A7 to A11 | **L7** | Open — Eric, Oct 25: tutorials carry no points, so students pressed for time skip them, and the assignment notebooks are load-bearing. Done Oct 25 for A12 to A14, the assignments still to come: A12 relies on no tutorial; A13 and A14 gained a sentence each on beam search and chrF (PR #345). A7 to A11 have run; audit them for the next offering |
+| #281 | **P3** | No assignment notebook leaves a lesson to a tutorial: A7 to A11 | **L7** | Open — Eric, Oct 25: tutorials carry no points, so students pressed for time skip them, and the assignment notebooks are load-bearing; Oct 26: tutorials are required reading, with the assignment notebooks as the safety net. Done Oct 25 for A12 to A14, the assignments still to come: A12 relies on no tutorial; A13 and A14 gained a sentence each on beam search and chrF (PR #345). A7 to A11 have run; audit them for the next offering, against the proposals Eric agreed Oct 26 in `torchlingo-private/notes/course/NEXT-OFFERING.md`, "Tutorials into assignments" (fold Tutorial 3 into A8, Tutorial 2 into A6, Tutorial 9 into A14's stretch; merge Tutorials 7 and 8; retire 5; keep 1, 4 and 6). Cowork judged those from the roadmap's notebook entries, so check each against the notebooks themselves |
 | #291 | **P3** | NLLB plumbing through the accessory | **lib** | Open — A12's cell 20 reloads NLLB and decodes greedily by hand where `load_nllb` does it; Tutorial 9's cell 14 resumes decodes by hand where `translate_lines_to_file` does it |
 | #292 | **P3** | Decisions and named ingredients in the lectures already run | **L5** | Open — stopping cells: Lecture 5 (predict *c*), A8 (predict the duplicate share, then print the most repeated), A9's Part B (the choice its markdown promises), A11 (will COMET confirm A9's BLEU verdict?); name gradient clipping, dropout and the learning rate in Lectures 7, 8a and 9; and Lecture 8c's student code is tensor plumbing, where a `which_head` exercise would be about translation. Next offering |
 | #293 | **P3** | Should tutorials 1 to 8 have stopping cells? | **hyg** | Open — none has a prediction, decision or TODO. Eric decides; candidates from the review: tutorial 1's ids, tutorial 2's ship decision, tutorial 3's rebuild prediction, tutorial 4's alignment accuracy, tutorial 6's which check catches the broken corpus |
