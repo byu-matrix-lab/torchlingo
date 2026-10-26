@@ -499,7 +499,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-07-toy-model` | 7 | activity | A7 | the three-part toy-model exercise; the student picks the held-out phrase, predicts, and a contrast phrase runs; resume demo | no: exercises |
 | `03-train-tiny-model` | 7 | reading | A8 | what a checkpoint holds and what it does not; a rebuild that fails loudly, and one that loads cleanly and translates nonsense | yes |
 | `lecture-08a-a8-kickoff` | 8a | activity | A8 | from your A5 corpus to a running, checkpointed, bucketed training job | no: colab, pip |
-| `04-attention-and-alignment` | 8a, 8b | reading | | with and without attention; did it learn the right alignment; Part 7 is the Transformer | yes |
+| `04-attention-and-alignment` | 8a, 8b | reading | A8 | with and without attention; did it learn the right alignment; Part 7 is the Transformer | yes |
 | `lecture-08b-cross-attention` | 8b | activity | | one attention step written by the student and shown to be the trained model's, head by head; cross-attention read against a wrong translation | no: exercises |
 | `05-transformer-attention` | 8b, 8c | reference | A8 | both of Lecture 8b's and 8c's notebooks in one worked example, without the exercises | yes |
 | `lecture-08c-attention-heads` | 8c | activity | | the student's head split shown to be the model's in every encoder layer; heads read one by one, and sharpness measured against averaging and depth | no: exercises |
@@ -507,7 +507,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-09-subword-tokenization` | 9 | activity | A9 | `<unk>` before and after SentencePiece (the student's counter), a round trip, the student's vocabulary size and A9 prediction; Part B is A9 itself, retrained for as many epochs as A8 and scored | no: colab |
 | `lecture-10-comet-install` | 10 | homework | A10 | install COMET; the student's comet_inputs; two systems scored with and without a reference | no: colab, hf-token, download, pip, exercises |
 | `07-real-translations` | 10 | reading | A11 | a trained model on unseen talks; a comparable BLEU; greedy against beam with decoding held fixed | yes |
-| `08-inference-and-beamsearch` | 10 | reading | | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
+| `08-inference-and-beamsearch` | 10 | reading | A13, A14 | greedy against beam, written out and checked against the library; why a comparison holds decoding fixed, as A9 does | yes |
 | `lecture-11-comet-on-a6` | 11 | homework | A11 | COMET and COMETKiwi on the student's A6 sentences, beside BLEU, chrF and their ranking, then on their own A8 and A9 systems | no: colab, hf-token, download, pip, exercises |
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download, exercises |
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab, exercises |

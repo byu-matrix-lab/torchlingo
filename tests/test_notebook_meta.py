@@ -1402,9 +1402,13 @@ class TestThePurposeCellIsGeneratedAndGated(unittest.TestCase):
         self.assertNotEqual(target.read_text(encoding="utf-8"), wanted)
 
     def test_a_notebook_with_no_head_start_says_nothing_about_one(self):
-        """The two deliberate `leads_to` blanks must not grow an invented clause."""
+        """Deliberate `leads_to` blanks must not grow an invented clause.
+
+        Tutorial 4 was one until Eric, 2026-10-26, made it lead to A8; Tutorial 9 is one
+        because the Final Project, which it leads to, has no assignment id.
+        """
         for path in (
-            nm.TUTORIALS / "04-attention-and-alignment.ipynb",
+            nm.TUTORIALS / "09-fine-tuning-nllb.ipynb",
             nm.COURSE / "lecture-04-regex-refresher.ipynb",
         ):
             line = nm.purpose_line(nm.read_meta(path))
