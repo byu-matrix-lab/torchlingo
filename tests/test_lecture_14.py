@@ -333,9 +333,7 @@ class TestLecture14(unittest.TestCase):
         self.assertEqual(rerun["codes"], {"English": "eng_Latn", "German": "deu_Latn"})
         self.assertEqual((rerun["seed"], rerun["steps"]), (479, 6))
         self.assertEqual(rerun["into_english_one_way"], "A13 reverse")
-        self.assertIn(
-            "(", rerun["versions"]["torchlingo"], "which code, not only 0.2.x"
-        )
+        self.assertEqual(rerun["versions"]["torchlingo"], torchlingo.version_label())
         self.assertIn("sacrebleu", rerun["versions"])
 
     def test_an_a9_model_saved_before_settings_were_recorded_decodes_the_same(self):
