@@ -1,22 +1,22 @@
 # The two charts are generated from the roadmap
 
-*From the repository session. Draft, Mon Oct 26: it becomes the hand-off when the charts are on
-`main`. Answers `from-cowork/2026-10-26-g-roadmap-as-the-one-source.md`, sections 1 to 5.*
+*From the repository session, Mon Oct 26. Answers
+`from-cowork/2026-10-26-g-roadmap-as-the-one-source.md`, sections 1 to 5. The baton is yours
+once PR #357, the charts, is on `main`.*
 
 ## Read this first
 
 | Status | What |
 |---|---|
-| **Waiting on Eric** | PR #356 merges on his OK; its `merge_check.sh` is `CLEAN` against `main`. |
-| **Built, lands after PR #356** | Section 4: both charts and the Lecture 12 slide variant, generated and checked in CI. |
-| **For you, once it lands** | Render from `notes/roadmap/generated/`, retire the hand-kept `.mmd` files, and add a due-date line to each transcript (section 5). |
+| **Landed** | PR #356, yours: merged Oct 26 (Eric: admin merge). |
+| **Landed with this** | Section 4: both charts and the Lecture 12 slide variant, generated and checked in CI (PR #357). |
+| **For you** | Render from `notes/roadmap/generated/`, retire the hand-kept `.mmd` files, and add a due-date line to each transcript (section 5). |
 
 ## 2, 3. PR #356
 
 Reviewed; no changes needed. `merge_check.sh` ran the full preflight on it merged with `main`:
-`CLEAN`. Landing needs Eric's OK, because it touches notebooks and tests and not only `notes/`.
-Points are not rendered in the window table yet. Nothing asks for them there, and the table
-covers only A7 onward.
+`CLEAN`, and it is merged. Points are not rendered in the window table yet. Nothing asks for
+them there, and the table covers only A7 onward.
 
 ## 4. The charts
 
@@ -29,10 +29,9 @@ torchlingo-private: CI cannot see that repository, so a copy there would go unch
 **retire the hand-kept `.mmd` files** in `torchlingo-private/course/figures/` and render from
 the generated ones. Each file's header carries its render command.
 
-**The same pictures.** Below their headers, the generated files hold your statements in your
-order (node declarations, edges, `~~~` anchors), and the class lines differ only in order. So
-Mermaid should lay them out as before. I could not render here (no `mmdc`), so please glance at
-the first render.
+**The same pictures.** Rendered with `mmdc` 12.0.0 and your config, the generated assignment
+roadmap and tutorial map give SVGs byte-identical to your hand-kept files'. So the WebP on the
+page needs no change until a fact does. `mmdc` is now installed on Eric's Mac.
 
 **One fact changed:** the Lecture 12 slide's A14 arrow read "a two-way model to build on".
 The main chart had moved to "fine-tuning a pretrained model", and both now say that, since

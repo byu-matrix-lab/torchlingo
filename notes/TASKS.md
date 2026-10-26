@@ -91,9 +91,9 @@ Tutorial 9 became "how much fine-tuning is enough, and what it costs", so that i
 look alike (PR #348). Filed: Task #295, a batch landing stuck on a last PR that triggers no CI.
 
 **2026-10-26: Hand-off G, the roadmap as the one source.** Cowork answered all four asks of
-the Oct 25 hand-off and opened PR #356 itself. This side generated the Assignments page's two
-charts from `roadmap.yaml` (Task #297), with `FP` as a `leads_to` target so Tutorial 9 can name
-the Final Project. Eric: tutorials are required reading. Task #281 gained Eric's next-offering
+the Oct 25 hand-off and opened PR #356 itself, which landed. This side generated the Assignments
+page's two charts from `roadmap.yaml` (PR #357; `mmdc` renders them byte-identical to the
+hand-kept ones), with `FP` as a `leads_to` target so Tutorial 9 can name the Final Project. Eric: tutorials are required reading. Task #281 gained Eric's next-offering
 proposals. A one-off comparison found every transcript's title and Total row matching the
 roadmap; a standing check waits on Cowork giving the transcripts a due-date field.
 
@@ -182,7 +182,6 @@ two-lens review of every notebook, became Tasks #281 to #294.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #297 | **P1** | Land PR #356, then open and land the charts PR | **14+** | Open — PR #356 (Cowork's: Tutorials 4 and 8 `leads_to`, points in `roadmap.yaml`) is `CLEAN` on `merge_check.sh` (Oct 26), waiting on Eric's OK to merge. The charts work (Hand-off G, section 4) is committed on local branch `roadmap-charts`, on top of it, preflight green; open its PR once PR #356 is on `main`. Cowork needs the charts before Lecture 14 (Mon Nov 2). Then promote, since Tutorials 4, 8 and 9's purpose cells change |
 | #279 | **P1** | One Colab L4 run of the rebuilt A14 before it opens | **14+** | Open — Eric's condition for the go (Oct 25): Eric or Coulson runs `lecture-14-multilingual` once on an L4 on a real A8 language, before Wed Nov 4. Postponed to Mon Oct 26 (Eric). The Colab install-only check passed on the promoted notebook (Oct 25), so the install cells are known good; the bfloat16 path, L4 memory, the download and the real step time are not (this Mac's GPU, float32: about 3 to 7 s a step). Open: who runs it, and whose A9 files: a student-like `MyDrive/CS479/assignment8`, or a test folder built from the course's German split with a correctly sized A9 model. Fix whatever it finds before Nov 4 |
 | #295 | **P2** | A batch whose last PR triggers no CI promotes nothing | **hyg** | Open — found Oct 25: `land_pr.sh 345 346 347 --promote` merged all three, then waited to promote PR #347's commit, which changed only `CLAUDE.md`, so CI's path filter ran nothing on it and `promote_course.sh --await` waited for a run that never comes. Promoted PR #346's commit by hand instead (the trees differ only in `CLAUDE.md`). Fix in the existing tools: promote the newest commit of the batch whose checks ran, or have `promote_course.sh` accept a commit whose only changes since a checked commit are files CI does not watch; and the batch's stop report should name that commit, not `main`'s head |
 | #296 | **P3** | `merge_check.sh` fails every release PR | **hyg** | Open — found Oct 25 on PR #354, 0.2.8 to 0.2.9: preflight in the scratch worktree failed only `tests/test_version_consistency.py`, because the venv's editable install still reports the main checkout's 0.2.8 while the tree's `pyproject.toml` says 0.2.9, so `land_pr.sh` stops on any version bump. PR #354 was merged by hand once CI, which installs fresh, passed on it merged with `main`. Fix in the existing tools: have preflight compare against the tree's own metadata (build it in the scratch worktree, or skip the installed-metadata check when the tree's version differs from the installed one and say so) |
