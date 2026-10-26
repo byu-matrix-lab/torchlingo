@@ -306,7 +306,21 @@ way. A course notebook may assume earlier course notebooks and the lectures, nev
 anything it needs a student to understand, it explains at first use, in a sentence or two, and a
 link to a tutorial is for depth, not a prerequisite. A tutorial may assume the course notebooks.
 This is also what decides the tie in the rule above: a lesson an assignment needs lives in the
-course notebook.
+course notebook. Eric, 2026-10-25, stronger still: **tutorials carry no points**, so students
+pressed for time are likely to skip them. So **the assignment notebooks are load-bearing**, and
+an assignment notebook and a tutorial must not look alike. When they share material, the
+assignment keeps it and the tutorial is given a purpose of its own.
+
+**An application of deep learning, not a deep-learning class.** Eric, 2026-10-25: *"the students
+should certainly be aware of and informed of the DL ingredients while staying focused on the
+translation problem."* So the machinery (the training loop, the optimizer, mixed precision,
+accumulation) runs in the library, and the notebook's markdown names each ingredient where it
+matters and says in a sentence what it does. What the student writes and decides is about
+translation: the data, the tags or codes, the budget, the hypothesis, the comparison and what it
+means. Eric, the same day: *"we want the students to continue making decisions and being mindful
+throughout the whole notebook's process. This isn't a coding class, but writing some amount of
+code, with clear directions is valuable for the learning process."* A long stretch of cells a
+student only runs is a place to ask for a prediction, a choice or a reading of the result.
 
 **Wrap the plumbing; keep the lesson inline.** Eric, 2026-09-28: large code cells lose a new
 student. So code a student learns nothing from reading (installs, downloads, Drive, file
