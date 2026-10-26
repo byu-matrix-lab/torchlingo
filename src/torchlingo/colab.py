@@ -23,11 +23,14 @@ Example:
 
 from __future__ import annotations
 
+import importlib.metadata
+import json
 import os
 import urllib.request
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import torch
 
@@ -287,3 +290,107 @@ def course_dir(
         message = f"Not found in {folder}{where}: {', '.join(missing)}."
         raise SystemExit(f"{message} {hint}".rstrip())
     return folder
+
+
+def _write_json(path: Path, data: dict[str, Any]) -> None:
+    """Write data as JSON, whole or not at all: a dropped session leaves the old file."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_name(path.name + ".partial")
+    partial.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    partial.replace(path)
+
+
+class Notes:
+    """A notebook's notes on Drive: what each step saves for the write-up.
+
+    Colab drops idle sessions, and with them every variable. A notebook whose write-up
+    needs a prediction from Step 2 and scores from Step 5 saves each as it goes, into one
+    small JSON file beside its outputs, and the write-up reads them back from there, so it
+    runs after the setup cell alone.
+
+    Args:
+        path (str | Path): The JSON file, such as ``A8_DIR / "a14-notes.json"``. It need
+            not exist yet.
+
+    Examples:
+        >>> import tempfile
+        >>> from pathlib import Path
+        >>> with tempfile.TemporaryDirectory() as drive:
+        ...     notes = Notes(Path(drive) / "a14-notes.json")
+        ...     print(notes.load())
+        ...     _ = notes.save(prediction="beam beats greedy by a point")
+        ...     _ = notes.save(steps_taken=1000)
+        ...     print(Notes(Path(drive) / "a14-notes.json").load())
+        {}
+        {'prediction': 'beam beats greedy by a point', 'steps_taken': 1000}
+    """
+
+    def __init__(self, path: str | Path):
+        self.path = Path(path)
+
+    def load(self) -> dict[str, Any]:
+        """Everything saved so far, or ``{}`` if nothing has been."""
+        if not self.path.exists():
+            return {}
+        return json.loads(self.path.read_text(encoding="utf-8"))
+
+    def save(self, **items: Any) -> dict[str, Any]:
+        """Add ``items`` to the notes, replacing any of the same name, and return them all.
+
+        Each value must be something JSON can hold: text, numbers, lists, dicts.
+        """
+        notes = {**self.load(), **items}
+        _write_json(self.path, notes)
+        return notes
+
+
+RERUN_PACKAGES = ("torch", "sacrebleu", "transformers")
+
+
+def save_rerun(
+    path: str | Path,
+    *,
+    packages: Iterable[str] = RERUN_PACKAGES,
+    **settings: Any,
+) -> dict[str, Any]:
+    """Save what someone needs to rerun a notebook and get the same numbers.
+
+    The course notebooks end by writing a small JSON record for the write-up: the
+    settings that decided the numbers (model, seed, steps, how it was scored) and the
+    versions of the code that produced them. The settings are the notebook's to name;
+    this adds the versions, under ``"versions"``: :func:`torchlingo.version_label`, which
+    says which ``course`` commit was installed, and each of ``packages``.
+
+    Args:
+        path (str | Path): The JSON file, such as ``A8_DIR / "a14-rerun.json"``.
+        packages (Iterable[str], optional): Packages whose installed versions to record.
+            Defaults to torch, sacrebleu and transformers. One not installed is recorded
+            as ``"not installed"``.
+        **settings: The settings, each something JSON can hold.
+
+    Returns:
+        dict: The record as written.
+
+    Examples:
+        >>> import tempfile
+        >>> from pathlib import Path
+        >>> with tempfile.TemporaryDirectory() as drive:
+        ...     record = save_rerun(Path(drive) / "a14-rerun.json", seed=479, steps=1000,
+        ...                         packages=["torch", "no-such-package"])
+        ...     back = json.loads((Path(drive) / "a14-rerun.json").read_text())
+        >>> back == record, back["seed"], back["versions"]["no-such-package"]
+        (True, 479, 'not installed')
+    """
+    from . import version_label
+
+    versions = {"torchlingo": version_label()}
+    for package in packages:
+        try:
+            versions[package] = importlib.metadata.version(package)
+        except importlib.metadata.PackageNotFoundError:
+            versions[package] = "not installed"
+    record = {**settings, "versions": versions}
+    _write_json(Path(path), record)
+    return record

@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`colab.Notes(path)`**, with `.load()` and `.save(**items)`: a notebook's notes in one JSON
+  file on Drive, so a write-up runs after a dropped session with only the setup cell. Each
+  save merges into what is there and writes the file whole or not at all.
+  **`colab.save_rerun(path, **settings)`** writes a notebook's rerun record and adds the
+  versions itself, under `"versions"`: `torchlingo.version_label()` and torch, sacrebleu and
+  transformers (or the `packages` given). These are what A12, A13, A14 and Tutorial 9 write
+  inline; the notebooks keep their own code this term.
 - **Two decoding strategies for back-translation, `decode_strategy="sample"` and
   `"beam+noise"`**, in `translate_batch` (both modules) and `translate_to_file`. Edunov et
   al. (2018) found that synthetic sources made either way train a better forward model than
