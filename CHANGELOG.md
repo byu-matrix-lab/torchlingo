@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`load_model(path, config=..., src_vocab=..., tgt_vocab=...)` loads a checkpoint saved
+  before TorchLingo recorded the model's settings** (before October 14, 2026, such as early A8
+  and A9 models, or a bare `state_dict`). Given the `Config` the model was trained with and
+  its vocabularies, it builds the model (`model_class="SimpleTransformer"` by default, or
+  `"SimpleSeq2SeqLSTM"`) and loads the weights; weights that do not fit raise a `ValueError`
+  naming the likely cause. Without `config=`, such a file is refused as before, and the
+  message now names the option.
 - **Two decoding strategies for back-translation, `decode_strategy="sample"` and
   `"beam+noise"`**, in `translate_batch` (both modules) and `translate_to_file`. Edunov et
   al. (2018) found that synthetic sources made either way train a better forward model than
