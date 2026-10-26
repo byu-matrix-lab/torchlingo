@@ -55,7 +55,14 @@ DECIDED = {
     "STEPS = 3000": "STEPS = 6",
     'THIRD = ""': 'THIRD = "fra_Latn"',
     'EXPECT = ""': 'EXPECT = "copies, copies, and French that keeps the meaning"',
+    # Read off the table: the answer whatever the toy run's p-values come out as.
+    "REAL = {}": (
+        'REAL = {f"{n}: A14 against {s}": v["bleu_p"] < 0.05 for d, n in '
+        '(("to-x", "into your language"), ("to-en", "into English")) '
+        'for s, v in load_notes()["scores"][d]["greedy"].items() if s != "A14"}'
+    ),
 }
+REAL_CELL = "Copy these into REAL"
 SETUP_CELL = "def scratch_translate("
 NLLB_CELL = "def use_fine_tuned("
 LANGUAGE_CELL = "COURSE_CODES = {"
@@ -349,6 +356,34 @@ class TestLecture14(unittest.TestCase):
             best.stat().st_mtime_ns, before, "the best model was not rewritten"
         )
         self.assertIn("Fine-tuned for 6 steps", printed)
+
+    def test_the_student_reads_which_differences_are_real(self):
+        self.assertEqual(
+            len(self.notes()["real"]), 4
+        )  # two systems against A14, each way
+
+    def test_reading_a_p_value_wrong_is_caught_after_a_dropped_session(self):
+        """The cell reads the scores from Drive, so it needs only the setup cell before it."""
+        scores = self.notes()["scores"]
+        key = "into your language: A14 against A9"
+        wrong = not (scores["to-x"]["greedy"]["A9"]["bleu_p"] < 0.05)
+        others = {
+            f"{n}: A14 against {s}": v["bleu_p"] < 0.05
+            for d, n in (("to-x", "into your language"), ("to-en", "into English"))
+            for s, v in scores[d]["greedy"].items()
+            if s != "A14"
+        }
+        answer = {**others, key: wrong}
+        cells = cells_with(
+            substitute(
+                lecture_14_cells(decided=False), {"REAL = {}": f"REAL = {answer!r}"}
+            ),
+            SETUP_CELL,
+            REAL_CELL,
+        )
+        with self.assertRaises(AssertionError) as stopped:
+            run(self.drive, cells)
+        self.assertIn(f"For {key} you said", str(stopped.exception))
 
     def test_off_the_shelf_cannot_be_decoded_by_a_fine_tuned_model(self):
         """After training, in the same session, a missing off-the-shelf file is refused."""
