@@ -29,6 +29,8 @@ notes/
     roadmap.yaml                   the roadmap's facts: schedule, assignments, notebooks,
                                    tooling, and the layout that orders the document
     sections/*.md                  the roadmap's prose, one fragment per stretch of text
+    generated/                     the Assignments page's two Mermaid charts, GENERATED
+                                   with the roadmap; Cowork renders them for the page
   TORCHLINGO_VS_OPENNMT.md         competitive assessment
   EVAL_CHRF_TER_TRANSPOSE_BUG.md   a bug report; delete when PR #58 merges
   reports/

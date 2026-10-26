@@ -3,6 +3,12 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 26.** The tutorials are **required reading** (Eric). They still carry no points, so
+  the assignment notebooks stay self-sufficient, as the safety net for a student who skips
+  them. Also Oct 26 (Eric): this roadmap is the source for each assignment's points and
+  stretch points, written in `roadmap.yaml` before the Learning Suite page and the gradebook;
+  and for the Assignments page's two charts, now generated from it rather than hand-kept.
+  Tutorial 4 leads to A8, Tutorial 8 to A13 and A14, and Tutorial 9 to the Final Project.
 - **Oct 25.** One task list for course work (Eric): `torchlingo-private/notes/course/TASKS.md`,
   shared by both sessions, with the course side's log and next-offering notes beside it. The
   public `notes/TASKS.md` keeps library and notebook engineering.

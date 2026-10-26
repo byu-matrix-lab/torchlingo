@@ -22,6 +22,7 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 
 import render_roadmap as rr
+import roadmap_charts as rc
 
 # The schedule rows of the real data, read rather than typed, so a schedule change does not
 # break a test that is about the mechanism.
@@ -73,6 +74,10 @@ class TestTheCheckFailsOnAHandEdit(unittest.TestCase):
         self.copy = self.tmp / "roadmap.md"
         shutil.copy(rr.ROADMAP, self.copy)
         rr.ROADMAP = self.copy
+        # The charts too, so a --write here cannot touch the repository's.
+        self.addCleanup(setattr, rc, "GENERATED", rc.GENERATED)
+        shutil.copytree(rc.GENERATED, self.tmp / "generated")
+        rc.GENERATED = self.tmp / "generated"
 
     def check(self) -> int:
         with (
@@ -268,6 +273,86 @@ class TestTheNotebookIndex(unittest.TestCase):
     def test_the_ci_column_follows_requires(self):
         self.assertEqual(rr.ci_cell([]), "yes")
         self.assertEqual(rr.ci_cell(["pip", "colab"]), "no: colab, pip")
+
+
+class TestTheChartsComeFromTheRoadmap(unittest.TestCase):
+    """The Assignments page's two charts are generated, so they cannot drift from the facts.
+
+    They were hand-kept Mermaid until 2026-10-26, and the tutorial map had already gained
+    arrows that no notebook's ``leads_to`` had.
+    """
+
+    def test_the_committed_charts_are_the_rendered_ones(self):
+        self.assertEqual(
+            rr.stale_charts(rr.chart_files()),
+            [],
+            "a chart in notes/roadmap/generated/ differs from its sources; run "
+            "python scripts/render_roadmap.py --write",
+        )
+
+    def test_every_assignment_edge_is_drawn_with_its_label(self):
+        chart = rc.assignment_roadmap(DOC)
+        for edge in DOC["charts"]["assignment_edges"]:
+            arrow = "-.->" if edge.get("prepares") else "-->"
+            self.assertIn(
+                f"{edge['from']} {arrow}|{edge['carries']}| {edge['to']}", chart
+            )
+
+    def test_an_edge_to_an_unknown_assignment_is_an_error(self):
+        doc = scratch_doc()
+        doc["charts"]["assignment_edges"].append(
+            {"from": "A4", "to": "A99", "carries": "x"}
+        )
+        with self.assertRaises(rr.RoadmapError) as caught:
+            rc.assignment_roadmap(doc)
+        self.assertIn("A99", str(caught.exception))
+
+    def test_an_early_assignment_without_an_arrow_is_anchored_above_the_spine(self):
+        self.assertIn("A1 ~~~ A4", rc.assignment_roadmap(DOC))
+
+    def test_the_slide_marks_here_and_leaves_out_unconnected_early_ones(self):
+        slide = rc.assignment_roadmap(DOC, here="A12")
+        self.assertIn("you are here", slide)
+        self.assertIn("style A12 stroke-width:4px", slide)
+        self.assertNotIn('A1["', slide)
+        self.assertIn('A7["', slide, "A7 has an arrow, so it stays")
+
+    def test_each_leads_to_is_an_arrow_in_the_tutorial_map(self):
+        import notebook_meta as nm
+
+        chart = rc.tutorial_map(DOC)
+        for path in nm.notebooks():
+            meta = nm.read_meta(path)
+            if meta["family"] != "tutorial":
+                continue
+            number = path.stem.split("-")[0].lstrip("0")
+            for target in meta.get("leads_to", []):
+                self.assertRegex(chart, rf"T{number} -->\|[^|]+\| {target}\n")
+
+    def test_a_leads_to_without_a_label_is_an_error(self):
+        """A notebook gaining a head start must not appear on the chart unlabelled."""
+        doc = scratch_doc()
+        del doc["charts"]["tutorials"]["01-data-and-vocab"]["labels"]["A9"]
+        with self.assertRaises(rr.RoadmapError) as caught:
+            rc.tutorial_map(doc)
+        self.assertIn("01-data-and-vocab", str(caught.exception))
+
+    def test_read_after_is_drawn_back_from_the_assignment(self):
+        self.assertIn("T9 <-.->|read after A14| A14", rc.tutorial_map(DOC))
+
+    def test_check_fails_on_a_hand_edited_chart(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        self.addCleanup(setattr, rc, "GENERATED", rc.GENERATED)
+        shutil.copytree(rc.GENERATED, tmp / "generated")
+        rc.GENERATED = tmp / "generated"
+        chart = rc.GENERATED / "tutorial-map.mmd"
+        chart.write_text(chart.read_text(encoding="utf-8") + "    T1 --> A6\n", "utf-8")
+        with (
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
+            self.assertEqual(rr.main(["--check"]), 1)
 
 
 if __name__ == "__main__":

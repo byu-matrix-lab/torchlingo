@@ -26,7 +26,10 @@ What is generated rather than written:
 - the lecture and notebook outcome tables and the tooling table, from the data file;
 - the notebook index, from each notebook's own ``torchlingo`` metadata plus the one-line
   purpose kept here;
-- the lecture-to-notebook map, by ``notebook_meta.table()``, unchanged.
+- the lecture-to-notebook map, by ``notebook_meta.table()``, unchanged;
+- the Assignments page's two Mermaid charts, the assignment roadmap and the tutorial map,
+  by ``roadmap_charts`` into ``notes/roadmap/generated/``, from the same data and each
+  tutorial's ``leads_to``. Separate files rather than tables, but written and checked here.
 
 Run it three ways:
 
@@ -570,6 +573,38 @@ def write(text: str | None = None) -> bool:
     return True
 
 
+def chart_files(doc: dict | None = None) -> dict[Path, str]:
+    """The Assignments page's two charts, generated from the same sources as the roadmap.
+
+    Kept in ``roadmap_charts``, imported here so that ``--write`` and ``--check`` cover them:
+    a chart nothing checks is a hand-kept chart again.
+
+    Returns:
+        dict: Each generated file's path and the contents it should have.
+    """
+    import roadmap_charts
+
+    return roadmap_charts.charts(load() if doc is None else doc)
+
+
+def stale_charts(expected: dict[Path, str]) -> list[Path]:
+    """The chart files that are missing or differ from what the sources give."""
+    return [
+        path
+        for path, text in expected.items()
+        if not path.exists() or path.read_text(encoding="utf-8") != text
+    ]
+
+
+def write_charts(expected: dict[Path, str]) -> list[Path]:
+    """Write the chart files that are stale, and return them."""
+    stale = stale_charts(expected)
+    for path in stale:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(expected[path], encoding="utf-8")
+    return stale
+
+
 def main(argv: list[str] | None = None) -> int:
     """Render the roadmap, write it, or check the committed copy against its sources.
 
@@ -591,22 +626,27 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         expected = render()
+        charts = chart_files()
     except RoadmapError as error:
         print(error, file=sys.stderr)
         return 1
 
     if args.check:
-        if current() != expected:
+        stale = ([ROADMAP] if current() != expected else []) + stale_charts(charts)
+        if stale:
             print(
-                f"{ROADMAP} is out of date with {SOURCE}/, or was edited by hand.\n"
+                "\n".join(f"  stale      {path}" for path in stale)
+                + f"\nOut of date with {SOURCE}/, or edited by hand.\n"
                 f"Edit {SOURCE}/ instead, then run: python scripts/render_roadmap.py --write",
                 file=sys.stderr,
             )
             return 1
-        print(f"  current    {ROADMAP}")
+        print(f"  current    {ROADMAP} and {len(charts)} chart files")
         return 0
     if args.write:
         print(f"  {'written  ' if write(expected) else 'unchanged'}  {ROADMAP}")
+        for path in write_charts(charts):
+            print(f"  written    {path}")
         return 0
     sys.stdout.write(expected)
     return 0
