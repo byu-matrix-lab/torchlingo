@@ -31,6 +31,7 @@ from notebook_cells import COURSE, code_cells, colab_faked, run_cells, substitut
 from test_lecture_09_part_b import TOY_SIZE
 from test_lecture_13 import build_drive, lecture_13_cells
 
+import torchlingo.evaluation
 import torchlingo_harness.nllb
 
 NOTEBOOK = COURSE / "lecture-14-multilingual.ipynb"
@@ -134,9 +135,8 @@ class FakeTranslator:
 
 class FakeComet:
     def predict(self, data, **options):
-        return SimpleNamespace(
-            system_score=sum(d["mt"] == d["ref"] for d in data) / len(data)
-        )
+        scores = [float(d["mt"] == d["ref"]) for d in data]
+        return SimpleNamespace(scores=scores, system_score=sum(scores) / len(scores))
 
 
 @contextlib.contextmanager
@@ -164,8 +164,12 @@ def nllb_and_comet_stubbed():
     originals = {name: sys.modules.get(name) for name in fakes}
     sys.modules.update(fakes)
     try:
-        with mock.patch.object(
-            torchlingo_harness.nllb, "NLLBTranslator", FakeTranslator
+        # comet_score keeps a loaded model for the session; this one must not outlive the test.
+        with (
+            mock.patch.object(
+                torchlingo_harness.nllb, "NLLBTranslator", FakeTranslator
+            ),
+            mock.patch.dict(torchlingo.evaluation._comet_models, clear=True),
         ):
             yield
     finally:
@@ -329,6 +333,24 @@ class TestLecture14(unittest.TestCase):
         self.assertEqual(rerun["codes"], {"English": "eng_Latn", "German": "deu_Latn"})
         self.assertEqual((rerun["seed"], rerun["steps"]), (479, 6))
         self.assertEqual(rerun["into_english_one_way"], "A13 reverse")
+        self.assertEqual(rerun["versions"]["torchlingo"], torchlingo.version_label())
+        self.assertIn("sacrebleu", rerun["versions"])
+
+    def test_an_a9_model_saved_before_settings_were_recorded_decodes_the_same(self):
+        """A9 models saved before Oct 14 hold only weights; the notebook's Config builds them."""
+        raw = torch.load(self.a8_dir / "best-a9" / "model_best.pt", weights_only=True)
+        old = self.a8_dir / "best-old-a9" / "model_best.pt"
+        old.parent.mkdir()
+        torch.save({"epoch": 1, "model_state_dict": raw["model_state_dict"]}, old)
+        translate = self.ns["scratch_translate"]
+        sentences = list(self.ns["test_df"].src[:3])
+        with colab_faked(
+            self.drive
+        ):  # the notebook's A8_DIR is relative to the faked Drive
+            self.assertEqual(
+                translate("best-old-a9", sentences, self.a8_dir / "old.hyp", "greedy"),
+                translate("best-a9", sentences, self.a8_dir / "new.hyp", "greedy"),
+            )
 
     def test_the_write_up_runs_after_a_dropped_session(self):
         """A new session runs the setup cells, then the write-up: nothing else in memory."""

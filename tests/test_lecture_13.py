@@ -239,14 +239,16 @@ class TestLecture13(unittest.TestCase):
         self.assertIn(
             f"Hypothesis, written before training: {HYPOTHESIS}", self.printed
         )
-        self.assertIn("greedy  A13   BLEU", self.printed)
-        self.assertIn("beam    A9    BLEU", self.printed)
+        write_up = self.printed.split("=== For the A13 write-up ===")[1]
+        self.assertRegex(write_up, r"greedy:\n    A9 +BLEU .*\n    A13 +BLEU .*p = ")
+        self.assertRegex(write_up, r"beam:\n    A9 +BLEU ")
         self.assertIn("helped most, by chrF", self.printed)
         self.assertIn("hurt most, by chrF", self.printed)
         rerun = json.loads((self.a8_dir / "a13-rerun.json").read_text(encoding="utf-8"))
         self.assertEqual(rerun["bt_method"], "sample")
         self.assertEqual(rerun["back_translator"], "your reverse model")
         self.assertEqual(rerun["seed"], 479)
+        self.assertIn("sacrebleu", rerun["versions"])
 
     def test_the_write_up_runs_after_a_dropped_session(self):
         """A new session runs the setup cell, then the write-up: nothing else in memory."""
@@ -254,7 +256,7 @@ class TestLecture13(unittest.TestCase):
             _, printed = run_cells(
                 cells_with(lecture_13_cells(), SETUP_CELL, WRITE_UP_CELL)
             )
-        self.assertIn("greedy  A13   BLEU", printed)
+        self.assertRegex(printed, r"greedy:\n    A9 +BLEU .*\n    A13 +BLEU ")
         self.assertIn("its BLEU into English on your test set", printed)
         self.assertIn(HYPOTHESIS, printed)
 
