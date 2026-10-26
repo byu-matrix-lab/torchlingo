@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`colab.Notes(path)`**, with `.load()` and `.save(**items)`: a notebook's notes in one JSON
+  file on Drive, so a write-up runs after a dropped session with only the setup cell. Each
+  save merges into what is there and writes the file whole or not at all.
+  **`colab.save_rerun(path, **settings)`** writes a notebook's rerun record and adds the
+  versions itself, under `"versions"`: `torchlingo.version_label()` and torch, sacrebleu and
+  transformers (or the `packages` given). These are what A12, A13, A14 and Tutorial 9 write
+  inline; the notebooks keep their own code this term.
 - **`evaluation.comet_score(sources, translations, references)`**: COMET's system score and
   each sentence's, as a `CometScores`. COMET is imported only when it runs, and a missing
   install raises an `ImportError` that says how to install it without replacing Colab's numpy.
