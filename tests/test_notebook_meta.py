@@ -70,6 +70,23 @@ def first_lecture_row(doc: dict) -> dict:
     return next(row for row in doc["lectures"] if row["ids"])
 
 
+SHARED_ID = "50"
+
+
+def share_the_last_lecture_row(doc: dict) -> str:
+    """Give the last lecture row a second id, ``SHARED_ID``, as a merged session has.
+
+    The real schedule had merged rows (Lectures 22 and 23) until the Oct 26 renumbering gave
+    every session one number, so the tests of a shared row build their own.
+
+    Returns:
+        str: The row's first id, which ``SHARED_ID`` becomes an alias of.
+    """
+    row = [r for r in doc["lectures"] if r["ids"]][-1]
+    row["ids"] = [*row["ids"], SHARED_ID]
+    return row["ids"][0]
+
+
 # nbformat is a docs extra, not a test dependency, so it is absent in CI's test job. The
 # round-trip test skips there rather than failing -- the same treatment the Git LFS artifacts
 # get. Everything else here is standard library, deliberately, apart from PyYAML: the
@@ -199,8 +216,10 @@ class TestValidatorRejectsBadBlocks(unittest.TestCase):
         self.assertRejected({**GOOD, "serves_lectures": [99]}, "schedule")
 
     def test_a_lecture_sharing_a_row_is_accepted(self):
-        """Lecture 23 shares its row with 22. Declaring it is correct, not a typo."""
-        self.assertEqual(nm.problems(self.path, {**GOOD, "serves_lectures": [23]}), [])
+        """A lecture sharing a row with another. Declaring it is correct, not a typo."""
+        scratch_roadmap(self, share_the_last_lecture_row)
+        meta = {**GOOD, "serves_lectures": [int(SHARED_ID)]}
+        self.assertEqual(nm.problems(self.path, meta), [])
 
     def test_serves_lectures_not_a_list(self):
         self.assertRejected({**GOOD, "serves_lectures": 8}, "must be a list")
@@ -253,8 +272,22 @@ class TestScheduleIsParsedNotRestated(unittest.TestCase):
             self.assertNotIn(title, stems, f"lecture {number}'s title is a filename")
 
     def test_shared_row_is_recorded_as_an_alias(self):
-        self.assertEqual(self.aliases.get("23"), "22")
-        self.assertNotIn("23", self.titles)
+        first = []
+        scratch_roadmap(self, lambda doc: first.append(share_the_last_lecture_row(doc)))
+        titles, aliases = nm.lectures()
+        self.assertEqual(aliases.get(SHARED_ID), first[0])
+        self.assertNotIn(SHARED_ID, titles)
+
+    def test_the_map_labels_a_row_with_every_id_it_shares(self):
+        """A row of three was labelled with its first and last id, dropping the middle one."""
+        first = []
+
+        def change(doc):
+            first.append(share_the_last_lecture_row(doc))
+            [r for r in doc["lectures"] if r["ids"]][-1]["ids"].append("51")
+
+        scratch_roadmap(self, change)
+        self.assertIn(f"| {first[0]}, {SHARED_ID}, 51 |", nm.table())
 
     def test_non_lecture_rows_are_not_lectures(self):
         """Rows numbered "—" are no-class days, checkpoints and the final exam."""
@@ -520,9 +553,9 @@ class TestUnreadableScheduleRowsAreLoud(unittest.TestCase):
 
     def test_the_real_schedule_parses(self):
         """The guard must not reject the file as it actually stands."""
-        titles, aliases = nm.lectures()
+        titles, _ = nm.lectures()
         self.assertGreater(len(titles), 15)
-        self.assertEqual(aliases.get("23"), "22")
+        self.assertIn("8a", titles)
 
     def test_the_cli_reports_a_message_not_a_traceback(self):
         """The message is the whole value of this check, and a traceback buries it."""

@@ -3,6 +3,29 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 26, late.** Lectures from 15 on renumbered, one number per session (Eric): 15 speech
+  with dubbing and interpretation as a segment (Nov 4); 16 Multimodal NMT, trimmed, then 15
+  minutes on writing the report, moved up from last year's Lecture 21 so it lands before students
+  write (Nov 18); 17 MATRIX Lab research and open problems (Nov 30); 18 word alignment and
+  earlier methods (Dec 2); 19 MT in use, applications, jobs and post-editing (Dec 7). Last year's
+  Lecture 18 (HAMT vs. MAHT) is dropped as a lecture (Eric), its post-editing kept as a segment
+  of 19. Reading reports follow their topics: the alignment report moves from Nov 30 to Dec 2,
+  the post-editing report to Dec 7. Quizzes renamed to match.
+- **Oct 26, evening.** Final project presentations take two days (Steve Richardson: they need
+  the last class day; Eric: make room on Dec 9 and give each student more time): the last class
+  meeting, Wed Dec 9, and the final exam slot. Each slot is 10 minutes, a 7-minute talk, 2 for
+  questions and 1 to hand off (Eric), so 7 talks fit Dec 9 and 18 the exam slot, for 24
+  students. Lectures 22 and 23 move to Dec 7 with Lecture 21 (superseded the same day by the
+  renumbering, the entry above). The presentation part stays due
+  with the exam slot; Dec 9 presenters upload slides by 10:00 am that day.
+- **Oct 26, later.** A12 is due Mon Nov 2 at 10:00 and A13 Fri Nov 6 at 11:59 pm; A14 stays
+  Tue Nov 10 (Eric). A12 and the Lecture 12 activity use non-reasoning LLMs only (Eric): a
+  reasoning model's chain of thought is a more powerful mechanism than in-context learning and
+  would confound it. Assignment windows may now overlap (Eric, replacing Oct 22's "no two windows
+  overlap"): A13 is open from Lecture 13 (Oct 28) and A14 from Lecture 14 (Nov 2), so each gets
+  eight or nine days instead of four. Students start A13's training run while finishing A12, and
+  A14 once A13's reverse model is trained. The A15 gradebook item is deleted (Eric; no scores or
+  submissions). Roadmap A1 to A3 due dates corrected to Learning Suite's (Sep 9, 14, 16).
 - **Oct 26.** The tutorials are **required reading** (Eric). They still carry no points, so
   the assignment notebooks stay self-sufficient, as the safety net for a student who skips
   them. Also Oct 26 (Eric): this roadmap is the source for each assignment's points and

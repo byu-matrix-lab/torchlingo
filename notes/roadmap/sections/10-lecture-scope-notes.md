@@ -174,31 +174,41 @@ example grows it (Eric, Oct 24): one multilingual model over English, the studen
 and two or three others from the Church data, against the one-way A9 model, with a zero-shot
 comparison between two of the others.
 
-### 15. Overview of Speech-to-Speech MT (F2025, 33 slides)
-Spoken language translation, cascade against end-to-end, Whisper, speech data for projects.
+Lectures from 15 on were renumbered Oct 26 (Eric), one number per session; last year's numbers
+are given for finding the F2025 decks.
+
+### 15. Speech-to-Speech MT, with Automatic Dubbing and Interpretation (F2025 Lectures 15 and 16, 33 and 34 slides; Wed Nov 4)
+Spoken language translation, cascade against end-to-end, Whisper, speech data for projects; then
+dubbing and live interpretation as a segment, not a lecture of its own: neural voices, automatic
+video dubbing, Wav2Lip, HeyGen.
 **Sets:** nothing this term. A15, an ASR, MT and TTS pipeline on a free Azure account, is
 dropped and folded into the Final Project, whose Path B names a speech-to-speech pipeline as an
 example (Eric, Oct 22); its page is kept for the next offering.
 
-### 16. Automatic Dubbing and Interpretation (F2025, 34 slides)
-Neural voices, automatic video dubbing, Wav2Lip, HeyGen; the final-project timeline.
-**Sets:** nothing.
+### 16. Multimodal NMT; then Writing the Final Project Report (F2025 Lecture 17, 42 slides, trimmed; plus last year's Lecture 21 writing slides; Wed Nov 18)
+Whether visual context helps: the incongruent-image test, the MATRIX Lab's video-guided MT paper
+(Sorenson and Shurtz, LREC-COLING 2024) and its ablation, and simultaneous translation, where an
+image can help. The two reading reports that day are on this topic. Last year's logistics slides
+come out. Then 15 minutes on writing, while students start their reports: Overleaf, the ACL
+template, and what each section must show for the rubric, with the lab paper as the worked
+example.
 
-### 17. Multimodal NMT (F2025, 42 slides)
-Whether visual context helps, video-guided MT, VaTeX and MAD, ablations, project examples.
+### 17. Research in the MATRIX Lab, and Open Problems in MT (F2025 Lectures 21 and 23; Mon Nov 30)
+The lab research half of last year's Lecture 21 (Lawry Sorenson's CTC forced alignment, Ammon
+Shurtz's phonetic transliteration for Thai, Lao and Khmer) and last year's Lecture 23, open
+problems. No reading reports that day.
 
-### 18. HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation (F2025, 40 slides)
-Interactive translation, CAT tools, post-editing and normalized edit distance, adaptive MT and
-whether LLMs can do it. In-class activity.
+### 18. Word Alignment, and Previous MT Paradigms (F2025 Lectures 19 and 20, 39 and 44 slides; Wed Dec 2)
+The IBM models, then the Vauquois triangle, RBMT, EBMT and phrase-based SMT, which word alignment
+was built for; IBM Model 1 by hand and the full Vauquois tour shrink to examples. One deck of
+about 30 slides at the rebuild; the Och and Ney and the phrase-based reading reports belong here.
 
-### 19 and 20, merged. Word Alignment, and Previous MT Paradigms (F2025, 39 and 44 slides; Wed Dec 2)
-The IBM models worked through, then the Vauquois triangle, RBMT, EBMT and phrase-based SMT,
-which word alignment was built for. One deck of about 30 slides at the rebuild; the Och and Ney
-reading report belongs here.
-
-### 21 to 23 (F2025)
-Writing research articles, MATRIX Lab research, MT applications and jobs, further research.
-Final project presentations close the semester.
+### 19. MT in Use: Applications, Jobs and Post-Editing (F2025 Lecture 22, with Lecture 18's post-editing; Mon Dec 7)
+Where MT is used, the industry and jobs; about 10 minutes from last year's Lecture 18 on
+post-editing as how translators now work, and normalized edit distance as a measure a project
+can use. The post-editing reading report belongs here. Last year's Lecture 18 (HAMT vs. MAHT,
+interactive and adaptive MT, the in-class activity) is not taught this term (Eric, Oct 26).
+Final project presentations close the semester, Dec 9 and the exam slot.
 
 **The final project** is one Learning Suite page, "Final Project", in four sections (Proposal,
 Presentation, Write-up, Submission), each linked from its gradebook entry. A student takes one of
@@ -212,5 +222,5 @@ two paths: **investigate a question** (a hypothesis, and one change against a na
 - **where it helped and where it hurt;**
 - **reproducibility:** versions, seeds and decoding settings named.
 
-All project work is due Thu Dec 10 at 11:59 pm; the presentations take the final exam slot, Wed
-Dec 16, 11:00 to 14:00.
+All project work is due Thu Dec 10 at 11:59 pm; the presentations take the last class meeting, Wed Dec 9, and the final
+exam slot, Wed Dec 16, 11:00 to 14:00.
