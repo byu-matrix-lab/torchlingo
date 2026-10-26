@@ -61,7 +61,12 @@ HYPOTHESIS = "If I add back-translated data, then BLEU will rise a little"
 PREDICTED = {
     'HYPOTHESIS = ""': f"HYPOTHESIS = {HYPOTHESIS!r}",
     'PREDICTION = ""': 'PREDICTION = "about one BLEU, both ways"',
+    # Read off the table: the answer whatever the toy run's p-values come out as.
+    'REAL = {"greedy": None, "beam": None}': (
+        'REAL = {d: load_notes()["scores"][d]["A13"]["bleu_p"] < 0.05 for d in ("greedy", "beam")}'
+    ),
 }
+REAL_CELL = 'p_values = {decoder: load_notes()["scores"]'
 READ_EPOCHS = 'EPOCHS = len(a9_state["train_losses"])'
 SETUP_CELL = "def train("
 MONO_CELL = "MONO_FILES = {"
@@ -278,6 +283,23 @@ class TestLecture13(unittest.TestCase):
         with colab_faked(self.drive), self.assertRaises(AssertionError) as stopped:
             run_cells(cells)
         self.assertIn("Write your hypothesis", str(stopped.exception))
+
+    def test_reading_the_p_value_wrong_is_caught_and_says_why(self):
+        """After a dropped session too: the cell reads the scores from Drive."""
+        p = json.loads((self.a8_dir / "a13-notes.json").read_text(encoding="utf-8"))
+        real = p["scores"]["greedy"]["A13"]["bleu_p"] < 0.05
+        wrong = {
+            'REAL = {"greedy": None, "beam": None}': (
+                f'REAL = {{"greedy": {not real}, "beam": True}}'
+            )
+        }
+        cells = cells_with(
+            lecture_13_cells(predicted=False, swaps=wrong), SETUP_CELL, REAL_CELL
+        )
+        with colab_faked(self.drive), self.assertRaises(AssertionError) as stopped:
+            run_cells(cells)
+        self.assertIn("For greedy you said", str(stopped.exception))
+        self.assertIn("Look at that row again", str(stopped.exception))
 
     def test_a_hypothesis_not_in_if_then_form_is_refused(self):
         bad = {
