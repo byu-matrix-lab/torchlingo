@@ -11,7 +11,10 @@ place, with who made it.
   32.4 BLEU, and Efik, borrowing Igbo's code, 3.6 to 18.5, after 300 steps each. A14 keeps its
   three outcomes, with NLLB's language codes as the tags, and adds a fourth, what fine-tuning
   buys over the model off the shelf and over A9 trained from scratch; COMET is in. Tutorial 9,
-  fine-tuning one direction step by step, is its reading. Eric's frame for the notebooks: not a
+  first written as fine-tuning one direction step by step, was given a purpose no assignment has
+  the same day, so that it and A14 do not look alike: how much fine-tuning is enough, and what
+  it costs (Eric). Tutorials carry no points, so students pressed for time skip them, and the
+  assignment notebooks are load-bearing (Eric). Eric's frame for the notebooks: not a
   deep-learning class but an application of deep learning, so students are told the ingredients
   while their decisions and code stay on the translation problem.
 - **Oct 24.** A12 gains a fourth outcome, context for disambiguation beside in-context learning

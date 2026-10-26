@@ -163,8 +163,8 @@ Church data suits it. The notebook replaces its handout, "MNMT Guide Using OpenN
 **Notebooks:** `lecture-14-multilingual` (homework, A14), rebuilt on fine-tuning NLLB-200 (Eric,
 Oct 25: go): from the A9 split, the student chooses their language's code (borrowing one if NLLB
 does not cover it) and writes the tagging and the intermingling; the library fine-tunes NLLB
-both ways at once, and the scoring runs for them. `09-fine-tuning-nllb` (reading): fine-tuning
-one direction step by step.
+both ways at once, and the scoring runs for them. `09-fine-tuning-nllb` (reading, after A14):
+how much fine-tuning is enough, and what it costs, a purpose of its own (Eric, Oct 25).
 **Sets:** A14: NLLB fine-tuned in both directions on A9's split, directions intermingled,
 separate test sets per direction, each direction compared with NLLB off the shelf and with its
 one-way model (A9; the A13 reverse model) on BLEU, chrF and COMET, decoded greedily and with

@@ -219,7 +219,7 @@ steps.
 | `01-data-and-vocab` (reference) | the library's view of a corpus | read | everything | low, as reference |
 | `lecture-10-comet-install` | a learned metric, with and without a reference, and the records it scores | write comet_inputs (checked on known cases), predict which system each model prefers, set up the token | the install, both models' scoring, the summary A10 grades | low |
 | `lecture-11-comet-on-a6` | whether metrics agree with each other and with a human, sentence by sentence | reuse comet_inputs, write pairwise_agreement (checked on a known case), predict, and explain the agreement in the summary | loading, all four metrics on every sentence of A6 and of the A8 test set, the two reports | low |
-| `09-fine-tuning-nllb` (reading; GPU, and more memory than a T4) | a pretrained model as the starting point, and language codes as A14's tags at scale | write with_codes (checked by hand and against NLLB's tokenizer); choose and justify a borrowed code if uncovered; set a step budget; predict the gain | the data, NLLB, decoding and scoring, and a resumable training loop | medium |
+| `09-fine-tuning-nllb` (reading; GPU, and more memory than a T4) | a learning curve, and where more steps stop paying; forgetting, in the direction and the language not trained; what a learning rate set too high looks like | give A14's code and a third language they can read; predict the chrF after 100, 300 and 1,000 steps, and what one-way training does to the rest; read the results | the data, NLLB, scoring both ways, one resumable fine-tuning run scored at three budgets, the forgetting checks and the high-learning-rate run | low, as reading |
 | `08-inference-and-beamsearch` (reading) | decoding is part of the system being measured | read | two decoders written to be read | low, as reading |
 | `07-real-translations` (reading) | what an undertrained model looks like on unseen text | read; one cell trains a small model | everything | low, as reading |
 | `lecture-12-llm-context` | in-context examples and what they buy, how many and which; then the sentence before, context for disambiguation, against a placebo pair | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, with and without the sentence before, its wording their own); predict the best context size and whether nearest examples beat random ones, then what the sentence before changes; reconcile both predictions with the results and the spread over three draws; find two of their own test sentences whose pronoun or term refers into the sentence before; upload the completed notebook | the LLM, three random draws and the nearest examples at each size, NLLB where it covers the language (Telugu), the sentence-before and placebo runs at k = 5 with the pronoun sentences marked, BLEU and chrF, the chart, the rerun record and the upload files | low |
@@ -426,8 +426,8 @@ Church data suits it. The notebook replaces its handout, "MNMT Guide Using OpenN
 **Notebooks:** `lecture-14-multilingual` (homework, A14), rebuilt on fine-tuning NLLB-200 (Eric,
 Oct 25: go): from the A9 split, the student chooses their language's code (borrowing one if NLLB
 does not cover it) and writes the tagging and the intermingling; the library fine-tunes NLLB
-both ways at once, and the scoring runs for them. `09-fine-tuning-nllb` (reading): fine-tuning
-one direction step by step.
+both ways at once, and the scoring runs for them. `09-fine-tuning-nllb` (reading, after A14):
+how much fine-tuning is enough, and what it costs, a purpose of its own (Eric, Oct 25).
 **Sets:** A14: NLLB fine-tuned in both directions on A9's split, directions intermingled,
 separate test sets per direction, each direction compared with NLLB off the shelf and with its
 one-way model (A9; the A13 reverse model) on BLEU, chrF and COMET, decoded greedily and with
@@ -512,7 +512,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download, exercises |
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab, exercises |
 | `lecture-14-multilingual` | 14 | homework | A14 | NLLB-200 fine-tuned both ways on A9's split, against NLLB off the shelf and the student's own one-way models | no: colab, exercises |
-| `09-fine-tuning-nllb` | 14 | reading | A14 | fine-tuning NLLB-200 on the student's A8 split, against NLLB off the shelf and A9 trained from scratch; a borrowed language code where NLLB does not cover the language | no: colab, download, exercises |
+| `09-fine-tuning-nllb` | 14 | reading | A14 | how much fine-tuning is enough and what it costs, on the student's A8 split, after A14 | no: colab, download, exercises |
 
 **Tutorial numbers** are in course order: 01 data, 02 evaluating, 03 checkpoints, 04 attention,
 05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search.
@@ -658,7 +658,10 @@ place, with who made it.
   32.4 BLEU, and Efik, borrowing Igbo's code, 3.6 to 18.5, after 300 steps each. A14 keeps its
   three outcomes, with NLLB's language codes as the tags, and adds a fourth, what fine-tuning
   buys over the model off the shelf and over A9 trained from scratch; COMET is in. Tutorial 9,
-  fine-tuning one direction step by step, is its reading. Eric's frame for the notebooks: not a
+  first written as fine-tuning one direction step by step, was given a purpose no assignment has
+  the same day, so that it and A14 do not look alike: how much fine-tuning is enough, and what
+  it costs (Eric). Tutorials carry no points, so students pressed for time skip them, and the
+  assignment notebooks are load-bearing (Eric). Eric's frame for the notebooks: not a
   deep-learning class but an application of deep learning, so students are told the ingredients
   while their decisions and code stay on the translation problem.
 - **Oct 24.** A12 gains a fourth outcome, context for disambiguation beside in-context learning
@@ -964,19 +967,19 @@ Notes on the rows that are not simple:
 - [4] **`07-real-translations`** — Read at Lecture 10. Its substance is evaluating and
   decoding a real model, held-out BLEU and greedy against beam search, which Lecture 10's
   decoding outcome and A11's metric work build on.
-- [5] **`09-fine-tuning-nllb`** — Fine-tunes NLLB-200 (distilled 600M) English to the
-  student's A8 language on their A8 split, or on a built-in English-Spanish sample. The
-  student writes with_codes (the code-tagged source and target, checked on a hand case and
-  against NLLB's tokenizer), chooses and justifies a borrowed code when NLLB does not
-  cover their language (with chrF of each candidate off the shelf on a dozen test
-  sentences), sets a step budget and writes a prediction that stops the notebook while
-  empty. NLLB is scored off the shelf and after fine-tuning, greedy and beam 5, BLEU and
-  chrF, beside the student's A9 test-a9.hyp when present; training uses AdamW, gradient
-  accumulation, bfloat16 autocast where the GPU has it, and a TrainingCheckpointer on
-  Drive (resumes; keeps the best by validation loss). It is the reading for A14, which
-  fine-tunes NLLB both ways with the library's fine_tune, and the start of most Final
-  Projects. Needs a GPU with more memory than a T4, and Drive, so CI does not execute it;
-  tests/test_tutorial_09.py runs its cells with NLLB stubbed.
+- [5] **`09-fine-tuning-nllb`** — How much fine-tuning is enough, and what it costs (Eric,
+  Oct 25: a purpose no assignment has; A14 keeps the language codes, borrowing, baseline
+  and comparisons). On the student's A8 split, or a built-in English-Spanish sample, with
+  the NLLB code A14 used and a third language the student can read. NLLB-200 is scored
+  before training (chrF both ways, five sentences into the third language); the student
+  predicts the chrF after 100, 300 and 1,000 steps and what one-direction training will do
+  to the other direction and the third language, which stops the notebook while empty;
+  torchlingo_harness.nllb.fine_tune trains English into the student's language, resuming
+  one run through the three budgets, scored at each; forgetting is measured on the
+  direction not trained and read in the third language; a 100-step run at a learning rate
+  thirty times higher, from the original weights, shows what too high looks like. Results
+  persist in t9-results.json on Drive. Needs a GPU with more memory than a T4, and Drive,
+  so CI does not execute it; tests/test_tutorial_09.py runs its cells with NLLB stubbed.
 - [6] **`lecture-04-regex-refresher`** — A twenty-minute tour of Python regular
   expressions, which the sixteen cleaning steps are written in, ending with re.sub for
   collapsing whitespace and stripping tags. Lecture 4's deck links it and Learning Suite
@@ -1138,8 +1141,8 @@ Notes on the rows that are not simple:
   pins transformers below 5). Step 6 gives the wrong code both ways and asks for a third
   language the student chooses (zero-shot). Seven write-up questions; the write-up block
   reads from Drive alone (a14-notes.json) and saves a14-rerun.json; the completed notebook
-  is uploaded. Tutorial 9 goes through the fine-tuning step by step, for depth. Needs a
-  GPU with more memory than a T4, and Drive, so CI does not execute it;
+  is uploaded. Tutorial 9, after it, asks how much fine-tuning is enough and what it
+  costs. Needs a GPU with more memory than a T4, and Drive, so CI does not execute it;
   tests/test_lecture_14.py runs its cells with NLLB and COMET stubbed.
 
 <!-- END generated:notebook-map -->
