@@ -106,6 +106,12 @@ ROLES = {"activity", "reading", "homework", "reference"}
 #              writes the function; a tests/test_lecture_*.py module runs it with answers in.
 CAPABILITIES = {"pip", "download", "colab", "hf-token", "blanks", "exercises"}
 
+# The one `leads_to` target that is not an assignment. The Final Project has seven graded
+# parts and no single id or due date, but a tutorial can still be the head start on it:
+# Tutorial 9 is, and the course's tutorial map draws that arrow (Cowork, 2026-10-26). Before
+# this, its `leads_to` had to be empty, and the chart drawn from it had to be hand-kept.
+FINAL_PROJECT = "FP"
+
 # Which collection a notebook belongs to. This says where it lives, not how it is used --
 # a distinction worth keeping separate, because they come apart: tutorial 3 lives in the
 # tutorials and is used as Lecture 7's in-class activity.
@@ -877,12 +883,12 @@ def problems(path: Path, meta: dict) -> list[str]:
     if not isinstance(leads_to, list) or any(not isinstance(x, str) for x in leads_to):
         found.append(f"{path}: leads_to must be a list of strings, got {leads_to!r}")
     else:
-        known = assignments()
+        known = set(assignments()) | {FINAL_PROJECT}
         for assignment in leads_to:
             if assignment not in known:
                 found.append(
                     f"{path}: leads_to has {assignment!r}, which is not an assignment in "
-                    f"the schedule in {rr.DATA}"
+                    f"the schedule in {rr.DATA}, nor {FINAL_PROJECT} for the Final Project"
                 )
 
     # Reject unknown keys. A typo in an optional field is otherwise invisible: the block
@@ -994,7 +1000,10 @@ def purpose_line(meta: dict) -> str:
     # No due dates. Eric, 2026-09-29: a notebook is self-contained and Learning Suite is
     # where due dates live, so a notebook stays true when the schedule moves.
     if meta.get("leads_to"):
-        starts = ", ".join(f"**{a}**" for a in meta["leads_to"])
+        starts = ", ".join(
+            "the **Final Project**" if a == FINAL_PROJECT else f"**{a}**"
+            for a in meta["leads_to"]
+        )
         parts.append(f"A head start on {starts}.")
     return " ".join(parts)
 
@@ -1467,17 +1476,23 @@ def main(argv: list[str] | None = None) -> int:
     # second way to produce the file. Two writers of one file can disagree; one cannot.
     if not (args.write or args.check):
         return 0
+    #
+    # The tutorial map is drawn from every tutorial's leads_to, so it is regenerated here
+    # too: a stamp that changed one would otherwise leave the chart stale for CI to find.
     try:
         expected = rr.render()
+        charts = rr.chart_files()
     except ValueError as error:
         print(error, file=sys.stderr)
         return 1
     if args.write:
         print(f"  {'written  ' if rr.write(expected) else 'unchanged'}  {rr.ROADMAP}")
-    elif rr.current() != expected:
+        for path in rr.write_charts(charts):
+            print(f"  written    {path}")
+    elif rr.current() != expected or rr.stale_charts(charts):
         print(
-            f"\n{rr.ROADMAP} is out of date with the notebooks or with {rr.SOURCE}/.\n"
-            "Run: python scripts/notebook_meta.py --write",
+            f"\n{rr.ROADMAP} or a chart in it is out of date with the notebooks or with "
+            f"{rr.SOURCE}/.\nRun: python scripts/notebook_meta.py --write",
             file=sys.stderr,
         )
         return 1

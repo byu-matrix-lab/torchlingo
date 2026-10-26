@@ -512,10 +512,11 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-12-llm-context` | 12 | homework | A12 | in-context translation with 0 to 20 examples, on the student's A12 language | no: colab, download, exercises |
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab, exercises |
 | `lecture-14-multilingual` | 14 | homework | A14 | NLLB-200 fine-tuned both ways on A9's split, against NLLB off the shelf and the student's own one-way models | no: colab, exercises |
-| `09-fine-tuning-nllb` | 14 | reading | | how much fine-tuning is enough and what it costs, on the student's A8 split, after A14 | no: colab, download, exercises |
+| `09-fine-tuning-nllb` | 14 | reading | FP | how much fine-tuning is enough and what it costs, on the student's A8 split, after A14 | no: colab, download, exercises |
 
 **Tutorial numbers** are in course order: 01 data, 02 evaluating, 03 checkpoints, 04 attention,
-05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search.
+05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search, 09 fine-tuning.
+The "starts" column's `FP` is the Final Project, which has no assignment id.
 
 Every notebook opens with the same two code cells: the install from the `course` branch, and
 `torchlingo.colab.setup(...)`, which prints versions and device, checks the GPU, mounts Drive
@@ -650,6 +651,12 @@ this repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 26.** The tutorials are **required reading** (Eric). They still carry no points, so
+  the assignment notebooks stay self-sufficient, as the safety net for a student who skips
+  them. Also Oct 26 (Eric): this roadmap is the source for each assignment's points and
+  stretch points, written in `roadmap.yaml` before the Learning Suite page and the gradebook;
+  and for the Assignments page's two charts, now generated from it rather than hand-kept.
+  Tutorial 4 leads to A8, Tutorial 8 to A13 and A14, and Tutorial 9 to the Final Project.
 - **Oct 25.** One task list for course work (Eric): `torchlingo-private/notes/course/TASKS.md`,
   shared by both sessions, with the course side's log and next-offering notes beside it. The
   public `notes/TASKS.md` keeps library and notebook engineering.
@@ -979,9 +986,9 @@ Notes on the rows that are not simple:
   direction not trained and read in the third language; a 100-step run at a learning rate
   thirty times higher, from the original weights, shows what too high looks like. Results
   persist in t9-results.json on Drive. Read after A14, whose code it uses, and before a
-  Final Project that fine-tunes; the Final Project has no assignment id, so leads_to is
-  empty. Needs a GPU with more memory than a T4, and Drive, so CI does not execute it;
-  tests/test_tutorial_09.py runs its cells with NLLB stubbed.
+  Final Project that fine-tunes, so it leads to FP, the Final Project. Needs a GPU with
+  more memory than a T4, and Drive, so CI does not execute it; tests/test_tutorial_09.py
+  runs its cells with NLLB stubbed.
 - [6] **`lecture-04-regex-refresher`** — A twenty-minute tour of Python regular
   expressions, which the sixteen cleaning steps are written in, ending with re.sub for
   collapsing whitespace and stripping tags. Lecture 4's deck links it and Learning Suite
