@@ -306,10 +306,10 @@ way. A course notebook may assume earlier course notebooks and the lectures, nev
 anything it needs a student to understand, it explains at first use, in a sentence or two, and a
 link to a tutorial is for depth, not a prerequisite. A tutorial may assume the course notebooks.
 This is also what decides the tie in the rule above: a lesson an assignment needs lives in the
-course notebook. Eric, 2026-10-25, stronger still: *expect students to treat the tutorials as
-optional, even when they are required*, so **the assignment notebooks are load-bearing**, and an
-assignment notebook and a tutorial must not look alike. When they share material, the assignment
-keeps it and the tutorial is given a purpose of its own.
+course notebook. Eric, 2026-10-25, stronger still: **tutorials carry no points**, so students
+pressed for time are likely to skip them. So **the assignment notebooks are load-bearing**, and
+an assignment notebook and a tutorial must not look alike. When they share material, the
+assignment keeps it and the tutorial is given a purpose of its own.
 
 **An application of deep learning, not a deep-learning class.** Eric, 2026-10-25: *"the students
 should certainly be aware of and informed of the DL ingredients while staying focused on the
