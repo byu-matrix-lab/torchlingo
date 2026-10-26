@@ -169,6 +169,50 @@ class TestOlderFiles(unittest.TestCase):
                 "saved before TorchLingo recorded them", str(refused.exception)
             )
             self.assertIn("load_state_dict", str(refused.exception))
+            self.assertIn("config=", str(refused.exception))
+
+    def test_an_old_file_loads_given_its_config_and_vocabularies(self):
+        src, tgt = self.vocab_of_size(12), self.vocab_of_size(14)
+        for path in (self.old_train_model_file(), self.dir / "bare.pt"):
+            if path.name == "bare.pt":
+                torch.save(self.model.state_dict(), path)
+            with self.subTest(path.name):
+                loaded = load_model(
+                    path, CPU, config=Config(**TINY), src_vocab=src, tgt_vocab=tgt
+                )
+                self.assertTrue(same_weights(loaded.model, self.model))
+                self.assertFalse(loaded.model.training, "returned in eval mode")
+                self.assertIs(loaded.src_vocab, src)
+                self.assertIs(loaded.tgt_vocab, tgt)
+
+    def test_an_old_file_with_the_wrong_config_says_so(self):
+        src, tgt = self.vocab_of_size(12), self.vocab_of_size(14)
+        wrong = Config(**{**TINY, "d_model": 32})
+        with self.assertRaises(ValueError) as refused:
+            load_model(
+                self.old_train_model_file(),
+                CPU,
+                config=wrong,
+                src_vocab=src,
+                tgt_vocab=tgt,
+            )
+        self.assertIn("do not fit a SimpleTransformer", str(refused.exception))
+
+    def test_an_old_file_still_needs_its_vocabularies(self):
+        with self.assertRaises(ValueError) as refused:
+            load_model(self.old_train_model_file(), CPU, config=Config(**TINY))
+        self.assertIn("pass src_vocab=", str(refused.exception))
+
+    @staticmethod
+    def vocab_of_size(n: int) -> SimpleVocab:
+        """A vocabulary of exactly n entries: the specials plus made-up words."""
+        vocab = SimpleVocab(min_freq=1)
+        vocab.build_vocab(["x"])
+        extra = n - (len(vocab) - 1)  # the specials, without "x"
+        vocab = SimpleVocab(min_freq=1)
+        vocab.build_vocab([" ".join(f"w{i}" for i in range(extra))])
+        assert len(vocab) == n, len(vocab)
+        return vocab
 
     def test_the_pretrained_file_layout_loads_given_its_vocabulary(self):
         """data/pretrained/model.pt: one vocab_size, settings without sizes, spm.model apart."""
