@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **`train_model(device="cpu")`** works: a device given by name is turned into a
+  `torch.device`. It raised `AttributeError` at `device.type`.
+
 ## [0.2.9] - 2026-10-25
 
 ### Added

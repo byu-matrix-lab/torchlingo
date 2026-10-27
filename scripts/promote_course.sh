@@ -12,6 +12,9 @@
 #
 # WHAT IT CHECKS, before pushing anything:
 #   - the commit is on origin/main;
+#   - which commit's checks count: a commit that changed only files tests_and_build.yml does
+#     not watch (notes/, CLAUDE.md) gets no run, so it is judged by the newest earlier commit
+#     that changed a watched file, whose library and notebooks it shares (Task #295);
 #   - GitHub has check runs for it, every one has completed, and none failed. The
 #     student-path job is left out: it tests what `course` already holds, not this commit.
 #     When the commit is a PR's merge with exactly the tree of that PR's head, the PR's
@@ -59,17 +62,40 @@ if ! git merge-base --is-ancestor "$target" origin/main; then
   exit 1
 fi
 
+# Which commit's checks count, first: the newest commit at or before the target that changed a
+# file tests_and_build.yml watches. A commit changing only files it does not watch, such as
+# notes/ or CLAUDE.md, gets no run at all, and waiting for one waited forever: on 2026-10-25
+# `land_pr.sh 345 346 347 --promote` ended on PR #347, which changed only CLAUDE.md (Task #295).
+# Such a commit holds the same library and notebooks as that earlier commit, so its checks are
+# this one's. The paths are read from the workflow's push trigger, so the two cannot disagree.
+watched=()
+while IFS= read -r pattern; do
+  watched+=(":(glob)$pattern")
+done < <(awk '/^  push:/{p=1} p&&/^    paths:/{q=1;next} q&&/^      #/{next}
+  q&&/^      - /{s=$0; sub(/^      - /,"",s); gsub(/'"'"'/,"",s); print s; next} q{exit}' \
+  .github/workflows/tests_and_build.yml)
+if [ "${#watched[@]}" -eq 0 ]; then
+  echo "REFUSED: could not read the watched paths of .github/workflows/tests_and_build.yml." >&2
+  exit 1
+fi
+base="$(git log -1 --format=%H "$target" -- "${watched[@]}")"
+via=""
+if [ -n "$base" ] && [ "$base" != "$target" ]; then
+  via=" (only files CI does not watch changed since $(git rev-parse --short "$base"); its checks count)"
+else
+  base="$target"
+fi
+
 # Whose checks count. A squash merge of a PR that was up to date with main has exactly the tree
 # the PR's own checks passed on, so those checks are this commit's checks and waiting for main's
 # run of the same jobs adds about five minutes and no information (PR #295, 2026-10-15). Any
 # other commit, or a PR whose tree differs, is judged by its own checks on main.
-checked="$target"
-via=""
-pr="$(gh api "repos/$REPO/commits/$target/pulls" --jq '.[0] | "\(.number) \(.head.sha)"' 2>/dev/null || true)"
+checked="$base"
+pr="$(gh api "repos/$REPO/commits/$base/pulls" --jq '.[0] | "\(.number) \(.head.sha)"' 2>/dev/null || true)"
 if [ -n "$pr" ] && git fetch --quiet origin "refs/pull/${pr%% *}/head" 2>/dev/null \
-    && [ "$(git rev-parse "${pr#* }^{tree}")" = "$(git rev-parse "$target^{tree}")" ]; then
+    && [ "$(git rev-parse "${pr#* }^{tree}")" = "$(git rev-parse "$base^{tree}")" ]; then
   checked="${pr#* }"
-  via=" (PR #${pr%% *}'s checks, on the same tree at $(git rev-parse --short "$checked"))"
+  via="${via:-} (PR #${pr%% *}'s checks, on the same tree at $(git rev-parse --short "$checked"))"
 fi
 
 # Sets runs to one line per check run: status, conclusion, check-run id, details URL, name. The
