@@ -96,7 +96,6 @@ page's two charts from `roadmap.yaml` (PR #357; `mmdc` renders them byte-identic
 hand-kept ones), with `FP` as a `leads_to` target so Tutorial 9 can name the Final Project. Eric: tutorials are required reading. Task #281 gained Eric's next-offering
 proposals. A one-off comparison found every transcript's title and Total row matching the
 roadmap; a standing check waits on Cowork giving the transcripts a due-date field.
-
 Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
 from this side, and Tasks #254 to #256 from the session's repeated manual steps.
 
@@ -120,31 +119,16 @@ Eric, 2026-09-27: annotate every task with the lecture it is critical for. Assig
 each task actually touches, **not** by how near its date is — several tasks with imminent
 dates are not lecture-critical, and several with no date are.
 
-| label | means | date |
-|---|---|---|
-| **L1** | Course Overview and History of MT — **has already run** | Wed Sep 2 · A1 due |
-| **L2** | Translation Challenges for MT — **has already run** | Wed Sep 9 · A2 due |
-| **L3** | Introduction to Word Embeddings — **has already run** | Mon Sep 14 · A3 due |
-| **L4** | Data Preparation for MT Training — **has already run** | Wed Sep 16 |
-| **L5** | Data Preparation for MT Training, Part 2 — **has already run** | Mon Sep 21 · A4 due |
-| **L4/L5** | both data-preparation lectures | |
-| **L6** | Human and Automatic MT Evaluation — **has already run** | Wed Sep 23 · A5 due; A6 due Mon Sep 28 |
-| **L7** | Research Paper Reviews; Intro to Neural Networks — **has already run** | Mon Sep 28 · A6 due, **A7 set** |
-| **L8a** | Neural MT: Encoder-Decoder, and Why Attention Was Invented — **has already run** | Wed Sep 30 · A7 due, **A8 introduced** |
-| **L8b** | Neural MT: The Transformer — **has already run** | Mon Oct 5 |
-| **L8c** | Finishing the Transformer, the A8 Debrief, and the Subword Activity — **has already run** | Wed Oct 7 · **A8 due, A9 set** |
-| **L8a/8b** | the halves of the split | |
-| **L9** | Morphology and Terminology in NMT — **has already run** | Mon Oct 12 |
-| **L10** | Overview of MT Quality Estimation — **has already run** | Wed Oct 14 · A9 due · A10 set (install COMET) |
-| **L11** | LLM Judges, Sentences and Spans — **has already run** | Wed Oct 21 · A11 set |
-| **L12** | Using LLMs for MT; Expanding Context Awareness | Mon Oct 26 · A11 due · A12 set (due Fri Oct 30) |
-| **L13** | Strategies for NMT of Low-Resource Languages | Wed Oct 28 · A13 set (opens Fri Oct 30, due Wed Nov 4) |
-| **14+** | Lecture 14 onward: multilingual and zero-shot, speech, and later | from Mon Nov 2 · A14 set (opens Wed Nov 4, due Tue Nov 10) |
-| **lib** | library, tooling or docs work **no lecture depends on** | |
-| **hyg** | roadmap and process integrity — **critical, but not to one lecture** | |
+| label | means |
+|---|---|
+| **L1** to **L13**, with **L8a** to **L8c** | that lecture |
+| **L4/L5**, **L8a/8b** | both of those lectures |
+| **14+** | Lecture 14 onward |
+| **lib** | library, tooling or docs work **no lecture depends on** |
+| **hyg** | roadmap and process integrity — **critical, but not to one lecture** |
 
-Since roadmap v16 (Oct 7) everything from Lecture 9 on sits one session later than it did, and
-the dates in the task rows below were shifted with it.
+Each lecture's title and date, and what it sets and what falls due, are in the roadmap's
+schedule.
 
 **A lecture that has already run still owns its work.** `L6` means "this belongs to Lecture
 6", not "this is overdue" — the deadline pressure is gone, the subject matter is not, and a
@@ -182,7 +166,7 @@ two-lens review of every notebook, became Tasks #281 to #294.
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #279 | **P1** | One Colab L4 run of the rebuilt A14 before it opens | **14+** | Open — Eric's condition for the go (Oct 25): Eric or Coulson runs `lecture-14-multilingual` once on an L4 on a real A8 language, before Wed Nov 4. Postponed to Mon Oct 26 (Eric). The Colab install-only check passed on the promoted notebook (Oct 25), so the install cells are known good; the bfloat16 path, L4 memory, the download and the real step time are not (this Mac's GPU, float32: about 3 to 7 s a step). Open: who runs it, and whose A9 files: a student-like `MyDrive/CS479/assignment8`, or a test folder built from the course's German split with a correctly sized A9 model. Fix whatever it finds before Nov 4 |
+| #279 | **P1** | One Colab L4 run of the rebuilt A14 before it opens | **14+** | Open — Eric's condition for the go (Oct 25): Eric or Coulson runs `lecture-14-multilingual` once on an L4 on a real A8 language, before A14 opens at Lecture 14 (its window may now overlap A13's, Oct 26). Postponed to Mon Oct 26 (Eric). The Colab install-only check passed on the promoted notebook (Oct 25), so the install cells are known good; the bfloat16 path, L4 memory, the download and the real step time are not (this Mac's GPU, float32: about 3 to 7 s a step). Open: who runs it, and whose A9 files: a student-like `MyDrive/CS479/assignment8`, or a test folder built from the course's German split with a correctly sized A9 model. Fix whatever it finds before A14 opens |
 | #296 | **P3** | `merge_check.sh` fails every release PR | **hyg** | Open — found Oct 25 on PR #354, 0.2.8 to 0.2.9: preflight in the scratch worktree failed only `tests/test_version_consistency.py`, because the venv's editable install still reports the main checkout's 0.2.8 while the tree's `pyproject.toml` says 0.2.9, so `land_pr.sh` stops on any version bump. PR #354 was merged by hand once CI, which installs fresh, passed on it merged with `main`. Fix in the existing tools: have preflight compare against the tree's own metadata (build it in the scratch worktree, or skip the installed-metadata check when the tree's version differs from the installed one and say so) |
 | #273 | **P2** | Run the install-only student check on the notebooks a PR changes, before it merges | **hyg** | Open — PR #329's COMET cell read a setup-cell helper, harmless to a student running from the top, and `student_path.sh --colab --install-only` caught it only after promotion, on `course` 6405a02 (fixed in PR #331). Extend `merge_check.sh` or `land_pr.sh` to run it on each changed notebook with an install cell (about 35 s each; needs uv), not a new tool |
 | #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
@@ -490,8 +474,9 @@ Filed 2026-10-17 from a pass over `notes/CS479_COURSE_ROADMAP.md` for what it as
 repository and nothing here tracked: its "What the table cannot say", "Where the line is
 crossed", "Open questions" and "Gaps" sections, and Lectures 14 to 23's scope notes. Lecture 14's
 notebook exists (`lecture-14-multilingual`, Oct 22). Lecture 15's A15 is dropped this term (Eric, Oct 22), and Lectures 16 to
-18 set no assignment, so none has a row of its own. What Lectures 15 to 23 and the final project
-may want from the repository (Lecture 18's edit distance, Lecture 19's IBM Model 1, a page on
+19 (renumbered Oct 26, one per session) set no assignment, so none has a row of its own. What
+Lectures 15 to 19 and the final project may want from the repository (Lecture 19's edit
+distance, Lecture 18's IBM Model 1, a page on
 starting a project from a student's own model) is an open question in the roadmap, held until
 Lectures 11 to 13 are done (Eric, Oct 19).
 

@@ -14,6 +14,15 @@ course needs, and where that judgement gets made. It is generated: edit its sour
 `notes/roadmap/` (facts in `roadmap.yaml`, prose in `sections/`) and run
 `scripts/render_roadmap.py --write`, never the Markdown itself.
 
+**Nothing else restates the roadmap's facts.** Eric, 2026-10-26: *"the readme should not
+duplicate the roadmap."* A lecture's title or date, or an assignment's due date, time, points
+or window, is written in `roadmap.yaml` and pointed to from everywhere else: not copied into a
+README, a table in `notes/TASKS.md`, a hand-off or a notebook. Two hand-kept copies had already
+drifted that day: the transcripts README in torchlingo-private and the lecture legend in
+`notes/TASKS.md` still had A12 and A13 at their Oct 22 dates. Where a copy must exist, a check
+compares it. The course transcripts' `Due:` lines and Total rows are one such copy, checked by
+`torchlingo-private/scripts/check_transcripts.py` at each hand-off.
+
 It is still a clean, documented PyTorch NMT library with Transformer and LSTM implementations —
 that is *how* it serves the course, and it keeps the general-audience option open for later
 without paying for it now.
