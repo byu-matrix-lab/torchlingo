@@ -1,168 +1,12 @@
 # TorchLingo — Session Task List
 
-Opened 2026-08-22, last updated 2026-10-25. Numbered for reference in conversation.
-Completed work is removed rather than marked done — git history is the record.
+Every task here can be finished, and is deleted once it is; nothing else belongs in this file.
+Library and notebook engineering only: course work is in `torchlingo-private/notes/course/TASKS.md`,
+under the same task numbers. How the table is ranked and labelled is in `CLAUDE.md`, under "The
+task list", with every other standing rule. What was done, and when, is in git and in
+`notes/handoff/`.
 
-**This list is library and notebook engineering.** Course work (decks, Learning Suite, the
-assignment pages, and anything waiting on Cowork or Eric for a course decision) is in the one
-list both sessions share, `torchlingo-private/notes/course/TASKS.md` (Eric, 2026-10-25). Task
-numbers are kept across the two, so a number names the same task in either file.
-
-**Numbers here are task numbers, and they collide with pull request numbers.**
-The two ranges have grown up together, so almost every number names one of each. Say
-"Task #37" or "PR #37" in conversation and in GitHub comments; a bare `#37` is
-ambiguous, and on GitHub it auto-links to the pull request whether or not that
-was meant.
-
-## This file is the whole list; the session mirror is only what is urgent
-
-**Convention, Eric's, 2026-09-25.** A task stays on the in-session task list only if it
-contributes to one of the next two lectures. Everything else lives here and here alone.
-
-That keeps the working list short enough to be read, without losing anything: this file
-is authoritative and always has every task. The mirror is a filter over it, not a second
-copy of it.
-
-**As of 2026-10-14, at the baton pass to Cowork:** everything open is here. The cell-by-cell
-audit of every course notebook is applied, and every assignment notebook has the student write
-the method, with checks, a prediction that stops the run, and write-up questions for its
-lecture's conceptual outcome. What is left on the course side waits on Cowork's answers, each
-row saying so: Tasks #176, #229, #231, #233, #235 and #242, and part of Task #169. On this side,
-Tasks #99 and #123 (both needed by Wed Oct 28, when A14 is set) and Task #243, the architectural
-review, are the open work.
-
-**Since then, 2026-10-15 to 17, on this side:** the COMET install in A10, A11 and A13 was fixed
-twice (PRs #295 and #297); every install cell now runs in a copy of Colab's runtime on each push to
-`course` (Task #244, PR #302); a red run on `main` or `course` opens a `ci-red` issue (Task #60,
-PR #301); and `scripts/land_pr.sh` lands a PR (Task #245, PR #304).
-
-**2026-10-19: the baton came back and went out again the same day.** Cowork's hand-off answered
-Tasks #176, #231, #233, #235 and #242. Tasks #231, #233, #235, #242 and #252 are closed, and
-Task #176 is on `course` pending one real A12 folder. The return hand-off,
-`to-cowork/2026-10-19-judges-scored-a12-a13-on-course.md`, asks for that folder's first lines,
-an MTEval results file (Task #229) and what Lectures 14 onward need (Task #246). Task #169's
-LLM helper waits on Eric.
-
-**2026-10-19, afternoon: the baton came back with Lecture 11 turned around.** Lecture 11 is
-recorded, and its activity judges Spanish into English; the scores are in
-`torchlingo-private/course/figures/l11-judges/` (`*_es-en.*`). Eric's scope: both sessions stay on
-Lectures 11 to 13 and A11 to A13, and later lectures become roadmap notes, so Task #246 is closed
-into the roadmap's open questions, and Cowork holds the MTEval file (Task #229) until Lectures 11
-to 13 are done. Task #169's LLM helper: "almost certainly" needed, to be confirmed.
-
-**2026-10-20: Cowork sent the MTEval sample and the A12 folders.** A11's Step 1 now reads the
-student's MTEval results file and compares each metric with the student's own ranks, sentence by
-sentence (Task #229, closed).
-
-**2026-10-21: the arc plan's A12 and A13 are on `course`, and the baton went to Cowork.**
-Sampled and noised-beam decoding and the NLLB accessory (Task #267, PR #327), A12's required
-additions (PR #328) and the A13 rewrite (Task #268, PR #329) landed. Task #270, A14's rewrite,
-is Tasks #123 and #99 here, waiting on the A14 due date, which Eric sent to Cowork. Filed:
-Task #271 (A15, later), Task #272 (batched beam) and Task #273 (the install-only check before
-merge).
-
-**2026-10-22: the baton came back with a new schedule, a simpler A13 and A14's go.** No two
-assignment windows overlap: A12 is due Fri Oct 30, A13 Wed Nov 4, A14 Tue Nov 10, and A15 is
-dropped this term, folded into the Final Project (Eric). On this side: A13's notebook simplified
-to one retrain on sampled back-translations, no partner step, seven questions, with A12's
-opening outcomes (Task #274, PR #334); the roadmap's schedule, outcomes, practice table and
-decisions log, with `render_roadmap.py` taking due dates between lecture rows and a dropped
-assignment (Task #275, PR #335); and the A14 notebook (Task #99, PR #336), after Task #123's toy
-run found the two-directions path works with A9's pieces. All three landed the same day by
-admin merge (Eric's OK) and were promoted together. Task #271 moves to the next offering;
-Task #278 filed.
-
-**2026-10-24 and 25: the baton came back with A12's sentence before, and a fine-tuning
-tutorial.** A12 gains a fourth outcome, context for disambiguation: Cowork's Step 6 in the
-Lecture 12 notebook, reviewed here, landed and on `course` before A12 opens (PR #339). The
-roadmap took the Final Project's seven parts and the late-semester shift (PR #340). Landing got
-faster: a push to `main` cancels the run it supersedes, and `land_pr.sh` lands several PRs with
-one promotion (PR #338). Tasks #160, #120 and #253 moved to the course list. A12's placebo is
-drawn per sentence, its chart survives tied draws, and it ran end to end on Efik (PR #341).
-Tutorial 9, fine-tuning NLLB, landed (PR #342), with Adafactor after AdamW's checkpoints
-measured 6.9 GB each. Eric chose **go** on rebuilding A14 on it, with one Colab run first:
-A14 is rebuilt both ways with COMET (PR #343), on `torchlingo_harness.nllb.fine_tune`. Filed:
-Task #279 (that Colab run), and Tasks #281 to #294 from a two-lens review of every notebook
-(Eric's request): code that belongs in the library, and where students decide. The P1 to P3
-criteria were rewritten with Eric and every row re-ranked. Then, the same day: A13 and A14 ask
-which differences are real, and A13 names its training ingredients (PR #345); tutorials 4, 6, 7
-and 8 checkpoint every run (PR #346); `CLAUDE.md` records Eric's two principles (PR #347); and
-Tutorial 9 became "how much fine-tuning is enough, and what it costs", so that it and A14 do not
-look alike (PR #348). Filed: Task #295, a batch landing stuck on a last PR that triggers no CI.
-
-**2026-10-26: Hand-off G, the roadmap as the one source.** Cowork answered all four asks of
-the Oct 25 hand-off and opened PR #356 itself, which landed. This side generated the Assignments
-page's two charts from `roadmap.yaml` (PR #357; `mmdc` renders them byte-identical to the
-hand-kept ones), with `FP` as a `leads_to` target so Tutorial 9 can name the Final Project. Eric: tutorials are required reading. Task #281 gained Eric's next-offering
-proposals. A one-off comparison found every transcript's title and Total row matching the
-roadmap; a standing check waits on Cowork giving the transcripts a due-date field.
-Tasks #246 to #253 were filed on 2026-10-17 from a pass over the roadmap for what it still needs
-from this side, and Tasks #254 to #256 from the session's repeated manual steps.
-
-**Read the "Critical for" column rather than the dates.** The test to apply is *"must this be
-done for that lecture to happen correctly?"* — not "is this related to it". A task can sound
-lecture-critical and fail that test on inspection.
-
-Everything here is work that can be finished and then deleted. Standing rules live in
-`CLAUDE.md`; decisions and findings live where they apply. `notes/README.md` maps the
-rest of this directory, including the `handoff/` protocol used to exchange messages
-with the Cowork session rebuilding the CS 479 decks.
-
-## Status
-
-"In review" means the work is written and sitting in an open pull request; the task
-is not finished until that PR merges, and only then does the row disappear.
-
-### Reading the "Critical for" column
-
-Eric, 2026-09-27: annotate every task with the lecture it is critical for. Assigned by what
-each task actually touches, **not** by how near its date is — several tasks with imminent
-dates are not lecture-critical, and several with no date are.
-
-| label | means |
-|---|---|
-| **L1** to **L13**, with **L8a** to **L8c** | that lecture |
-| **L4/L5**, **L8a/8b** | both of those lectures |
-| **14+** | Lecture 14 onward |
-| **lib** | library, tooling or docs work **no lecture depends on** |
-| **hyg** | roadmap and process integrity — **critical, but not to one lecture** |
-
-Each lecture's title and date, and what it sets and what falls due, are in the roadmap's
-schedule.
-
-**A lecture that has already run still owns its work.** `L6` means "this belongs to Lecture
-6", not "this is overdue" — the deadline pressure is gone, the subject matter is not, and a
-student revisiting the lecture or an instructor preparing Fall 2027 meets it there. Filing
-those as `10+` lost the one piece of information the label exists to carry. L1 to L5 were added
-on 2026-09-28 for the same reason: the vocabulary started at L6, so work belonging to the first
-five lectures could only be filed as `10+`, and Task #120's grader, which is Lectures 4 and 5's
-tool, was. The same day `10+` itself was retired: it meant both "Lecture 10 onward" and "no
-lecture at all", and those are opposite answers to the question the column asks. L10 to L13 and
-`14+` now carry the first meaning, and `lib` the second.
-
-`hyg` is not a synonym for "later". It is the category that keeps the other labels true: a
-generated map that has drifted, a gate that reports without blocking, or a task list that
-describes last week will mislead every lecture at once rather than one of them.
-
-**P1 to P3 rank the work; the table is sorted by it** (criteria Eric approved Oct 25, replacing
-those of Oct 5):
-
-- **P1: a student meets it within about three weeks.** Something students run or are graded on
-  in that window is broken, missing, or unverified on the path they will actually take; or a
-  dated promise to Eric or Cowork falls inside the window.
-- **P2: it makes this term's assignment notebooks load-bearing and correct, or guards what
-  students are served.** A lesson an assignment leaves to a tutorial; a decision, prediction or
-  interpretation missing from a coming assignment; a standing rule that shipped code breaks;
-  protection for `main` and `course`; or something Eric asked for, with no date.
-- **P3: everything else.** Library refactors that change nothing students see this term,
-  tutorials (required reading, Eric, Oct 26, but they carry no points, so students pressed
-  for time skip them: Eric, Oct 25), lectures that
-  have already run, the next offering, and housekeeping.
-
-Within a level, the earlier date comes first. A tutorial-only task is P3 unless it breaks a
-standing rule. Re-rank when the calendar moves; "Critical for" says *which* lecture, P says *how
-soon*. Re-ranked Oct 25: Tasks #272, #169, #171 and #82 went from P2 to P3, and Task #280, the
-two-lens review of every notebook, became Tasks #281 to #294.
+## Tasks
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
@@ -195,6 +39,7 @@ two-lens review of every notebook, became Tasks #281 to #294.
 | #8 | **P3** | Verify Eole claims before syllabus use | **lib** | Open |
 | #9 | **P3** | `pre-commit install` (still not installed) | **hyg** | Open |
 | #15 | **P3** | Migrate history-blind `DummyTransformer` tests | **lib** | Open |
+| #303 | **P3** | One decoder contract, run against both decoders | **lib** | Open — planned Aug 26 and never built: lift the fixtures and invariants of `tests/test_decoding_equivalence.py` into a `DecoderContractTests` mixin with the decode function supplied per subclass (`ReferenceBeamTests`, `BatchedBeamTests`), so a new decoder inherits the whole suite and a failure names the implementation |
 | #22 | **P3** | `examples/` and `scripts/` are outside the lint gate | **hyg** | Open — **`scripts/notebook_meta.py` is now library code living there** |
 | #36 | **P3** | CI actions pinned to a deprecated Node runtime | **hyg** | Open |
 | #44 | **P3** | Gate the sdist on "no Git LFS pointer shipped" | **hyg** | Open |
@@ -217,24 +62,7 @@ two-lens review of every notebook, became Tasks #281 to #294.
 | #250 | **P3** | Roadmap gap: model size against latency | **lib** | Open — what a student meets when a Colab session is slow |
 | #251 | **P3** | Roadmap gap: teach the training-budget episode | **lib** | Open — "which lever are you pulling?", from `reports/training-budget.md` |
 
-## The CS 479 pivot
-
-From `notes/CS479_COURSE_ROADMAP.md`, handed over 2026-09-24. OpenNMT-py is in maintenance
-mode and CS 479 is moving to TorchLingo **this** semester. Five assignments train a model
-(Lectures 7, 8, 9, 13, 14), all five are written against OpenNMT today, and they are
-consecutive and cumulative, so it is one crossing rather than five.
-
-This converts the repository from a teaching library with a hypothetical audience into the
-thing twenty-four students have to get working, on their own data, on a deadline.
-
-### Context lives in the roadmap, not here
-
-The calendar, the assignment sequence, the ordering argument and the paid-Colab
-requirement are all in **`notes/CS479_COURSE_ROADMAP.md`** (v3, maintained by the Cowork
-session) and in **`notes/handoff/briefing.md`**. Both are kept current; restating them here
-produced two copies that disagreed within days.
-
-What stays below are the dated tasks themselves.
+## Task details
 
 ### #108 Nothing releases the device allocator's cache
 
@@ -469,17 +297,7 @@ student meets.
   alignment slide and Lecture 5's corpus slide. **A retrain must be announced in a hand-off** so
   the slides follow, and must keep writing `trained_minutes` and `train_pairs`.
 
-## What the rest of the roadmap needs from this side
-
-Filed 2026-10-17 from a pass over `notes/CS479_COURSE_ROADMAP.md` for what it asks of the
-repository and nothing here tracked: its "What the table cannot say", "Where the line is
-crossed", "Open questions" and "Gaps" sections, and Lectures 14 to 23's scope notes. Lecture 14's
-notebook exists (`lecture-14-multilingual`, Oct 22). Lecture 15's A15 is dropped this term (Eric, Oct 22), and Lectures 16 to
-19 (renumbered Oct 26, one per session) set no assignment, so none has a row of its own. What
-Lectures 15 to 19 and the final project may want from the repository (Lecture 19's edit
-distance, Lecture 18's IBM Model 1, a page on
-starting a project from a student's own model) is an open question in the roadmap, held until
-Lectures 11 to 13 are done (Eric, Oct 19).
+## What the roadmap needs from this side
 
 ### #247 Next offering: the A8 kickoff's cap and dedupe become the student's
 
@@ -527,135 +345,6 @@ way only a control run caught (`notes/reports/training-budget.md`). The roadmap 
 is worth teaching directly. **Done when** a docs page (or a section of `concepts/training.md`,
 beside #249) tells it to students, with the report's numbers included from its JSON, not typed.
 
-## Code — decoding performance
-
-### Decision (2026-09-22): #2, #3 and #6 are descoped
-
-**Eric's call, taking the recommendation from the competitive assessment.** Batched beam
-search across sentences, KV caching, and multi-GPU training via DDP are not being built.
-
-*Why.* Each is high-complexity, low-teaching-value, and duplicates what CTranslate2,
-Marian and Joey NMT already do better than this repository ever would. The 2026-08-22
-design decision below concedes the premise without drawing the conclusion: the fast path
-"is necessarily harder to read than the 85-line version" and is kept separate *because*
-it cannot be followed line by line. Something a student cannot read is not teaching them
-anything, so the case for carrying it in a teaching library had to be made rather than
-assumed — and on inspection it could not be.
-
-The competitive assessment is what forced the question. Joey NMT covers this ground,
-is actively maintained, and reaches 93.62 BLEU on its toy task in under four minutes on
-CPU, so the decoder-performance work is the *least* differentiated thing we could spend
-effort on. What is differentiated — diagnosis, empirical discipline, a corpus with a
-documented repair history, documentation that executes — is where the time goes instead.
-The full assessment, including the hands-on numbers, is in `docs/docs/related-work.md`.
-
-*What this does not touch.* #4 (length-normalization semantics) stays open and is
-unaffected: it is a correctness-and-teaching question with real evidence behind it, not a
-performance one. `inference_fast.py` stays as it is — already merged, already tested by
-`tests/test_decoding_equivalence.py`, and still the faster path for anyone who wants it.
-Nothing is being removed; we are declining to extend it.
-
-*If this is ever reversed*, the technical notes below are kept deliberately intact — the
-`(batch x k, t)` flattening, the ragged-completion bookkeeping, and the warning that a KV
-cache leaves the call count unchanged and must be read on the positions-forwarded column
-instead. That last one would cost a day to rediscover.
-
-*Also worth telling students.* "We could make this faster and chose not to, because the
-readable version is the point, and here is the toolkit to use when speed actually
-matters" is a better lesson than a fast path nobody reads. Candidate for
-`concepts/decoding.md`.
-
-### Design decision (2026-08-22): reference and fast implementations live side by side
-
-The optimized decoders are **added alongside** the simple ones, not layered into them.
-The existing `greedy_decode` / `beam_search_decode` stay as the readable reference a
-student can follow line by line; batching and caching go in separate, clearly named
-implementations.
-
-*Why:* readability is the reason this library exists. A batched, KV-cached beam search is
-necessarily harder to read than the 85-line version — index bookkeeping across
-`(batch x beam)`, cache invalidation, ragged completion. Folding that into the one
-implementation trades away the thing the repo is for, to buy speed that only matters at
-scales students often are not working at anyway.
-
-*What this demands:* two implementations silently diverging is the obvious failure mode.
-`tests/test_decoding_equivalence.py` already covers this — it was written as a
-characterization oracle for a refactor, but the natural reading is now stronger:
-
-> The simple implementation is the **specification**. The fast implementation must
-> produce token-identical output on every fixture in that module.
-
-Every fast variant should be run against the same fixtures as the reference, ideally
-parameterized so adding an implementation automatically inherits the whole suite.
-
-*Resolved 2026-08-26:*
-
-**Module layout — a flat sibling module, `src/torchlingo/inference_fast.py`.**
-`inference.py` keeps the reference decoders and the shared helpers (`_canonical_topk`,
-`_rank_key`) and is not touched by the optimization work. Matches the repo's existing
-flat-module convention (`config.py`, `training.py`, `evaluation.py`); subpackages are
-reserved for places with several peers (`models/`, `preprocessing/`). Rejected: putting
-both in `inference.py`, which would push it past 700 lines and defeat the split;
-and an `inference/` subpackage, which makes a reader navigate a directory to find an
-85-line function.
-
-**`translate_batch` — mirrored, not switched.** The reference wrapper stays as-is;
-`inference_fast.py` gets its own `translate_batch`. This keeps the dependency arrow
-one-way: **fast imports from reference, never the reverse.** A selector parameter or a
-fast-by-default wrapper would force `inference.py` to import `inference_fast.py`,
-coupling the module a student is meant to read to the one they are not.
-
-**Guidance — three layers, because docs alone will not catch the failure case.**
-1. `docs/docs/concepts/decoding.md`: reference vs fast, carrying the measurement
-   (38.7x the `decode()` calls for 5.0x the math, every call at batch size 1).
-2. Bidirectional docstring cross-references between each implementation and its
-   counterpart.
-3. A threshold-based, once-per-process `warnings.warn` when the reference path is used
-   on a large input, naming `inference_fast.translate_batch` and noting the output is identical.
-   This is the layer that actually works: it fires at the moment of pain, whereas the
-   student who most needs it is mid-experiment and not reading docs.
-
-**Test structure — shared contract base class, one subclass per implementation.**
-Lift the fixtures and invariants in `test_decoding_equivalence.py` into a
-`DecoderContractTests` mixin with the decode callable supplied by each subclass:
-
-```python
-class DecoderContractTests:          # not a TestCase itself
-    DECODE = None
-    # ...every fixture and invariant...
-
-class ReferenceBeamTests(DecoderContractTests, unittest.TestCase):
-    DECODE = staticmethod(beam_search_decode)
-
-class BatchedBeamTests(DecoderContractTests, unittest.TestCase):
-    DECODE = staticmethod(inference_fast.beam_search_decode)
-```
-
-Adding an implementation is one subclass and it inherits the whole suite; failures name
-the implementation, so a divergence is unambiguous. The reference is the specification
-and runs on every invocation, which is what keeps it from rotting into a museum piece.
-
-### The 38.7x is a budget split across two levers
-
-Batching offers ~38.7x fewer model calls, but as two independent levers whose effects
-multiply — worth recording, because the figure was originally quoted here as if any one
-task could deliver it:
-
-| Lever | Worth | Task |
-|---|---|---|
-| Batch across beams | ~`beam_size` | #1 |
-| Batch across sentences | ~`num_sentences` | #2 |
-
-`beam_size=5` x 8 sentences = 40 ~= 38.7. #1 recovers roughly `beam_size`; the rest needs
-#2, which is worth more the larger the test set.
-
-**As of 2026-09-22 that remaining ~8x is being left on the table deliberately** — #2 is
-descoped. #1's share is already merged. Kept here because the split is the thing worth
-knowing: the figure was once quoted as if any single task could deliver all of it.
-
-Full explanation for students lives in `docs/docs/concepts/decoding.md` — keep it there
-rather than duplicating it into code and notes.
-
 ## Code — other gaps
 
 ### #243 An architectural review of TorchLingo, pedagogy first
@@ -676,7 +365,11 @@ What to look at:
 - **Two ways to do one thing.** For example `load_checkpoint` beside `load_model`,
   `translate_batch` beside `translate_to_file`, the reference decoders beside `inference_fast`,
   and `Config` defaults beside explicit parameters. For each pair, is the reason it exists
-  written where a student would find it?
+  written where a student would find it? One rule is already broken: the decoders' Aug 26
+  layout said the fast module imports from the reference, never the reverse, and
+  `inference.translate_to_file` has imported `inference_fast.translate_batch` since PR #239
+  (Oct 12). And Task #272 proposes batching beam search across sentences, which Eric
+  descoped on Sep 22 (CLAUDE.md, "Two decoders"); one of the two needs revisiting.
 - **The `Config` pattern.** Is the rule that explicit parameters always win applied everywhere,
   and is it something a student can predict?
 - **Interfaces detected with `hasattr`** (Transformer against LSTM; vocabularies) against an
@@ -770,15 +463,6 @@ preflight**: every task number has one table row and at most one body; a body ex
 row; no section heading is empty; the table has no non-row line inside it. It cannot tell a done
 task from an open one; that stays a reading at each baton pass. **Done when** it fails on the
 file as it was at `061031f` and passes now.
-
-
----
-
-## The training-budget finding
-
-**The finding itself now lives in [`reports/training-budget.md`](reports/training-budget.md).**
-It is a measurement, not a task, and it is the prior for #119's learning curve: training
-budget beat data by about 7x, and the data effect's confidence interval crossed zero.
 
 ## Tests
 

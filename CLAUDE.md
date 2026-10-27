@@ -100,6 +100,17 @@ tokens are embedded in the model). TensorBoard via `config.use_tensorboard`, log
 `config.tensorboard_dir / config.experiment_name`. `preprocessing.multilingual` for multi-parallel
 corpora, language-pair filtering and back-translation.
 
+**Two decoders.** `inference.py` holds the reference decoders, the readable ones a student
+follows line by line, and they are the **specification**: `inference_fast.py`, the batched
+path, must give token-identical output on every fixture in `tests/test_decoding_equivalence.py`
+(Aug 22). Speed goes in the fast module, never folded into the reference. The reference warns,
+once per process, on a large input, naming `inference_fast.translate_batch`. Batching across
+sentences, KV caching and multi-GPU training were descoped (Eric, Sep 22): each is complex,
+teaches little, and is done better by CTranslate2, Marian or Joey NMT
+(`docs/docs/related-work.md`). Task #243 is to look again at two points against this: the
+reference module imports the fast one in `translate_to_file`, and Task #272 proposes batching
+across sentences.
+
 ## Conventions
 
 `UPPER_SNAKE_CASE` constants, `PascalCase` classes, `snake_case` functions, `_leading_underscore`
@@ -468,6 +479,53 @@ a finding. A watch item in particular looks like a task and never completes.
 The cost is not tidiness. A measurement of training budget beating data by roughly 7x sat inside a
 task entry for days, where nobody would look — and it was the prior for a learning-curve
 experiment later designed without it. It now lives in `notes/reports/training-budget.md`.
+
+**So `notes/TASKS.md` holds the table and the tasks' details, and nothing else** (Eric,
+2026-10-26: *"TASKS.md should only contain completable tasks. CLAUDE.md is for standing
+rules"*). Until that day it opened with a page of dated log, one paragraph per baton pass, and
+carried the decoders' design decisions and the rules below. The log is git history and
+`notes/handoff/`; the rest is here.
+
+## The task list
+
+**The session's task list mirrors only what is urgent** (Eric, 2026-09-25). A task is on it
+only if it contributes to one of the next two lectures, or is being worked now. `notes/TASKS.md`
+always has every task; the mirror is a filter over it, not a second copy. Course work (decks,
+Learning Suite, the assignment pages, anything waiting on Cowork or Eric for a course decision)
+is in `torchlingo-private/notes/course/TASKS.md`, under the same numbers.
+
+**"Critical for" says which lecture a task is for** (Eric, 2026-09-27). It is assigned by what
+the task touches, not by how near its date is, and the test is *"must this be done for that
+lecture to happen correctly?"*, not "is this related to it".
+
+| label | means |
+|---|---|
+| **L1** to **L13**, with **L8a** to **L8c** | that lecture |
+| **L4/L5**, **L8a/8b** | both of those lectures |
+| **14+** | Lecture 14 onward |
+| **lib** | library, tooling or docs work **no lecture depends on** |
+| **hyg** | roadmap and process integrity: **critical, but not to one lecture** |
+
+A lecture that has already run still owns its work: `L6` means "this belongs to Lecture 6",
+not "overdue", and an instructor preparing the next offering meets it there. `hyg` is not a
+synonym for "later": it keeps the other labels true, since a drifted map or a gate that only
+reports misleads every lecture at once.
+
+**P1 to P3 say how soon; the table is sorted by them** (Eric, Oct 25):
+
+- **P1: a student meets it within about three weeks.** Something students run or are graded on
+  in that window is broken, missing, or unverified on the path they will take; or a dated
+  promise to Eric or Cowork falls inside the window.
+- **P2: it makes this term's assignment notebooks load-bearing and correct, or guards what
+  students are served.** A lesson an assignment leaves to a tutorial; a decision, prediction or
+  interpretation missing from a coming assignment; a standing rule that shipped code breaks;
+  protection for `main` and `course`; or something Eric asked for, with no date.
+- **P3: everything else.** Library refactors that change nothing students see this term,
+  tutorials (required reading, but they carry no points), lectures that have already run, the
+  next offering, and housekeeping.
+
+Within a level, the earlier date comes first. Re-rank when the calendar moves. A task whose
+work sits in an open pull request says "In review" and keeps its row until the PR merges.
 
 ## Handing the baton
 
