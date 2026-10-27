@@ -19,13 +19,54 @@ check because no tag is involved.
 from __future__ import annotations
 
 import importlib.metadata
+import json
 import re
 import unittest
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 import torchlingo
 
 PYPROJECT = Path(__file__).resolve().parent.parent / "pyproject.toml"
+
+
+def other_checkout() -> Path | None:
+    """The checkout the installed metadata belongs to, if it is an editable install of another.
+
+    A worktree shares the main checkout's venv, and preflight puts the worktree's own ``src``
+    first on the path, so the code under test is the tree's while the installed metadata is
+    the main checkout's. A release PR checked in a scratch worktree then failed here on the
+    version it bumps (Task #296, PR #354): pyproject said 0.2.9, the main checkout's install
+    0.2.8. The metadata is not this tree's to compare, so the tests that read it skip there.
+    A stale install of this checkout itself, the failure these tests exist for, still fails.
+
+    Returns:
+        Path | None: The other checkout, or None when the install is this tree's or not
+        editable.
+    """
+    try:
+        record = importlib.metadata.distribution("torchlingo").read_text(
+            "direct_url.json"
+        )
+        origin = json.loads(record or "{}")
+    except (importlib.metadata.PackageNotFoundError, ValueError):
+        return None
+    if not (origin.get("dir_info") or {}).get("editable"):
+        return None
+    url = urlparse(origin.get("url", ""))
+    if url.scheme != "file":
+        return None
+    installed = Path(unquote(url.path)).resolve()
+    return None if installed == PYPROJECT.parent else installed
+
+
+def skip_if_another_checkouts_metadata(test: unittest.TestCase) -> None:
+    other = other_checkout()
+    if other is not None:
+        test.skipTest(
+            f"the installed metadata is the editable install of {other}, not of "
+            f"{PYPROJECT.parent}, so its version is not this tree's"
+        )
 
 
 def declared_version() -> str:
@@ -69,6 +110,7 @@ class VersionConsistencyTests(unittest.TestCase):
 
     def test_installed_metadata_matches_pyproject(self):
         """A stale install is the common case, so the message says how to fix it."""
+        skip_if_another_checkouts_metadata(self)
         declared = declared_version()
         installed = importlib.metadata.version("torchlingo")
         self.assertEqual(
@@ -86,6 +128,7 @@ class VersionConsistencyTests(unittest.TestCase):
         deliberately does not assume -- if it ever becomes a hardcoded string, this is what
         catches the hardcoded string drifting.
         """
+        skip_if_another_checkouts_metadata(self)
         self.assertEqual(torchlingo.__version__, declared_version())
 
     def test_version_is_not_unknown(self):
@@ -101,6 +144,38 @@ class VersionConsistencyTests(unittest.TestCase):
             "torchlingo.__version__ is 'unknown', which means importlib.metadata could not "
             "find an installed distribution. Install the package before running the suite.",
         )
+
+
+class OtherCheckoutTests(unittest.TestCase):
+    """When the installed metadata is another checkout's, the version tests skip, and only then."""
+
+    @staticmethod
+    def _installed_from(record):
+        from unittest import mock
+
+        fake = mock.Mock()
+        fake.read_text.return_value = record
+        return mock.patch("importlib.metadata.distribution", return_value=fake)
+
+    def test_an_editable_install_of_another_checkout_is_named(self):
+        record = '{"url": "file:///somewhere/else/torchlingo", "dir_info": {"editable": true}}'
+        with self._installed_from(record):
+            self.assertEqual(
+                other_checkout(), Path("/somewhere/else/torchlingo").resolve()
+            )
+
+    def test_an_editable_install_of_this_checkout_is_not(self):
+        root = PYPROJECT.parent.as_uri()
+        record = json.dumps({"url": root, "dir_info": {"editable": True}})
+        with self._installed_from(record):
+            self.assertIsNone(other_checkout())
+
+    def test_a_non_editable_install_is_not(self):
+        """CI and wheel installs: the metadata is the code's own, so the tests run."""
+        with self._installed_from('{"url": "file:///x", "dir_info": {}}'):
+            self.assertIsNone(other_checkout())
+        with self._installed_from(None):
+            self.assertIsNone(other_checkout())
 
 
 class VersionLabelTests(unittest.TestCase):
