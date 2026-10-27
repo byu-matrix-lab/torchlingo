@@ -206,6 +206,9 @@ was based on `main`**, so this is not stacking-specific.
   runs back to back. Add `--no-wait` to skip waiting for that run; promotion has happened by
   then, and the script prints the command that checks it. Each push to `main` cancels the CI
   run on the commit before it, so a batch leaves one run per workflow, not one per merge.
+  The last PR may be notes-only: CI runs nothing on such a commit, so `promote_course.sh`
+  judges it by the newest earlier commit that changed a file CI watches (Task #295; until
+  2026-10-26 the promotion waited for a run that never came).
 
 ### Retargeting a PR dismisses its approvals
 
