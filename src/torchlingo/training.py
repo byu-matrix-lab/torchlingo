@@ -74,12 +74,12 @@ class TrainResult:
     first_logged_loss: float | None = None
 
 
-def _resolve_device(device: torch.device | None) -> torch.device:
-    return (
-        device
-        if device is not None
-        else torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    )
+def _resolve_device(device: torch.device | str | None) -> torch.device:
+    # A string such as "cpu" becomes a torch.device: train_model reads device.type, which a
+    # string lacks, so train_model(device="cpu") raised AttributeError (Task #278).
+    if device is None:
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    return torch.device(device)
 
 
 def get_transformer_scheduler(
@@ -205,7 +205,7 @@ def train_model(
     criterion: nn.Module | None = None,
     scheduler: torch.optim.lr_scheduler._LRScheduler | None = None,
     gradient_clip: float | None = None,
-    device: torch.device | None = None,
+    device: torch.device | str | None = None,
     config: Config | None = None,
     save_dir: Path | None = None,
     use_amp: bool = False,
@@ -226,7 +226,8 @@ def train_model(
         criterion: Loss function. Defaults to CrossEntropyLoss with padding ignore.
         scheduler: Optional LR scheduler stepped once per optimizer step.
         gradient_clip: If provided, max gradient norm applied each step.
-        device: Torch device. Defaults to CUDA if available else CPU.
+        device: Torch device, or its name such as ``"cpu"`` or ``"cuda"``. Defaults to
+            CUDA if available else CPU.
         config: TorchLingo Config providing pad_idx, label_smoothing, etc.
         save_dir: If provided, best model (lowest val loss) is saved here.
         use_amp: Enable automatic mixed precision for speed on GPUs. Uses

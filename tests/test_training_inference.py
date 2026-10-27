@@ -213,6 +213,13 @@ class TrainModelTests(unittest.TestCase):
         self.assertEqual(result.val_losses, [])
         self.assertIsNone(result.best_checkpoint)
 
+    def test_device_may_be_given_by_name(self):
+        """`device="cpu"` raised AttributeError at `device.type` (Task #278)."""
+        result = train_model(
+            DummyTransformer(), train_loader=_toy_loader(), num_epochs=1, device="cpu"
+        )
+        self.assertEqual(len(result.train_losses), 1)
+
     def test_val_losses_stays_one_entry_per_epoch_with_periodic_validation(self):
         """`val_losses` must mean what its docstring says, even mid-epoch.
 

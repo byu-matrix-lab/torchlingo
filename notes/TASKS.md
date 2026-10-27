@@ -182,7 +182,6 @@ two-lens review of every notebook, became Tasks #281 to #294.
 | #171 | **P3** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #82 | **P3** | Add an on-target language check to `torchlingo.diagnostics` | **lib** | Open |
 | #271 | **P3** | An A15 notebook: speech to speech around the student's own MT | **L15** | **Next offering.** A15 is dropped this term, folded into the Final Project as a Path B example; its page is kept for next year (Eric, Oct 22). The arc plan's A15: the student's best of A8, A9 or A13 in the middle, Whisper for speech recognition and MMS for synthesis where Azure falls short, word error rate on the 10 sentences, and one sentence traced through all three stages |
-| #278 | **P3** | `train_model` accepts `device` as a string | **lib** | Open — `train_model(device="cpu")` raises `AttributeError` at `device.type` (`training.py`); every notebook passes a `torch.device`, so no student meets it. Found Oct 22 in Task #123's toy run |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
 | #132 | **P3** | Quick Start has no notebook, and its badge opens a different one | **lib** | Open — **was only ever in the session mirror** |
 | #149 | **P3** | `collect_benchmark.py` silently drops a run file it cannot find | **lib** | Open — it wrote a 2-run report over a 21-run source |
