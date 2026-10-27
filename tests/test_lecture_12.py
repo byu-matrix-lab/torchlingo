@@ -16,7 +16,8 @@ Two cells are exercises: ``split_pool_and_test`` and ``build_prompt`` are the st
 raise ``NotImplementedError`` until written. The tests write them in, one straightforward way
 each, and a prediction, and check that the notebook as shipped stops at the first, that it stops
 without a prediction, that a split sharing a sentence or ignoring the seed fails, and that
-``LANGUAGE`` and ``DATA_DIR`` must be set together.
+``LANGUAGE`` and ``DATA_DIR`` must be set together. The cell choosing the model is run too, so
+its guard is tested: A12 uses non-reasoning models only.
 """
 
 import json
@@ -278,6 +279,7 @@ class TestBuiltInSample(NotebookCase):
         self.assertEqual(rerun["draw_seeds"], [1, 2, 3])
         self.assertEqual(rerun["nllb"], "stub-nllb")
         self.assertIn("greedy", rerun["decoding"])
+        self.assertIn("enable_thinking=False", rerun["non_reasoning"])
 
     def test_nllb_covers_only_telugu(self):
         """The stub's languages match the notebook's: of the A12 six, NLLB-200 has Telugu."""
@@ -476,6 +478,64 @@ class TestExercises(unittest.TestCase):
             "return pairs.iloc[:pool_size], pairs.iloc[pool_size : pool_size + test_size]"
         )
         self.assertIn("a different seed must give a different split", message)
+
+
+class TestNonReasoningModelsOnly(unittest.TestCase):
+    """A12 uses non-reasoning models only (Eric, Oct 26): the model cell's guard, run alone."""
+
+    GUARD = 'MODEL = "Qwen/Qwen2.5-1.5B-Instruct"'
+
+    def run_guard(self, model: str | None = None) -> tuple[dict, str]:
+        cell = next(c for c in code_cells(NOTEBOOK) if self.GUARD in c[1])
+        swaps = {} if model is None else {self.GUARD: f"MODEL = {model!r}"}
+        return run_cells(substitute([cell], swaps))
+
+    def test_the_default_passes(self):
+        _, printed = self.run_guard()
+        self.assertIn("not a known reasoning model", printed)
+
+    def test_reasoning_models_are_refused_naming_the_rule(self):
+        for model in (
+            "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+            "deepseek-ai/DeepSeek-R1",
+            "microsoft/Phi-4-reasoning",
+            "microsoft/Phi-4-mini-reasoning",
+            "openai/gpt-oss-20b",
+            "Qwen/QwQ-32B",
+            "Qwen/Qwen3-4B-Thinking-2507",
+        ):
+            with self.subTest(model), self.assertRaises(SystemExit) as stopped:
+                self.run_guard(model)
+            self.assertIn("non-reasoning models only", str(stopped.exception))
+
+    def test_chat_models_that_do_not_reason_pass(self):
+        """Qwen3 among them: the model cell turns its thinking off."""
+        for model in (
+            "Qwen/Qwen3-1.7B",
+            "meta-llama/Llama-3.2-1B-Instruct",
+            "google/gemma-3-1b-it",
+            "microsoft/Phi-4-mini-instruct",
+        ):
+            with self.subTest(model):
+                self.run_guard(model)
+
+    def test_the_model_cell_turns_thinking_off(self):
+        model_cell = next(src for _, src in code_cells(NOTEBOOK) if MODEL_CELL in src)
+        self.assertIn("enable_thinking=False", model_cell)
+        self.assertIn("first_line(", model_cell)
+
+    def test_a_reply_that_reasons_stops_the_run(self):
+        namespace, _ = self.run_guard()
+        first_line = namespace["first_line"]
+        self.assertEqual(first_line("  Kaselehlie\nSure, that was it."), "Kaselehlie")
+        self.assertEqual(first_line(""), "")
+        for reply, raw in (
+            ("<think>hmm</think>Kaselehlie", ""),
+            ("Kaselehlie", "<think>"),
+        ):
+            with self.subTest(raw=raw), self.assertRaises(SystemExit) as stopped:
+                first_line(reply, raw=raw)
+            self.assertIn("reasons before it answers", str(stopped.exception))
 
 
 if __name__ == "__main__":
