@@ -514,18 +514,26 @@ not "overdue", and an instructor preparing the next offering meets it there. `hy
 synonym for "later": it keeps the other labels true, since a drifted map or a gate that only
 reports misleads every lecture at once.
 
-**P1 to P3 say how soon; the table is sorted by them** (Eric, Oct 25):
+**P1 to P4 answer one question, *who meets it, and when?*, and the table is sorted by them**
+(Eric, Oct 25; on Oct 26 P4 was split from P3, which held 44 of 50 tasks, and P3 given a
+criterion of its own). A student's **path** is what they run, read for points or are graded on:
+the assignment notebooks, the library code those call, what `course` serves, and the Final
+Project.
 
-- **P1: a student meets it within about three weeks.** Something students run or are graded on
-  in that window is broken, missing, or unverified on the path they will take; or a dated
-  promise to Eric or Cowork falls inside the window.
-- **P2: it makes this term's assignment notebooks load-bearing and correct, or guards what
-  students are served.** A lesson an assignment leaves to a tutorial; a decision, prediction or
-  interpretation missing from a coming assignment; a standing rule that shipped code breaks;
-  protection for `main` and `course`; or something Eric asked for, with no date.
-- **P3: everything else.** Library refactors that change nothing students see this term,
-  tutorials (required reading, but they carry no points), lectures that have already run, the
-  next offering, and housekeeping.
+- **P1: a student, within about three weeks.** Something on the path in that window is broken,
+  missing, or unverified as students will take it; or a dated promise to Eric or Cowork falls
+  inside the window.
+- **P2: a student, later this term, or the guards on the path.** A lesson an assignment leaves
+  to a tutorial; a decision, prediction or interpretation missing from a coming assignment; a
+  standing rule that shipped code breaks; the checks and tools that protect `main` and `course`
+  and land and promote to them; or something Eric asked for, with no date.
+- **P3: only the maintainers, at no set time.** Nothing on any student's path changes, this
+  term or next, if it is never done: tooling and tests, CI and docs gates, library refactors and
+  docs pages a student is not sent to, and tutorial-only changes (tutorials carry no points,
+  Eric, Oct 25). The test: if it were never done, would anyone but us notice?
+- **P4: a student, the next offering.** It changes the path, but only for a later term: a
+  lecture or assignment that has already run, the syllabus, or a change held for a semester
+  boundary.
 
 Within a level, the earlier date comes first. Re-rank when the calendar moves. A task whose
 work sits in an open pull request says "In review" and keeps its row until the PR merges.
