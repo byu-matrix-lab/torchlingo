@@ -18,8 +18,8 @@ previous artifact.
 5. **Lectures 12 through 14** go beyond it: an LLM prompted with in-context examples (A12, a
    different model, not the student's), then two ways to improve the student's own system,
    back-translation (A13) and a bidirectional multilingual model (A14).
-6. **Lectures 15 and 16** step outside text into speech.
-7. **Lecture 17 onward** is context, history and the final project.
+6. **Lecture 15** steps outside text into speech.
+7. **Lecture 16 onward** is context, research, history and the final project.
 
 The pivot is Lecture 7. Before it the course is about data and measurement; after it, every
 assignment assumes the student can train a model.

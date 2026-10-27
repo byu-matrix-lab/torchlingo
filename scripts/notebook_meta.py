@@ -36,8 +36,8 @@ would have fitted a lecture that has already run. ``needs`` is repo-relative pat
 because ``execute_notebooks.py`` resolves them against the filesystem.
 
 Why metadata rather than renaming the files. A notebook can serve more than one lecture —
-tutorial 4 serves Lecture 19 and is also the natural companion to Lecture 8's attention
-material — and one lecture number in a filename cannot say that. Renaming is also actively
+tutorial 4 serves Lectures 8a and 8b and is also the natural companion to Lecture 18's word
+alignment — and one lecture number in a filename cannot say that. Renaming is also actively
 dangerous mid-semester: decks cite notebooks by filename and Colab badges embed the path, so
 a rename breaks a link a student is already clicking. That work is deliberately deferred.
 
@@ -223,8 +223,8 @@ def lectures() -> tuple[dict[str, str], dict[str, str]]:
 
     Returns:
         tuple: Titles by lecture identifier, in schedule order, and an alias map folding a
-        shared row's later identifiers onto its first -- Lectures 22 and 23 are one session
-        in one row.
+        shared row's later identifiers onto its first, for a merged session such as Lectures
+        22 and 23 were until the Oct 26 renumbering.
 
         Identifiers are **strings**, because a split lecture is `8a` and `8b` and neither has
         an integer form. Schedule order is the dictionary's insertion order, which is why
@@ -944,7 +944,7 @@ def table() -> str:
         for declared in meta.get("serves_lectures", []):
             # Normalized first, so a notebook holding the integer 9 and a schedule row
             # reading `9` meet on one key -- and a lecture that shares a row is folded onto
-            # that row, so declaring 23 lands in the "22, 23" row instead of vanishing.
+            # that row, so declaring 23 lands in a "22, 23" row instead of vanishing.
             n = lecture_id(declared)
             row = aliases.get(n, n)
             if row in serves:
@@ -956,9 +956,13 @@ def table() -> str:
         "| # | Lecture | Course notebook | TorchLingo tutorial |",
         "|---|---|---|---|",
     ]
-    shared = {v: k for k, v in aliases.items()}
+    # Grouped, not inverted: inverting the alias map kept one extra id per row, so a row of
+    # three (21, 22, 23) rendered as "21, 23" until 2026-10-26.
+    shared: dict[str, list[str]] = {}
+    for extra, first in aliases.items():
+        shared.setdefault(first, []).append(extra)
     for n, title in titles.items():
-        label = f"{n}, {shared[n]}" if n in shared else str(n)
+        label = ", ".join([str(n), *shared.get(n, [])])
         c = ", ".join(serves[n]["course"]) or "—"
         t = ", ".join(serves[n]["tutorial"]) or "—"
         rows.append(f"| {label} | {title} | {c} | {t} |")

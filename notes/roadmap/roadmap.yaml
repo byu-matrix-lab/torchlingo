@@ -7,7 +7,8 @@
 
 # Every row of "Semester at a glance", in order.
 #   ids     lecture identifiers as strings: digits plus at most one lowercase letter ("8c").
-#           A merged session lists several (["19", "20"]); a row that is not a lecture,
+#           A merged session lists several (["22", "23"] did until the Oct 26
+#           renumbering, which left none); a row that is not a lecture,
 #           such as a no-class day, has ids: [] and renders as an em dash.
 #   deck    the Deck column, verbatim; omitted when empty.
 # Notebooks declare serves_lectures against these ids, and scripts/notebook_meta.py reads
@@ -80,9 +81,9 @@ lectures:
   date: 2026-11-02
   title: Multilingual NMT and "Zero-shot" NMT
   deck: F2025
-- ids: ["15", "16"]
+- ids: ["15"]
   date: 2026-11-04
-  title: Overview of Speech-to-Speech MT; Automatic Dubbing and Interpretation
+  title: Speech-to-Speech MT, with Automatic Dubbing and Interpretation
   deck: F2025, merged at rebuild
 - ids: []
   date: 2026-11-09
@@ -93,10 +94,10 @@ lectures:
 - ids: []
   date: 2026-11-16
   title: (proposal week) proposal presentations
-- ids: ["17"]
+- ids: ["16"]
   date: 2026-11-18
-  title: Multimodal NMT
-  deck: F2025
+  title: Multimodal NMT; then Writing the Final Project Report (15 minutes)
+  deck: F2025, trimmed, plus the writing slides of last year's Lecture 21
 - ids: []
   date: 2026-11-23
   title: Project checkpoint reviews with the instructor, by appointment; no class meets (Eric,
@@ -104,29 +105,28 @@ lectures:
 - ids: []
   date: 2026-11-25
   title: '**No class**, Thanksgiving Eve'
-- ids: ["18"]
+- ids: ["17"]
   date: 2026-11-30
-  title: HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation
-  deck: F2025
-- ids: ["19", "20"]
+  title: Research in the MATRIX Lab, and Open Problems in MT
+  deck: F2025, from last year's Lectures 21 and 23
+- ids: ["18"]
   date: 2026-12-02
   title: 'Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT,
     PBSMT, SBSMT'
   deck: F2025, merged at rebuild
-- ids: ["21"]
+- ids: ["19"]
   date: 2026-12-07
-  title: Writing Research Articles; MATRIX Lab research
-  deck: F2025
-- ids: ["22", "23"]
+  title: 'MT in Use: Applications, Jobs and Post-Editing'
+  deck: F2025, from last year's Lecture 22, with Lecture 18's post-editing
+- ids: []
   date: 2026-12-09
-  title: MT Applications and Jobs; Opportunities for Further MT Research
-  deck: F2025
+  title: 'Final project presentations, day 1 of 2 (Steve Richardson and Eric, Oct 26)'
 - ids: []
   date: 2026-12-10
   title: Last day of class
 - ids: []
   date: 2026-12-16
-  title: Final exam slot, 11:00 to 14:00
+  title: Final exam slot, 11:00 to 14:00; final project presentations, day 2 of 2
 
 # Everything due, in any row of the schedule. The schedule's "Assignment due that day"
 # column is built from these, grouped by due date, so a due date is written once.
@@ -152,17 +152,17 @@ assignments:
 - id: A1
   label: '**A1** MT Topics and History'
   group: early
-  due: 2026-09-02
+  due: 2026-09-09
 - id: A2
   label: '**A2** Translation Challenges'
   group: early
   points: 10
-  due: 2026-09-09
+  due: 2026-09-14
 - id: A3
   label: '**A3** Word Embeddings'
   group: early
   points: 15
-  due: 2026-09-14
+  due: 2026-09-16
 - id: A4
   label: '**A4** Data Cleaning, First Steps'
   group: spine
@@ -222,22 +222,23 @@ assignments:
   group: llm
   points: 30
   stretch_points: 6
-  due: 2026-10-30
-  due_time: 11:59 pm
+  due: 2026-11-02
   set_at: "12"
   emphasize_due: true
-  window: '4, Mon Oct 26 to Fri Oct 30 (Eric, Oct 22: moved for breathing room, and no two
-    assignment windows overlap); the A12 page and notebook were open from Oct 21'
+  window: '7, Mon Oct 26 to Mon Nov 2 (Eric, Oct 26: moved from Fri Oct 30, which had moved
+    from Wed Oct 28 on Oct 22); the A12 page and notebook were open from Oct 21'
 - id: A13
   label: '**A13** Back-Translation'
   group: spine
   points: 30
   stretch_points: 6
-  due: 2026-11-04
+  due: 2026-11-06
   due_time: 11:59 pm
   set_at: "13"
   emphasize_due: true
-  window: '5, Fri Oct 30 to Wed Nov 4, opening when A12 closes (Eric, Oct 22)'
+  window: '9, Wed Oct 28 to Fri Nov 6, overlapping A12 until Nov 2: start the training run
+    early and let it train while finishing A12 (Eric, Oct 26: due moved from Wed Nov 4, and
+    windows may overlap)'
 - id: A14
   label: '**A14** Multilingual NMT, Both Directions'
   group: spine
@@ -247,8 +248,10 @@ assignments:
   due_time: 11:59 pm
   set_at: "14"
   emphasize_due: true
-  window: '6, Wed Nov 4 to Tue Nov 10, opening when A13 closes; may overlap the Nov 9 outline
-    review, and ends before the Nov 11 proposal presentations (Eric, Oct 22)'
+  window: '8, Mon Nov 2 to Tue Nov 10, overlapping A13 until Nov 6: it starts from the A13
+    reverse model, so it can begin once that model is trained (Eric, Oct 26: windows may
+    overlap); may overlap the Nov 9 outline review, and ends before the Nov 11 proposal
+    presentations (Eric, Oct 22)'
 - id: A15
   label: '**A15** Speech Translation Pipeline'
   set_at: "15"
@@ -258,25 +261,32 @@ assignments:
 # "Final Project 7 - ..." (Eric, Oct 23). The project itself is 100: parts 3 to 6.
 - label: '**Final Project 1** proposal outline review (5), by appointment'
   due: 2026-11-09
+  due_time: 11:59 pm
 - label: '**Final Project 2** proposal (20), at 10:00 am, the first presentation day'
   due: 2026-11-11
 - label: '**Final Project 3** checkpoint review (5), by appointment'
   due: 2026-11-23
+  due_time: 11:59 pm
 - label: '**Paper review assignment**'
   points: 15
   stretch_points: 3
   due: 2026-12-09
-- label: '**Final Project 4** written report (40, ACL template), by 11:59 pm'
+- label: '**Final Project 4** written report (40, ACL template)'
   due: 2026-12-10
-- label: '**Final Project 5** submission (35), by 11:59 pm'
+  due_time: 11:59 pm
+- label: '**Final Project 5** submission (35)'
   due: 2026-12-10
-- label: '**Final Project 6** presentation (20; 6 minutes, 2 of them for questions)'
+  due_time: 11:59 pm
+- label: '**Final Project 6** presentation (20; a 10-minute slot: 7 to talk, 2 for questions, 1 to
+    hand off), Dec 9 or the exam slot'
   due: 2026-12-16
+  due_time: 2:00 pm
 - label: '**Final Project 7** peer feedback (5), a form on every other presentation'
   due: 2026-12-16
+  due_time: 2:00 pm
 
 # The "Lecture outcomes" table. Its own list because its rows are not the schedule's:
-# Lectures 19 and 20 share a session but have an outcome each, and 21 to 23 share one.
+# Since the Oct 26 renumbering each session from Lecture 15 on has one number and one outcome.
 lecture_outcomes:
 - lecture: "1"
   topic: Course overview, history
@@ -377,38 +387,32 @@ lecture_outcomes:
     shelf and over their A9 model trained from scratch.
   shown_by: A14
 - lecture: "15"
-  topic: Speech-to-speech MT
-  can: Contrast cascade and end-to-end systems and say what each loses; build an ASR to MT to
-    TTS pipeline and say where the errors compound.
-  shown_by: the Final Project's Path B example (A15 dropped this term)
+  topic: Speech-to-speech MT, dubbing and interpretation
+  can: Contrast cascade and end-to-end systems and say what each loses; say where errors compound
+    in an ASR to MT to TTS pipeline; say what dubbing and live interpretation add (timing,
+    latency, voice) and where current systems fail.
+  shown_by: Quiz 15; the Final Project's Path B example (A15 dropped this term)
 - lecture: "16"
-  topic: Dubbing and interpretation
-  can: Say what dubbing adds to translation (timing, voice, lip sync) and where current systems
-    fail.
-  shown_by: Quiz 16
+  topic: Multimodal NMT; writing the report
+  can: Say when visual context helps translation and test the claim with an ablation (the wrong
+    image, or none); set up the written report from the ACL template and say what each section
+    must show.
+  shown_by: Quiz 16; the Final Project's written report
 - lecture: "17"
-  topic: Multimodal NMT
-  can: Say when visual context helps translation and how to test the claim.
+  topic: Research and open problems
+  can: Name an open problem in MT and the kind of work it needs, with the MATRIX Lab's research
+    as examples.
   shown_by: Quiz 17
 - lecture: "18"
-  topic: HAMT and MAHT
-  can: Measure post-editing with edit distance; explain why post-editing helps some translators
-    and not others; describe adaptive MT.
-  shown_by: In-class activity; Quiz 18
+  topic: Word alignment and earlier methods
+  can: Explain how EM learns word alignments and relate them to the attention alignment of 8a;
+    say what RBMT, EBMT and phrase-based SMT did, and what NMT replaced and what it kept.
+  shown_by: Quiz 18
 - lecture: "19"
-  topic: Word alignment
-  can: Work IBM Model 1 by hand on a toy pair; explain EM; relate statistical alignment to the
-    attention alignment of 8a.
-  shown_by: Quiz 19
-- lecture: "20"
-  topic: Previous paradigms
-  can: Place RBMT, EBMT and PBSMT on the Vauquois triangle and say what NMT replaced and what
-    it kept.
-  shown_by: Quiz 20
-- lecture: "21 to 23"
-  topic: Writing, research, careers
-  can: Structure a research article; present a project.
-  shown_by: Final project
+  topic: MT in use
+  can: Say where MT is used and what work it creates; measure post-editing effort with edit
+    distance and say when post-editing helps a translator.
+  shown_by: class discussion; edit distance available as a Final Project measure
 
 # One entry per notebook, keyed by file stem.
 #   purpose   the notebook index's purpose column. Every other column of the index is

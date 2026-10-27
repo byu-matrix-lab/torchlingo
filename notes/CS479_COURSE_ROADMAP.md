@@ -31,10 +31,10 @@ against its notebook once that lands. A13's was rewritten against its notebook o
 
 | # | Date | Lecture | Assignment due that day | Deck |
 |---|---|---|---|---|
-| 1 | Wed Sep 2 | Course Overview and History of MT | **A1** MT Topics and History | F2026 |
-| 2 | Wed Sep 9 | Translation Challenges for MT | **A2** Translation Challenges | F2026 |
-| 3 | Mon Sep 14 | Introduction to Word Embeddings | **A3** Word Embeddings | F2026 |
-| 4 | Wed Sep 16 | Data Preparation for MT Training | | F2026 |
+| 1 | Wed Sep 2 | Course Overview and History of MT | | F2026 |
+| 2 | Wed Sep 9 | Translation Challenges for MT | **A1** MT Topics and History | F2026 |
+| 3 | Mon Sep 14 | Introduction to Word Embeddings | **A2** Translation Challenges | F2026 |
+| 4 | Wed Sep 16 | Data Preparation for MT Training | **A3** Word Embeddings | F2026 |
 | 5 | Mon Sep 21 | Data Preparation for MT Training, Part 2 | **A4** Data Cleaning, First Steps | F2026 |
 | 6 | Wed Sep 23 | Automatic and Human MT Evaluation | **A5** Data Cleaning Pipeline | F2026 |
 | 7 | Mon Sep 28 | Research Paper Reviews; Intro to Neural Networks | **A6** Human vs. Automatic Evaluation | F2026 |
@@ -46,41 +46,42 @@ against its notebook once that lands. A13's was rewritten against its notebook o
 | — | Mon Oct 19 | Review Day (Lecture 11 moved to Oct 21 and taught live; Eric, Oct 21) | **A10** COMET Setup and QE Reading | |
 | 11 | Wed Oct 21 | LLM Judges, Sentences and Spans | | F2026 rebuilt (taught live) |
 | 12 | Mon Oct 26 | Using LLMs for MT; Expanding Context Awareness | **A11** Evaluating with COMET | F2026 draft |
-| 13 | Wed Oct 28 | Strategies for NMT of Low-Resource Languages | **A12** Context in LLM Translation (due Fri Oct 30, 11:59 pm) | F2025 |
-| 14 | Mon Nov 2 | Multilingual NMT and "Zero-shot" NMT | | F2025 |
-| 15, 16 | Wed Nov 4 | Overview of Speech-to-Speech MT; Automatic Dubbing and Interpretation | **A13** Back-Translation (due 11:59 pm) | F2025, merged at rebuild |
-| — | Mon Nov 9 | Proposal week: outline reviews with the professor (Eric and Coulson, Sep 30) | **A14** Multilingual NMT, Both Directions (due Tue Nov 10, 11:59 pm) · **Final Project 1** proposal outline review (5), by appointment | |
+| 13 | Wed Oct 28 | Strategies for NMT of Low-Resource Languages | | F2025 |
+| 14 | Mon Nov 2 | Multilingual NMT and "Zero-shot" NMT | **A12** Context in LLM Translation | F2025 |
+| 15 | Wed Nov 4 | Speech-to-Speech MT, with Automatic Dubbing and Interpretation | **A13** Back-Translation (due Fri Nov 6, 11:59 pm) | F2025, merged at rebuild |
+| — | Mon Nov 9 | Proposal week: outline reviews with the professor (Eric and Coulson, Sep 30) | **A14** Multilingual NMT, Both Directions (due Tue Nov 10, 11:59 pm) · **Final Project 1** proposal outline review (5), by appointment (due 11:59 pm) | |
 | — | Wed Nov 11 | (proposal week) proposal presentations | **Final Project 2** proposal (20), at 10:00 am, the first presentation day | |
 | — | Mon Nov 16 | (proposal week) proposal presentations | | |
-| 17 | Wed Nov 18 | Multimodal NMT | | F2025 |
-| — | Mon Nov 23 | Project checkpoint reviews with the instructor, by appointment; no class meets (Eric, Oct 23) | **Final Project 3** checkpoint review (5), by appointment | |
+| 16 | Wed Nov 18 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | | F2025, trimmed, plus the writing slides of last year's Lecture 21 |
+| — | Mon Nov 23 | Project checkpoint reviews with the instructor, by appointment; no class meets (Eric, Oct 23) | **Final Project 3** checkpoint review (5), by appointment (due 11:59 pm) | |
 | — | Wed Nov 25 | **No class**, Thanksgiving Eve | | |
-| 18 | Mon Nov 30 | HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation | | F2025 |
-| 19, 20 | Wed Dec 2 | Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT, PBSMT, SBSMT | | F2025, merged at rebuild |
-| 21 | Mon Dec 7 | Writing Research Articles; MATRIX Lab research | | F2025 |
-| 22, 23 | Wed Dec 9 | MT Applications and Jobs; Opportunities for Further MT Research | **Paper review assignment** | F2025 |
-| — | Thu Dec 10 | Last day of class | **Final Project 4** written report (40, ACL template), by 11:59 pm · **Final Project 5** submission (35), by 11:59 pm | |
-| — | Wed Dec 16 | Final exam slot, 11:00 to 14:00 | **Final Project 6** presentation (20; 6 minutes, 2 of them for questions) · **Final Project 7** peer feedback (5), a form on every other presentation | |
+| 17 | Mon Nov 30 | Research in the MATRIX Lab, and Open Problems in MT | | F2025, from last year's Lectures 21 and 23 |
+| 18 | Wed Dec 2 | Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT, PBSMT, SBSMT | | F2025, merged at rebuild |
+| 19 | Mon Dec 7 | MT in Use: Applications, Jobs and Post-Editing | | F2025, from last year's Lecture 22, with Lecture 18's post-editing |
+| — | Wed Dec 9 | Final project presentations, day 1 of 2 (Steve Richardson and Eric, Oct 26) | **Paper review assignment** | |
+| — | Thu Dec 10 | Last day of class | **Final Project 4** written report (40, ACL template) (due 11:59 pm) · **Final Project 5** submission (35) (due 11:59 pm) | |
+| — | Wed Dec 16 | Final exam slot, 11:00 to 14:00; final project presentations, day 2 of 2 | **Final Project 6** presentation (20; a 10-minute slot: 7 to talk, 2 for questions, 1 to hand off), Dec 9 or the exam slot (due 2:00 pm) · **Final Project 7** peer feedback (5), a form on every other presentation (due 2:00 pm) | |
 
 An assignment appears on the row of the day it is **due**, which is how Learning Suite lists
 it, at 10:00 unless said otherwise (Learning Suite has A7 at 11:59 pm; the deck says 10:00,
 and the two should agree). A7 is new this year: a short report from Lecture 7's toy-model
 exercise. The SLT pipeline was A15, set at Lecture 15; it is dropped this term and folded into
-the Final Project as a Path B example (Eric, Oct 22), so the numbering runs 1 to 14. Lecture 16
-sets nothing. One due between lecture days is listed on the row before, with its day and time.
-Lectures 17 to 20 carry no assignments; the final project has taken over, in seven parts with
-dates of their own (Eric, Oct 23). Mon Nov 23 is checkpoint reviews, with no lecture, so
-Lecture 18 moved to Mon Nov 30 and Lectures 19 and 20 to Wed Dec 2, their quizzes with them.
-Lecture quizzes run through Lecture 20, and 8a and 8b each have their own, one more than last
-year.
+the Final Project as a Path B example (Eric, Oct 22), so the numbering runs 1 to 14. One due
+between lecture days is listed on the row before, with its day and time. Lectures 16 to 19
+carry no assignments; the final project has taken over, in seven parts with dates of their own
+(Eric, Oct 23). Lectures from 15 on were renumbered Oct 26 (Eric), one number per session:
+last year's 15 and 16 are now 15; 17, with the writing slides of last year's 21, is 16; last
+year's 21 (its lab research half) and 23 are 17; 19 and 20 are 18; 22, with 18's post-editing,
+is 19. Last year's Lecture 18 is no longer a lecture. Lecture quizzes run through Lecture 18,
+and 8a and 8b each have their own.
 
 **Paper reviews** run alongside: 24 papers on the sign-up sheet (Google Sheet "CS 479 Fall
 2026", tab "Reading Report"), presented Oct 5 through Dec 2 at one or two per session, each
 placed next to the lecture its topic belongs with, and the sheet's LECTURE TOPIC ALIGNMENT
 column says which. From Oct 12 on, that column is one lecture off from the schedule (the QE
 papers of Oct 12 land on Lecture 9, COMET on Lecture 10); the unassigned Och and Ney slot on
-Nov 23 belongs on Dec 2, the merged alignment session, since no class meets on Nov 23. Dec 7 and Dec 9 are open slots if a
-student has to move.
+Nov 23 belongs on Dec 2, the merged alignment session, since no class meets on Nov 23. Dec 7 is an open slot if a
+student has to move; Dec 9 is final project presentations.
 
 ---
 
@@ -89,11 +90,11 @@ student has to move.
 Lecture 8 is three sessions: 8a on Wed Sep 30, 8b on Mon Oct 5 and 8c on Wed Oct 7. The first
 extra session (Sep 27) was Mon Nov 16, which last year held a report on the TAUS conference, a
 2025 event that does not recur; the second (Oct 7, when 8b's unreached slides and the A8 debrief
-filled the Oct 7 session) comes from merging Lectures 19 and 20 (on Wed Dec 2 since Oct 23): Lecture 19 had
+filled the Oct 7 session) comes from merging last year's Lectures 19 and 20 (now Lecture 18, on Wed Dec 2 since Oct 23): Lecture 19 had
 already lost its sentence-alignment half to Lecture 5, and its word-alignment half, the IBM
 models, is the natural opening of the previous-paradigms lecture. Lectures 9 to 18 each sit two
-sessions later than last year's calendar. Lecture *numbers* did not change, so every notebook's
-declared lecture stays valid; the Lecture 9 notebook's Part A ran in 8c.
+sessions later than last year's calendar. Lecture *numbers* did not change then (those from 15 on were renumbered Oct 26, and no notebook
+declares one of them), so every notebook's declared lecture stays valid; the Lecture 9 notebook's Part A ran in 8c.
 
 **A8 did not move.** It stays Wed Oct 7, which is now Lecture 8c's day. Its problem was never
 calendar; it was that nobody had measured what a 100K-pair run produces or what a Colab GPU
@@ -110,13 +111,13 @@ two.
 | A9 | 8c, Wed Oct 7 | **Wed Oct 14** | 7; Eric, Oct 7: one more session, since the subword slides are taught Monday. Part A ran in class on Oct 7, Part B is live |
 | A10 | 10, Wed Oct 14 | Mon Oct 19 | 5: an install, and A11 needs it done |
 | A11 | 11, Wed Oct 21 | **Mon Oct 26** | 5 since the Oct 21 shift (set at the live Lecture 11; due date kept, Eric, Oct 21) |
-| A12 | 12, Mon Oct 26 | **Fri Oct 30, 11:59 pm** | 4, Mon Oct 26 to Fri Oct 30 (Eric, Oct 22: moved for breathing room, and no two assignment windows overlap); the A12 page and notebook were open from Oct 21 |
-| A13 | 13, Wed Oct 28 | **Wed Nov 4, 11:59 pm** | 5, Fri Oct 30 to Wed Nov 4, opening when A12 closes (Eric, Oct 22) |
-| A14 | 14, Mon Nov 2 | **Tue Nov 10, 11:59 pm** | 6, Wed Nov 4 to Tue Nov 10, opening when A13 closes; may overlap the Nov 9 outline review, and ends before the Nov 11 proposal presentations (Eric, Oct 22) |
+| A12 | 12, Mon Oct 26 | **Mon Nov 2** | 7, Mon Oct 26 to Mon Nov 2 (Eric, Oct 26: moved from Fri Oct 30, which had moved from Wed Oct 28 on Oct 22); the A12 page and notebook were open from Oct 21 |
+| A13 | 13, Wed Oct 28 | **Fri Nov 6, 11:59 pm** | 9, Wed Oct 28 to Fri Nov 6, overlapping A12 until Nov 2: start the training run early and let it train while finishing A12 (Eric, Oct 26: due moved from Wed Nov 4, and windows may overlap) |
+| A14 | 14, Mon Nov 2 | **Tue Nov 10, 11:59 pm** | 8, Mon Nov 2 to Tue Nov 10, overlapping A13 until Nov 6: it starts from the A13 reverse model, so it can begin once that model is trained (Eric, Oct 26: windows may overlap); may overlap the Nov 9 outline review, and ends before the Nov 11 proposal presentations (Eric, Oct 22) |
 | A15 | 15, Wed Nov 4 | dropped | this term, folded into the Final Project (Eric, Oct 22): its page unpublished and kept for next year, its 20 points dropped, the speech pipeline named as a Path B example |
 
-Costs accepted knowingly: Lecture 17 sits two weeks after Lecture 16 and after the proposal
-presentations, the least damaging place for a gap since Multimodal NMT is the most
+Costs accepted knowingly: Lecture 16 (Multimodal NMT) sits two weeks after Lecture 15 and
+after the proposal presentations, the least damaging place for a gap since it is the most
 self-contained lecture in the run; there is no catch-up session if the proposal presentations
 overrun Nov 16; and the merged Dec 2 session has to be built from two 40-slide decks.
 
@@ -142,8 +143,8 @@ previous artifact.
 5. **Lectures 12 through 14** go beyond it: an LLM prompted with in-context examples (A12, a
    different model, not the student's), then two ways to improve the student's own system,
    back-translation (A13) and a bidirectional multilingual model (A14).
-6. **Lectures 15 and 16** step outside text into speech.
-7. **Lecture 17 onward** is context, history and the final project.
+6. **Lecture 15** steps outside text into speech.
+7. **Lecture 16 onward** is context, research, history and the final project.
 
 The pivot is Lecture 7. Before it the course is about data and measurement; after it, every
 assignment assumes the student can train a model.
@@ -183,13 +184,11 @@ lecture; the scope notes below carry the content, this carries the point.
 | 12 | LLMs for MT; context | Prompt a decoder-only model to translate a low-resource language from a few example pairs, with no training; measure how much random and nearest examples improve translation, and tell a real difference from the spread between random draws; explain how examples in the prompt help or hurt when the model's weights never change, and what sentence-by-sentence translation cannot fix; give the model the sentence before, with its translation, and measure whether it resolves a pronoun or a repeated term the sentence alone leaves ambiguous, and why a score over the whole test set can miss it. | A12 chart and analysis |
 | 13 | Low-resource strategies | Say what makes a language low-resource beyond its count of sentence pairs; use monolingual text to make up for scarce parallel data (back-translate it with a reverse model, train on the synthetic pairs, and measure whether it helped); tell how much of a change came from the new training data and how much from the decoding method, and test whether a difference is real. | A13 |
 | 14 | Multilingual and zero-shot | Explain tagging and why zero-shot works at all; fine-tune a pretrained multilingual model in both directions from their A9 split, and measure what it buys over the same model off the shelf and over their A9 model trained from scratch. | A14 |
-| 15 | Speech-to-speech MT | Contrast cascade and end-to-end systems and say what each loses; build an ASR to MT to TTS pipeline and say where the errors compound. | the Final Project's Path B example (A15 dropped this term) |
-| 16 | Dubbing and interpretation | Say what dubbing adds to translation (timing, voice, lip sync) and where current systems fail. | Quiz 16 |
-| 17 | Multimodal NMT | Say when visual context helps translation and how to test the claim. | Quiz 17 |
-| 18 | HAMT and MAHT | Measure post-editing with edit distance; explain why post-editing helps some translators and not others; describe adaptive MT. | In-class activity; Quiz 18 |
-| 19 | Word alignment | Work IBM Model 1 by hand on a toy pair; explain EM; relate statistical alignment to the attention alignment of 8a. | Quiz 19 |
-| 20 | Previous paradigms | Place RBMT, EBMT and PBSMT on the Vauquois triangle and say what NMT replaced and what it kept. | Quiz 20 |
-| 21 to 23 | Writing, research, careers | Structure a research article; present a project. | Final project |
+| 15 | Speech-to-speech MT, dubbing and interpretation | Contrast cascade and end-to-end systems and say what each loses; say where errors compound in an ASR to MT to TTS pipeline; say what dubbing and live interpretation add (timing, latency, voice) and where current systems fail. | Quiz 15; the Final Project's Path B example (A15 dropped this term) |
+| 16 | Multimodal NMT; writing the report | Say when visual context helps translation and test the claim with an ablation (the wrong image, or none); set up the written report from the ACL template and say what each section must show. | Quiz 16; the Final Project's written report |
+| 17 | Research and open problems | Name an open problem in MT and the kind of work it needs, with the MATRIX Lab's research as examples. | Quiz 17 |
+| 18 | Word alignment and earlier methods | Explain how EM learns word alignments and relate them to the attention alignment of 8a; say what RBMT, EBMT and phrase-based SMT did, and what NMT replaced and what it kept. | Quiz 18 |
+| 19 | MT in use | Say where MT is used and what work it creates; measure post-editing effort with edit distance and say when post-editing helps a translator. | class discussion; edit distance available as a Final Project measure |
 
 ### Notebook outcomes, and who does the work
 
@@ -437,31 +436,41 @@ example grows it (Eric, Oct 24): one multilingual model over English, the studen
 and two or three others from the Church data, against the one-way A9 model, with a zero-shot
 comparison between two of the others.
 
-### 15. Overview of Speech-to-Speech MT (F2025, 33 slides)
-Spoken language translation, cascade against end-to-end, Whisper, speech data for projects.
+Lectures from 15 on were renumbered Oct 26 (Eric), one number per session; last year's numbers
+are given for finding the F2025 decks.
+
+### 15. Speech-to-Speech MT, with Automatic Dubbing and Interpretation (F2025 Lectures 15 and 16, 33 and 34 slides; Wed Nov 4)
+Spoken language translation, cascade against end-to-end, Whisper, speech data for projects; then
+dubbing and live interpretation as a segment, not a lecture of its own: neural voices, automatic
+video dubbing, Wav2Lip, HeyGen.
 **Sets:** nothing this term. A15, an ASR, MT and TTS pipeline on a free Azure account, is
 dropped and folded into the Final Project, whose Path B names a speech-to-speech pipeline as an
 example (Eric, Oct 22); its page is kept for the next offering.
 
-### 16. Automatic Dubbing and Interpretation (F2025, 34 slides)
-Neural voices, automatic video dubbing, Wav2Lip, HeyGen; the final-project timeline.
-**Sets:** nothing.
+### 16. Multimodal NMT; then Writing the Final Project Report (F2025 Lecture 17, 42 slides, trimmed; plus last year's Lecture 21 writing slides; Wed Nov 18)
+Whether visual context helps: the incongruent-image test, the MATRIX Lab's video-guided MT paper
+(Sorenson and Shurtz, LREC-COLING 2024) and its ablation, and simultaneous translation, where an
+image can help. The two reading reports that day are on this topic. Last year's logistics slides
+come out. Then 15 minutes on writing, while students start their reports: Overleaf, the ACL
+template, and what each section must show for the rubric, with the lab paper as the worked
+example.
 
-### 17. Multimodal NMT (F2025, 42 slides)
-Whether visual context helps, video-guided MT, VaTeX and MAD, ablations, project examples.
+### 17. Research in the MATRIX Lab, and Open Problems in MT (F2025 Lectures 21 and 23; Mon Nov 30)
+The lab research half of last year's Lecture 21 (Lawry Sorenson's CTC forced alignment, Ammon
+Shurtz's phonetic transliteration for Thai, Lao and Khmer) and last year's Lecture 23, open
+problems. No reading reports that day.
 
-### 18. HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation (F2025, 40 slides)
-Interactive translation, CAT tools, post-editing and normalized edit distance, adaptive MT and
-whether LLMs can do it. In-class activity.
+### 18. Word Alignment, and Previous MT Paradigms (F2025 Lectures 19 and 20, 39 and 44 slides; Wed Dec 2)
+The IBM models, then the Vauquois triangle, RBMT, EBMT and phrase-based SMT, which word alignment
+was built for; IBM Model 1 by hand and the full Vauquois tour shrink to examples. One deck of
+about 30 slides at the rebuild; the Och and Ney and the phrase-based reading reports belong here.
 
-### 19 and 20, merged. Word Alignment, and Previous MT Paradigms (F2025, 39 and 44 slides; Wed Dec 2)
-The IBM models worked through, then the Vauquois triangle, RBMT, EBMT and phrase-based SMT,
-which word alignment was built for. One deck of about 30 slides at the rebuild; the Och and Ney
-reading report belongs here.
-
-### 21 to 23 (F2025)
-Writing research articles, MATRIX Lab research, MT applications and jobs, further research.
-Final project presentations close the semester.
+### 19. MT in Use: Applications, Jobs and Post-Editing (F2025 Lecture 22, with Lecture 18's post-editing; Mon Dec 7)
+Where MT is used, the industry and jobs; about 10 minutes from last year's Lecture 18 on
+post-editing as how translators now work, and normalized edit distance as a measure a project
+can use. The post-editing reading report belongs here. Last year's Lecture 18 (HAMT vs. MAHT,
+interactive and adaptive MT, the in-class activity) is not taught this term (Eric, Oct 26).
+Final project presentations close the semester, Dec 9 and the exam slot.
 
 **The final project** is one Learning Suite page, "Final Project", in four sections (Proposal,
 Presentation, Write-up, Submission), each linked from its gradebook entry. A student takes one of
@@ -475,8 +484,8 @@ two paths: **investigate a question** (a hypothesis, and one change against a na
 - **where it helped and where it hurt;**
 - **reproducibility:** versions, seeds and decoding settings named.
 
-All project work is due Thu Dec 10 at 11:59 pm; the presentations take the final exam slot, Wed
-Dec 16, 11:00 to 14:00.
+All project work is due Thu Dec 10 at 11:59 pm; the presentations take the last class meeting, Wed Dec 9, and the final
+exam slot, Wed Dec 16, 11:00 to 14:00.
 
 ---
 
@@ -629,11 +638,12 @@ this repository's `notes/TASKS.md`.
   rewritten against its notebook once that lands (A13's was, Oct 22). A7's due time differs between Learning Suite and the
   deck.
 - **Lecture 6 is overloaded** and nothing has been done about it.
-- **Lecture 19 needs rescoping** around the material now in Lecture 5, and has no notebook.
-- **What Lectures 15 to 23 and the final project need from the repository**, held until Lectures
+- **Lecture 18 (word alignment and earlier methods) needs rescoping** around the material now in
+  Lecture 5, and has no notebook.
+- **What Lectures 15 to 19 and the final project need from the repository**, held until Lectures
   11 to 13 are done (Eric, Oct 19). None has a notebook, by design, but three may want code:
-  Lecture 18's post-editing activity measures normalized edit distance (a small notebook, or
-  TorchLingo's TER?); Lecture 19's IBM Model 1 worked by hand, set beside 8a's attention
+  Lecture 19's post-editing segment measures normalized edit distance (a small notebook, or
+  TorchLingo's TER?); Lecture 18's IBM Model 1 worked by hand, set beside 8a's attention
   alignment, once the lecture is rescoped; and a "starting a project from your own A9 or A14
   model" page for the final projects, proposed Nov 16.
 - **Do lectures after 12 have students prompt an LLM?** Eric, Oct 19: "almost certainly yes", to
@@ -651,6 +661,29 @@ this repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 26, late.** Lectures from 15 on renumbered, one number per session (Eric): 15 speech
+  with dubbing and interpretation as a segment (Nov 4); 16 Multimodal NMT, trimmed, then 15
+  minutes on writing the report, moved up from last year's Lecture 21 so it lands before students
+  write (Nov 18); 17 MATRIX Lab research and open problems (Nov 30); 18 word alignment and
+  earlier methods (Dec 2); 19 MT in use, applications, jobs and post-editing (Dec 7). Last year's
+  Lecture 18 (HAMT vs. MAHT) is dropped as a lecture (Eric), its post-editing kept as a segment
+  of 19. Reading reports follow their topics: the alignment report moves from Nov 30 to Dec 2,
+  the post-editing report to Dec 7. Quizzes renamed to match.
+- **Oct 26, evening.** Final project presentations take two days (Steve Richardson: they need
+  the last class day; Eric: make room on Dec 9 and give each student more time): the last class
+  meeting, Wed Dec 9, and the final exam slot. Each slot is 10 minutes, a 7-minute talk, 2 for
+  questions and 1 to hand off (Eric), so 7 talks fit Dec 9 and 18 the exam slot, for 24
+  students. Lectures 22 and 23 move to Dec 7 with Lecture 21 (superseded the same day by the
+  renumbering, the entry above). The presentation part stays due
+  with the exam slot; Dec 9 presenters upload slides by 10:00 am that day.
+- **Oct 26, later.** A12 is due Mon Nov 2 at 10:00 and A13 Fri Nov 6 at 11:59 pm; A14 stays
+  Tue Nov 10 (Eric). A12 and the Lecture 12 activity use non-reasoning LLMs only (Eric): a
+  reasoning model's chain of thought is a more powerful mechanism than in-context learning and
+  would confound it. Assignment windows may now overlap (Eric, replacing Oct 22's "no two windows
+  overlap"): A13 is open from Lecture 13 (Oct 28) and A14 from Lecture 14 (Nov 2), so each gets
+  eight or nine days instead of four. Students start A13's training run while finishing A12, and
+  A14 once A13's reverse model is trained. The A15 gradebook item is deleted (Eric; no scores or
+  submissions). Roadmap A1 to A3 due dates corrected to Learning Suite's (Sep 9, 14, 16).
 - **Oct 26.** The tutorials are **required reading** (Eric). They still carry no points, so
   the assignment notebooks stay self-sufficient, as the safety net for a student who skips
   them. Also Oct 26 (Eric): this roadmap is the source for each assignment's points and
@@ -951,12 +984,11 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [17] | — |
 | 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [18] | — |
 | 14 | Multilingual NMT and "Zero-shot" NMT | `lecture-14-multilingual` (homework) [19] | `09-fine-tuning-nllb` (reading) [5] |
-| 15, 16 | Overview of Speech-to-Speech MT; Automatic Dubbing and Interpretation | — | — |
-| 17 | Multimodal NMT | — | — |
-| 18 | HAMT vs. MAHT, Productivity, Real-time Prediction and Adaptation | — | — |
-| 19, 20 | Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT, PBSMT, SBSMT | — | — |
-| 21 | Writing Research Articles; MATRIX Lab research | — | — |
-| 22, 23 | MT Applications and Jobs; Opportunities for Further MT Research | — | — |
+| 15 | Speech-to-Speech MT, with Automatic Dubbing and Interpretation | — | — |
+| 16 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | — | — |
+| 17 | Research in the MATRIX Lab, and Open Problems in MT | — | — |
+| 18 | Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT, PBSMT, SBSMT | — | — |
+| 19 | MT in Use: Applications, Jobs and Post-Editing | — | — |
 
 Notes on the rows that are not simple:
 

@@ -331,9 +331,10 @@ def windows_table(doc: dict) -> str:
 def lecture_outcomes_table(doc: dict) -> str:
     """The "Lecture outcomes" table.
 
-    Its rows are not the schedule's: Lectures 19 and 20 share a session but have an outcome
-    each, and 21 to 23 share one outcome across two sessions. So it is its own list rather
-    than a field on each schedule row.
+    Its rows need not be the schedule's: a merged session can have an outcome per lecture, or
+    one outcome can span sessions, as both did until the Oct 26 renumbering gave each session
+    from Lecture 15 on one number. So it is its own list rather than a field on each schedule
+    row.
     """
     rows = [
         [str(o["lecture"]), o["topic"], o["can"], o["shown_by"]]

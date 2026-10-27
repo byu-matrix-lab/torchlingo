@@ -19,11 +19,12 @@
   rewritten against its notebook once that lands (A13's was, Oct 22). A7's due time differs between Learning Suite and the
   deck.
 - **Lecture 6 is overloaded** and nothing has been done about it.
-- **Lecture 19 needs rescoping** around the material now in Lecture 5, and has no notebook.
-- **What Lectures 15 to 23 and the final project need from the repository**, held until Lectures
+- **Lecture 18 (word alignment and earlier methods) needs rescoping** around the material now in
+  Lecture 5, and has no notebook.
+- **What Lectures 15 to 19 and the final project need from the repository**, held until Lectures
   11 to 13 are done (Eric, Oct 19). None has a notebook, by design, but three may want code:
-  Lecture 18's post-editing activity measures normalized edit distance (a small notebook, or
-  TorchLingo's TER?); Lecture 19's IBM Model 1 worked by hand, set beside 8a's attention
+  Lecture 19's post-editing segment measures normalized edit distance (a small notebook, or
+  TorchLingo's TER?); Lecture 18's IBM Model 1 worked by hand, set beside 8a's attention
   alignment, once the lecture is rescoped; and a "starting a project from your own A9 or A14
   model" page for the final projects, proposed Nov 16.
 - **Do lectures after 12 have students prompt an LLM?** Eric, Oct 19: "almost certainly yes", to
