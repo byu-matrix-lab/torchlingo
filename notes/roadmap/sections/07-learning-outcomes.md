@@ -10,5 +10,6 @@ teach.* A notebook teaches when the student has to do something the output depen
 
 ### Lecture outcomes
 
-What a student who did the work can do afterwards, and what shows it. Two or three per
-lecture; the scope notes below carry the content, this carries the point.
+What a student who did the work can do afterwards, and what shows it. From Lecture 13 on, the
+lecture's objectives, one line each, the same words as its slide and its Learning Suite page;
+the scope notes below carry the content, this carries the point.

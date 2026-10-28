@@ -76,7 +76,7 @@ lectures:
 - ids: ["13"]
   date: 2026-10-28
   title: Strategies for NMT of Low-Resource Languages
-  deck: F2025
+  deck: F2026
 - ids: ["14"]
   date: 2026-11-02
   title: Multilingual NMT and "Zero-shot" NMT
@@ -374,44 +374,44 @@ lecture_outcomes:
   shown_by: A12 chart and analysis
 - lecture: "13"
   topic: Low-resource strategies
-  can: Say what makes a language low-resource beyond its count of sentence pairs; use
-    monolingual text to make up for scarce parallel data (back-translate it with a reverse
-    model, train on the synthetic pairs, and measure whether it helped); tell how much of a
-    change came from the new training data and how much from the decoding method, and test
-    whether a difference is real.
+  can: Explain what makes a language qualify as low-resource; explain how
+    back-translation turns target-side text into training pairs; explain sampling, and when it
+    makes better back-translations than beam; name three other ways to augment scarce data;
+    explain how Assignment 13 separates the effect of data from that of decoding.
   shown_by: A13
 - lecture: "14"
   topic: Multilingual and zero-shot
-  can: Explain tagging and why zero-shot works at all; fine-tune a pretrained multilingual model
-    in both directions from their A9 split, and measure what it buys over the same model off the
-    shelf and over their A9 model trained from scratch.
+  can: Explain how a tag tells one model which language to write; explain why a tagged model can translate pairs it never trained on; explain how a low-resource language borrows
+    from related ones in one model; explain when fine-tuning a pretrained model beats training from
+    scratch; explain how Assignment 14 compares one two-way and two one-way models.
   shown_by: A14
 - lecture: "15"
   topic: Speech-to-speech MT, dubbing and interpretation
-  can: Contrast cascade and end-to-end systems and say what each loses; say where errors compound
-    in an ASR to MT to TTS pipeline; say what dubbing and live interpretation add (timing,
-    latency, voice) and where current systems fail.
+  can: "Explain how cascade and end-to-end speech translation differ; explain where errors compound in
+    an ASR, MT and TTS pipeline; explain what dubbing adds to translation: timing, length and
+    voice; explain why live interpretation trades quality for latency."
   shown_by: Quiz 15; the Final Project's Path B example (A15 dropped this term)
 - lecture: "16"
   topic: Multimodal NMT; writing the report
-  can: Say when visual context helps translation and test the claim with an ablation (the wrong
-    image, or none); set up the written report from the ACL template and say what each section
-    must show.
+  can: Explain when an image helps translation, and how to test that it did; explain what an ablation
+    with the wrong image, or none, shows; explain what each section of the ACL-style report must
+    show.
   shown_by: Quiz 16; the Final Project's written report
 - lecture: "17"
   topic: Research and open problems
-  can: Name an open problem in MT and the kind of work it needs, with the MATRIX Lab's research
-    as examples.
+  can: Explain an open problem in MT and the kind of work it needs; explain how one MATRIX Lab project
+    frames and tests its question.
   shown_by: Quiz 17
 - lecture: "18"
   topic: Word alignment and earlier methods
-  can: Explain how EM learns word alignments and relate them to the attention alignment of 8a;
-    say what RBMT, EBMT and phrase-based SMT did, and what NMT replaced and what it kept.
+  can: Explain how EM learns word alignments from sentence pairs; explain how word alignments relate to
+    attention in NMT; explain what rule-based, example-based and phrase-based MT did; explain
+    what NMT replaced from earlier methods, and what it kept.
   shown_by: Quiz 18
 - lecture: "19"
   topic: MT in use
-  can: Say where MT is used and what work it creates; measure post-editing effort with edit
-    distance and say when post-editing helps a translator.
+  can: Explain where MT is used and what work it creates; explain how edit distance measures
+    post-editing effort; explain when post-editing helps a translator, and when it does not.
   shown_by: class discussion; edit distance available as a Final Project measure
 
 # One entry per notebook, keyed by file stem.
