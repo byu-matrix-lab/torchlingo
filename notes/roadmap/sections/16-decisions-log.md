@@ -3,6 +3,13 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 28.** Each lecture's outcomes are its objectives slide, one line each, worded "Explain
+  ...", and the lecture's Learning Suite page lists the same words; the Lecture outcomes table
+  above holds them for Lectures 13 to 19 (13 and 14 as taught or built; 15 to 19 drafts, refined
+  as each lecture is built) (Eric). Lecture quizzes have at most 8 questions, in generic
+  wording, following the lecture's current outcomes, this offering and the next; the quiz review
+  in class is one slide on the most-missed important question (Eric). Lecture Quiz 12's Q5
+  thrown out, two options being untrue (Eric).
 - **Oct 26, late.** Lectures from 15 on renumbered, one number per session (Eric): 15 speech
   with dubbing and interpretation as a segment (Nov 4); 16 Multimodal NMT, trimmed, then 15
   minutes on writing the report, moved up from last year's Lecture 21 so it lands before students

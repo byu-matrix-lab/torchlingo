@@ -46,7 +46,7 @@ against its notebook once that lands. A13's was rewritten against its notebook o
 | — | Mon Oct 19 | Review Day (Lecture 11 moved to Oct 21 and taught live; Eric, Oct 21) | **A10** COMET Setup and QE Reading | |
 | 11 | Wed Oct 21 | LLM Judges, Sentences and Spans | | F2026 rebuilt (taught live) |
 | 12 | Mon Oct 26 | Using LLMs for MT; Expanding Context Awareness | **A11** Evaluating with COMET | F2026 draft |
-| 13 | Wed Oct 28 | Strategies for NMT of Low-Resource Languages | | F2025 |
+| 13 | Wed Oct 28 | Strategies for NMT of Low-Resource Languages | | F2026 |
 | 14 | Mon Nov 2 | Multilingual NMT and "Zero-shot" NMT | **A12** Context in LLM Translation | F2025 |
 | 15 | Wed Nov 4 | Speech-to-Speech MT, with Automatic Dubbing and Interpretation | **A13** Back-Translation (due Fri Nov 6, 11:59 pm) | F2025, merged at rebuild |
 | — | Mon Nov 9 | Proposal week: outline reviews with the professor (Eric and Coulson, Sep 30) | **A14** Multilingual NMT, Both Directions (due Tue Nov 10, 11:59 pm) · **Final Project 1** proposal outline review (5), by appointment (due 11:59 pm) | |
@@ -163,8 +163,9 @@ teach.* A notebook teaches when the student has to do something the output depen
 
 ### Lecture outcomes
 
-What a student who did the work can do afterwards, and what shows it. Two or three per
-lecture; the scope notes below carry the content, this carries the point.
+What a student who did the work can do afterwards, and what shows it. From Lecture 13 on, the
+lecture's objectives, one line each, the same words as its slide and its Learning Suite page;
+the scope notes below carry the content, this carries the point.
 
 | # | Lecture | A student who did the work can | Shown by |
 |---|---|---|---|
@@ -182,13 +183,13 @@ lecture; the scope notes below carry the content, this carries the point.
 | 10 | Quality estimation | Distinguish evaluation from estimation; say what COMET and COMET-QE score and what the number means; explain greedy against beam search and why a comparison must pin decoding. | A10; Quiz 10 |
 | 11 | Neural QE and toolkits | Run COMET and COMETKiwi on their own A6 data and on their own A8 and A9 test output; reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and its system- against segment-level caveat. | A11 |
 | 12 | LLMs for MT; context | Prompt a decoder-only model to translate a low-resource language from a few example pairs, with no training; measure how much random and nearest examples improve translation, and tell a real difference from the spread between random draws; explain how examples in the prompt help or hurt when the model's weights never change, and what sentence-by-sentence translation cannot fix; give the model the sentence before, with its translation, and measure whether it resolves a pronoun or a repeated term the sentence alone leaves ambiguous, and why a score over the whole test set can miss it. | A12 chart and analysis |
-| 13 | Low-resource strategies | Say what makes a language low-resource beyond its count of sentence pairs; use monolingual text to make up for scarce parallel data (back-translate it with a reverse model, train on the synthetic pairs, and measure whether it helped); tell how much of a change came from the new training data and how much from the decoding method, and test whether a difference is real. | A13 |
-| 14 | Multilingual and zero-shot | Explain tagging and why zero-shot works at all; fine-tune a pretrained multilingual model in both directions from their A9 split, and measure what it buys over the same model off the shelf and over their A9 model trained from scratch. | A14 |
-| 15 | Speech-to-speech MT, dubbing and interpretation | Contrast cascade and end-to-end systems and say what each loses; say where errors compound in an ASR to MT to TTS pipeline; say what dubbing and live interpretation add (timing, latency, voice) and where current systems fail. | Quiz 15; the Final Project's Path B example (A15 dropped this term) |
-| 16 | Multimodal NMT; writing the report | Say when visual context helps translation and test the claim with an ablation (the wrong image, or none); set up the written report from the ACL template and say what each section must show. | Quiz 16; the Final Project's written report |
-| 17 | Research and open problems | Name an open problem in MT and the kind of work it needs, with the MATRIX Lab's research as examples. | Quiz 17 |
-| 18 | Word alignment and earlier methods | Explain how EM learns word alignments and relate them to the attention alignment of 8a; say what RBMT, EBMT and phrase-based SMT did, and what NMT replaced and what it kept. | Quiz 18 |
-| 19 | MT in use | Say where MT is used and what work it creates; measure post-editing effort with edit distance and say when post-editing helps a translator. | class discussion; edit distance available as a Final Project measure |
+| 13 | Low-resource strategies | Explain what makes a language qualify as low-resource; explain how back-translation turns target-side text into training pairs; explain sampling, and when it makes better back-translations than beam; name three other ways to augment scarce data; explain how Assignment 13 separates the effect of data from that of decoding. | A13 |
+| 14 | Multilingual and zero-shot | Explain how a tag tells one model which language to write; explain why a tagged model can translate pairs it never trained on; explain how a low-resource language borrows from related ones in one model; explain when fine-tuning a pretrained model beats training from scratch; explain how Assignment 14 compares one two-way and two one-way models. | A14 |
+| 15 | Speech-to-speech MT, dubbing and interpretation | Explain how cascade and end-to-end speech translation differ; explain where errors compound in an ASR, MT and TTS pipeline; explain what dubbing adds to translation: timing, length and voice; explain why live interpretation trades quality for latency. | Quiz 15; the Final Project's Path B example (A15 dropped this term) |
+| 16 | Multimodal NMT; writing the report | Explain when an image helps translation, and how to test that it did; explain what an ablation with the wrong image, or none, shows; explain what each section of the ACL-style report must show. | Quiz 16; the Final Project's written report |
+| 17 | Research and open problems | Explain an open problem in MT and the kind of work it needs; explain how one MATRIX Lab project frames and tests its question. | Quiz 17 |
+| 18 | Word alignment and earlier methods | Explain how EM learns word alignments from sentence pairs; explain how word alignments relate to attention in NMT; explain what rule-based, example-based and phrase-based MT did; explain what NMT replaced from earlier methods, and what it kept. | Quiz 18 |
+| 19 | MT in use | Explain where MT is used and what work it creates; explain how edit distance measures post-editing effort; explain when post-editing helps a translator, and when it does not. | class discussion; edit distance available as a Final Project measure |
 
 ### Notebook outcomes, and who does the work
 
@@ -661,6 +662,13 @@ this repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Oct 28.** Each lecture's outcomes are its objectives slide, one line each, worded "Explain
+  ...", and the lecture's Learning Suite page lists the same words; the Lecture outcomes table
+  above holds them for Lectures 13 to 19 (13 and 14 as taught or built; 15 to 19 drafts, refined
+  as each lecture is built) (Eric). Lecture quizzes have at most 8 questions, in generic
+  wording, following the lecture's current outcomes, this offering and the next; the quiz review
+  in class is one slide on the most-missed important question (Eric). Lecture Quiz 12's Q5
+  thrown out, two options being untrue (Eric).
 - **Oct 26, late.** Lectures from 15 on renumbered, one number per session (Eric): 15 speech
   with dubbing and interpretation as a segment (Nov 4); 16 Multimodal NMT, trimmed, then 15
   minutes on writing the report, moved up from last year's Lecture 21 so it lands before students
