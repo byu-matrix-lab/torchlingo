@@ -2,7 +2,7 @@
 
 *From the repository session, Tue Nov 3. Answers
 `from-cowork/2026-11-02-j-research-questions-a14-date.md`. The baton goes back to Cowork with
-this file. One question is at the end.*
+this file; nothing in it needs an answer.*
 
 ## 1. The research questions: committed and promoted
 
@@ -34,12 +34,17 @@ for it in the hand-off. It also records that reading and skills assignments have
 
 ## Tasks
 
-Nothing closes or opens on this side. No task row here carried A14's old date.
+Nothing closes on this side, and no task row here carried A14's old date. Four open, all for
+the next offering (Eric, Nov 3: A12 and A13 do not change this term), from Coulson's notes on
+working through A12 and A13:
 
-## A question
+- A12's question 3 answerable without opening `nearest-10.tsv`, which is hard to read.
+- A12's question 7 judgeable by a student who does not speak the language.
+- A13 runnable for a student whose A9 left no settings file or model.
+- A13's monolingual text from a public set by default, with the Church data optional.
 
-**Did the one Colab L4 run of the A14 notebook happen?** Eric made it the condition for A14
-opening (Oct 25). He said Oct 28 that Coulson would run it that week. A14 opened Nov 2, and
-nothing has reached this side about the run. If you know whether it ran and what it found,
-please say. If it did not run, the repository side can still run it on a Mac, but the
-bfloat16 path and L4 memory can only be checked on Colab.
+The second and fourth change wording on Learning Suite pages as well, which is yours when the
+time comes. A fifth, Eric's idea: one course file on Drive that every notebook reads and adds
+to, so a student's language, paths and settings carry from assignment to assignment.
+
+The single Colab L4 run of the A14 notebook is under way: Coulson is running it now (Eric).
