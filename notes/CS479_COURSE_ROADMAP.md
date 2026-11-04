@@ -48,15 +48,15 @@ against its notebook once that lands. A13's was rewritten against its notebook o
 | 12 | Mon Oct 26 | Using LLMs for MT; Expanding Context Awareness | **A11** Evaluating with COMET | F2026 draft |
 | 13 | Wed Oct 28 | Strategies for NMT of Low-Resource Languages | | F2026 |
 | 14 | Mon Nov 2 | Multilingual NMT and "Zero-shot" NMT | **A12** Context in LLM Translation | F2025 |
-| 15 | Wed Nov 4 | Speech-to-Speech MT, with Automatic Dubbing and Interpretation | **A13** Back-Translation (due Fri Nov 6, 11:59 pm) | F2025, merged at rebuild |
-| — | Mon Nov 9 | Proposal week: outline reviews with the professor (Eric and Coulson, Sep 30) | **A14** Multilingual NMT, Both Directions (due Tue Nov 10, 11:59 pm) · **Final Project 1** proposal outline review (5), by appointment (due 11:59 pm) | |
-| — | Wed Nov 11 | (proposal week) proposal presentations | **Final Project 2** proposal (20), at 10:00 am, the first presentation day | |
+| 15 | Wed Nov 4 | Speech Translation | **A13** Back-Translation (due Fri Nov 6, 11:59 pm) | F2026, built Nov 3 (last year's Lecture 15, rebuilt) |
+| — | Mon Nov 9 | Proposal week: outline reviews with the professor (Eric and Coulson, Sep 30) | **Final Project 1** proposal outline review (5), by appointment (due 11:59 pm) | |
+| — | Wed Nov 11 | (proposal week) proposal presentations | **A14** Multilingual NMT, Both Directions (due Fri Nov 13, 11:59 pm) · **Final Project 2** proposal (20), at 10:00 am, the first presentation day | |
 | — | Mon Nov 16 | (proposal week) proposal presentations | | |
-| 16 | Wed Nov 18 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | | F2025, trimmed, plus the writing slides of last year's Lecture 21 |
+| 16 | Wed Nov 18 | Automatic Dubbing and Live Interpretation | | F2025 (last year's Lecture 16), with Lecture 15's Part 3 of Nov 3 |
 | — | Mon Nov 23 | Project checkpoint reviews with the instructor, by appointment; no class meets (Eric, Oct 23) | **Final Project 3** checkpoint review (5), by appointment (due 11:59 pm) | |
 | — | Wed Nov 25 | **No class**, Thanksgiving Eve | | |
-| 17 | Mon Nov 30 | Research in the MATRIX Lab, and Open Problems in MT | | F2025, from last year's Lectures 21 and 23 |
-| 18 | Wed Dec 2 | Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT, PBSMT, SBSMT | | F2025, merged at rebuild |
+| 17 | Mon Nov 30 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | | F2025, trimmed, plus the writing slides of last year's Lecture 21 |
+| 18 | Wed Dec 2 | Research in the MATRIX Lab, Open Problems, and What Earlier MT Methods Teach | | F2025, from last year's Lectures 21 and 23, with word alignment and earlier methods condensed |
 | 19 | Mon Dec 7 | MT in Use: Applications, Jobs and Post-Editing | | F2025, from last year's Lecture 22, with Lecture 18's post-editing |
 | — | Wed Dec 9 | Final project presentations, day 1 of 2 (Steve Richardson and Eric, Oct 26) | **Paper review assignment** | |
 | — | Thu Dec 10 | Last day of class | **Final Project 4** written report (40, ACL template) (due 11:59 pm) · **Final Project 5** submission (35) (due 11:59 pm) | |
@@ -72,8 +72,10 @@ carry no assignments; the final project has taken over, in seven parts with date
 (Eric, Oct 23). Lectures from 15 on were renumbered Oct 26 (Eric), one number per session:
 last year's 15 and 16 are now 15; 17, with the writing slides of last year's 21, is 16; last
 year's 21 (its lab research half) and 23 are 17; 19 and 20 are 18; 22, with 18's post-editing,
-is 19. Last year's Lecture 18 is no longer a lecture. Lecture quizzes run through Lecture 18,
-and 8a and 8b each have their own.
+is 19. Last year's Lecture 18 is no longer a lecture. On Nov 3 (Eric) Lecture 15 split in two:
+15 is speech translation and 16 dubbing and live interpretation (last year's 16); the multimodal
+lecture became 17, and research and open problems merged with a condensed 19 and 20 as 18.
+Lecture quizzes run through Lecture 18, and 8a and 8b each have their own.
 
 **Paper reviews** run alongside: 24 papers on the sign-up sheet (Google Sheet "CS 479 Fall
 2026", tab "Reading Report"), presented Oct 5 through Dec 2 at one or two per session, each
@@ -113,13 +115,14 @@ two.
 | A11 | 11, Wed Oct 21 | **Mon Oct 26** | 5 since the Oct 21 shift (set at the live Lecture 11; due date kept, Eric, Oct 21) |
 | A12 | 12, Mon Oct 26 | **Mon Nov 2** | 7, Mon Oct 26 to Mon Nov 2 (Eric, Oct 26: moved from Fri Oct 30, which had moved from Wed Oct 28 on Oct 22); the A12 page and notebook were open from Oct 21 |
 | A13 | 13, Wed Oct 28 | **Fri Nov 6, 11:59 pm** | 9, Wed Oct 28 to Fri Nov 6, overlapping A12 until Nov 2: start the training run early and let it train while finishing A12 (Eric, Oct 26: due moved from Wed Nov 4, and windows may overlap) |
-| A14 | 14, Mon Nov 2 | **Tue Nov 10, 11:59 pm** | 8, Mon Nov 2 to Tue Nov 10, overlapping A13 until Nov 6: it starts from the A13 reverse model, so it can begin once that model is trained (Eric, Oct 26: windows may overlap); may overlap the Nov 9 outline review, and ends before the Nov 11 proposal presentations (Eric, Oct 22) |
+| A14 | 14, Mon Nov 2 | **Fri Nov 13, 11:59 pm** | 11, Mon Nov 2 to Fri Nov 13, overlapping A13 until Nov 6 and the first proposal presentations (Nov 11); students start now, and the A13 reverse model, if trained, is one of the comparisons (Eric, Nov 2: due moved from Tue Nov 10, overriding Oct 22's rule that A14 end before the presentations) |
 | A15 | 15, Wed Nov 4 | dropped | this term, folded into the Final Project (Eric, Oct 22): its page unpublished and kept for next year, its 20 points dropped, the speech pipeline named as a Path B example |
 
-Costs accepted knowingly: Lecture 16 (Multimodal NMT) sits two weeks after Lecture 15 and
-after the proposal presentations, the least damaging place for a gap since it is the most
-self-contained lecture in the run; there is no catch-up session if the proposal presentations
-overrun Nov 16; and the merged Dec 2 session has to be built from two 40-slide decks.
+Costs accepted knowingly: Lecture 16 (dubbing and live interpretation) sits two weeks after
+Lecture 15, after the proposal presentations, and picks up where Lecture 15 stopped; there is
+no catch-up session if the proposal presentations overrun Nov 16; and the merged Dec 2 session
+has to hold lab research, open problems and a condensed word alignment and earlier methods
+(Nov 3).
 
 ---
 
@@ -185,10 +188,10 @@ the scope notes below carry the content, this carries the point.
 | 12 | LLMs for MT; context | Prompt a decoder-only model to translate a low-resource language from a few example pairs, with no training; measure how much random and nearest examples improve translation, and tell a real difference from the spread between random draws; explain how examples in the prompt help or hurt when the model's weights never change, and what sentence-by-sentence translation cannot fix; give the model the sentence before, with its translation, and measure whether it resolves a pronoun or a repeated term the sentence alone leaves ambiguous, and why a score over the whole test set can miss it. | A12 chart and analysis |
 | 13 | Low-resource strategies | Explain what makes a language qualify as low-resource; explain how back-translation turns target-side text into training pairs; explain sampling, and when it makes better back-translations than beam; name three other ways to augment scarce data; explain how Assignment 13 separates the effect of data from that of decoding. | A13 |
 | 14 | Multilingual and zero-shot | Explain how a tag tells one model which language to write; explain why a tagged model can translate pairs it never trained on; explain how a low-resource language borrows from related ones in one model; explain when fine-tuning a pretrained model beats training from scratch; explain how Assignment 14 compares one two-way and two one-way models. | A14 |
-| 15 | Speech-to-speech MT, dubbing and interpretation | Explain how cascade and end-to-end speech translation differ; explain where errors compound in an ASR, MT and TTS pipeline; explain what dubbing adds to translation: timing, length and voice; explain why live interpretation trades quality for latency. | Quiz 15; the Final Project's Path B example (A15 dropped this term) |
-| 16 | Multimodal NMT; writing the report | Explain when an image helps translation, and how to test that it did; explain what an ablation with the wrong image, or none, shows; explain what each section of the ACL-style report must show. | Quiz 16; the Final Project's written report |
-| 17 | Research and open problems | Explain an open problem in MT and the kind of work it needs; explain how one MATRIX Lab project frames and tests its question. | Quiz 17 |
-| 18 | Word alignment and earlier methods | Explain how EM learns word alignments from sentence pairs; explain how word alignments relate to attention in NMT; explain what rule-based, example-based and phrase-based MT did; explain what NMT replaced from earlier methods, and what it kept. | Quiz 18 |
+| 15 | Speech translation | Explain how spoken language differs from the text MT is trained on; explain how cascade, agent and speech-native designs differ; explain how a speech model turns sound into tokens. | Quiz 15; the Final Project's Path B example (A15 dropped this term) |
+| 16 | Automatic dubbing and live interpretation | Explain what dubbing adds to translation: timing, length and voice; explain why live interpretation trades quality for latency; explain how a simultaneous system decides when to start translating; explain how a live system uses a script, when it has one. | Quiz 16 |
+| 17 | Multimodal NMT; writing the report | Explain when an image helps translation, and how to test that it did; explain what an ablation with the wrong image, or none, shows; explain what each section of the ACL-style report must show. | Quiz 17; the Final Project's written report |
+| 18 | Research, open problems and earlier methods | Explain an open problem in MT and the kind of work it needs; explain how one MATRIX Lab project frames and tests its question; explain how word alignments relate to attention in NMT; explain what NMT replaced from earlier methods, and what it kept. | Quiz 18 |
 | 19 | MT in use | Explain where MT is used and what work it creates; explain how edit distance measures post-editing effort; explain when post-editing helps a translator, and when it does not. | class discussion; edit distance available as a Final Project measure |
 
 ### Notebook outcomes, and who does the work
@@ -440,31 +443,34 @@ comparison between two of the others.
 Lectures from 15 on were renumbered Oct 26 (Eric), one number per session; last year's numbers
 are given for finding the F2025 decks.
 
-### 15. Speech-to-Speech MT, with Automatic Dubbing and Interpretation (F2025 Lectures 15 and 16, 33 and 34 slides; Wed Nov 4)
-Spoken language translation, cascade against end-to-end, Whisper, speech data for projects; then
-dubbing and live interpretation as a segment, not a lecture of its own: neural voices, automatic
-video dubbing, Wav2Lip, HeyGen.
+### 15. Speech Translation (F2025 Lecture 15, rebuilt Nov 3; Wed Nov 4)
+Speech is not text: what makes speech hard, how people really speak, cleaning a recognizer's
+transcript; cascade against end-to-end, where a cascade's errors go, tokens for speech (VQ-VAE,
+HuBERT units, codec tokens), why paired data is scarce, Whisper and SeamlessM4T, the MATRIX
+Lab's low-resource speech demo and data; students write their Final Project research question.
 **Sets:** nothing this term. A15, an ASR, MT and TTS pipeline on a free Azure account, is
 dropped and folded into the Final Project, whose Path B names a speech-to-speech pipeline as an
 example (Eric, Oct 22); its page is kept for the next offering.
 
-### 16. Multimodal NMT; then Writing the Final Project Report (F2025 Lecture 17, 42 slides, trimmed; plus last year's Lecture 21 writing slides; Wed Nov 18)
-Whether visual context helps: the incongruent-image test, the MATRIX Lab's video-guided MT paper
-(Sorenson and Shurtz, LREC-COLING 2024) and its ablation, and simultaneous translation, where an
-image can help. The two reading reports that day are on this topic. Last year's logistics slides
-come out. Then 15 minutes on writing, while students start their reports: Overleaf, the ACL
-template, and what each section must show for the rubric, with the lab paper as the worked
-example.
+### 16. Automatic Dubbing and Live Interpretation (F2025 Lecture 16, with Lecture 15's Part 3 of Nov 3; Wed Nov 18)
+Speech keeps time (Eric, Nov 3: split from Lecture 15). Dubbing adds timing, length and voice
+(fit the clip; Amazon 2020, Huawei 2024; ToAll and why it matters); live interpretation trades
+quality for latency; simultaneous MT, when to start translating, moved here from the multimodal
+lecture; following a known script (ToAll's fuzzy matcher). Lip sync is left out (Eric, Nov 3).
 
-### 17. Research in the MATRIX Lab, and Open Problems in MT (F2025 Lectures 21 and 23; Mon Nov 30)
+### 17. Multimodal NMT; then Writing the Final Project Report (F2025 Lecture 17, 42 slides, trimmed; plus last year's Lecture 21 writing slides; Mon Nov 30)
+Whether visual context helps: the incongruent-image test and the MATRIX Lab's video-guided MT
+paper (Sorenson and Shurtz, LREC-COLING 2024) and its ablation. The two multimodal reading
+reports belong here, if their presenters move from Nov 18. Last year's logistics slides come
+out. Then 15 minutes on writing, while students start their reports: Overleaf, the ACL template,
+and what each section must show for the rubric, with the lab paper as the worked example.
+
+### 18. Research in the MATRIX Lab, Open Problems, and What Earlier MT Methods Teach (F2025 Lectures 21, 23, 19 and 20, condensed; Wed Dec 2)
 The lab research half of last year's Lecture 21 (Lawry Sorenson's CTC forced alignment, Ammon
 Shurtz's phonetic transliteration for Thai, Lao and Khmer) and last year's Lecture 23, open
-problems. No reading reports that day.
-
-### 18. Word Alignment, and Previous MT Paradigms (F2025 Lectures 19 and 20, 39 and 44 slides; Wed Dec 2)
-The IBM models, then the Vauquois triangle, RBMT, EBMT and phrase-based SMT, which word alignment
-was built for; IBM Model 1 by hand and the full Vauquois tour shrink to examples. One deck of
-about 30 slides at the rebuild; the Och and Ney and the phrase-based reading reports belong here.
+problems; then, condensed, word alignment and how it relates to attention, and what NMT replaced
+from rule-based, example-based and phrase-based MT. A standalone earlier-methods lecture gave way
+to Lecture 16 (Eric, Nov 3). The Och and Ney and the phrase-based reading reports belong here.
 
 ### 19. MT in Use: Applications, Jobs and Post-Editing (F2025 Lecture 22, with Lecture 18's post-editing; Mon Dec 7)
 Where MT is used, the industry and jobs; about 10 minutes from last year's Lecture 18 on
@@ -639,8 +645,9 @@ this repository's `notes/TASKS.md`.
   rewritten against its notebook once that lands (A13's was, Oct 22). A7's due time differs between Learning Suite and the
   deck.
 - **Lecture 6 is overloaded** and nothing has been done about it.
-- **Lecture 18 (word alignment and earlier methods) needs rescoping** around the material now in
-  Lecture 5, and has no notebook.
+- **Lecture 18 (research, open problems and earlier methods, since Nov 3) needs scoping**: word
+  alignment and earlier methods condensed beside the lab's research, around the material now in
+  Lecture 5; it has no notebook.
 - **What Lectures 15 to 19 and the final project need from the repository**, held until Lectures
   11 to 13 are done (Eric, Oct 19). None has a notebook, by design, but three may want code:
   Lecture 19's post-editing segment measures normalized edit distance (a small notebook, or
@@ -662,6 +669,24 @@ this repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Nov 3, later.** Lecture 15 splits in two (Eric): Lecture 15, Speech Translation (Nov 4), and a new
+  Lecture 16, Automatic Dubbing and Live Interpretation (Nov 18), which also takes simultaneous MT
+  from the multimodal lecture. Multimodal NMT and the report-writing session become Lecture 17
+  (Nov 30); research and open problems merge with a condensed word alignment and earlier methods
+  as Lecture 18 (Dec 2); a standalone earlier-methods lecture is what gave way. Lecture 15's
+  outcomes: spoken language against text; cascade, agent and speech-native designs; speech
+  tokens. Lecture 16 adds a fourth: how a live system uses a script, when it has one.
+- **Nov 3.** Lecture 15's outcomes refined at its build (Eric): "Explain how spoken language
+  differs from the text MT is trained on" replaces "where errors compound in an ASR, MT and TTS
+  pipeline", which it covers. Every assignment's research questions are on its Learning Suite page
+  and open its notebook (A3, A6 to A14); a Final Project proposal states its research question in
+  one sentence (Eric).
+- **Nov 2.** A14 due Fri Nov 13 at 11:59 pm, moved from Tue Nov 10 (Eric), so it overlaps the
+  first proposal presentations; students start at once, the A13 reverse model being optional.
+  Lecture 14's Mixture-of-Experts slides go to its hidden appendix (Eric). An assignment is
+  "released", not "set" (Eric). Every assignment states its research questions, on its Learning
+  Suite page and its deck slide, not only the experiments that answer them (Eric); A13 and A14
+  first.
 - **Oct 28.** Each lecture's outcomes are its objectives slide, one line each, worded "Explain
   ...", and the lecture's Learning Suite page lists the same words; the Lecture outcomes table
   above holds them for Lectures 13 to 19 (13 and 14 as taught or built; 15 to 19 drafts, refined
@@ -992,10 +1017,10 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [17] | — |
 | 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [18] | — |
 | 14 | Multilingual NMT and "Zero-shot" NMT | `lecture-14-multilingual` (homework) [19] | `09-fine-tuning-nllb` (reading) [5] |
-| 15 | Speech-to-Speech MT, with Automatic Dubbing and Interpretation | — | — |
-| 16 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | — | — |
-| 17 | Research in the MATRIX Lab, and Open Problems in MT | — | — |
-| 18 | Word Alignment, and What We Can Learn from Previous MT Methods: RBMT, KBMT, EBMT, PBSMT, SBSMT | — | — |
+| 15 | Speech Translation | — | — |
+| 16 | Automatic Dubbing and Live Interpretation | — | — |
+| 17 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | — | — |
+| 18 | Research in the MATRIX Lab, Open Problems, and What Earlier MT Methods Teach | — | — |
 | 19 | MT in Use: Applications, Jobs and Post-Editing | — | — |
 
 Notes on the rows that are not simple:

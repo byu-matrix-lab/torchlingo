@@ -177,31 +177,34 @@ comparison between two of the others.
 Lectures from 15 on were renumbered Oct 26 (Eric), one number per session; last year's numbers
 are given for finding the F2025 decks.
 
-### 15. Speech-to-Speech MT, with Automatic Dubbing and Interpretation (F2025 Lectures 15 and 16, 33 and 34 slides; Wed Nov 4)
-Spoken language translation, cascade against end-to-end, Whisper, speech data for projects; then
-dubbing and live interpretation as a segment, not a lecture of its own: neural voices, automatic
-video dubbing, Wav2Lip, HeyGen.
+### 15. Speech Translation (F2025 Lecture 15, rebuilt Nov 3; Wed Nov 4)
+Speech is not text: what makes speech hard, how people really speak, cleaning a recognizer's
+transcript; cascade against end-to-end, where a cascade's errors go, tokens for speech (VQ-VAE,
+HuBERT units, codec tokens), why paired data is scarce, Whisper and SeamlessM4T, the MATRIX
+Lab's low-resource speech demo and data; students write their Final Project research question.
 **Sets:** nothing this term. A15, an ASR, MT and TTS pipeline on a free Azure account, is
 dropped and folded into the Final Project, whose Path B names a speech-to-speech pipeline as an
 example (Eric, Oct 22); its page is kept for the next offering.
 
-### 16. Multimodal NMT; then Writing the Final Project Report (F2025 Lecture 17, 42 slides, trimmed; plus last year's Lecture 21 writing slides; Wed Nov 18)
-Whether visual context helps: the incongruent-image test, the MATRIX Lab's video-guided MT paper
-(Sorenson and Shurtz, LREC-COLING 2024) and its ablation, and simultaneous translation, where an
-image can help. The two reading reports that day are on this topic. Last year's logistics slides
-come out. Then 15 minutes on writing, while students start their reports: Overleaf, the ACL
-template, and what each section must show for the rubric, with the lab paper as the worked
-example.
+### 16. Automatic Dubbing and Live Interpretation (F2025 Lecture 16, with Lecture 15's Part 3 of Nov 3; Wed Nov 18)
+Speech keeps time (Eric, Nov 3: split from Lecture 15). Dubbing adds timing, length and voice
+(fit the clip; Amazon 2020, Huawei 2024; ToAll and why it matters); live interpretation trades
+quality for latency; simultaneous MT, when to start translating, moved here from the multimodal
+lecture; following a known script (ToAll's fuzzy matcher). Lip sync is left out (Eric, Nov 3).
 
-### 17. Research in the MATRIX Lab, and Open Problems in MT (F2025 Lectures 21 and 23; Mon Nov 30)
+### 17. Multimodal NMT; then Writing the Final Project Report (F2025 Lecture 17, 42 slides, trimmed; plus last year's Lecture 21 writing slides; Mon Nov 30)
+Whether visual context helps: the incongruent-image test and the MATRIX Lab's video-guided MT
+paper (Sorenson and Shurtz, LREC-COLING 2024) and its ablation. The two multimodal reading
+reports belong here, if their presenters move from Nov 18. Last year's logistics slides come
+out. Then 15 minutes on writing, while students start their reports: Overleaf, the ACL template,
+and what each section must show for the rubric, with the lab paper as the worked example.
+
+### 18. Research in the MATRIX Lab, Open Problems, and What Earlier MT Methods Teach (F2025 Lectures 21, 23, 19 and 20, condensed; Wed Dec 2)
 The lab research half of last year's Lecture 21 (Lawry Sorenson's CTC forced alignment, Ammon
 Shurtz's phonetic transliteration for Thai, Lao and Khmer) and last year's Lecture 23, open
-problems. No reading reports that day.
-
-### 18. Word Alignment, and Previous MT Paradigms (F2025 Lectures 19 and 20, 39 and 44 slides; Wed Dec 2)
-The IBM models, then the Vauquois triangle, RBMT, EBMT and phrase-based SMT, which word alignment
-was built for; IBM Model 1 by hand and the full Vauquois tour shrink to examples. One deck of
-about 30 slides at the rebuild; the Och and Ney and the phrase-based reading reports belong here.
+problems; then, condensed, word alignment and how it relates to attention, and what NMT replaced
+from rule-based, example-based and phrase-based MT. A standalone earlier-methods lecture gave way
+to Lecture 16 (Eric, Nov 3). The Och and Ney and the phrase-based reading reports belong here.
 
 ### 19. MT in Use: Applications, Jobs and Post-Editing (F2025 Lecture 22, with Lecture 18's post-editing; Mon Dec 7)
 Where MT is used, the industry and jobs; about 10 minutes from last year's Lecture 18 on

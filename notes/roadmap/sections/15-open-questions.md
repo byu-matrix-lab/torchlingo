@@ -19,8 +19,9 @@
   rewritten against its notebook once that lands (A13's was, Oct 22). A7's due time differs between Learning Suite and the
   deck.
 - **Lecture 6 is overloaded** and nothing has been done about it.
-- **Lecture 18 (word alignment and earlier methods) needs rescoping** around the material now in
-  Lecture 5, and has no notebook.
+- **Lecture 18 (research, open problems and earlier methods, since Nov 3) needs scoping**: word
+  alignment and earlier methods condensed beside the lab's research, around the material now in
+  Lecture 5; it has no notebook.
 - **What Lectures 15 to 19 and the final project need from the repository**, held until Lectures
   11 to 13 are done (Eric, Oct 19). None has a notebook, by design, but three may want code:
   Lecture 19's post-editing segment measures normalized edit distance (a small notebook, or
