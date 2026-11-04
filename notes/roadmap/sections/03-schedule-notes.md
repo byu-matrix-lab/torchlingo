@@ -8,8 +8,10 @@ carry no assignments; the final project has taken over, in seven parts with date
 (Eric, Oct 23). Lectures from 15 on were renumbered Oct 26 (Eric), one number per session:
 last year's 15 and 16 are now 15; 17, with the writing slides of last year's 21, is 16; last
 year's 21 (its lab research half) and 23 are 17; 19 and 20 are 18; 22, with 18's post-editing,
-is 19. Last year's Lecture 18 is no longer a lecture. Lecture quizzes run through Lecture 18,
-and 8a and 8b each have their own.
+is 19. Last year's Lecture 18 is no longer a lecture. On Nov 3 (Eric) Lecture 15 split in two:
+15 is speech translation and 16 dubbing and live interpretation (last year's 16); the multimodal
+lecture became 17, and research and open problems merged with a condensed 19 and 20 as 18.
+Lecture quizzes run through Lecture 18, and 8a and 8b each have their own.
 
 **Paper reviews** run alongside: 24 papers on the sign-up sheet (Google Sheet "CS 479 Fall
 2026", tab "Reading Report"), presented Oct 5 through Dec 2 at one or two per session, each

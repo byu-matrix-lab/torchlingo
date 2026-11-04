@@ -3,6 +3,24 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Nov 3, later.** Lecture 15 splits in two (Eric): Lecture 15, Speech Translation (Nov 4), and a new
+  Lecture 16, Automatic Dubbing and Live Interpretation (Nov 18), which also takes simultaneous MT
+  from the multimodal lecture. Multimodal NMT and the report-writing session become Lecture 17
+  (Nov 30); research and open problems merge with a condensed word alignment and earlier methods
+  as Lecture 18 (Dec 2); a standalone earlier-methods lecture is what gave way. Lecture 15's
+  outcomes: spoken language against text; cascade, agent and speech-native designs; speech
+  tokens. Lecture 16 adds a fourth: how a live system uses a script, when it has one.
+- **Nov 3.** Lecture 15's outcomes refined at its build (Eric): "Explain how spoken language
+  differs from the text MT is trained on" replaces "where errors compound in an ASR, MT and TTS
+  pipeline", which it covers. Every assignment's research questions are on its Learning Suite page
+  and open its notebook (A3, A6 to A14); a Final Project proposal states its research question in
+  one sentence (Eric).
+- **Nov 2.** A14 due Fri Nov 13 at 11:59 pm, moved from Tue Nov 10 (Eric), so it overlaps the
+  first proposal presentations; students start at once, the A13 reverse model being optional.
+  Lecture 14's Mixture-of-Experts slides go to its hidden appendix (Eric). An assignment is
+  "released", not "set" (Eric). Every assignment states its research questions, on its Learning
+  Suite page and its deck slide, not only the experiments that answer them (Eric); A13 and A14
+  first.
 - **Oct 28.** Each lecture's outcomes are its objectives slide, one line each, worded "Explain
   ...", and the lecture's Learning Suite page lists the same words; the Lecture outcomes table
   above holds them for Lectures 13 to 19 (13 and 14 as taught or built; 15 to 19 drafts, refined
