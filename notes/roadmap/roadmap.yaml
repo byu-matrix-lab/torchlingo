@@ -386,12 +386,12 @@ lecture_outcomes:
   shown_by: A14
 - lecture: "15"
   topic: Speech translation
-  can: Explain how spoken language differs from the text MT is trained on; explain how cascade, agent
-    and speech-native designs differ; explain how a speech model turns sound into tokens.
+  can: Explain how spoken language differs from the text MT is trained on; explain when to choose among
+    four speech translation designs; explain how a learned codebook turns sound into tokens.
   shown_by: Quiz 15; the Final Project's Path B example (A15 dropped this term)
 - lecture: "16"
   topic: Automatic dubbing and live interpretation
-  can: "Explain what dubbing adds to translation: timing, length and voice; explain why live
+  can: "Explain what dubbing adds to translation: timing, length, and voice; explain why live
     interpretation trades quality for latency; explain how a simultaneous system decides when to
     start translating; explain how a live system uses a script, when it has one."
   shown_by: Quiz 16

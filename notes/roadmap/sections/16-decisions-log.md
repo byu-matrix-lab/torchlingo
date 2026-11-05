@@ -3,6 +3,10 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Nov 4.** Lecture 15, after it ran (Eric): a fourth speech translation design, the speech-to-text model (ASR and MT in
+  one model, then TTS), as in Whisper's translate task, SeamlessM4T, and Gemma 4's audio models. Its outcomes are now:
+  spoken language against text; when to choose among four speech translation designs; how a learned codebook turns
+  sound into tokens. Course text uses Oxford commas (Eric).
 - **Nov 3, later.** Lecture 15 splits in two (Eric): Lecture 15, Speech Translation (Nov 4), and a new
   Lecture 16, Automatic Dubbing and Live Interpretation (Nov 18), which also takes simultaneous MT
   from the multimodal lecture. Multimodal NMT and the report-writing session become Lecture 17
