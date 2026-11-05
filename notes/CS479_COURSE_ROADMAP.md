@@ -228,6 +228,7 @@ steps.
 | `lecture-12-llm-context` | in-context examples and what they buy, how many and which; then the sentence before, context for disambiguation, against a placebo pair | write split_pool_and_test and build_prompt (the method, each checked for sizes, reproducibility and contamination, and for the prompt's required contents, with and without the sentence before, its wording their own); predict the best context size and whether nearest examples beat random ones, then what the sentence before changes; reconcile both predictions with the results and the spread over three draws; find two of their own test sentences whose pronoun or term refers into the sentence before; upload the completed notebook | the LLM, three random draws and the nearest examples at each size, NLLB where it covers the language (Telugu), the sentence-before and placebo runs at k = 5 with the pronoun sentences marked, BLEU and chrF, the chart, the rerun record and the upload files | low |
 | `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help; how much of a change came from the data and how much from decoding; a difference tested, not only measured | extract monolingual text from their Church TM's unused segments, topped up from public text if short; choose their own reverse model or NLLB as back-translator, which back-translates by sampling (one retrain, Eric, Oct 22); write reverse and combine (the method, checked against known answers and the contamination check); state an "If ..., then ..." hypothesis and a prediction before retraining; say why sampling, from two of their own back-translated sentences; add Google back-translations to two helped and two hurt examples; upload the completed notebook | the reverse training (none with NLLB), the sampled back-translation with five greedy ones beside it, one retraining, A9 and A13 decoded greedily and with beam 5, BLEU, chrF, the paired bootstrap, COMET, the rerun record and the upload files | low |
 | `lecture-14-multilingual` | a language code tells one model which way to translate, and why that makes zero-shot possible; whether one shared model matches two one-way models, decoding held fixed and the difference tested; what fine-tuning a pretrained model buys over the same model off the shelf and over a model trained from scratch | choose their language's code (borrowing one, with a reason, if NLLB does not cover it); write tag and both_directions (checked on a known case, for intermingling, and by the contamination check in both languages); state an "If ..., then ..." hypothesis and a prediction, and set a step budget, before training; choose a third language for the zero-shot test; explain the code from the model's output under the wrong one; upload the completed notebook | NLLB off the shelf, the fine-tuning (torchlingo_harness.nllb.fine_tune), each direction decoded greedily and with beam 5 against NLLB off the shelf and its one-way model (A9; the A13 reverse model), BLEU, chrF, the paired bootstrap, COMET, the wrong-code and third-language outputs, the rerun record and the upload files | low |
+| `lecture-18-ibm-model-1` | how EM learns word alignments from sentence pairs alone; where attention agrees with such an alignment, where it differs, and why it needs no EM | predict what `house` translates to after one round of EM and why it is not yet sure; compare the two alignments row by row and say why they differ; if time, add a pair and see what moves | EM, written out as the lesson; the attention, teacher-forced through Lecture 8b's model and grouped from pieces to words | low |
 
 ### Where the line is crossed
 
@@ -471,6 +472,7 @@ Shurtz's phonetic transliteration for Thai, Lao and Khmer) and last year's Lectu
 problems; then, condensed, word alignment and how it relates to attention, and what NMT replaced
 from rule-based, example-based and phrase-based MT. A standalone earlier-methods lecture gave way
 to Lecture 16 (Eric, Nov 3). The Och and Ney and the phrase-based reading reports belong here.
+The in-class notebook runs IBM Model 1 and sets its alignment beside attention (Eric, Nov 5).
 
 ### 19. MT in Use: Applications, Jobs and Post-Editing (F2025 Lecture 22, with Lecture 18's post-editing; Mon Dec 7)
 Where MT is used, the industry and jobs; about 10 minutes from last year's Lecture 18 on
@@ -529,6 +531,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-13-back-translation` | 13 | homework | A13 | back-translation end to end, from the A9 files and the student's own monolingual text | no: colab, exercises |
 | `lecture-14-multilingual` | 14 | homework | A14 | NLLB-200 fine-tuned both ways on A9's split, against NLLB off the shelf and the student's own one-way models | no: colab, exercises |
 | `09-fine-tuning-nllb` | 14 | reading | FP | how much fine-tuning is enough and what it costs, on the student's A8 split, after A14 | no: colab, download, exercises |
+| `lecture-18-ibm-model-1` | 18 | activity | | IBM Model 1 by EM on thirteen English-Spanish pairs, its alignment set beside a Transformer's attention on the same pair | no: exercises |
 
 **Tutorial numbers** are in course order: 01 data, 02 evaluating, 03 checkpoints, 04 attention,
 05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search, 09 fine-tuning.
@@ -647,13 +650,12 @@ this repository's `notes/TASKS.md`.
 - **Lecture 6 is overloaded** and nothing has been done about it.
 - **Lecture 18 (research, open problems and earlier methods, since Nov 3) needs scoping**: word
   alignment and earlier methods condensed beside the lab's research, around the material now in
-  Lecture 5; it has no notebook.
+  Lecture 5. Its notebook is settled: IBM Model 1 in class, set beside attention (Eric, Nov 5).
 - **What Lectures 15 to 19 and the final project need from the repository**, held until Lectures
-  11 to 13 are done (Eric, Oct 19). None has a notebook, by design, but three may want code:
-  Lecture 19's post-editing segment measures normalized edit distance (a small notebook, or
-  TorchLingo's TER?); Lecture 18's IBM Model 1 worked by hand, set beside 8a's attention
-  alignment, once the lecture is rescoped; and a "starting a project from your own A9 or A14
-  model" page for the final projects, proposed Nov 16.
+  11 to 13 are done (Eric, Oct 19). Two may still want code: Lecture 19's post-editing segment
+  measures normalized edit distance (a small notebook, or TorchLingo's TER?); and a "starting a
+  project from your own A9 or A14 model" page for the final projects, proposed Nov 16. Lecture
+  18's IBM Model 1 is built (`lecture-18-ibm-model-1`).
 - **Do lectures after 12 have students prompt an LLM?** Eric, Oct 19: "almost certainly yes", to
   be confirmed against these scope notes. If a second notebook does, A12's prompting code becomes
   a TorchLingo helper; until then it stays in A12's notebook.
@@ -669,6 +671,9 @@ this repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Nov 5.** Lecture 18 gets a notebook (Eric): IBM Model 1 by EM on a dozen English-Spanish
+  pairs, set beside a Transformer's attention on the same pair; in class, about 10 minutes, run
+  together, no points.
 - **Nov 4.** Lecture 15, after it ran (Eric): a fourth speech translation design, the
   speech-to-text model (ASR and MT in one model, then TTS), as in Whisper's translate task,
   SeamlessM4T, and Gemma 4's audio models. Its outcomes are now: spoken language against text;
@@ -1025,7 +1030,7 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 15 | Speech Translation | — | — |
 | 16 | Automatic Dubbing and Live Interpretation | — | — |
 | 17 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | — | — |
-| 18 | Research in the MATRIX Lab, Open Problems, and What Earlier MT Methods Teach | — | — |
+| 18 | Research in the MATRIX Lab, Open Problems, and What Earlier MT Methods Teach | `lecture-18-ibm-model-1` (activity) [20] | — |
 | 19 | MT in Use: Applications, Jobs and Post-Editing | — | — |
 
 Notes on the rows that are not simple:
@@ -1225,6 +1230,20 @@ Notes on the rows that are not simple:
   is uploaded. Tutorial 9, after it, asks how much fine-tuning is enough and what it
   costs. Needs a GPU with more memory than a T4, and Drive, so CI does not execute it;
   tests/test_lecture_14.py runs its cells with NLLB and COMET stubbed.
+- [20] **`lecture-18-ibm-model-1`** — Lecture 18's in-class activity, about ten minutes,
+  run together, no points (Eric, Nov 5). IBM Model 1 by EM on thirteen English-Spanish
+  noun phrases chosen so that counting has something to resolve: house co-occurs with la
+  nearly as often as with casa, and la also appears with door. The EM round is written
+  out, about fifteen lines, since it is the lesson. The student predicts what house
+  translates to after one round, which stops the notebook while empty; ten rounds settle
+  every noun and leave the and red split by gender. Model 1's alignment of the red car /
+  el coche rojo is set beside Lecture 8b's Transformer's last-layer cross-attention on The
+  red car. / El coche rojo., teacher-forced and grouped from pieces to words: both put el
+  on the, Model 1 keeping a share for car, and attention spreads coche and rojo over red
+  car where Model 1 is sure. The reading explains why attention needs no EM: no hidden
+  alignment, weights differentiable and trained by the translation loss. An optional last
+  step adds a pair (the boy / el niño) and reruns. tests/test_lecture_18.py runs it with
+  the prediction written in.
 
 <!-- END generated:notebook-map -->
 

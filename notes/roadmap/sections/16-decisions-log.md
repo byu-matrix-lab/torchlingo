@@ -3,6 +3,9 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Nov 5.** Lecture 18 gets a notebook (Eric): IBM Model 1 by EM on a dozen English-Spanish
+  pairs, set beside a Transformer's attention on the same pair; in class, about 10 minutes, run
+  together, no points.
 - **Nov 4.** Lecture 15, after it ran (Eric): a fourth speech translation design, the
   speech-to-text model (ASR and MT in one model, then TTS), as in Whisper's translate task,
   SeamlessM4T, and Gemma 4's audio models. Its outcomes are now: spoken language against text;
