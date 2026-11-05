@@ -11,7 +11,7 @@ task list", with every other standing rule. What was done, and when, is in git a
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
 | #279 | **P1** | One Colab L4 run of the rebuilt A14 before it opens | **14+** | Open — Eric's condition for the go (Oct 25): Eric or Coulson runs `lecture-14-multilingual` once on an L4 on a real A8 language, before A14 opens at Lecture 14 (its window may now overlap A13's, Oct 26). Postponed to Mon Oct 26 (Eric). The Colab install-only check passed on the promoted notebook (Oct 25), so the install cells are known good; the bfloat16 path, L4 memory, the download and the real step time are not (this Mac's GPU, float32: about 3 to 7 s a step). Coulson runs it this week (Eric, Oct 28). A14 opened Nov 2 without it; Coulson is running it now (Eric, Nov 3), so whatever it finds is fixed while students are in A14. Open: whose A9 files: a student-like `MyDrive/CS479/assignment8`, or a test folder built from the course's German split with a correctly sized A9 model. Fix whatever it finds before A14 opens |
-| #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it) |
+| #180 | **P2** | Nothing catches a notebook whose Colab badge cannot install TorchLingo | **hyg** | Open — a per-PR check in `notebook_meta.py` (Eric, Sep 29: keep it). Not covered by Task #273's install check in `merge_check.sh`, which skips a notebook with no install cell, the very case this catches |
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
 | #243 | **P2** | An architectural review of TorchLingo, pedagogy first | **lib** | Open — a review, reported before any change (Eric, Oct 14) |
 | #291 | **P3** | NLLB plumbing through the accessory | **lib** | Open — A12's cell 20 reloads NLLB and decodes greedily by hand where `load_nllb` does it; Tutorial 9's cell 14 resumes decodes by hand where `translate_lines_to_file` does it |
@@ -216,10 +216,15 @@ day by the first student-path run (fixed in PR #192). Every CI gate passed both 
 runs against the repository's own editable install. `CLAUDE.md` now makes Run-all-from-the-badge
 part of "self-contained", and nothing checks it.
 
-**The weekly run is not enough, and the check is not redundant with it.** `student_path.yml`
-(`execute_notebooks.py --as-student`) would catch this, since tutorial 6 declares no requirements,
-but it runs on Mondays and on release tags, so it reports only after the defect has merged, and it
-had not yet run at all when this was found. A static check blocks the PR.
+**The student-path runs are not enough, and the check is not redundant with them.**
+`student_path.yml` (`execute_notebooks.py --as-student`) would catch this, since tutorial 6
+declares no requirements, but it runs on each push to `course` and on Mondays, so it reports only
+after the defect has reached students. A static check blocks the PR.
+
+**Nor does Task #273's check cover it** (PR #375, Nov 4). `merge_check.sh` runs
+`student_path.sh --colab --install-only` only on changed notebooks that *have* an install cell,
+and `--install-only` itself reports SKIP for one without. That check proves an install cell
+works; this one proves a badged notebook has one. Together they cover the install before merge.
 
 **Extend `hygiene()` in `notebook_meta.py`**, no new tool: a notebook with a Colab badge that
 imports `torchlingo` must have a code cell installing it (the standard install cell `CLAUDE.md`
