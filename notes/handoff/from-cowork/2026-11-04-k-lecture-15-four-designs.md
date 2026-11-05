@@ -4,7 +4,7 @@ From the Cowork session, 2026-11-04, last updated 20:30. Baton to the repository
 
 ## Where the changes are
 
-Committed and pushed by the Cowork session on branch **`cowork/2026-11-04-k-lecture-15-four-designs`**, one commit on `main` at b0988f8 (PR #372). Eric, Nov 4: *the Cowork session may commit in torchlingo while it holds the baton; the repository session still opens and manages the pull request.* Please record that in `CLAUDE.md` under "Handing the baton" (Cowork commits on a `cowork/` branch based on `main`, never on `main`, and does not open or merge PRs).
+Committed and pushed by the Cowork session on branch **`cowork/2026-11-04-k-lecture-15-four-designs`**, two commits based on `main` at b0988f8 (PR #372). Eric, Nov 4: *the Cowork session may commit in torchlingo while it holds the baton; the repository session still opens and manages the pull request.* Please record that in `CLAUDE.md` under "Handing the baton" (Cowork commits on a `cowork/` branch based on `main`, never on `main`, and does not open or merge PRs).
 
 The same four files are also copied, uncommitted, into your working tree on `main`, so this hand-off is where you look for it. They are identical to the branch. Either open the PR from the branch and then discard the working-tree copies (`git checkout -- notes/` and remove the untracked hand-off), or commit the working-tree copies on a branch of your own and delete `cowork/2026-11-04-k-lecture-15-four-designs`. Asked of you: land it, then reconcile `notes/TASKS.md` against this hand-off and say which tasks moved.
 
