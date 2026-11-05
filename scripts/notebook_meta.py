@@ -76,6 +76,7 @@ COURSE = Path("docs/docs/course")
 BEGIN = "<!-- BEGIN generated:notebook-map -->"
 END = "<!-- END generated:notebook-map -->"
 
+
 # Plain "[N]" rather than Markdown footnote syntax. `[^1]` needs the footnotes extension,
 # which docs/mkdocs.yml does not enable, and the roadmap is also read as plain text in a
 # terminal -- where a footnote reference that never resolves is just noise. Superscripts
@@ -419,7 +420,9 @@ def redirect_problems(path: Path) -> list[str]:
     target = meta.get("redirect", "")
     found = []
     if set(meta) != {"redirect"}:
-        found.append(f"{path}: a redirect stub's torchlingo block holds only 'redirect'")
+        found.append(
+            f"{path}: a redirect stub's torchlingo block holds only 'redirect'"
+        )
     dest = path.parent / target
     if not target or not dest.exists():
         found.append(f"{path}: redirects to {target!r}, which does not exist")
@@ -577,6 +580,34 @@ def _cell_parses(cell: dict) -> bool:
     return True
 
 
+TORCHLINGO_IMPORT = re.compile(r"^\s*(?:from\s+torchlingo\b|import\s+torchlingo\b)")
+
+
+def _import_before_install(cells: list) -> int | None:
+    """Find a torchlingo import that no earlier line installs it for.
+
+    Lines are read in order across the code cells, so the standard install cell, which ends
+    with ``import torchlingo`` after its ``%pip`` lines, passes. An install is any line with
+    ``pip install`` and ``torchlingo`` on it, a magic or not.
+
+    Args:
+        cells (list): The notebook's nbformat cells.
+
+    Returns:
+        int | None: The index of the cell holding the first torchlingo import when no
+        install line precedes it; None when one does, or nothing imports torchlingo.
+    """
+    for index, cell in enumerate(cells):
+        if cell.get("cell_type") != "code":
+            continue
+        for line in "".join(cell.get("source") or []).splitlines():
+            if "pip install" in line and "torchlingo" in line:
+                return None
+            if TORCHLINGO_IMPORT.match(line):
+                return index
+    return None
+
+
 def canonical_text(text: str) -> str:
     """Return a notebook's JSON in the one form every notebook here is stored in.
 
@@ -714,6 +745,21 @@ def hygiene(path: Path) -> list[str]:
         found.append(
             f"{path}: no Colab badge, and students open course notebooks in Colab"
         )
+
+    # A badge promises Run all in a fresh Colab runtime, which has no TorchLingo, so a badged
+    # notebook that imports it must install it first (Task #180). Tutorial 6 before PR #184
+    # and tutorial 7 before PR #192 had a badge and no install cell, and Run all stopped at the
+    # first import; every CI gate passed, since CI runs against the editable install.
+    # merge_check.sh's install check cannot see this either: it skips a notebook with no
+    # install cell.
+    if "colab.research.google.com" in text:
+        missing = _import_before_install(cells)
+        if missing is not None:
+            found.append(
+                f"{path}: code cell {missing} imports torchlingo with no install before it, "
+                "so Run all from the Colab badge stops there. Open with the standard "
+                "install cell (CLAUDE.md; copy tutorial 3's first two code cells)."
+            )
 
     # A GPU runtime left idle spends the student's Colab quota, so every GPU notebook says
     # how to give it back: Runtime -> Disconnect and delete runtime (Eric, 2026-10-13).

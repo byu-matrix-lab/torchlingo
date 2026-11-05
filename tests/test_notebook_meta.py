@@ -1067,6 +1067,92 @@ class TestNotebookHygiene(unittest.TestCase):
         )
         self.assertTrue(any("Colab badge" in c for c in self.check(text=text)))
 
+    def historical(self, commit, path):
+        """A notebook as it was at a commit, or skip when this clone lacks the history."""
+        result = subprocess.run(
+            ["git", "show", f"{commit}:{path}"],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            self.skipTest(f"{commit} is not in this clone (a shallow checkout?)")
+        return result.stdout
+
+    def test_tutorial_6_before_PR_184_is_caught(self):
+        """Task #180's first case: a badge, no install cell, Run all stops at the import."""
+        text = self.historical(
+            "9dbebda^", "docs/docs/tutorials/06-diagnosing-failures.ipynb"
+        )
+        found = self.check(text=text, name="06-diagnosing-failures.ipynb")
+        self.assertTrue(any("no install before it" in c for c in found), found)
+
+    def test_tutorial_7_before_PR_192_is_caught(self):
+        """Task #180's second case, found by the first student-path run."""
+        text = self.historical(
+            "49fcafc^", "docs/docs/tutorials/07-evaluating-translations.ipynb"
+        )
+        found = self.check(text=text, name="07-evaluating-translations.ipynb")
+        self.assertTrue(
+            any("code cell 3 imports torchlingo" in c for c in found), found
+        )
+
+    def test_a_badged_import_with_no_install_is_caught(self):
+        nb = {
+            "cells": [
+                {"cell_type": "markdown", "source": ["colab.research.google.com\n"]},
+                {"cell_type": "code", "source": ["from torchlingo import Config\n"]},
+            ]
+        }
+        found = self.check(nb, name="t.ipynb")
+        self.assertTrue(
+            any("code cell 1 imports torchlingo" in c for c in found), found
+        )
+
+    def test_the_standard_install_cell_passes_its_own_import(self):
+        """The install cell ends with `import torchlingo`, after its `%pip` lines."""
+        nb = {
+            "cells": [
+                {"cell_type": "markdown", "source": ["colab.research.google.com\n"]},
+                {
+                    "cell_type": "code",
+                    "source": [
+                        "if IN_COLAB:\n",
+                        '    %pip install "torchlingo @ git+https://x/torchlingo@course"\n',
+                        "import torchlingo\n",
+                    ],
+                },
+            ]
+        }
+        found = self.check(nb, name="t.ipynb")
+        self.assertFalse(any("imports torchlingo" in c for c in found), found)
+
+    def test_an_install_after_the_import_does_not_count(self):
+        nb = {
+            "cells": [
+                {"cell_type": "markdown", "source": ["colab.research.google.com\n"]},
+                {"cell_type": "code", "source": ["import torchlingo.models\n"]},
+                {"cell_type": "code", "source": ["%pip install torchlingo\n"]},
+            ]
+        }
+        found = self.check(nb, name="t.ipynb")
+        self.assertTrue(
+            any("code cell 1 imports torchlingo" in c for c in found), found
+        )
+
+    def test_a_notebook_with_no_badge_or_no_torchlingo_is_exempt(self):
+        no_badge = {"cells": [{"cell_type": "code", "source": ["import torchlingo\n"]}]}
+        own_packages = {
+            "cells": [
+                {"cell_type": "markdown", "source": ["colab.research.google.com\n"]},
+                {"cell_type": "code", "source": ["import gensim\n"]},
+            ]
+        }
+        for nb in (no_badge, own_packages):
+            found = self.check(nb, name="t.ipynb")
+            self.assertFalse(any("imports torchlingo" in c for c in found), found)
+
     def test_invalid_json_is_reported_once_and_clearly(self):
         found = self.check(text="{ not json")
         self.assertEqual(len(found), 1)
