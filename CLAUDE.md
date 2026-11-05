@@ -259,10 +259,12 @@ Neither side owns a notebook: whoever holds the baton edits, and the hand-off sa
 and what is asked of the other side. What each brings differs. Cowork knows the decks, Learning
 Suite, the assignment texts and the course folder's data; this side knows the library and can
 run and test the notebooks. So a notebook built here asks Cowork for what only the course side
-knows, and one Cowork edits is reviewed here against the library. Cowork does **not** run git:
-committing, the checks, the nav entry, the pull request and promotion to `course` happen here.
-Each side goes as far as it can before handing off; see "Handing the baton".
+knows, and one Cowork edits is reviewed here against the library. Cowork may commit, on a
+`cowork/` branch only (see "Handing the baton"); the checks, the nav entry, the pull request and
+promotion to `course` happen here. Each side goes as far as it can before handing off.
 
+- **Course text uses Oxford commas** (Eric, 2026-11-04): "A, B, and C", in notebooks, READMEs
+  and course notes as in the decks and on Learning Suite. Fix a list you touch; no sweep.
 - **Instructor notebooks never go public.** Lectures 3 and 4 have separate INSTRUCTOR notebooks
   carrying worked solutions. They stay out of this tree.
 - **Editing a notebook here does not disturb a live assignment.** Eric, 2026-09-27: students work
@@ -549,7 +551,7 @@ Two Claude sessions work on CS 479: this one, in the repository, and a Cowork se
 the course decks. They cannot message each other, so `notes/handoff/` is the channel. The protocol
 — which file is the mailbox, how entries are written — is in `notes/README.md`.
 
-Three rules belong here rather than there.
+Four rules belong here rather than there.
 
 **First: go as far as you can before handing off.** Eric, 2026-10-13: *"Each agent should go as
 far as it can before handing off so that the number of hand-offs are minimized for any given
@@ -590,3 +592,12 @@ week by the same route, including a Lecture 6 split that was ours to do and had 
 
 So: **read the last replies against your own open questions, close what was answered, and only
 then carry forward what genuinely was not.**
+
+**Fourth: Cowork commits on a `cowork/` branch, and this side lands it.** Eric, 2026-11-04:
+*the Cowork session may commit in torchlingo while it holds the baton; the repository session
+still opens and manages the pull request.* So Cowork commits on a branch named
+`cowork/YYYY-MM-DD-slug`, based on `main` and pushed, never on `main` itself, and does not open
+or merge pull requests. On receiving the baton, this side reviews that branch, adds its own
+fixes and its reply on a branch from it, opens the PR, lands it, and deletes the `cowork/`
+branch. Cowork may also leave the same files uncommitted in the main checkout; once the PR
+holds them, stash those copies (`git stash -u`) rather than committing them a second time.
