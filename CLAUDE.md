@@ -238,8 +238,9 @@ grown a `--doctest-modules` gate its new module failed — merging would have tu
 
 **Before merging any PR more than a few days old**, merge `main` into it and let CI re-run, or
 build the merge result locally: **`scripts/merge_check.sh PR`** does the latter in a scratch
-worktree and runs preflight on it, ending `CLEAN`, `CONFLICT` (with the files) or
-`PREFLIGHT-FAIL`. When several PRs merge in a row, run it on each just before merging, against
+worktree and runs preflight on it, then the install check below on each notebook the PR changes
+that has an install cell, ending `CLEAN`, `CONFLICT` (with the files), `PREFLIGHT-FAIL` or
+`STUDENT-FAIL`. When several PRs merge in a row, run it on each just before merging, against
 the `main` the previous merge left: on 2026-10-14 that caught a generated-roadmap conflict and a
 `CHANGELOG.md` conflict, each one merge after its PR's own CI had gone green.
 
@@ -438,7 +439,11 @@ packages Colab ships that an install can collide with, read fresh from googlecol
 covers notebooks a full run skips, A10, A11 and A13 among them. It fails if an install replaces
 Colab's numpy or torch, and lists everything else it replaced. In October 2026 a COMET install
 downgraded numpy and broke Colab for students, while a laptop's plain student path passed it.
-The workflow runs this on every notebook too, in a second job.
+The workflow runs this on every notebook too, in a second job, but only once `course` has it.
+So `merge_check.sh`, and with it `land_pr.sh`, runs it before the merge as well, on each
+notebook the PR adds or changes that has an install cell, about 35 s apiece (Task #273: PR
+#329's COMET cell broke this way and was caught only on `course`). It installs what the cell
+names, TorchLingo from `course`, so it checks a notebook's install, not the PR's library code.
 
 **After editing a notebook, by any tool, run `python scripts/notebook_meta.py --normalize
 NOTEBOOK`.** Every notebook is stored in one form: literal UTF-8, one-space indent, a final

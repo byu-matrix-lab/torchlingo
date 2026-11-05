@@ -21,33 +21,47 @@
 # that need LFS data skip exactly as they do there. Preflight itself makes the scratch tree
 # test its own src/, not the main checkout's installed copy.
 #
+# THE INSTALL CHECK. When preflight passes, every notebook the PR adds or changes that has an
+# install cell then runs through `student_path.sh --colab --install-only`, from the merged tree,
+# each in an environment of its own (a shared environment exercises only the first install).
+# PR #329's COMET cell read a helper defined in the setup cell, and that check caught it only
+# after promotion, on `course` 6405a02 (fixed in PR #331): student_path.yml runs it on `course`,
+# which is too late. Task #273. About 35 s a notebook; it needs uv and the network. What it
+# installs is what the install cell names, torchlingo from `course`, not the PR's own library
+# code: it checks a notebook's install cells and imports, not a library change.
+#
 # Usage:
-#   scripts/merge_check.sh PR            preflight on PR merged with its base
-#   scripts/merge_check.sh PR --all      ... including notebook execution (minutes)
-#   scripts/merge_check.sh PR --keep     ... and keep the scratch worktree afterwards
+#   scripts/merge_check.sh PR              preflight on PR merged with its base, then the
+#                                          install check on the notebooks the PR changes
+#   scripts/merge_check.sh PR --all        ... with notebook execution in preflight (minutes)
+#   scripts/merge_check.sh PR --keep       ... and keep the scratch worktree afterwards
+#   scripts/merge_check.sh PR --no-student ... skipping the install check, e.g. with no uv
 #
 # Exit status, and the last line printed:
-#   0  CLEAN           merges without conflict and passes preflight
+#   0  CLEAN           merges without conflict, passes preflight and the install check
 #   1  PREFLIGHT-FAIL  merges, but preflight fails on the result (the log says where)
 #   2  CONFLICT        does not merge; the conflicting files are listed
 #   3  ERROR           bad arguments, or the PR or its base could not be fetched
+#   4  STUDENT-FAIL    passes preflight, but a changed notebook's install check fails
 #
 # Nothing is pushed and no branch is created: the merge exists only in the scratch worktree,
 # which is removed at the end unless --keep is given or the removal fails. The log is kept.
 set -uo pipefail
 
 usage() {
-  echo "usage: scripts/merge_check.sh PR [--all] [--keep]   (see the header for more)" >&2
+  echo "usage: scripts/merge_check.sh PR [--all] [--keep] [--no-student]   (see the header for more)" >&2
   exit 3
 }
 
 PR=""
 PREFLIGHT_ARGS=()
 KEEP=0
+STUDENT=1
 for arg in "$@"; do
   case "$arg" in
     --all) PREFLIGHT_ARGS+=("--all") ;;
     --keep) KEEP=1 ;;
+    --no-student) STUDENT=0 ;;
     -h | --help) usage ;;
     *[!0-9]*) echo "not a PR number: $arg" >&2; usage ;;
     *) PR="$arg" ;;
@@ -119,11 +133,46 @@ fi
 scripts/preflight.sh ${PREFLIGHT_ARGS[@]+"${PREFLIGHT_ARGS[@]}"} > "$LOG" 2>&1
 STATUS=$?
 grep -E '^  [a-z]' "$LOG"
+if [[ $STATUS -ne 0 ]]; then
+  cd "$REPO_ROOT" && cleanup
+  echo "log: $LOG"
+  echo "PREFLIGHT-FAIL"
+  exit 1
+fi
+
+# The install check (see the header): only notebooks the PR itself adds or changes, and only
+# those with an install cell, since student_path.sh skips the rest after building each an
+# environment.
+STUDENT_STATUS=0
+if [[ $STUDENT -eq 1 ]]; then
+  NOTEBOOKS=()
+  while IFS= read -r nb; do
+    grep -q 'pip install' "$nb" && NOTEBOOKS+=("$nb")
+  done < <(git diff --name-only --diff-filter=ACMR "$BASE_SHA...$HEAD_SHA" -- '*.ipynb')
+  if [[ ${#NOTEBOOKS[@]} -eq 0 ]]; then
+    echo "  install check     none: no notebook the PR changes has an install cell"
+  elif ! command -v uv >/dev/null; then
+    echo "  install check     needs uv; install it, or pass --no-student to skip the check"
+    STUDENT_STATUS=1
+  else
+    for nb in "${NOTEBOOKS[@]}"; do
+      STUDENT_LOG="$SCRATCH/student-$(basename "$nb" .ipynb).log"
+      if STUDENT_DIR="$SCRATCH/student-$(basename "$nb" .ipynb)" \
+        scripts/student_path.sh --colab --install-only "$nb" > "$STUDENT_LOG" 2>&1; then
+        echo "  install check     ok    $nb"
+      else
+        echo "  install check     FAIL  $nb  (log: $STUDENT_LOG)"
+        STUDENT_STATUS=1
+      fi
+    done
+  fi
+fi
+
 cd "$REPO_ROOT" && cleanup
 echo "log: $LOG"
-if [[ $STATUS -eq 0 ]]; then
-  echo "CLEAN"
-  exit 0
+if [[ $STUDENT_STATUS -ne 0 ]]; then
+  echo "STUDENT-FAIL"
+  exit 4
 fi
-echo "PREFLIGHT-FAIL"
-exit 1
+echo "CLEAN"
+exit 0
