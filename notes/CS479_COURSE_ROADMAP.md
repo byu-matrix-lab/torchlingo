@@ -188,8 +188,8 @@ the scope notes below carry the content, this carries the point.
 | 12 | LLMs for MT; context | Prompt a decoder-only model to translate a low-resource language from a few example pairs, with no training; measure how much random and nearest examples improve translation, and tell a real difference from the spread between random draws; explain how examples in the prompt help or hurt when the model's weights never change, and what sentence-by-sentence translation cannot fix; give the model the sentence before, with its translation, and measure whether it resolves a pronoun or a repeated term the sentence alone leaves ambiguous, and why a score over the whole test set can miss it. | A12 chart and analysis |
 | 13 | Low-resource strategies | Explain what makes a language qualify as low-resource; explain how back-translation turns target-side text into training pairs; explain sampling, and when it makes better back-translations than beam; name three other ways to augment scarce data; explain how Assignment 13 separates the effect of data from that of decoding. | A13 |
 | 14 | Multilingual and zero-shot | Explain how a tag tells one model which language to write; explain why a tagged model can translate pairs it never trained on; explain how a low-resource language borrows from related ones in one model; explain when fine-tuning a pretrained model beats training from scratch; explain how Assignment 14 compares one two-way and two one-way models. | A14 |
-| 15 | Speech translation | Explain how spoken language differs from the text MT is trained on; explain how cascade, agent and speech-native designs differ; explain how a speech model turns sound into tokens. | Quiz 15; the Final Project's Path B example (A15 dropped this term) |
-| 16 | Automatic dubbing and live interpretation | Explain what dubbing adds to translation: timing, length and voice; explain why live interpretation trades quality for latency; explain how a simultaneous system decides when to start translating; explain how a live system uses a script, when it has one. | Quiz 16 |
+| 15 | Speech translation | Explain how spoken language differs from the text MT is trained on; explain when to choose among four speech translation designs; explain how a learned codebook turns sound into tokens. | Quiz 15; the Final Project's Path B example (A15 dropped this term) |
+| 16 | Automatic dubbing and live interpretation | Explain what dubbing adds to translation: timing, length, and voice; explain why live interpretation trades quality for latency; explain how a simultaneous system decides when to start translating; explain how a live system uses a script, when it has one. | Quiz 16 |
 | 17 | Multimodal NMT; writing the report | Explain when an image helps translation, and how to test that it did; explain what an ablation with the wrong image, or none, shows; explain what each section of the ACL-style report must show. | Quiz 17; the Final Project's written report |
 | 18 | Research, open problems and earlier methods | Explain an open problem in MT and the kind of work it needs; explain how one MATRIX Lab project frames and tests its question; explain how word alignments relate to attention in NMT; explain what NMT replaced from earlier methods, and what it kept. | Quiz 18 |
 | 19 | MT in use | Explain where MT is used and what work it creates; explain how edit distance measures post-editing effort; explain when post-editing helps a translator, and when it does not. | class discussion; edit distance available as a Final Project measure |
@@ -669,6 +669,11 @@ this repository's `notes/TASKS.md`.
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Nov 4.** Lecture 15, after it ran (Eric): a fourth speech translation design, the
+  speech-to-text model (ASR and MT in one model, then TTS), as in Whisper's translate task,
+  SeamlessM4T, and Gemma 4's audio models. Its outcomes are now: spoken language against text;
+  when to choose among four speech translation designs; how a learned codebook turns sound into
+  tokens. Course text uses Oxford commas (Eric).
 - **Nov 3, later.** Lecture 15 splits in two (Eric): Lecture 15, Speech Translation (Nov 4), and a new
   Lecture 16, Automatic Dubbing and Live Interpretation (Nov 18), which also takes simultaneous MT
   from the multimodal lecture. Multimodal NMT and the report-writing session become Lecture 17
