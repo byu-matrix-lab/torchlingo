@@ -25,6 +25,8 @@
 #   scripts/land_pr.sh PR --admin [--promote] merge with --admin, past required reviews
 #   scripts/land_pr.sh PR PR ... [flags]      several, in the order given; --promote applies
 #                                             to the last only
+#   scripts/land_pr.sh PR --cowork-branch=cowork/DATE-SLUG  ... and delete the branch it was
+#                                             built from, if it carried all of that branch
 #
 # --admin is passed only on Eric's explicit OK for that PR, or for a PR that touches only
 # notes/ (CLAUDE.md memory: notes-only PRs may self-merge). This script never decides that.
@@ -50,7 +52,7 @@ set -uo pipefail
 REPO="byu-matrix-lab/torchlingo"
 
 usage() {
-  echo "usage: scripts/land_pr.sh PR [PR ...] [--admin] [--promote [--no-wait]]   (see the header for more)" >&2
+  echo "usage: scripts/land_pr.sh PR [PR ...] [--admin] [--promote [--no-wait]] [--cowork-branch=BRANCH]   (see the header for more)" >&2
   exit 2
 }
 
@@ -58,11 +60,14 @@ PRS=()
 ADMIN=""   # a flag, not an array: an empty array is "unbound" under set -u in macOS's bash 3.2
 PROMOTE=0
 WAIT=1
+COWORK=""
 for arg in "$@"; do
   case "$arg" in
     --admin) ADMIN="--admin" ;;
     --promote) PROMOTE=1 ;;
     --no-wait) WAIT=0 ;;
+    --cowork-branch=cowork/*) COWORK="${arg#--cowork-branch=}" ;;
+    --cowork-branch=*) echo "not a cowork/ branch: ${arg#--cowork-branch=}" >&2; usage ;;
     -h | --help) usage ;;
     *[!0-9]*) echo "not a PR number: $arg" >&2; usage ;;
     *) PRS+=("$arg") ;;
@@ -70,6 +75,7 @@ for arg in "$@"; do
 done
 [[ ${#PRS[@]} -gt 0 ]] || usage
 [[ $WAIT -eq 1 || $PROMOTE -eq 1 ]] || { echo "--no-wait goes with --promote" >&2; usage; }
+[[ -z "$COWORK" || ${#PRS[@]} -eq 1 ]] || { echo "--cowork-branch goes with one PR" >&2; usage; }
 
 # The main checkout, wherever this was started: a worktree's common git dir is the main one's.
 MAIN="$(cd "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")" && pwd)" || exit 2
@@ -195,6 +201,19 @@ else
     else
       step "    origin/$branch was not deleted (already gone?); see the log"
     fi
+  fi
+fi
+
+# The cowork/ branch a PR was built from (CLAUDE.md, the fourth baton rule). A squash leaves it no
+# ancestor of main, so the test is the PR's head: if that contains the branch's tip, everything
+# on the branch went through this PR. Anything pushed since keeps it.
+if [[ -n "$COWORK" ]]; then
+  if ! git fetch --quiet origin "refs/heads/$COWORK:refs/remotes/origin/$COWORK" 2>>"$LOG"; then
+    step "    origin/$COWORK not found; nothing to delete"
+  elif git merge-base --is-ancestor "origin/$COWORK" "$head_sha"; then
+    git push --quiet origin --delete "$COWORK" 2>>"$LOG" && step "    deleted origin/$COWORK"
+  else
+    step "    origin/$COWORK kept: it has commits PR #$PR did not carry"
   fi
 fi
 

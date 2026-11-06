@@ -30,7 +30,9 @@
 # TorchLingo from the merged commit, not from `course`, so one PR can carry a library change and
 # the notebook that uses it. Until Task #311 it installed from `course`, and A14's COMET fix took
 # two PRs and two landings, the function first and the notebook after its promotion.
-# student_path.yml still tests what `course` serves.
+# student_path.yml still tests what `course` serves. A PR changing src/ also checks up to six
+# notebooks that import a changed module (Task #325), so a library-only PR does not first meet
+# them on `course`.
 #
 # SKIPPING WHAT ALREADY PASSED. Preflight, and each notebook's install check, are skipped if
 # this exact tree passed them within six hours (scripts/tree_passes.sh). That covers running
@@ -68,6 +70,7 @@ PREFLIGHT_KIND=preflight
 KEEP=0
 STUDENT=1
 FRESH=0
+MAX_USING_NOTEBOOKS=6   # about a minute each
 for arg in "$@"; do
   case "$arg" in
     --all) PREFLIGHT_ARGS+=("--all"); PREFLIGHT_KIND=preflight-all ;;
@@ -192,6 +195,29 @@ if [[ $STUDENT -eq 1 ]]; then
   while IFS= read -r nb; do
     grep -q 'pip install' "$nb" && NOTEBOOKS+=("$nb")
   done < <(git diff --name-only --diff-filter=ACMR "$BASE_SHA...$HEAD_SHA" -- '*.ipynb')
+  # A library change also meets the notebooks that import it, up to a cap, so a landing stays
+  # minutes. `course` still tests every notebook after promotion.
+  CHANGED_SRC=()
+  while IFS= read -r file; do
+    CHANGED_SRC+=("$file")
+  done < <(git diff --name-only --diff-filter=ACMR "$BASE_SHA...$HEAD_SHA" -- src)
+  if [[ ${#CHANGED_SRC[@]} -gt 0 ]]; then
+    PYTHON="$REPO_ROOT/.venv/bin/python"
+    [[ -x "$PYTHON" ]] || PYTHON="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)/.venv/bin/python"
+    ADDED=0
+    PASSED_CAP=0
+    while IFS= read -r nb; do
+      [[ " ${NOTEBOOKS[*]-} " == *" $nb "* ]] && continue
+      if [[ $ADDED -lt $MAX_USING_NOTEBOOKS ]]; then
+        NOTEBOOKS+=("$nb")
+        ADDED=$((ADDED + 1))
+      else
+        PASSED_CAP=$((PASSED_CAP + 1))
+      fi
+    done < <("$PYTHON" scripts/notebook_meta.py --using "${CHANGED_SRC[@]}")
+    [[ $ADDED -gt 0 ]] && echo "  install check     also $ADDED that import the changed library code"
+    [[ $PASSED_CAP -gt 0 ]] && echo "  install check     $PASSED_CAP more left to the run on course"
+  fi
   if [[ ${#NOTEBOOKS[@]} -eq 0 ]]; then
     echo "  install check     none: no notebook the PR changes has an install cell"
   elif ! command -v uv >/dev/null; then
