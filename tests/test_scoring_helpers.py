@@ -23,6 +23,7 @@ from torchlingo import evaluation
 from torchlingo.evaluation import (
     CometScores,
     comet_score,
+    comet_score_records,
     comet_scores_in_new_process,
     compute_bleu,
     compute_chrf,
@@ -210,6 +211,44 @@ class TestCometScoresInNewProcess(unittest.TestCase):
             comet_scores_in_new_process({"A14": (["s1", "s2"], ["a"], ["a", "b"])})
         popen.assert_not_called()
         self.assertIn("A14", str(refused.exception))
+
+
+class TestCometScoreRecords(unittest.TestCase):
+    def test_a_record_needs_no_reference(self):
+        # What COMETKiwi takes, and comet_score cannot give it.
+        got = comet_score_records([{"src": "s", "mt": "a"}], model=KiwiStub(), gpus=0)
+        self.assertEqual(got, CometScores(0.5, [0.5]))
+
+    def test_an_unaccepted_license_says_what_to_do(self):
+        def refuse(name):
+            raise KeyError("not supported by COMET")
+
+        fake = types.ModuleType("comet")
+        fake.download_model, fake.load_from_checkpoint = refuse, mock.Mock()
+        with (
+            mock.patch.dict(sys.modules, {"comet": fake}),
+            mock.patch.dict(evaluation._comet_models, clear=True),
+            self.assertRaises(RuntimeError) as stopped,
+        ):
+            comet_score_records([{"src": "s", "mt": "a"}], "Unbabel/some-model")
+        self.assertIn("has not accepted its license", str(stopped.exception))
+        self.assertIn("huggingface.co/Unbabel/some-model", str(stopped.exception))
+
+
+class KiwiStub:
+    """A reference-free model: it fails on a record that carries a reference."""
+
+    def predict(self, records, **options):
+        assert all("ref" not in record for record in records)
+        return types.SimpleNamespace(scores=[0.5], system_score=0.5)
+
+
+class TestBleuHelpers(unittest.TestCase):
+    def test_the_tokenizer_and_its_name_go_together(self):
+        self.assertEqual(evaluation.bleu_tokenizer(True), "flores200")
+        self.assertEqual(evaluation.bleu_tokenizer(False), "13a")
+        self.assertIn("flores200", evaluation.bleu_name(True))
+        self.assertIn("default", evaluation.bleu_name(False))
 
 
 class TestOneChrfOneBleu(unittest.TestCase):

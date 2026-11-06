@@ -47,6 +47,44 @@ COMET_MODEL = "Unbabel/wmt22-comet-da"
 # (chrF++, word_order=2) also depend on spaces, which many languages do not write.
 CHRF_WORD_ORDER = 0
 
+
+def bleu_tokenizer(no_spaces: bool) -> str:
+    """The sacreBLEU tokenizer for a language: spBLEU's without spaces, else the default.
+
+    SacreBLEU's default tokenizer splits on spaces, so a language written without them
+    becomes one long "word", and BLEU says little. FLORES-200's tokenizer, spBLEU, does not
+    depend on spaces.
+
+    Args:
+        no_spaces: Whether the language is written without spaces.
+
+    Returns:
+        ``"flores200"`` or ``"13a"``, for the ``tokenize`` argument of :func:`compute_bleu`
+        and :func:`paired_bootstrap`.
+
+    Examples:
+        >>> bleu_tokenizer(True), bleu_tokenizer(False)
+        ('flores200', '13a')
+    """
+    return "flores200" if no_spaces else "13a"
+
+
+def bleu_name(no_spaces: bool) -> str:
+    """How to name the BLEU :func:`bleu_tokenizer` gives, in a report.
+
+    Args:
+        no_spaces: Whether the language is written without spaces.
+
+    Returns:
+        The name.
+
+    Examples:
+        >>> bleu_name(True)
+        'spBLEU (flores200)'
+    """
+    return "spBLEU (flores200)" if no_spaces else "SacreBLEU, default tokenizer"
+
+
 _COMET_INSTALL = (
     "COMET is not installed. In Colab, install it as the course notebooks do (A14's "
     "COMET cell): its other requirements first, then `%pip install --no-deps "
@@ -720,6 +758,45 @@ def comet_score(
             f"{len(sources)} sources, {len(translations)} translations and "
             f"{len(references)} references."
         )
+    records = [
+        {"src": s, "mt": m, "ref": r}
+        for s, m, r in zip(sources, translations, references)
+    ]
+    return comet_score_records(records, model, batch_size, gpus)
+
+
+def comet_score_records(
+    records: list[dict[str, str]],
+    model: str | Any = COMET_MODEL,
+    batch_size: int = 64,
+    gpus: int | None = None,
+) -> CometScores:
+    """Score COMET's own input records, for a metric that needs no reference.
+
+    :func:`comet_score` builds these records from three lists and always has a reference.
+    This takes them as COMET does, so a record without ``ref`` works, with a reference-free
+    model such as ``Unbabel/wmt22-cometkiwi-da``.
+
+    Args:
+        records: One ``{"src": ..., "mt": ...}`` per sentence, with ``"ref"`` if the model
+            uses references.
+        model: As for :func:`comet_score`.
+        batch_size: Sentences per batch.
+        gpus: GPUs to use. Defaults to 1 if CUDA is available, else 0.
+
+    Returns:
+        A :class:`CometScores`.
+
+    Raises:
+        ImportError: If COMET is not installed, or will not load in this session.
+        RuntimeError: If the model will not download, usually a license not yet accepted.
+            COMET reports that as "not supported", which hides the cause.
+
+    Examples:
+        >>> records = [{"src": "Hallo Welt", "mt": "Hello world"}]
+        >>> scores = comet_score_records(
+        ...     records, "Unbabel/wmt22-cometkiwi-da")          # doctest: +SKIP
+    """
     if isinstance(model, str):
         if model not in _comet_models:
             try:
@@ -728,18 +805,22 @@ def comet_score(
                 if importlib.util.find_spec("comet") is not None:
                     raise ImportError(_COMET_WONT_LOAD) from missing
                 raise ImportError(_COMET_INSTALL) from missing
-            _comet_models[model] = load_from_checkpoint(download_model(model))
+            try:
+                _comet_models[model] = load_from_checkpoint(download_model(model))
+            except KeyError as error:
+                raise RuntimeError(
+                    f"{model} did not download. Logged in, the usual cause is that this "
+                    "Hugging Face account has not accepted its license: accept it at "
+                    f"https://huggingface.co/{model} with the account the token belongs "
+                    "to, then run this cell again."
+                ) from error
         model = _comet_models[model]
     if gpus is None:
         gpus = 1 if torch.cuda.is_available() else 0
-    data = [
-        {"src": s, "mt": m, "ref": r}
-        for s, m, r in zip(sources, translations, references)
-    ]
     # Two workers per GPU is COMET's own default. Without a GPU it would use none, and on
     # an Apple GPU machine COMET cannot run with none.
     out = model.predict(
-        data,
+        records,
         batch_size=batch_size,
         gpus=gpus,
         num_workers=2 * max(gpus, 1),

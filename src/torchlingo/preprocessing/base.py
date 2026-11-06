@@ -14,6 +14,70 @@ import pandas as pd
 from ..config import Config, get_default_config
 
 
+def read_lines(path: Path | str, n: int | None = None) -> list[str]:
+    """Read a file of one sentence per line.
+
+    The careful way, in one place. A byte-order mark, which Windows tools often add, is
+    dropped, or it would join the first sentence. Lines split on the newline only, because
+    ``str.splitlines`` also breaks on rarer characters, such as U+2028, that can occur inside
+    a sentence, and that shifts every line after it. One final newline ends the last line; a
+    blank line before it is kept, since a blank translation is still a line.
+
+    Args:
+        path: The file, in UTF-8.
+        n: Keep only the first ``n`` lines. Defaults to all of them.
+
+    Returns:
+        The lines, without their newlines.
+
+    Examples:
+        >>> import tempfile
+        >>> path = Path(tempfile.mkdtemp()) / "lines.txt"
+        >>> write_lines(path, ["one\\u2028two", "", "three"])
+        >>> read_lines(path)
+        ['one\\u2028two', '', 'three']
+    """
+    text = Path(path).read_text(encoding="utf-8-sig")
+    if not text:
+        return []
+    lines = text.removesuffix("\n").split("\n")
+    return lines if n is None else lines[:n]
+
+
+def write_lines(path: Path | str, lines: list[str]) -> None:
+    """Write sentences to a file, one per line, as :func:`read_lines` reads them.
+
+    Args:
+        path: The file, written in UTF-8. Its folder is made if it does not exist.
+        lines: The sentences.
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("".join(f"{line}\n" for line in lines), encoding="utf-8")
+
+
+def written_without_spaces(sentences) -> bool:
+    """Guess whether a language is written without spaces, from its sentences.
+
+    On text without spaces, a whole sentence reads as one or two "words". Such a language
+    needs ``bleu_tokenizer(True)`` and a vocabulary of characters.
+
+    Args:
+        sentences: Sentences in the language.
+
+    Returns:
+        True if they average fewer than three space-separated words.
+
+    Examples:
+        >>> written_without_spaces(["今天天气很好", "我喜欢读书"])
+        True
+        >>> written_without_spaces(["the cat sat on the mat", "good morning to you"])
+        False
+    """
+    sentences = list(sentences)
+    return sum(len(s.split()) for s in sentences) / len(sentences) < 3
+
+
 def parallel_txt_to_dataframe(
     src_path: Path,
     tgt_path: Path,
@@ -65,10 +129,7 @@ def parallel_txt_to_dataframe(
 
     src_path = Path(src_path)
     tgt_path = Path(tgt_path)
-    with open(src_path, "r", encoding="utf-8") as f_src:
-        src_lines = [ln.rstrip("\n") for ln in f_src]
-    with open(tgt_path, "r", encoding="utf-8") as f_tgt:
-        tgt_lines = [ln.rstrip("\n") for ln in f_tgt]
+    src_lines, tgt_lines = read_lines(src_path), read_lines(tgt_path)
     if len(src_lines) != len(tgt_lines):
         raise ValueError(
             f"Parallel files have different number of lines: {src_path} ({len(src_lines)}), {tgt_path} ({len(tgt_lines)})"

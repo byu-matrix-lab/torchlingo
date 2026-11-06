@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a translator for one direction of a model in memory, which sets the source language each time
   it is called, so translators sharing a tokenizer cannot change each other's direction. And
   **`nllb_codes(tokenizer)`**, the language codes a tokenizer knows.
+- **`colab.load_baseline(env)`**: a student's finished A9, as A13, A14 and a Final Project change
+  one thing against: its folder, settings, vocabulary, split and a `Config`, whose model shape
+  is read from A9's own checkpoint so that "the same configuration" cannot drift.
+- **`preprocessing.read_lines(path, n=None)`** and **`write_lines(path, lines)`**: one way to read
+  and write one-sentence-per-line files. `read_lines` drops a byte-order mark and splits on the
+  newline alone, so a sentence holding U+2028 stays one sentence. `parallel_txt_to_dataframe`
+  uses it, so a byte-order mark no longer joins the first sentence.
+- **`evaluation.bleu_tokenizer(no_spaces)`**, **`bleu_name(no_spaces)`** and
+  **`preprocessing.written_without_spaces(sentences)`**: the choice of BLEU for a language, and
+  the check for one written without spaces, each once.
+- **`evaluation.comet_score_records(records, model=)`**: COMET on its own input records, so a
+  reference-free model such as COMETKiwi can run, with a usable message when a license has not
+  been accepted.
 - **`evaluation.comet_scores_in_new_process(jobs)`**: `comet_score` on several jobs in a new
   Python process, for a session that imported transformers before installing COMET. The
   install changes the files on disk while the session still holds the newer version, and

@@ -41,9 +41,9 @@ from notebook_cells import (
     substitute,
 )
 from test_lecture_10 import ANSWER as COMET_INPUTS_ANSWER
-from test_lecture_10 import (
-    refuse_download,  # noqa: F401  (the license test imports it from here)
-)
+from test_lecture_10 import refuse_download
+
+import torchlingo.evaluation
 
 NOTEBOOK = COURSE / "lecture-11-comet-on-a6.ipynb"
 SKIPPED = ("%pip install", "userdata.get")
@@ -62,11 +62,6 @@ ANSWERS = {
         "        counted += 1\n"
         "        agree += (x1 > x2) == (y1 > y2)\n"
         "    return agree, counted"
-    ),
-}
-STUB_COMET = {
-    "from comet import download_model, load_from_checkpoint": (
-        "from test_lecture_11 import download_model, load_from_checkpoint"
     ),
 }
 BOM = chr(0xFEFF)
@@ -97,13 +92,21 @@ def load_from_checkpoint(path: str) -> _StubModel:
 
 def lecture_11_cells(answers: dict, predicted: bool = True) -> list[tuple[int, str]]:
     cells = [c for c in code_cells(NOTEBOOK) if not any(m in c[1] for m in SKIPPED)]
-    return substitute(
-        cells, {**STUB_COMET, **answers, **(PREDICTED if predicted else {})}
-    )
+    return substitute(cells, {**answers, **(PREDICTED if predicted else {})})
 
 
 class TestLecture11(unittest.TestCase):
     def setUp(self):
+        # The library imports COMET when asked, so the stand-in goes where it looks.
+        self.comet = SimpleNamespace(
+            download_model=download_model, load_from_checkpoint=load_from_checkpoint
+        )
+        for patched in (
+            mock.patch.dict(sys.modules, {"comet": self.comet}),
+            mock.patch.dict(torchlingo.evaluation._comet_models, clear=True),
+        ):
+            patched.start()
+            self.addCleanup(patched.stop)
         scratch = tempfile.TemporaryDirectory()
         self.addCleanup(scratch.cleanup)
         self.drive = Path(scratch.name)
@@ -301,13 +304,10 @@ class TestLecture11(unittest.TestCase):
         hub.login.assert_not_called()
 
     def test_an_unaccepted_license_says_what_to_do(self):
-        cells = substitute(
-            lecture_11_cells(ANSWERS),
-            {"import download_model,": "import refuse_download as download_model,"},
-        )
+        self.comet.download_model = refuse_download
         with colab_faked(self.drive), self.assertRaises(RuntimeError) as stopped:
-            run_cells(cells)
-        self.assertIn("has not accepted COMETKiwi's license", str(stopped.exception))
+            run_cells(lecture_11_cells(ANSWERS))
+        self.assertIn("has not accepted its license", str(stopped.exception))
         self.assertIn(
             "huggingface.co/Unbabel/wmt22-cometkiwi-da", str(stopped.exception)
         )
@@ -323,7 +323,7 @@ class TestLecture11(unittest.TestCase):
             report = [
                 c
                 for c in lecture_11_cells(ANSWERS)
-                if "load_from_checkpoint(" not in c[1]
+                if "comet_score_records(" not in c[1]
             ]
             with self.assertRaises(SystemExit) as stopped:
                 run_cells(report)
@@ -334,7 +334,7 @@ class TestLecture11(unittest.TestCase):
             _, before = run_cells(lecture_11_cells(ANSWERS))
             # A fresh session: Step 1 and the cells above it, Step 3, and the two reports; no
             # comet_inputs, no prediction, no scoring.
-            scoring = ("def comet_inputs", 'PREDICTION = "', "load_from_checkpoint(")
+            scoring = ("def comet_inputs", 'PREDICTION = "', "comet_score_records(")
             cells = [
                 c
                 for c in lecture_11_cells(ANSWERS)

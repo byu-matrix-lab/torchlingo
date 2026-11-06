@@ -452,6 +452,12 @@ notebook's install check if that exact tree passed it within six hours, so runni
 a branch up to date with `main`, or retrying a landing, costs nothing; `--fresh` runs everything.
 A PR touching only `notes/` runs `preflight.sh --notes`, seconds rather than minutes.
 
+**For a few lines in a long cell, or the same change across notebooks, use `python
+scripts/notebook_meta.py --apply EDITS.yaml`**, not a one-off script: a list of `notebook`,
+`old`, `new` and optionally `cell`. Each edit must match exactly once and it is all or none; it
+prints a diff of the cells, to read back, then normalizes. NotebookEdit wants the whole cell
+retyped, which for three lines of eighty risks more than it saves.
+
 **After editing a notebook, by any tool, run `python scripts/notebook_meta.py --normalize
 NOTEBOOK`.** Every notebook is stored in one form: literal UTF-8, one-space indent, a final
 newline, sources as line lists, no cell ids in an nbformat 4.0 notebook, and keys in the order

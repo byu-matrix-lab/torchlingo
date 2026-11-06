@@ -94,6 +94,26 @@ A8_DIR = course_dir(
 It stops with `SystemExit`, which a notebook shows as the message alone, without a traceback.
 For a notebook that writes to a new folder, `create=True` makes it.
 
+## The baseline
+
+An experiment changes one thing against a baseline, and the comparison is only fair if everything
+else is the baseline's. `load_baseline` opens a finished A9, the baseline for A13, A14 and a Final
+Project: its folder, settings, vocabulary, split and a `Config`, whose model shape is read from
+A9's own checkpoint, so "the same configuration" cannot drift:
+
+```python
+from torchlingo.colab import load_baseline, setup
+
+env = setup(gpu=True, drive=True)
+baseline = load_baseline(env, needs=["test-a9.hyp"])
+
+model = baseline.load_best("best-a9")      # ready to translate
+config = baseline.config                   # builds and trains a model the way A9 did
+train, val, test = baseline.train, baseline.val, baseline.test
+```
+
+A missing file stops it, naming each one, as `course_dir` does.
+
 ## API
 
 ::: torchlingo.colab
