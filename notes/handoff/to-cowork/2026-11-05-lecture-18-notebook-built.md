@@ -2,7 +2,8 @@
 
 *From the repository session, Thu Nov 5. Answers
 `from-cowork/2026-11-05-l-ibm-model-1-for-lecture-18.md`. The baton goes back to Cowork with
-this file. Nothing is asked of you; the deck can link the notebook when you build Lecture 18.*
+this file. Section 6 asks three small things; the deck can link the notebook when you build
+Lecture 18.*
 
 ## 1. The notebook: `docs/docs/course/lecture-18-ibm-model-1.ipynb`
 
@@ -79,7 +80,7 @@ translations are on Drive.
 - **A13, Step 6.** `comet-score` stopped with an `intermixed` error on Python 3.13, which Colab now
   runs. The install cell pins a newer `jsonargparse`. A student already in their own copy adds one
   cell after the COMET install, `%pip install --quiet "jsonargparse==4.46.0"`, and reruns the
-  scoring cell. Eric has that line for Discord.
+  scoring cell. A student confirmed that on real Colab on Nov 5: "It looks like it worked for me!"
 - **A14, Step 7.** Scoring failed for anyone running the notebook in order, with a message saying
   COMET was not installed. It now scores in a separate process, and runs in a new session after
   the setup cells. No students have started A14 (Eric, Nov 5), so everyone gets the fix from the
@@ -88,13 +89,34 @@ translations are on Drive.
   notebooks now say so. If Learning Suite or a deck describes these steps, it may want the same
   sentence.
 
-Neither fix has run on real Colab with a GPU yet; they were tested against Colab's published
+A14's fix has not run on real Colab with a GPU yet; it was tested against Colab's published
 package versions. The single Colab L4 run of the A14 notebook, with Coulson, will be the first.
+
+## 6. chrF now means one thing, and three things for you
+
+**Decided (Eric, Nov 5).** Everything that reports chrF now uses plain chrF, sacreBLEU's default,
+characters only. `compute_chrf` was chrF++, with word bigrams, while the score tables in A13 and
+A14 were plain chrF, so A14 printed both under one name. Scores move slightly: Lecture 6's Part 1
+example goes from 78.40 to 76.97. The roadmap's decisions log has it.
+
+**Asked of you:**
+
+1. **Lecture 6's deck.** If it says the library's chrF is chrF++, or quotes 78.40, it is out of
+   date. Lecture 6's notebook and tutorial 2 now teach `word_order=2` as a setting, not the default.
+2. **Learning Suite and the Final Project materials.** If they say which chrF, they should say
+   plain chrF. A student's chrF from an earlier assignment is not strictly comparable with a later
+   one; you and Eric may want a line on that for the Final Project.
+3. **Lecture 18's last step** says **Runtime → Run after**, which this side wrote from memory of
+   Colab's menu. When you or Eric next open it in Colab, check that the label is right.
+
+The notebooks also changed underneath, with no new steps for students: A13 and A14 open with one
+call in place of about thirty setup lines, and several file reads moved into the library. A
+sentence reading `NA`, `null`, or `None` was being silently dropped from training, and now is not.
 
 ## Tasks
 
 On this side, the Lecture 18 notebook is done and its row is gone; on your list it can close too,
 leaving the deck's link to it. A review of the notebooks for code that belongs in the library
-produced five tasks, under way on this side. One fix reaches students: a sentence reading `NA`,
-`null`, or `None` was silently dropped from training, and now is not. The single Colab L4 run of
-the A14 notebook stays open, with Coulson.
+produced five tasks, all done. The priority criteria moved to the top of `notes/TASKS.md`. Four
+tooling tasks were added, none visible to students, and a release is Eric's call. The single
+Colab L4 run of the A14 notebook stays open; Eric is coordinating it with Coulson.

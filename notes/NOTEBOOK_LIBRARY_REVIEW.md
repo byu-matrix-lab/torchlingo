@@ -4,11 +4,11 @@ Reviewed: all 26 notebooks (17 course, 9 tutorials), every code cell, at `main` 
 `course` is at 88e55bd. Nothing in the repository was changed. Cell numbers are indices into the
 notebook's `cells` list, markdown included, the numbering `notes/TASKS.md` uses.
 
-**Status, Nov 5.** F1 landed in PR #389, and F2's library half in PR #388, which found it wider
-than stated: a column of numbers also became numbers. F3 to F7 and F9 became Tasks #314 to #318,
-and the rest joined Task #294. F6 below is corrected. Findings F3 and onward were not each
-re-verified when this was filed, so check one before building it. Eric, Nov 5: no students have
-started A14, so the "not while A14 is open" cautions below no longer apply.
+**Status, Nov 5.** Done: F1 (PR #389); F2 (PRs #388 and #394), wider than stated, since a column
+of numbers also became numbers; F3, F5, F6 (PR #391, in the form "one chrF everywhere"), F7 for
+A11, and F9 (PR #394); F4's translator (PR #392); F8 by pinning all four installs alike, with a
+test, not by `install_comet()`. F6 below is corrected. The rest, F10 to F17, is in Task #294, and
+not each was re-verified, so check one before building it. A12's NLLB half of F4 is Task #291.
 
 ## Summary
 
