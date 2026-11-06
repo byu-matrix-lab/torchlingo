@@ -2,18 +2,26 @@
 
 COMET itself is not installed here (it is heavy, and pins transformers), so its tests use a
 stand-in model with COMET's predict() and, for the import, a fake `comet` module set in
-sys.modules and removed again.
+sys.modules and removed again. comet_scores_in_new_process starts a real process, which finds a
+fake `comet` package on PYTHONPATH.
 """
 
+import contextlib
+import io
+import os
 import sys
+import tempfile
+import textwrap
 import types
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from torchlingo import evaluation
 from torchlingo.evaluation import (
     CometScores,
     comet_score,
+    comet_scores_in_new_process,
     format_scores,
     paired_bootstrap,
 )
@@ -33,8 +41,9 @@ class FakeComet:
     def __init__(self):
         self.calls = []
 
-    def predict(self, data, batch_size, gpus, progress_bar):
+    def predict(self, data, batch_size, gpus, num_workers, progress_bar):
         self.calls.append((data, batch_size, gpus))
+        self.num_workers = num_workers
         scores = [1.0 if row["mt"] == row["ref"] else 0.5 for row in data]
         return types.SimpleNamespace(
             scores=scores, system_score=sum(scores) / len(scores)
@@ -90,6 +99,112 @@ class TestCometScore(unittest.TestCase):
             else:
                 sys.modules["comet"] = saved
         self.assertIn("--no-deps unbabel-comet", str(refused.exception))
+
+    def test_installed_but_unloadable_does_not_say_install_it(self):
+        # What A14 hit: COMET on disk, and an import that fails against the transformers in
+        # memory. Told "not installed", a student reinstalls, which cannot help.
+        saved = sys.modules.get("comet")
+        sys.modules["comet"] = None
+        try:
+            with (
+                mock.patch.dict(evaluation._comet_models, clear=True),
+                mock.patch.object(evaluation.importlib.util, "find_spec"),
+                self.assertRaises(ImportError) as refused,
+            ):
+                comet_score(["s"], ["a"], ["a"])
+        finally:
+            if saved is None:
+                del sys.modules["comet"]
+            else:
+                sys.modules["comet"] = saved
+        self.assertIn("comet_scores_in_new_process", str(refused.exception))
+        self.assertNotIn("is not installed", str(refused.exception))
+
+    def test_it_always_gives_comet_workers(self):
+        # With gpus=0 COMET defaults to no workers, which it cannot run with on an Apple GPU.
+        for gpus, workers in ((0, 2), (1, 2), (2, 4)):
+            model = FakeComet()
+            comet_score(["s"], ["a"], ["a"], model=model, gpus=gpus)
+            self.assertEqual(model.num_workers, workers)
+
+
+FAKE_COMET_PACKAGE = textwrap.dedent(
+    """\
+    import types
+
+
+    class Model:
+        def predict(self, data, batch_size, gpus, num_workers, progress_bar):
+            scores = [1.0 if row["mt"] == row["ref"] else 0.5 for row in data]
+            return types.SimpleNamespace(
+                scores=scores, system_score=sum(scores) / len(scores)
+            )
+
+
+    LOADS = []
+
+
+    def download_model(name):
+        return name
+
+
+    def load_from_checkpoint(path):
+        LOADS.append(path)
+        assert len(LOADS) == 1, "the model should load once, whatever the number of jobs"
+        return Model()
+    """
+)
+
+
+class TestCometScoresInNewProcess(unittest.TestCase):
+    def setUp(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.package = Path(folder.name, "comet")
+        self.package.mkdir()
+        (self.package / "__init__.py").write_text(FAKE_COMET_PACKAGE, encoding="utf-8")
+        path = os.pathsep.join(
+            filter(None, [folder.name, os.environ.get("PYTHONPATH")])
+        )
+        patched = mock.patch.dict(os.environ, {"PYTHONPATH": path})
+        patched.start()
+        self.addCleanup(patched.stop)
+
+    def test_it_scores_every_job_and_prints_each_as_it_finishes(self):
+        jobs = {
+            "A14|to-x|greedy": (["s1", "s2"], ["a", "b"], ["a", "c"]),
+            "A9|to-x|greedy": (["señal"], ["日本語"], ["日本語"]),
+        }
+        printed = io.StringIO()
+        with contextlib.redirect_stdout(printed):
+            got = comet_scores_in_new_process(jobs, gpus=0)
+        self.assertEqual(got["A14|to-x|greedy"], CometScores(0.75, [1.0, 0.5]))
+        self.assertEqual(got["A9|to-x|greedy"], CometScores(1.0, [1.0]))
+        self.assertEqual(
+            printed.getvalue().splitlines(),
+            [
+                "COMET scored A14|to-x|greedy: 0.7500",
+                "COMET scored A9|to-x|greedy: 1.0000",
+            ],
+        )
+
+    def test_a_failure_there_says_so_here_with_its_output(self):
+        (self.package / "__init__.py").write_text(
+            'raise ImportError("cannot import name _torch_version")\n', encoding="utf-8"
+        )
+        with self.assertRaises(RuntimeError) as failed:
+            comet_scores_in_new_process({"job": (["s"], ["a"], ["a"])}, gpus=0)
+        self.assertIn("new process", str(failed.exception))
+        self.assertIn("will not load in this session", str(failed.exception))
+
+    def test_lists_of_different_lengths_are_refused_before_it_starts(self):
+        with (
+            mock.patch.object(evaluation.subprocess, "Popen") as popen,
+            self.assertRaises(ValueError) as refused,
+        ):
+            comet_scores_in_new_process({"A14": (["s1", "s2"], ["a"], ["a", "b"])})
+        popen.assert_not_called()
+        self.assertIn("A14", str(refused.exception))
 
 
 class TestPairedBootstrap(unittest.TestCase):
