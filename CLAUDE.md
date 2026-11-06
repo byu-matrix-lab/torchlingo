@@ -142,6 +142,7 @@ sampler shuffles with.
 ```bash
 scripts/preflight.sh            # ~50s: static gates, both test runners, doctests, docs
 scripts/preflight.sh --quick    # ~1s:  the five static gates only
+scripts/preflight.sh --notes    # ~5s:  those, and the notebook metadata tests
 scripts/preflight.sh --all      # also executes the runnable notebooks (minutes)
 ```
 
@@ -442,8 +443,14 @@ downgraded numpy and broke Colab for students, while a laptop's plain student pa
 The workflow runs this on every notebook too, in a second job, but only once `course` has it.
 So `merge_check.sh`, and with it `land_pr.sh`, runs it before the merge as well, on each
 notebook the PR adds or changes that has an install cell, about 35 s apiece (Task #273: PR
-#329's COMET cell broke this way and was caught only on `course`). It installs what the cell
-names, TorchLingo from `course`, so it checks a notebook's install, not the PR's library code.
+#329's COMET cell broke this way and was caught only on `course`). There it installs
+TorchLingo from the merged commit, not from `course`, so **one PR can carry a library change
+and the notebook that uses it**; until Task #311 the notebook had to wait for the function's
+promotion, and A14's COMET fix took two PRs. Outside `merge_check.sh`, set
+`TORCHLINGO_SOURCE=/a/source/tree` to do the same. `merge_check.sh` also skips preflight or a
+notebook's install check if that exact tree passed it within six hours, so running preflight on
+a branch up to date with `main`, or retrying a landing, costs nothing; `--fresh` runs everything.
+A PR touching only `notes/` runs `preflight.sh --notes`, seconds rather than minutes.
 
 **After editing a notebook, by any tool, run `python scripts/notebook_meta.py --normalize
 NOTEBOOK`.** Every notebook is stored in one form: literal UTF-8, one-space indent, a final

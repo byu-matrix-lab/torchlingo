@@ -26,9 +26,17 @@
 # each in an environment of its own (a shared environment exercises only the first install).
 # PR #329's COMET cell read a helper defined in the setup cell, and that check caught it only
 # after promotion, on `course` 6405a02 (fixed in PR #331): student_path.yml runs it on `course`,
-# which is too late. Task #273. About 35 s a notebook; it needs uv and the network. What it
-# installs is what the install cell names, torchlingo from `course`, not the PR's own library
-# code: it checks a notebook's install cells and imports, not a library change.
+# which is too late. Task #273. About 35 s a notebook; it needs uv and the network. It installs
+# TorchLingo from the merged commit, not from `course`, so one PR can carry a library change and
+# the notebook that uses it. Until Task #311 it installed from `course`, and A14's COMET fix took
+# two PRs and two landings, the function first and the notebook after its promotion.
+# student_path.yml still tests what `course` serves.
+#
+# SKIPPING WHAT ALREADY PASSED. Preflight, and each notebook's install check, are skipped if
+# this exact tree passed them within six hours (scripts/tree_passes.sh). That covers running
+# preflight on a branch up to date with main, and retrying a landing after a GitHub error.
+# --fresh runs everything. A PR touching only notes/ runs `preflight.sh --notes`, seconds rather
+# than minutes, since it changes no code (Task #312).
 #
 # Usage:
 #   scripts/merge_check.sh PR              preflight on PR merged with its base, then the
@@ -36,6 +44,7 @@
 #   scripts/merge_check.sh PR --all        ... with notebook execution in preflight (minutes)
 #   scripts/merge_check.sh PR --keep       ... and keep the scratch worktree afterwards
 #   scripts/merge_check.sh PR --no-student ... skipping the install check, e.g. with no uv
+#   scripts/merge_check.sh PR --fresh      ... running everything, whatever already passed
 #
 # Exit status, and the last line printed:
 #   0  CLEAN           merges without conflict, passes preflight and the install check
@@ -49,19 +58,22 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: scripts/merge_check.sh PR [--all] [--keep] [--no-student]   (see the header for more)" >&2
+  echo "usage: scripts/merge_check.sh PR [--all] [--keep] [--no-student] [--fresh]   (see the header for more)" >&2
   exit 3
 }
 
 PR=""
 PREFLIGHT_ARGS=()
+PREFLIGHT_KIND=preflight
 KEEP=0
 STUDENT=1
+FRESH=0
 for arg in "$@"; do
   case "$arg" in
-    --all) PREFLIGHT_ARGS+=("--all") ;;
+    --all) PREFLIGHT_ARGS+=("--all"); PREFLIGHT_KIND=preflight-all ;;
     --keep) KEEP=1 ;;
     --no-student) STUDENT=0 ;;
+    --fresh) FRESH=1 ;;
     -h | --help) usage ;;
     *[!0-9]*) echo "not a PR number: $arg" >&2; usage ;;
     *) PR="$arg" ;;
@@ -129,15 +141,46 @@ if ! GIT_LFS_SKIP_SMUDGE=1 git -c user.name=merge-check -c user.email=merge-chec
   exit 2
 fi
 
-# The ${a[@]+...} form, because bash 3.2 (macOS's /bin/bash) calls an empty array unbound.
-scripts/preflight.sh ${PREFLIGHT_ARGS[@]+"${PREFLIGHT_ARGS[@]}"} > "$LOG" 2>&1
-STATUS=$?
-grep -E '^  [a-z]' "$LOG"
-if [[ $STATUS -ne 0 ]]; then
-  cd "$REPO_ROOT" && cleanup
-  echo "log: $LOG"
-  echo "PREFLIGHT-FAIL"
-  exit 1
+# shellcheck source=scripts/tree_passes.sh
+source scripts/tree_passes.sh
+MERGED_TREE="$(tree_of_head)"
+
+already_passed() {
+  [[ $FRESH -eq 0 ]] && tree_passed_recently "$MERGED_TREE" "$1"
+}
+
+NOTES_ONLY=0
+if [[ $FRESH -eq 0 && ${#PREFLIGHT_ARGS[@]} -eq 0 &&
+  -z "$(git diff --name-only "$BASE_SHA...$HEAD_SHA" -- . ':(exclude)notes/')" ]]; then
+  NOTES_ONLY=1
+fi
+
+if already_passed "$PREFLIGHT_KIND"; then
+  echo "  preflight         skipped: this exact tree passed it recently (--fresh to run it)"
+elif [[ $NOTES_ONLY -eq 1 ]]; then
+  # Nothing here can change what the tests see except the roadmap, which is the notebook
+  # metadata tests' input. Not recorded as a pass: the full preflight did not run.
+  scripts/preflight.sh --notes > "$LOG" 2>&1
+  STATUS=$?
+  grep -E '^  [a-z]' "$LOG"
+  if [[ $STATUS -ne 0 ]]; then
+    cd "$REPO_ROOT" && cleanup
+    echo "log: $LOG"
+    echo "PREFLIGHT-FAIL"
+    exit 1
+  fi
+else
+  # The ${a[@]+...} form, because bash 3.2 (macOS's /bin/bash) calls an empty array unbound.
+  scripts/preflight.sh ${PREFLIGHT_ARGS[@]+"${PREFLIGHT_ARGS[@]}"} > "$LOG" 2>&1
+  STATUS=$?
+  grep -E '^  [a-z]' "$LOG"
+  if [[ $STATUS -ne 0 ]]; then
+    cd "$REPO_ROOT" && cleanup
+    echo "log: $LOG"
+    echo "PREFLIGHT-FAIL"
+    exit 1
+  fi
+  record_tree_pass "$MERGED_TREE" "$PREFLIGHT_KIND"
 fi
 
 # The install check (see the header): only notebooks the PR itself adds or changes, and only
@@ -155,11 +198,20 @@ if [[ $STUDENT -eq 1 ]]; then
     echo "  install check     needs uv; install it, or pass --no-student to skip the check"
     STUDENT_STATUS=1
   else
+    # An export of the merged commit, so that building it cannot leave the worktree unclean.
+    EXPORT="$SCRATCH/merged-commit"
+    mkdir "$EXPORT" && git archive HEAD | tar -x -C "$EXPORT"
     for nb in "${NOTEBOOKS[@]}"; do
-      STUDENT_LOG="$SCRATCH/student-$(basename "$nb" .ipynb).log"
-      if STUDENT_DIR="$SCRATCH/student-$(basename "$nb" .ipynb)" \
+      STEM="$(basename "$nb" .ipynb)"
+      if already_passed "install-$STEM"; then
+        echo "  install check     skipped: passed recently on this tree  $nb"
+        continue
+      fi
+      STUDENT_LOG="$SCRATCH/student-$STEM.log"
+      if TORCHLINGO_SOURCE="$EXPORT" STUDENT_DIR="$SCRATCH/student-$STEM" \
         scripts/student_path.sh --colab --install-only "$nb" > "$STUDENT_LOG" 2>&1; then
         echo "  install check     ok    $nb"
+        record_tree_pass "$MERGED_TREE" "install-$STEM"
       else
         echo "  install check     FAIL  $nb  (log: $STUDENT_LOG)"
         STUDENT_STATUS=1
