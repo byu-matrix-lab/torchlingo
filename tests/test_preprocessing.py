@@ -7,6 +7,7 @@ import pandas as pd
 
 from torchlingo import config
 from torchlingo.config import Config
+from torchlingo.data_processing import NMTDataset
 from torchlingo.preprocessing.base import (
     load_data,
     parallel_txt_to_dataframe,
@@ -83,6 +84,47 @@ class TestLoadDataStructuredFormats(unittest.TestCase):
             df = load_data(tsv_file, format="tsv")
             self.assertEqual(len(df), 2)
             self.assertEqual(df.iloc[0][config.SRC_COL], "hello")
+
+    def test_a_sentence_that_looks_like_a_missing_value_is_kept(self):
+        """pandas reads these as missing by default, and the pair was lost without a word."""
+        words = ["NA", "null", "None", "nan", "N/A"]
+        for suffix, sep in ((".tsv", "\t"), (".csv", ",")):
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / f"data{suffix}"
+                rows = "".join(f"{w}{sep}{w}\n" for w in words)
+                path.write_text(f"src{sep}tgt\n{rows}", encoding="utf-8")
+                df = load_data(path)
+                self.assertEqual(list(df.src), words)
+                self.assertEqual(list(df.tgt), words)
+
+    def test_cells_stay_text(self):
+        """A sentence that is a number or a date must not turn into one."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "data.tsv"
+            path.write_text("src\ttgt\n1984\t007\n1.50\t1,50\n", encoding="utf-8")
+            df = load_data(path)
+            self.assertEqual(list(df.src), ["1984", "1.50"])
+            self.assertEqual(list(df.tgt), ["007", "1,50"])
+
+    def test_a_blank_cell_is_an_empty_string(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "data.tsv"
+            path.write_text("src\ttgt\nhello\t\n\tmundo\n", encoding="utf-8")
+            df = load_data(path)
+            self.assertEqual(list(df.src), ["hello", ""])
+            self.assertEqual(list(df.tgt), ["", "mundo"])
+
+    def test_the_dataset_keeps_such_a_pair_and_still_drops_a_blank_one(self):
+        """The path training takes: three sentences of four, not two."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "data.tsv"
+            path.write_text(
+                "src\ttgt\nhello\thola\nNA\tnull\ngood\tbueno\nblank\t\n",
+                encoding="utf-8",
+            )
+            dataset = NMTDataset(path)
+            self.assertEqual(dataset.src_sentences, ["hello", "NA", "good"])
+            self.assertEqual(dataset.tgt_sentences, ["hola", "null", "bueno"])
 
     def test_load_csv_file(self):
         """load_data should load CSV files."""

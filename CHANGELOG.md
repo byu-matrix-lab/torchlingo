@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   load in the session, since reinstalling cannot help; the message now names
   `comet_scores_in_new_process`. It also always gives COMET workers, without which it could not
   run on a Mac without CUDA.
+- **`preprocessing.load_data`** reads every TSV and CSV cell as text. A sentence reading `NA`,
+  `null`, `None`, `nan` or `N/A` was read as missing, so `NMTDataset` dropped the pair without a
+  word, and a column of numbers became numbers, `1984` turning into `1984.0`. A blank cell is now
+  an empty string, not NaN, so `.astype(str)` no longer writes the word `nan` into training text.
 
 ## [0.2.9] - 2026-10-25
 
