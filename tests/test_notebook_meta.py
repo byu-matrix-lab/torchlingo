@@ -1428,6 +1428,104 @@ class TestCanonicalForm(unittest.TestCase):
         self.assertEqual(rr.ROADMAP.read_text(encoding="utf-8"), roadmap_before)
 
 
+class TestApplyEdits(unittest.TestCase):
+    """Exact replacements in cells: each matches once, and it is all of them or none."""
+
+    def setUp(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        self.path = tmp / "a.ipynb"
+        self.other = tmp / "b.ipynb"
+        cells = [
+            {"cell_type": "code", "source": ["x = 1\n", "y = 2\n"]},
+            {"cell_type": "code", "source": ["x = 1\n", "z = 3"]},
+            {"cell_type": "markdown", "source": ["señal\n"]},
+        ]
+        for path in (self.path, self.other):
+            path.write_text(
+                nm.canonical_text(
+                    json.dumps({"nbformat": 4, "nbformat_minor": 0, "cells": cells})
+                ),
+                encoding="utf-8",
+            )
+
+    def source(self, path, index):
+        cell = json.loads(path.read_text(encoding="utf-8"))["cells"][index]
+        return "".join(cell["source"])
+
+    def test_it_replaces_text_found_once_and_keeps_the_form(self):
+        nm.apply_edits(
+            [{"notebook": self.path, "old": "y = 2", "new": "y = 20\nw = 4"}]
+        )
+        self.assertEqual(self.source(self.path, 0), "x = 1\ny = 20\nw = 4\n")
+        text = self.path.read_text(encoding="utf-8")
+        self.assertEqual(nm.canonical_text(text), text)
+        self.assertIn("señal", text)
+
+    def test_it_reports_a_diff_of_what_changed(self):
+        diffs = nm.apply_edits(
+            [{"notebook": self.path, "old": "y = 2", "new": "y = 20"}]
+        )
+        self.assertIn("-y = 2", diffs[self.path])
+        self.assertIn("+y = 20", diffs[self.path])
+        self.assertTrue(any("a.ipynb cell 0" in line for line in diffs[self.path]))
+
+    def test_text_in_two_cells_is_refused_unless_a_cell_is_named(self):
+        with self.assertRaises(ValueError) as refused:
+            nm.apply_edits([{"notebook": self.path, "old": "x = 1", "new": "x = 9"}])
+        self.assertIn("matched 2 times, in cells [0, 1]", str(refused.exception))
+        nm.apply_edits(
+            [{"notebook": self.path, "cell": 1, "old": "x = 1", "new": "x = 9"}]
+        )
+        self.assertEqual(self.source(self.path, 0), "x = 1\ny = 2\n")
+        self.assertEqual(self.source(self.path, 1), "x = 9\nz = 3")
+
+    def test_text_twice_in_one_cell_is_refused(self):
+        with self.assertRaises(ValueError):
+            nm.apply_edits(
+                [{"notebook": self.path, "cell": 0, "old": "=", "new": ":="}]
+            )
+
+    def test_text_not_found_is_refused(self):
+        with self.assertRaises(ValueError) as refused:
+            nm.apply_edits([{"notebook": self.path, "old": "gone", "new": "x"}])
+        self.assertIn("matched 0 times", str(refused.exception))
+
+    def test_one_bad_edit_stops_them_all_across_notebooks(self):
+        before = self.path.read_text(encoding="utf-8")
+        with self.assertRaises(ValueError):
+            nm.apply_edits(
+                [
+                    {"notebook": self.path, "old": "y = 2", "new": "y = 20"},
+                    {"notebook": self.other, "old": "gone", "new": "x"},
+                ]
+            )
+        self.assertEqual(self.path.read_text(encoding="utf-8"), before)
+
+    def test_every_failure_is_listed_at_once(self):
+        with self.assertRaises(ValueError) as refused:
+            nm.apply_edits(
+                [
+                    {"notebook": self.path, "old": "gone", "new": "x"},
+                    {"notebook": self.path, "new": "x"},
+                    {"notebook": self.path, "cell": 9, "old": "a", "new": "b"},
+                ]
+            )
+        message = str(refused.exception)
+        self.assertIn("edit 1:", message)
+        self.assertIn("edit 2: missing old", message)
+        self.assertIn("edit 3:", message)
+
+    def test_edits_build_on_one_another_within_a_notebook(self):
+        nm.apply_edits(
+            [
+                {"notebook": self.path, "old": "y = 2", "new": "y = 20"},
+                {"notebook": self.path, "old": "y = 20", "new": "y = 200"},
+            ]
+        )
+        self.assertIn("y = 200", self.source(self.path, 0))
+
+
 class TestThePurposeCellIsGeneratedAndGated(unittest.TestCase):
     """Every notebook opens with a generated line saying what it is for (#146).
 
