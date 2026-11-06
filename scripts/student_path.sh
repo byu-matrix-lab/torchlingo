@@ -44,6 +44,12 @@
 #   scripts/student_path.sh --colab --install-only docs/docs/course/lecture-11-comet-on-a6.ipynb
 #   STUDENT_DIR=/some/dir scripts/student_path.sh ...    # keep the environment and outputs there
 #
+#   TORCHLINGO_SOURCE=/some/tree scripts/student_path.sh ...   # install TorchLingo from there
+#
+# TORCHLINGO_SOURCE is a directory holding a TorchLingo source tree. The install cells then take
+# it from there instead of the `course` branch, so a change can be tested before promotion. It
+# is how merge_check.sh tests a PR's own library code. Anything else is run as the notebook says.
+#
 # Each notebook's executed copy is written to $STUDENT_DIR/run-<stem>-<time>/out.ipynb.
 # Nothing is ever deleted: every run gets new directories.
 #
@@ -65,7 +71,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ $# -eq 0 ]; then
-  sed -n '2,45p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,54p' "$0" | sed 's/^# \{0,1\}//'
   exit 2
 fi
 
@@ -144,6 +150,7 @@ for path in "$@"; do
 
   venv/bin/python - "$run" <<'EOF' || status=1
 import os
+import re
 import sys
 import time
 
@@ -175,6 +182,18 @@ nb.cells.insert(0, nbformat.v4.new_code_cell(
 ))
 for cell in nb.cells:
     cell.source = cell.source.replace("/content/drive", fake_drive)
+
+# Every install of TorchLingo, from this source tree, if one was given. An install left pointing
+# anywhere else stops the run: it would pass, and test `course` rather than the code in hand.
+source_tree = os.environ.get("TORCHLINGO_SOURCE")
+if source_tree:
+    for cell in nb.cells:
+        cell.source = cell.source.replace(
+            "git+https://github.com/byu-matrix-lab/torchlingo@course",
+            f"file://{os.path.abspath(source_tree)}",
+        )
+        if cell.cell_type == "code" and re.search(r"torchlingo\s*@\s*git\+", cell.source):
+            sys.exit(f"TORCHLINGO_SOURCE: this install was not redirected:\n{cell.source}")
 
 # A smoke test for packages whose import proves little: COMET imported cleanly on
 # transformers 5 and raised only when loading a model.

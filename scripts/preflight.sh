@@ -15,6 +15,8 @@
 #   scripts/preflight.sh            everything except notebook execution
 #   scripts/preflight.sh --all      also execute the runnable notebooks (slow: minutes)
 #   scripts/preflight.sh --quick    the five static gates only (~3 seconds)
+#   scripts/preflight.sh --notes    those, and the notebook metadata tests (the roadmap is
+#                                   their input): what a PR touching only notes/ can break
 #
 set -uo pipefail
 
@@ -48,6 +50,13 @@ fi
 MODE="${1:-}"
 FAILED=0
 STARTED=$(date +%s)
+
+# A pass counts for merge_check.sh only if what ran is exactly a commit: nothing uncommitted when
+# it started or when it ended, and the same tree at both ends.
+# shellcheck source=scripts/tree_passes.sh
+source scripts/tree_passes.sh
+TREE_AT_START=""
+[[ -z "$(git status --porcelain 2>/dev/null)" ]] && TREE_AT_START="$(tree_of_head 2>/dev/null)"
 
 run() {
   local label="$1"
@@ -85,6 +94,13 @@ if [[ "$MODE" == "--quick" ]]; then
   exit 0
 fi
 
+if [[ "$MODE" == "--notes" ]]; then
+  run "notebook metadata tests" python -m pytest -q --no-header tests/test_notebook_meta.py || exit 1
+  echo
+  echo "notes mode: static gates and notebook metadata tests, $(( $(date +%s) - STARTED ))s"
+  exit 0
+fi
+
 # --- the test suite, both runners, plus doctests -----------------------------------------
 # CI runs pytest AND `unittest discover`, because a test that only one runner collects has
 # slipped through before. Doctests are a separate gate again: a module can pass its tests and
@@ -106,6 +122,11 @@ fi
 echo
 TOTAL=$(( $(date +%s) - STARTED ))
 if [[ $FAILED -eq 0 ]]; then
+  if [[ -n "$TREE_AT_START" && -z "$(git status --porcelain)" &&
+    "$(tree_of_head)" == "$TREE_AT_START" ]]; then
+    record_tree_pass "$TREE_AT_START" preflight
+    [[ "$MODE" == "--all" ]] && record_tree_pass "$TREE_AT_START" preflight-all
+  fi
   echo "preflight passed in ${TOTAL}s. Safe to push."
   exit 0
 fi
