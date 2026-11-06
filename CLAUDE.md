@@ -450,7 +450,13 @@ promotion, and A14's COMET fix took two PRs. Outside `merge_check.sh`, set
 `TORCHLINGO_SOURCE=/a/source/tree` to do the same. `merge_check.sh` also skips preflight or a
 notebook's install check if that exact tree passed it within six hours, so running preflight on
 a branch up to date with `main`, or retrying a landing, costs nothing; `--fresh` runs everything.
-A PR touching only `notes/` runs `preflight.sh --notes`, seconds rather than minutes.
+A PR touching only `notes/` runs `preflight.sh --notes`, seconds rather than minutes. A PR
+changing `src/` also checks up to six notebooks that import a changed module, so a library-only
+PR does not first meet them on `course`.
+
+**Tutorials commit their outputs: regenerate them with `python scripts/execute_notebooks.py
+--only STEM --write-outputs`**, not by hand. It changes outputs and nothing else, and refuses a
+course notebook, since those carry none.
 
 **For a few lines in a long cell, or the same change across notebooks, use `python
 scripts/notebook_meta.py --apply EDITS.yaml`**, not a one-off script: a list of `notebook`,
@@ -596,6 +602,7 @@ then carry forward what genuinely was not.**
 still opens and manages the pull request.* So Cowork commits on a branch named
 `cowork/YYYY-MM-DD-slug`, based on `main` and pushed, never on `main` itself, and does not open
 or merge pull requests. On receiving the baton, this side reviews that branch, adds its own
-fixes and its reply on a branch from it, opens the PR, lands it, and deletes the `cowork/`
-branch. Cowork may also leave the same files uncommitted in the main checkout; once the PR
+fixes and its reply on a branch from it, opens the PR, lands it with `land_pr.sh
+--cowork-branch=BRANCH`, which deletes the branch only if the PR carried all of it. Cowork may
+also leave the same files uncommitted in the main checkout; once the PR
 holds them, stash those copies (`git stash -u`) rather than committing them a second time.

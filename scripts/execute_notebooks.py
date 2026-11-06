@@ -54,7 +54,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from notebook_meta import is_redirect, read_meta
+from notebook_meta import canonical_text, is_redirect, read_meta
 
 TUTORIALS = Path("docs/docs/tutorials")
 COURSE = Path("docs/docs/course")
@@ -104,6 +104,43 @@ def execute(notebook: Path, workdir: Path, timeout: int) -> tuple[bool, str]:
         check=False,
     )
     return result.returncode == 0, result.stdout + result.stderr
+
+
+def copy_outputs(executed: Path, original: Path) -> int:
+    """Copy a run's outputs into the notebook it ran from, changing nothing else.
+
+    Tutorials commit their outputs, and until this nothing regenerated them: on 2026-11-05 a
+    default's change meant an inline script for tutorial 2 and a hand edit for tutorial 8, and
+    tutorial 2 still printed a version from six weeks before. Sources and metadata stay as the
+    file has them, so the diff is only what the run printed.
+
+    Args:
+        executed (Path): The notebook after the run.
+        original (Path): The notebook to update.
+
+    Returns:
+        int: How many cells' outputs changed.
+
+    Raises:
+        ValueError: If the two notebooks do not have the same cells.
+    """
+    ran = json.loads(executed.read_text(encoding="utf-8"))
+    notebook = json.loads(original.read_text(encoding="utf-8"))
+    if len(ran["cells"]) != len(notebook["cells"]):
+        raise ValueError(f"{original.name}: the run has a different number of cells")
+    changed = 0
+    for new, cell in zip(ran["cells"], notebook["cells"]):
+        if cell["cell_type"] != "code":
+            continue
+        # Not stderr: a library's warning is about this machine, and carries its paths.
+        outputs = [o for o in new.get("outputs", []) if o.get("name") != "stderr"]
+        changed += outputs != cell.get("outputs", [])
+        cell["outputs"] = outputs
+        cell["execution_count"] = new.get("execution_count")
+    original.write_text(
+        canonical_text(json.dumps(notebook, ensure_ascii=False)), encoding="utf-8"
+    )
+    return changed
 
 
 def is_available(path: Path) -> bool:
@@ -311,6 +348,11 @@ def main() -> int:
         help="run only these notebooks, by file stem (the workflow runs one per job)",
     )
     parser.add_argument(
+        "--write-outputs",
+        action="store_true",
+        help="with --only: copy each tutorial's new outputs into it; course notebooks carry none",
+    )
+    parser.add_argument(
         "--list",
         action="store_true",
         help="with --as-student: print, as JSON, the stems of the notebooks it would run",
@@ -333,6 +375,8 @@ def main() -> int:
     args = parser.parse_args()
     if (args.colab or args.install_only or args.list) and not args.as_student:
         parser.error("--colab, --install-only and --list go with --as-student")
+    if args.write_outputs and (args.as_student or not args.only):
+        parser.error("--write-outputs goes with --only, and not with --as-student")
 
     # Both families, because the course notebooks are the ones students open in the room, on
     # a clock -- a broken one costs twenty minutes of class rather than a confusing evening.
@@ -356,6 +400,12 @@ def main() -> int:
             return 1
     if args.only:
         notebooks = [path for path in notebooks if path.stem in args.only]
+    if args.write_outputs:
+        # hygiene() fails a course notebook with outputs: students start from a clean one.
+        course = [path.name for path in notebooks if path.parent == args.course]
+        if course:
+            print(f"--write-outputs: course notebooks carry none: {course}", file=sys.stderr)
+            return 1
     for path in notebooks:
         if path.stem in args.exclude:
             print(f"  LEFT OUT  {path.name} (--exclude)", flush=True)
@@ -400,7 +450,11 @@ def main() -> int:
             workdir = Path(tmp)
             shutil.copy(notebook, workdir / notebook.name)
             link_repo_data(workdir)
-            return execute(workdir / notebook.name, workdir, args.timeout)
+            ok, output = execute(workdir / notebook.name, workdir, args.timeout)
+            if ok and args.write_outputs:
+                changed = copy_outputs(workdir / notebook.name, notebook)
+                print(f"  wrote {changed} cells' outputs to {notebook.name}", flush=True)
+            return ok, output
 
     print(f"executing {len(runnable)} notebooks, {args.jobs} at a time ...", flush=True)
     with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:

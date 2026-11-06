@@ -67,6 +67,7 @@ import json
 import re
 import sys
 import textwrap
+from collections.abc import Iterable
 from pathlib import Path
 
 import render_roadmap as rr
@@ -640,6 +641,40 @@ def canonical_text(text: str) -> str:
         if not keep_ids:
             cell.pop("id", None)
     return json.dumps(nb, indent=1, ensure_ascii=False) + "\n"
+
+
+def notebooks_using(changed: Iterable[str]) -> list[Path]:
+    """The notebooks with an install cell that import a changed library module.
+
+    ``merge_check.sh`` otherwise runs its install check only on notebooks a PR changes, so a
+    library-only PR first meets the notebooks that call it on ``course``, after the merge.
+
+    Args:
+        changed: Repository paths, such as ``src/torchlingo/evaluation.py``. A change to a
+            package's file counts as a change to the package, which is what notebooks import.
+            A top-level ``__init__.py`` names no module, so it selects nothing.
+
+    Returns:
+        The notebooks, tutorials first.
+    """
+    modules = set()
+    for name in changed:
+        parts = Path(name).with_suffix("").parts
+        if len(parts) >= 3 and parts[0] == "src" and parts[-1] != "__main__":
+            modules.add(".".join(parts[1:3]))
+    modules = {m for m in modules if not m.endswith(".__init__")}
+    if not modules:
+        return []
+    pattern = re.compile(
+        rf"^\s*(from|import)\s+({'|'.join(map(re.escape, sorted(modules)))})\b", re.M
+    )
+    found = []
+    for path in notebooks():
+        cells = json.loads(path.read_text(encoding="utf-8"))["cells"]
+        code = "\n".join(_source(c) for c in cells if c["cell_type"] == "code")
+        if "pip install" in code and pattern.search(code):
+            found.append(path)
+    return found
 
 
 def apply_edits(edits: list[dict]) -> dict[Path, list[str]]:
@@ -1422,6 +1457,13 @@ def main(argv: list[str] | None = None) -> int:
             "each required to match once, all or none; prints the diff, then --normalize"
         ),
     )
+    parser.add_argument(
+        "--using",
+        nargs="*",
+        default=None,
+        metavar="PATH",
+        help="print the notebooks with an install cell that import these changed library files",
+    )
     parser.add_argument("--note", help="with --stamp: prose for a non-obvious pairing")
     parser.add_argument(
         "--leads-to",
@@ -1536,6 +1578,11 @@ def main(argv: list[str] | None = None) -> int:
         if carried:
             print(f"  kept       {', '.join(sorted(carried))} from the existing block")
         args.write = True
+
+    if args.using is not None:
+        for path in notebooks_using(args.using):
+            print(path)
+        return 0
 
     if args.apply is not None:
         import yaml  # as render_roadmap does; a dependency of the dev install

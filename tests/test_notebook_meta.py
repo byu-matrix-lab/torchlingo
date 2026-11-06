@@ -1428,6 +1428,128 @@ class TestCanonicalForm(unittest.TestCase):
         self.assertEqual(rr.ROADMAP.read_text(encoding="utf-8"), roadmap_before)
 
 
+class TestNotebooksUsing(unittest.TestCase):
+    """Which notebooks a library change reaches, on the repository's own notebooks."""
+
+    def names(self, *changed):
+        return [path.stem for path in nm.notebooks_using(changed)]
+
+    def test_a_module_finds_the_notebooks_importing_it(self):
+        found = self.names("src/torchlingo/evaluation.py")
+        self.assertIn("lecture-13-back-translation", found)
+        self.assertIn("lecture-14-multilingual", found)
+        self.assertNotIn("lecture-10-comet-install", found)
+
+    def test_a_file_in_a_package_counts_as_the_package(self):
+        self.assertIn(
+            "lecture-14-multilingual",
+            self.names("src/torchlingo/preprocessing/base.py"),
+        )
+
+    def test_the_accessory_is_found_too(self):
+        self.assertIn(
+            "lecture-14-multilingual", self.names("src/torchlingo_harness/nllb.py")
+        )
+
+    def test_a_notebook_with_no_install_cell_is_left_out(self):
+        for path in nm.notebooks_using(["src/torchlingo/evaluation.py"]):
+            self.assertIn("pip install", path.read_text(encoding="utf-8"), path.name)
+
+    def test_the_top_level_init_and_other_files_select_nothing(self):
+        self.assertEqual(self.names("src/torchlingo/__init__.py"), [])
+        self.assertEqual(self.names("docs/mkdocs.yml", "tests/test_x.py"), [])
+        self.assertEqual(self.names(), [])
+
+
+class TestCopyOutputs(unittest.TestCase):
+    """execute_notebooks.py --write-outputs: a run's outputs, and nothing else."""
+
+    def setUp(self):
+        sys.path.insert(0, str(REPO / "scripts"))
+        import execute_notebooks
+
+        self.copy_outputs = execute_notebooks.copy_outputs
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        self.original, self.executed = tmp / "a.ipynb", tmp / "ran.ipynb"
+        self.cells = [
+            {"cell_type": "markdown", "metadata": {}, "source": ["# señal\n"]},
+            {
+                "cell_type": "code",
+                "execution_count": 1,
+                "metadata": {"kept": True},
+                "outputs": [
+                    {"output_type": "stream", "name": "stdout", "text": ["old\n"]}
+                ],
+                "source": ["print('x')"],
+            },
+        ]
+        self.write(self.original, self.cells)
+
+    def write(self, path, cells):
+        notebook = {"nbformat": 4, "nbformat_minor": 0, "metadata": {}, "cells": cells}
+        path.write_text(nm.canonical_text(json.dumps(notebook)), encoding="utf-8")
+
+    def ran(self, text):
+        cells = json.loads(json.dumps(self.cells))
+        cells[1]["outputs"][0]["text"] = [text]
+        cells[1]["execution_count"] = 7
+        cells[1]["metadata"] = {"execution": "timestamps"}
+        self.write(self.executed, cells)
+
+    def test_only_the_outputs_change(self):
+        self.ran("new\n")
+        self.assertEqual(self.copy_outputs(self.executed, self.original), 1)
+        cell = json.loads(self.original.read_text(encoding="utf-8"))["cells"][1]
+        self.assertEqual(cell["outputs"][0]["text"], ["new\n"])
+        self.assertEqual(cell["execution_count"], 7)
+        self.assertEqual(cell["metadata"], {"kept": True})
+        self.assertEqual(cell["source"], ["print('x')"])
+
+    def test_the_file_stays_in_the_notebook_form(self):
+        self.ran("new\n")
+        self.copy_outputs(self.executed, self.original)
+        text = self.original.read_text(encoding="utf-8")
+        self.assertEqual(nm.canonical_text(text), text)
+        self.assertIn("señal", text)
+
+    def test_a_warning_on_stderr_is_not_kept(self):
+        # A real run wrote a tqdm warning holding this machine's home directory.
+        cells = json.loads(json.dumps(self.cells))
+        cells[1]["outputs"].append(
+            {"output_type": "stream", "name": "stderr", "text": ["/Users/me/warning\n"]}
+        )
+        self.write(self.executed, cells)
+        self.copy_outputs(self.executed, self.original)
+        self.assertNotIn("/Users/me", self.original.read_text(encoding="utf-8"))
+
+    def test_a_run_with_the_same_output_changes_no_cell(self):
+        self.ran("old\n")
+        self.assertEqual(self.copy_outputs(self.executed, self.original), 0)
+
+    def test_a_different_notebook_is_refused(self):
+        self.write(self.executed, self.cells[:1])
+        with self.assertRaises(ValueError):
+            self.copy_outputs(self.executed, self.original)
+
+    def test_course_notebooks_are_refused(self):
+        done = subprocess.run(
+            [
+                sys.executable,
+                str(REPO / "scripts" / "execute_notebooks.py"),
+                "--only",
+                "lecture-18-ibm-model-1",
+                "--write-outputs",
+            ],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("course notebooks carry none", done.stderr)
+
+
 class TestApplyEdits(unittest.TestCase):
     """Exact replacements in cells: each matches once, and it is all of them or none."""
 
