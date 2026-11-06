@@ -46,7 +46,8 @@ FLORES_200_LIST = (
 class NLLBTranslator:
     """A loaded NLLB model and tokenizer, translating from one language into another.
 
-    Build one with :func:`load_nllb`. Calling it translates a list of sentences.
+    Build one with :func:`load_nllb`, or with :meth:`between` for one model that translates
+    several ways. Calling it translates a list of sentences.
 
     Args:
         model: A Hugging Face sequence-to-sequence model with ``generate``.
@@ -65,6 +66,39 @@ class NLLBTranslator:
         self.device = device
         self.name = name
         self.target_id = tokenizer.convert_tokens_to_ids(tgt_lang)
+        self.src_lang: str | None = None
+
+    @classmethod
+    def between(
+        cls,
+        model,
+        tokenizer,
+        src_lang: str,
+        tgt_lang: str,
+        device: torch.device,
+        name: str = NLLB_MODEL,
+    ) -> NLLBTranslator:
+        """A translator for one direction of a model already in memory.
+
+        A tokenizer holds one source language, so translators sharing one would change each
+        other's direction without complaint, and a forgotten ``tokenizer.src_lang = ...``
+        translates from the wrong language. This translator keeps its own, and sets it each
+        time it is called. The model goes into evaluation mode.
+
+        Args:
+            model: The model, as it is now: off the shelf or fine-tuned.
+            tokenizer: Its tokenizer, which may be shared.
+            src_lang: The FLORES-200 code to translate from.
+            tgt_lang: The FLORES-200 code to translate into.
+            device: Where the model is.
+            name: The model's name, recorded by :meth:`settings`.
+
+        Returns:
+            A translator: call it on a list of sentences.
+        """
+        translator = cls(model.eval(), tokenizer, tgt_lang, device, name)
+        translator.src_lang = src_lang
+        return translator
 
     def settings(self, **decoding) -> dict:
         """What decides this translator's output, for a resumable job's record.
@@ -77,7 +111,7 @@ class NLLBTranslator:
         """
         return {
             "translator": self.name,
-            "src_lang": self.tokenizer.src_lang,
+            "src_lang": self.src_lang or self.tokenizer.src_lang,
             "tgt_lang": self.tgt_lang,
             **decoding,
         }
@@ -132,6 +166,8 @@ class NLLBTranslator:
             seeds = [seed + i for i in range(len(sentences))]
         else:
             seeds = [int(s) for s in seed]
+        if self.src_lang is not None:
+            self.tokenizer.src_lang = self.src_lang
         out: list[str] = []
         for start in range(0, len(sentences), batch_size):
             batch = self.tokenizer(
@@ -158,6 +194,22 @@ class NLLBTranslator:
         if decode_strategy == "beam+noise":
             return [add_noise(text, seed=s) for text, s in zip(out, seeds)]
         return out
+
+
+def nllb_codes(tokenizer) -> set[str]:
+    """The language codes an NLLB tokenizer knows, such as ``"tel_Telu"``.
+
+    Args:
+        tokenizer: An NLLB tokenizer.
+
+    Returns:
+        Its FLORES-200 codes: three letters, an underscore, four letters.
+    """
+    return {
+        token
+        for token in tokenizer.additional_special_tokens
+        if len(token) == 8 and token[3] == "_"
+    }
 
 
 def load_nllb(
@@ -408,4 +460,5 @@ __all__ = [
     "coded_batch",
     "fine_tune",
     "load_nllb",
+    "nllb_codes",
 ]
