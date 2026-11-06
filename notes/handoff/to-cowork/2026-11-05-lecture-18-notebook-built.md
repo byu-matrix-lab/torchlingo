@@ -88,9 +88,15 @@ translations are on Drive.
 - **The red `huggingface-hub` / `gradio` / `diffusers` list** is harmless in both, and both
   notebooks now say so. If Learning Suite or a deck describes these steps, it may want the same
   sentence.
+- **A14's setup, and tutorial 9.** Coulson found on Nov 5 that a line reading NLLB's language codes
+  fails under the `transformers` 5 that Colab ships, so both stopped on a fresh session. It is
+  fixed on `course`, and a check now loads the real tokenizer on Colab's versions.
 
-A14's fix has not run on real Colab with a GPU yet; it was tested against Colab's published
-package versions. The single Colab L4 run of the A14 notebook, with Coulson, will be the first.
+A14's fixes have not run on real Colab with a GPU yet, as far as this side knows; they were tested
+against Colab's published package versions. Eric is talking to Coulson about the L4 run.
+
+TorchLingo 0.2.10 carries all of this, and chrF below, for anyone installing from PyPI. Students
+install from `course`, so nothing changes for them.
 
 ## 6. chrF now means one thing, and three things for you
 
