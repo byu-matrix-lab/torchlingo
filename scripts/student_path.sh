@@ -189,6 +189,22 @@ SMOKE = {
     ),
 }
 
+# The same through the command, for a notebook that calls it. COMET's Python API can work while
+# its command cannot even read its arguments: on Python 3.13 the command died inside jsonargparse
+# 3.13.1 on Nov 5, with A13 due the next day, and the check above passed. num_workers=2 because
+# COMET cannot run with none on a Mac; Colab uses two as well.
+COMMAND_SMOKE = (
+    "import pathlib, subprocess, sys\n"
+    "pathlib.Path('smoke-s.txt').write_text('Pode ser entregue?\\n', encoding='utf-8')\n"
+    "pathlib.Path('smoke-t.txt').write_text('Can it be delivered?\\n', encoding='utf-8')\n"
+    "command = pathlib.Path(sys.executable).with_name('comet-score')\n"
+    "done = subprocess.run([str(command), '-s', 'smoke-s.txt', '-r', 'smoke-t.txt',\n"
+    "                       '-t', 'smoke-t.txt', '--quiet', '--only_system', '--gpus', '0',\n"
+    "                       '--num_workers', '2'], capture_output=True, text=True)\n"
+    "assert done.returncode == 0 and 'score:' in done.stdout, 'comet-score failed:\\n' + done.stderr[-800:]\n"
+    "print('comet-score scored one pair:', done.stdout.strip().rsplit(chr(9), 1)[-1])"
+)
+
 if os.environ.get("INSTALL_ONLY") == "1":
     import ast
 
@@ -254,6 +270,10 @@ if os.environ.get("INSTALL_ONLY") == "1":
             "print(f'{len(pins) - len(changed)} of {len(pins)} of Colab\\'s packages left as Colab ships them')"
         ))
     checks += [nbformat.v4.new_code_cell(SMOKE[name]) for name in sorted(modules & set(SMOKE))]
+    if any(line.lstrip().startswith("!comet-score")
+           for cell in nb.cells if cell.cell_type == "code"
+           for line in cell.source.splitlines()):
+        checks.append(nbformat.v4.new_code_cell(COMMAND_SMOKE))
     nb.cells = nb.cells[:1] + installs + checks
 
 start = time.time()
