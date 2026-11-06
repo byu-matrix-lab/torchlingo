@@ -205,6 +205,7 @@ Shurtz's phonetic transliteration for Thai, Lao and Khmer) and last year's Lectu
 problems; then, condensed, word alignment and how it relates to attention, and what NMT replaced
 from rule-based, example-based and phrase-based MT. A standalone earlier-methods lecture gave way
 to Lecture 16 (Eric, Nov 3). The Och and Ney and the phrase-based reading reports belong here.
+The in-class notebook runs IBM Model 1 and sets its alignment beside attention (Eric, Nov 5).
 
 ### 19. MT in Use: Applications, Jobs and Post-Editing (F2025 Lecture 22, with Lecture 18's post-editing; Mon Dec 7)
 Where MT is used, the industry and jobs; about 10 minutes from last year's Lecture 18 on

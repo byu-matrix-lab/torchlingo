@@ -159,6 +159,7 @@ nav:
     - LLMs and Context (Lecture 12): course/lecture-12-llm-context.ipynb
     - Back-Translation (Lecture 13): course/lecture-13-back-translation.ipynb
     - One Model, Both Directions (Lecture 14): course/lecture-14-multilingual.ipynb
+    - IBM Model 1 and Attention (Lecture 18): course/lecture-18-ibm-model-1.ipynb
   - API Reference:
     - reference/index.md
     - Config: reference/config.md

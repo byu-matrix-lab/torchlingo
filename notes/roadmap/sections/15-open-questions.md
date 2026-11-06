@@ -21,13 +21,12 @@
 - **Lecture 6 is overloaded** and nothing has been done about it.
 - **Lecture 18 (research, open problems and earlier methods, since Nov 3) needs scoping**: word
   alignment and earlier methods condensed beside the lab's research, around the material now in
-  Lecture 5; it has no notebook.
+  Lecture 5. Its notebook is settled: IBM Model 1 in class, set beside attention (Eric, Nov 5).
 - **What Lectures 15 to 19 and the final project need from the repository**, held until Lectures
-  11 to 13 are done (Eric, Oct 19). None has a notebook, by design, but three may want code:
-  Lecture 19's post-editing segment measures normalized edit distance (a small notebook, or
-  TorchLingo's TER?); Lecture 18's IBM Model 1 worked by hand, set beside 8a's attention
-  alignment, once the lecture is rescoped; and a "starting a project from your own A9 or A14
-  model" page for the final projects, proposed Nov 16.
+  11 to 13 are done (Eric, Oct 19). Two may still want code: Lecture 19's post-editing segment
+  measures normalized edit distance (a small notebook, or TorchLingo's TER?); and a "starting a
+  project from your own A9 or A14 model" page for the final projects, proposed Nov 16. Lecture
+  18's IBM Model 1 is built (`lecture-18-ibm-model-1`).
 - **Do lectures after 12 have students prompt an LLM?** Eric, Oct 19: "almost certainly yes", to
   be confirmed against these scope notes. If a second notebook does, A12's prompting code becomes
   a TorchLingo helper; until then it stays in A12's notebook.

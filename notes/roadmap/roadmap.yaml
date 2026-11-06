@@ -639,6 +639,17 @@ notebooks:
       (A9; the A13 reverse model), BLEU, chrF, the paired bootstrap, COMET, the wrong-code and
       third-language outputs, the rerun record and the upload files
     rating: low
+  lecture-18-ibm-model-1:
+    purpose: IBM Model 1 by EM on thirteen English-Spanish pairs, its alignment set beside a
+      Transformer's attention on the same pair
+    lesson: how EM learns word alignments from sentence pairs alone; where attention agrees with
+      such an alignment, where it differs, and why it needs no EM
+    student_must: predict what `house` translates to after one round of EM and why it is not yet
+      sure; compare the two alignments row by row and say why they differ; if time, add a pair
+      and see what moves
+    notebook_does: EM, written out as the lesson; the attention, teacher-forced through Lecture
+      8b's model and grouped from pieces to words
+    rating: low
 
 # The "Tooling the semester depends on" table.
 tooling:
