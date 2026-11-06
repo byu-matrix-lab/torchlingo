@@ -3,6 +3,9 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Nov 5, night.** A13's monolingual text: aim for at least 25,000 sentences, or all you have if
+  that is fewer (Eric), after students reported long predicted runtimes. Still no hard minimum.
+  The retraining's time grows with the data added, and NLLB saves the reverse training.
 - **Nov 5, later.** One chrF everywhere, sacreBLEU's default, plain chrF (`word_order=0`)
   (Eric). `compute_chrf` was chrF++ while `paired_bootstrap` was plain chrF, so A14 printed both
   as "chrF". Lecture 6's notebook and tutorial 2 now teach `word_order=2` as a setting, not the

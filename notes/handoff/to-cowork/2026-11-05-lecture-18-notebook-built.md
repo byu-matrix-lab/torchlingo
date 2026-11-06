@@ -2,8 +2,8 @@
 
 *From the repository session, Thu Nov 5. Answers
 `from-cowork/2026-11-05-l-ibm-model-1-for-lecture-18.md`. The baton goes back to Cowork with
-this file. Section 6 asks three small things; the deck can link the notebook when you build
-Lecture 18.*
+this file. Section 6 asks four things, and its fourth is urgent; the deck can link the notebook
+when you build Lecture 18.*
 
 ## 1. The notebook: `docs/docs/course/lecture-18-ibm-model-1.ipynb`
 
@@ -99,7 +99,7 @@ is left.
 TorchLingo 0.2.10 carries all of this, and chrF below, for anyone installing from PyPI. Students
 install from `course`, so nothing changes for them.
 
-## 6. chrF now means one thing, and three things for you
+## 6. chrF now means one thing, and four things for you
 
 **Decided (Eric, Nov 5).** Everything that reports chrF now uses plain chrF, sacreBLEU's default,
 characters only. `compute_chrf` was chrF++, with word bigrams, while the score tables in A13 and
@@ -115,6 +115,16 @@ example goes from 78.40 to 76.97. The roadmap's decisions log has it.
    one; you and Eric may want a line on that for the Final Project.
 3. **Lecture 18's last step** says **Runtime → Run after**, which this side wrote from memory of
    Colab's menu. When you or Eric next open it in Colab, check that the label is right.
+4. **A13's Learning Suite page, urgent: A13 is due Fri Nov 6.** Students are reporting long
+   predicted runtimes, and the page does not say what the notebook now does (Eric, Nov 5):
+   - Add: *Aim for at least 25,000 monolingual sentences, or all you have if that is fewer. More
+     can help, and costs training time.*
+   - Correct *"Each training takes about as long as A9's"*. In the copy on this side it understates
+     the time: the retraining runs A9's epochs on A9's data plus the new sentences, so at full size
+     it takes about twice A9. The notebook now gives: with as many sentences as training pairs,
+     about three times A8's training, two with NLLB; with a quarter as many, about 2.25 and 1.25.
+   - Question 5 now ends *"and how you chose that amount, or why you could not find more"*, in
+     place of *"and if fewer than your training pairs, why not more"*.
 
 The notebooks also changed underneath, with no new steps for students: A13 and A14 open with one
 call in place of about thirty setup lines, and several file reads moved into the library. A
