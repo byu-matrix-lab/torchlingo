@@ -140,7 +140,7 @@ sampler shuffles with.
 4. **Run `scripts/preflight.sh` before pushing.**
 
 ```bash
-scripts/preflight.sh            # ~50s: static gates, both test runners, doctests, docs
+scripts/preflight.sh            # ~110s: static gates, both test runners, doctests, docs
 scripts/preflight.sh --quick    # ~1s:  the five static gates only
 scripts/preflight.sh --notes    # ~5s:  those, and the notebook metadata tests
 scripts/preflight.sh --all      # also executes the runnable notebooks (minutes)
@@ -508,9 +508,10 @@ The cost is not tidiness. A measurement of training budget beating data by rough
 task entry for days, where nobody would look — and it was the prior for a learning-curve
 experiment later designed without it. It now lives in `notes/reports/training-budget.md`.
 
-**So `notes/TASKS.md` holds the table and the tasks' details, and nothing else** (Eric,
-2026-10-26: *"TASKS.md should only contain completable tasks. CLAUDE.md is for standing
-rules"*). Until that day it opened with a page of dated log, one paragraph per baton pass, and
+**So `notes/TASKS.md` holds its priority criteria, the table and the tasks' details, and
+nothing else** (Eric, 2026-10-26: *"TASKS.md should only contain completable tasks. CLAUDE.md is
+for standing rules"*; the criteria moved there on Nov 5, so they sit above what they rank). Until
+that day it opened with a page of dated log, one paragraph per baton pass, and
 carried the decoders' design decisions and the rules below. The log is git history and
 `notes/handoff/`; the rest is here.
 
@@ -539,29 +540,8 @@ not "overdue", and an instructor preparing the next offering meets it there. `hy
 synonym for "later": it keeps the other labels true, since a drifted map or a gate that only
 reports misleads every lecture at once.
 
-**P1 to P4 answer one question, *who meets it, and when?*, and the table is sorted by them**
-(Eric, Oct 25; on Oct 26 P4 was split from P3, which held 44 of 50 tasks, and P3 given a
-criterion of its own). A student's **path** is what they run, read for points or are graded on:
-the assignment notebooks, the library code those call, what `course` serves, and the Final
-Project.
-
-- **P1: a student, within about three weeks.** Something on the path in that window is broken,
-  missing, or unverified as students will take it; or a dated promise to Eric or Cowork falls
-  inside the window.
-- **P2: a student, later this term, or the guards on the path.** A lesson an assignment leaves
-  to a tutorial; a decision, prediction or interpretation missing from a coming assignment; a
-  standing rule that shipped code breaks; the checks and tools that protect `main` and `course`
-  and land and promote to them; or something Eric asked for, with no date.
-- **P3: only the maintainers, at no set time.** Nothing on any student's path changes, this
-  term or next, if it is never done: tooling and tests, CI and docs gates, library refactors and
-  docs pages a student is not sent to, and tutorial-only changes (tutorials carry no points,
-  Eric, Oct 25). The test: if it were never done, would anyone but us notice?
-- **P4: a student, the next offering.** It changes the path, but only for a later term: a
-  lecture or assignment that has already run, the syllabus, or a change held for a semester
-  boundary.
-
-Within a level, the earlier date comes first. Re-rank when the calendar moves. A task whose
-work sits in an open pull request says "In review" and keeps its row until the PR merges.
+**P1 to P4 are defined at the top of `notes/TASKS.md`** (Eric, Nov 5), and the table is sorted
+by them: *who meets it, and when?*
 
 ## Handing the baton
 
