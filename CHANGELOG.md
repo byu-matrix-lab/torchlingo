@@ -7,9 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`evaluation.comet_scores_in_new_process(jobs)`**: `comet_score` on several jobs in a new
+  Python process, for a session that imported transformers before installing COMET. The
+  install changes the files on disk while the session still holds the newer version, and
+  COMET then fails to import. The model loads once, and each job prints a line as it finishes.
+
 ### Fixed
 - **`train_model(device="cpu")`** works: a device given by name is turned into a
   `torch.device`. It raised `AttributeError` at `device.type`.
+- **`comet_score`** no longer says COMET "is not installed" when it is installed but will not
+  load in the session, since reinstalling cannot help; the message now names
+  `comet_scores_in_new_process`. It also always gives COMET workers, without which it could not
+  run on a Mac without CUDA.
 
 ## [0.2.9] - 2026-10-25
 

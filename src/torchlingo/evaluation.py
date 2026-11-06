@@ -26,6 +26,12 @@ use `compute_chrf`, which scores character n-grams and degrades gracefully on
 short text.
 """
 
+import collections
+import importlib.util
+import json
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 from typing import Any, NamedTuple
 
@@ -42,6 +48,16 @@ _COMET_INSTALL = (
     "unbabel-comet`, because a plain install replaces Colab's numpy. Elsewhere: "
     "pip install unbabel-comet."
 )
+
+_COMET_WONT_LOAD = (
+    "COMET is installed but will not load in this session, usually because its install "
+    "replaced a package this session had already imported, such as transformers. Score "
+    "with comet_scores_in_new_process, which starts from what is on disk. Installing "
+    "again will not help."
+)
+
+# Each job this prints as it finishes; the caller shows these lines and no others.
+_COMET_PROGRESS = "COMET scored "
 
 # Loaded COMET models by name: loading one takes most of a minute, so it happens once.
 _comet_models: dict[str, Any] = {}
@@ -652,7 +668,8 @@ def comet_score(
 
     Raises:
         ValueError: If the three lists differ in length.
-        ImportError: If COMET is not installed, with how to install it.
+        ImportError: If COMET is not installed, with how to install it; or if it
+            is installed but will not load in this session, with what to do.
 
     Examples:
         >>> scores = comet_score(["Hallo Welt"], ["Hello world"],
@@ -671,6 +688,8 @@ def comet_score(
             try:
                 from comet import download_model, load_from_checkpoint
             except ImportError as missing:
+                if importlib.util.find_spec("comet") is not None:
+                    raise ImportError(_COMET_WONT_LOAD) from missing
                 raise ImportError(_COMET_INSTALL) from missing
             _comet_models[model] = load_from_checkpoint(download_model(model))
         model = _comet_models[model]
@@ -680,8 +699,116 @@ def comet_score(
         {"src": s, "mt": m, "ref": r}
         for s, m, r in zip(sources, translations, references)
     ]
-    out = model.predict(data, batch_size=batch_size, gpus=gpus, progress_bar=False)
+    # Two workers per GPU is COMET's own default. Without a GPU it would use none, and on
+    # an Apple GPU machine COMET cannot run with none.
+    out = model.predict(
+        data,
+        batch_size=batch_size,
+        gpus=gpus,
+        num_workers=2 * max(gpus, 1),
+        progress_bar=False,
+    )
     return CometScores(float(out.system_score), [float(x) for x in out.scores])
+
+
+def comet_scores_in_new_process(
+    jobs: dict[str, tuple[list[str], list[str], list[str]]],
+    model: str = COMET_MODEL,
+    batch_size: int = 64,
+    gpus: int | None = None,
+) -> dict[str, CometScores]:
+    """Run :func:`comet_score` on several jobs, in a new Python process.
+
+    Use this when COMET was installed after the session imported transformers, as
+    in a notebook that loads NLLB first. COMET needs an older transformers than
+    Colab ships, so its install changes the files on disk while the session still
+    holds the newer version in memory, and importing COMET there fails. A new
+    process has only what is on disk. All the jobs share it, so the model loads
+    once, and each prints a line as it finishes.
+
+    Args:
+        jobs: For each name, its ``(sources, translations, references)``.
+        model: A COMET model name from the Hugging Face Hub.
+        batch_size: Sentences per batch.
+        gpus: GPUs to use. Defaults to 1 if CUDA is available, else 0.
+
+    Returns:
+        Each job's :class:`CometScores`, under its name.
+
+    Raises:
+        ValueError: If a job's three lists differ in length.
+        RuntimeError: If the new process fails, with the end of its output.
+
+    Examples:
+        >>> jobs = {"A14": (["Hallo Welt"], ["Hello world"], ["Hello, world"])}
+        >>> scores = comet_scores_in_new_process(jobs)      # doctest: +SKIP
+        >>> round(scores["A14"].system, 2)                  # doctest: +SKIP
+        0.95
+    """
+    for name, (sources, translations, references) in jobs.items():
+        if not len(sources) == len(translations) == len(references):
+            raise ValueError(
+                f"{name}: needs one translation and one reference per source; got "
+                f"{len(sources)} sources, {len(translations)} translations and "
+                f"{len(references)} references."
+            )
+    with tempfile.TemporaryDirectory() as folder:
+        request, reply = Path(folder, "request.json"), Path(folder, "reply.json")
+        request.write_text(
+            json.dumps(
+                {
+                    "jobs": jobs,
+                    "model": model,
+                    "batch_size": batch_size,
+                    "gpus": gpus,
+                }
+            ),
+            encoding="utf-8",
+        )
+        code = (
+            "from torchlingo.evaluation import _comet_worker; "
+            f"_comet_worker({str(request)!r}, {str(reply)!r})"
+        )
+        process = subprocess.Popen(
+            [sys.executable, "-c", code],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        last_lines: collections.deque[str] = collections.deque(maxlen=20)
+        for line in process.stdout:
+            last_lines.append(line)
+            if line.startswith(_COMET_PROGRESS):
+                print(line, end="", flush=True)
+        if process.wait() != 0:
+            raise RuntimeError(
+                "COMET failed in its new process. The end of its output:\n"
+                + "".join(last_lines)
+            )
+        results = json.loads(reply.read_text(encoding="utf-8"))
+    return {
+        name: CometScores(system, sentences)
+        for name, (system, sentences) in results.items()
+    }
+
+
+def _comet_worker(request: str, reply: str) -> None:
+    """The new process's side of :func:`comet_scores_in_new_process`."""
+    asked = json.loads(Path(request).read_text(encoding="utf-8"))
+    results = {}
+    for name, (sources, translations, references) in asked["jobs"].items():
+        results[name] = comet_score(
+            sources,
+            translations,
+            references,
+            model=asked["model"],
+            batch_size=asked["batch_size"],
+            gpus=asked["gpus"],
+        )
+        print(f"{_COMET_PROGRESS}{name}: {results[name].system:.4f}", flush=True)
+    Path(reply).write_text(json.dumps(results), encoding="utf-8")
 
 
 def paired_bootstrap(
