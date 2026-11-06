@@ -104,8 +104,12 @@ fi
 # --- the test suite, both runners, plus doctests -----------------------------------------
 # CI runs pytest AND `unittest discover`, because a test that only one runner collects has
 # slipped through before. Doctests are a separate gate again: a module can pass its tests and
-# still ship an example that raises.
-run "test suite (pytest)" python -m pytest -q --no-header || true
+# still ship an example that raises. Pytest runs on four workers, 67 s down to 25 s on Nov 5
+# (Task #313), if the venv has pytest-xdist; `unittest` stays serial, so a test that needs
+# another to run first still shows up. The ${a[@]+...} form is for macOS's bash 3.2.
+PYTEST_WORKERS=()
+python -c 'import xdist' 2>/dev/null && PYTEST_WORKERS=(-n 4)
+run "test suite (pytest)" python -m pytest -q --no-header ${PYTEST_WORKERS[@]+"${PYTEST_WORKERS[@]}"} || true
 run "test suite (unittest)" python -m unittest discover tests || true
 run "docstring examples" python -m pytest -q --no-header --doctest-modules src/torchlingo || true
 

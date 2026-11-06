@@ -67,6 +67,8 @@ docs = [
 # findings that pre-commit does not, and vice versa.
 dev = [
     "pytest>=7.0",
+    # preflight.sh runs pytest on four workers; it falls back to one without this.
+    "pytest-xdist>=3.6",
     "ruff==0.16.3",
     "isort>=5.12",
     "build>=1.0",
