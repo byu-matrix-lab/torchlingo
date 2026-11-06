@@ -235,6 +235,21 @@ EARLY_TRANSFORMERS = (
     "except ImportError:\n"
     "    print('no transformers before the COMET install: only --colab reproduces this order')"
 )
+# NLLB's real tokenizer, for a notebook that asks it for language codes. On Colab's transformers 5
+# it has no additional_special_tokens, so A14's setup raised AttributeError on every fresh session
+# (found by Coulson, Nov 5); the tests use a stand-in tokenizer, which had one. Only the tokenizer,
+# a few MB: the model is 2.4 GB.
+NLLB_SMOKE = (
+    "try:\n"
+    "    from transformers import AutoTokenizer\n"
+    "except ImportError:\n"
+    "    print('no transformers: only --colab reaches this')\n"
+    "else:\n"
+    "    from torchlingo_harness.nllb import NLLB_MODEL, nllb_codes\n"
+    "    codes = nllb_codes(AutoTokenizer.from_pretrained(NLLB_MODEL))\n"
+    "    assert len(codes) > 100, f'only {len(codes)} NLLB language codes'\n"
+    "    print(f'{len(codes)} NLLB language codes')"
+)
 LIBRARY_SMOKE = {
     "comet_scores_in_new_process(": (
         "from torchlingo.evaluation import comet_scores_in_new_process\n"
@@ -336,6 +351,11 @@ if os.environ.get("INSTALL_ONLY") == "1":
         if any(call in cell.source for cell in nb.cells if cell.cell_type == "code"):
             checks.append(nbformat.v4.new_code_cell(smoke))
             break
+    # Ahead of any COMET install, which replaces transformers: this is the version setup meets.
+    if any("nllb_codes(" in cell.source for cell in nb.cells if cell.cell_type == "code"):
+        comet = [i for i, c in enumerate(installs) if "unbabel-comet" in c.source]
+        installs.insert(comet[0] if comet else len(installs),
+                        nbformat.v4.new_code_cell(NLLB_SMOKE))
     nb.cells = nb.cells[:1] + installs + checks
 
 start = time.time()
