@@ -92,7 +92,9 @@ def load_data(filepath: Path | str, format: str | None = None) -> pd.DataFrame:
             If None, inferred from file extension. Defaults to None.
 
     Returns:
-        pd.DataFrame: Loaded data with src/tgt columns.
+        pd.DataFrame: Loaded data with src/tgt columns. TSV and CSV cells are
+        always text, exactly as written: a sentence reading "NA" or "1984" stays
+        that string, and a blank cell is an empty string.
 
     Raises:
         ValueError: If format is 'txt' (must use parallel_txt_to_dataframe),
@@ -109,10 +111,12 @@ def load_data(filepath: Path | str, format: str | None = None) -> pd.DataFrame:
     filepath = Path(filepath)
     if format is None:
         format = filepath.suffix.lstrip(".")
+    # Every cell is text. By default pandas reads "NA", "null" or "None" as missing, so such a
+    # sentence vanished without a word, and reads a column of numbers as numbers.
     if format == "tsv":
-        return pd.read_csv(filepath, sep="\t")
+        return pd.read_csv(filepath, sep="\t", dtype=str, keep_default_na=False)
     elif format == "csv":
-        return pd.read_csv(filepath)
+        return pd.read_csv(filepath, dtype=str, keep_default_na=False)
     elif format == "parquet":
         return pd.read_parquet(filepath)
     elif format == "json":
