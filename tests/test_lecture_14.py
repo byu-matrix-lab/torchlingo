@@ -9,7 +9,9 @@ CI has no ``transformers`` and should not download 2.4 GB, so NLLB is a stand-in
 that builds NLLB's sequences from words, a one-weight model whose loss training lowers, and a
 translator that writes the reference once the model has trained and the source before. The
 fine-tuning itself is the library's (``torchlingo_harness.nllb.fine_tune``) with an SGD in
-Adafactor's place; COMET is a stand-in too, scoring exact matches. What is tested is the path:
+Adafactor's place; COMET is a stand-in too, scoring exact matches, and it runs here rather than in
+the new process the notebook starts, which ``test_scoring_helpers`` tests and
+``student_path.sh --colab --install-only`` runs with the real model. What is tested is the path:
 the code table and a borrowed code, the student's tag and both_directions, the training set and
 the test sets, every stop, the three systems per direction with the bootstrap, COMET on every
 translation, the wrong code and the third language, and the write-up from Drive alone.
@@ -161,6 +163,13 @@ def nllb_and_comet_stubbed():
             load_from_checkpoint=lambda path: FakeComet(),
         ),
     }
+
+    def scored_here(jobs):
+        """A new process would not have the stand-in, so the jobs run in this one."""
+        return {
+            name: torchlingo.evaluation.comet_score(*job) for name, job in jobs.items()
+        }
+
     originals = {name: sys.modules.get(name) for name in fakes}
     sys.modules.update(fakes)
     try:
@@ -170,6 +179,9 @@ def nllb_and_comet_stubbed():
                 torchlingo_harness.nllb, "NLLBTranslator", FakeTranslator
             ),
             mock.patch.dict(torchlingo.evaluation._comet_models, clear=True),
+            mock.patch.object(
+                torchlingo.evaluation, "comet_scores_in_new_process", scored_here
+            ),
         ):
             yield
     finally:
@@ -305,6 +317,24 @@ class TestLecture14(unittest.TestCase):
                 self.assertEqual(len(comet[direction][decoder]), 3)
         self.assertEqual(comet["to-x"]["greedy"]["A14"], 1.0)
         self.assertEqual(comet["to-x"]["greedy"]["NLLB off the shelf"], 0.0)
+
+    def test_comet_runs_in_a_new_session_after_only_the_setup_cells(self):
+        # What the notebook's Step 7 promises. It read DIRECTIONS from Step 3 until Nov 5.
+        cells = cells_with(
+            lecture_14_cells(),
+            "Setup: the GPU",
+            "Setup: run this cell",
+            "comet_scores_in_new_process(jobs)",
+        )
+        namespace, _ = run(self.drive, cells)
+        self.assertNotIn("DIRECTIONS", namespace)
+        self.assertEqual(namespace["comet_scores"], self.notes()["comet"])
+        self.assertEqual(namespace["comet_scores"]["to-x"]["greedy"]["A14"], 1.0)
+
+    def test_comet_never_loads_in_the_session_that_imported_transformers(self):
+        # Its import fails there on Colab; the stand-in here could not show that.
+        for _, source in code_cells(NOTEBOOK):
+            self.assertNotIn("comet_score(", source)
 
     def test_the_wrong_code_and_the_third_language(self):
         wrong = self.notes()["wrong_code"]

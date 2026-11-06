@@ -205,6 +205,32 @@ COMMAND_SMOKE = (
     "print('comet-score scored one pair:', done.stdout.strip().rsplit(chr(9), 1)[-1])"
 )
 
+# The same through the library, for a notebook that scores that way, in the session the install
+# left. A14 imported transformers in its setup, so COMET's install changed the files under a
+# session still holding Colab's version, and importing COMET there failed; an install check
+# that scored from a clean kernel could not see it (Nov 5). So where a notebook imports
+# transformers before installing COMET, this imports it there too, ahead of the install.
+EARLY_TRANSFORMERS = (
+    "try:\n"
+    "    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer\n"
+    "except ImportError:\n"
+    "    print('no transformers before the COMET install: only --colab reproduces this order')"
+)
+LIBRARY_SMOKE = {
+    "comet_scores_in_new_process(": (
+        "from torchlingo.evaluation import comet_scores_in_new_process\n"
+        "pair = ['Pode ser entregue?'], ['Can it be delivered?'], ['Can it be delivered?']\n"
+        "scores = comet_scores_in_new_process({'one pair': pair}, gpus=0)\n"
+        "assert scores['one pair'].system > 0"
+    ),
+    "comet_score(": (
+        "from torchlingo.evaluation import comet_score\n"
+        "score = comet_score(['Pode ser entregue?'], ['Can it be delivered?'],\n"
+        "                    ['Can it be delivered?'], gpus=0)\n"
+        "print(f'comet_score scored one pair: {score.system:.3f}')"
+    ),
+}
+
 if os.environ.get("INSTALL_ONLY") == "1":
     import ast
 
@@ -274,6 +300,23 @@ if os.environ.get("INSTALL_ONLY") == "1":
            for cell in nb.cells if cell.cell_type == "code"
            for line in cell.source.splitlines()):
         checks.append(nbformat.v4.new_code_cell(COMMAND_SMOKE))
+    code_before_comet = []
+    for cell in nb.cells:
+        if cell.cell_type == "code":
+            if "unbabel-comet" in cell.source:
+                if any(line.lstrip().startswith(("from transformers", "import transformers"))
+                       for source in code_before_comet for line in source.splitlines()):
+                    installs.insert(
+                        next(i for i, c in enumerate(installs) if "unbabel-comet" in c.source),
+                        nbformat.v4.new_code_cell(EARLY_TRANSFORMERS),
+                    )
+                break
+            code_before_comet.append(cell.source)
+    # "comet_scores_in_new_process(" first: the shorter name is only ever the other way to score.
+    for call, smoke in LIBRARY_SMOKE.items():
+        if any(call in cell.source for cell in nb.cells if cell.cell_type == "code"):
+            checks.append(nbformat.v4.new_code_cell(smoke))
+            break
     nb.cells = nb.cells[:1] + installs + checks
 
 start = time.time()
