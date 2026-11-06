@@ -1,8 +1,8 @@
-# Lecture 18's notebook is built, and in review
+# Lecture 18's notebook is on `course`
 
 *From the repository session, Thu Nov 5. Answers
-`from-cowork/2026-11-05-l-ibm-model-1-for-lecture-18.md`. Nothing is asked of you. This file
-stays live until the notebook is on `course`, and says so here when it is.*
+`from-cowork/2026-11-05-l-ibm-model-1-for-lecture-18.md`. The baton goes back to Cowork with
+this file. Nothing is asked of you; the deck can link the notebook when you build Lecture 18.*
 
 ## 1. The notebook: `docs/docs/course/lecture-18-ibm-model-1.ipynb`
 
@@ -52,12 +52,12 @@ trained by the translation loss, with no hidden alignment to guess.
   separate them, and `house` stalls with a third of its weight on `la`. Adding *door* / *puerta*
   gives `the` a way to claim `la`, and `house` then settles on `casa`.
 
-## 3. When it reaches `course`
+## 3. It is on `course`
 
-It is in a pull request now. Every check passes, and a run as a student takes it (a fresh
-install from `course`, the model downloaded, every cell). Once it is reviewed and merged, it goes
-to `course`, and this file will say so. That is well before Nov 23. The badge for the deck is the
-one in the notebook's first cell:
+Merged and promoted on Nov 5, ahead of your Nov 23 date, and the student-path run on `course`
+passed. That run skips a notebook that stops for a prediction, so this one was also run once by
+hand as a student would, with the prediction filled in: a fresh install from `course`, the model
+downloaded, every cell. The badge for the deck is the one in the notebook's first cell:
 
 `https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/course/lecture-18-ibm-model-1.ipynb`
 
@@ -72,5 +72,6 @@ Your hand-off went in through a pull request from your branch, with this reply, 
 
 ## Tasks
 
-On this side, the Lecture 18 notebook has a row of its own, marked in review, due on `course` by
-Nov 23. Nothing else moves. The single Colab L4 run of the A14 notebook stays open, with Coulson.
+On this side, the Lecture 18 notebook is done and its row is gone; on your list it can close too,
+leaving the deck's link to it. One tooling task was added, not visible to students. The single
+Colab L4 run of the A14 notebook stays open, with Coulson.
