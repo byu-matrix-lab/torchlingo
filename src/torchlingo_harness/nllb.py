@@ -205,9 +205,11 @@ def nllb_codes(tokenizer) -> set[str]:
     Returns:
         Its FLORES-200 codes: three letters, an underscore, four letters.
     """
+    # all_special_tokens, because transformers 5, which Colab ships, has no
+    # additional_special_tokens on this tokenizer, and COMET's install puts 4 back.
     return {
         token
-        for token in tokenizer.additional_special_tokens
+        for token in tokenizer.all_special_tokens
         if len(token) == 8 and token[3] == "_"
     }
 

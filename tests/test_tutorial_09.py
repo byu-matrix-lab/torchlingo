@@ -44,7 +44,7 @@ class StubTokenizer:
     pad_token_id, eos_token_id = 1, 2
 
     def __init__(self):
-        self.additional_special_tokens = list(CODES)
+        self.all_special_tokens = list(CODES)
         self.src_lang = "eng_Latn"
         self.ids = {code: 10 + i for i, code in enumerate(CODES)}
 

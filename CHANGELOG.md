@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.10] - 2026-11-05
+
 ### Added
 - **`torchlingo_harness.nllb.NLLBTranslator.between(model, tokenizer, src_lang, tgt_lang, device)`**:
   a translator for one direction of a model in memory, which sets the source language each time

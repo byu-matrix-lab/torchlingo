@@ -122,7 +122,7 @@ class TestBetween(unittest.TestCase):
 class TestNllbCodes(unittest.TestCase):
     def test_it_keeps_language_codes_and_nothing_else(self):
         tokenizer = _Tokenizer()
-        tokenizer.additional_special_tokens = ["eng_Latn", "tel_Telu", "<mask>", "abcd"]
+        tokenizer.all_special_tokens = ["eng_Latn", "tel_Telu", "<mask>", "abcd"]
         self.assertEqual(nllb_codes(tokenizer), {"eng_Latn", "tel_Telu"})
 
 
