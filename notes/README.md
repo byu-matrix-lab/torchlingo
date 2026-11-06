@@ -32,6 +32,7 @@ notes/
     generated/                     the Assignments page's two Mermaid charts, GENERATED
                                    with the roadmap; Cowork renders them for the page
   TORCHLINGO_VS_OPENNMT.md         competitive assessment
+  NOTEBOOK_LIBRARY_REVIEW.md       which notebook code belongs in the library, Nov 2026
   EVAL_CHRF_TER_TRANSPOSE_BUG.md   a bug report; delete when PR #58 merges
   reports/
     README.md                      what belongs here, and the generate-from-JSON rule

@@ -82,8 +82,8 @@ translations are on Drive.
   scoring cell. Eric has that line for Discord.
 - **A14, Step 7.** Scoring failed for anyone running the notebook in order, with a message saying
   COMET was not installed. It now scores in a separate process, and runs in a new session after
-  the setup cells. The fix reaches a student who opens the notebook fresh from the badge; a copy
-  already open keeps the old cell.
+  the setup cells. No students have started A14 (Eric, Nov 5), so everyone gets the fix from the
+  badge.
 - **The red `huggingface-hub` / `gradio` / `diffusers` list** is harmless in both, and both
   notebooks now say so. If Learning Suite or a deck describes these steps, it may want the same
   sentence.
@@ -94,6 +94,7 @@ package versions. The single Colab L4 run of the A14 notebook, with Coulson, wil
 ## Tasks
 
 On this side, the Lecture 18 notebook is done and its row is gone; on your list it can close too,
-leaving the deck's link to it. Four tasks were added, none visible to students: three on making
-pull requests faster to land, and a review of the notebooks for code that belongs in the library.
-The single Colab L4 run of the A14 notebook stays open, with Coulson.
+leaving the deck's link to it. A review of the notebooks for code that belongs in the library
+produced five tasks, under way on this side. One fix reaches students: a sentence reading `NA`,
+`null`, or `None` was silently dropped from training, and now is not. The single Colab L4 run of
+the A14 notebook stays open, with Coulson.
