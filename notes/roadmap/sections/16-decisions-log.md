@@ -3,6 +3,10 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Nov 6.** A14's notebook times each long stage itself, on the student's GPU, and its last cell
+  prints a table the write-up ends with (Eric, Nov 5, asking for real times to plan the next
+  offering's windows and points). No change to points, steps, or questions. A13 asks for the
+  times as optional this term; the same timing in its notebook waits for the next offering.
 - **Nov 5, night.** A13's monolingual text: aim for at least 25,000 sentences, or all you have if
   that is fewer (Eric), after students reported long predicted runtimes. Still no hard minimum.
   The retraining's time grows with the data added, and NLLB saves the reverse training.
