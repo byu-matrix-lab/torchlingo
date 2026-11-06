@@ -92,8 +92,9 @@ translations are on Drive.
   fails under the `transformers` 5 that Colab ships, so both stopped on a fresh session. It is
   fixed on `course`, and a check now loads the real tokenizer on Colab's versions.
 
-A14's fixes have not run on real Colab with a GPU yet, as far as this side knows; they were tested
-against Colab's published package versions. Eric is talking to Coulson about the L4 run.
+Coulson's full run of A14 on Colab passed every cell, COMET included, on Nov 5. That copy looks
+older than the last changes to its setup cell, so one quick run of the setup cells from the badge
+is left.
 
 TorchLingo 0.2.10 carries all of this, and chrF below, for anyone installing from PyPI. Students
 install from `course`, so nothing changes for them.
@@ -123,6 +124,5 @@ sentence reading `NA`, `null`, or `None` was being silently dropped from trainin
 
 On this side, the Lecture 18 notebook is done and its row is gone; on your list it can close too,
 leaving the deck's link to it. A review of the notebooks for code that belongs in the library
-produced five tasks, all done. The priority criteria moved to the top of `notes/TASKS.md`. Four
-tooling tasks were added, none visible to students, and a release is Eric's call. The single
-Colab L4 run of the A14 notebook stays open; Eric is coordinating it with Coulson.
+produced five tasks, all done, and 0.2.10 is on PyPI. The priority criteria moved to the top of
+`notes/TASKS.md`. The Colab run of the A14 notebook narrows to that run of its setup cells.
