@@ -21,7 +21,7 @@ from unittest import mock
 import torch
 
 from torchlingo.inference import add_noise, translate_lines_to_file
-from torchlingo_harness.nllb import NLLBTranslator
+from torchlingo_harness.nllb import NLLBTranslator, nllb_codes
 
 
 class _Batch(dict):
@@ -48,6 +48,9 @@ class _Model:
     def __init__(self):
         self.calls = []
 
+    def eval(self):
+        return self
+
     def generate(self, input_ids, **options):
         self.calls.append(options)
         rows = input_ids.size(0)
@@ -60,6 +63,67 @@ def _translator():
     return NLLBTranslator(
         _Model(), _Tokenizer(), "eng_Latn", torch.device("cpu"), "stub"
     )
+
+
+class _RecordingTokenizer(_Tokenizer):
+    """Remembers the source language in force each time it tokenizes."""
+
+    def __init__(self):
+        self.seen = []
+
+    def __call__(self, sentences, return_tensors, padding):
+        self.seen.append(self.src_lang)
+        return super().__call__(sentences, return_tensors, padding)
+
+
+class TestBetween(unittest.TestCase):
+    def test_two_translators_on_one_tokenizer_keep_their_own_directions(self):
+        # Setting tokenizer.src_lang by hand, the second would silently change the first.
+        tokenizer = _RecordingTokenizer()
+        device = torch.device("cpu")
+        into_english = NLLBTranslator.between(
+            _Model(), tokenizer, "deu_Latn", "eng_Latn", device
+        )
+        into_german = NLLBTranslator.between(
+            _Model(), tokenizer, "eng_Latn", "deu_Latn", device
+        )
+        into_english(["a"])
+        into_german(["b"])
+        into_english(["c"])
+        self.assertEqual(tokenizer.seen, ["deu_Latn", "eng_Latn", "deu_Latn"])
+
+    def test_settings_record_its_own_source_language(self):
+        tokenizer = _RecordingTokenizer()
+        device = torch.device("cpu")
+        first = NLLBTranslator.between(
+            _Model(), tokenizer, "deu_Latn", "eng_Latn", device
+        )
+        NLLBTranslator.between(_Model(), tokenizer, "eng_Latn", "deu_Latn", device)
+        self.assertEqual(first.settings()["src_lang"], "deu_Latn")
+
+    def test_it_puts_the_model_in_evaluation_mode(self):
+        model = _Model()
+        model.evaluated = False
+
+        def evaluate():
+            model.evaluated = True
+            return model
+
+        model.eval = evaluate
+        NLLBTranslator.between(
+            model, _Tokenizer(), "deu_Latn", "eng_Latn", torch.device("cpu")
+        )
+        self.assertTrue(model.evaluated)
+
+    def test_a_translator_built_directly_still_follows_the_tokenizer(self):
+        self.assertEqual(_translator().settings()["src_lang"], "tel_Telu")
+
+
+class TestNllbCodes(unittest.TestCase):
+    def test_it_keeps_language_codes_and_nothing_else(self):
+        tokenizer = _Tokenizer()
+        tokenizer.additional_special_tokens = ["eng_Latn", "tel_Telu", "<mask>", "abcd"]
+        self.assertEqual(nllb_codes(tokenizer), {"eng_Latn", "tel_Telu"})
 
 
 class TestStrategies(unittest.TestCase):
