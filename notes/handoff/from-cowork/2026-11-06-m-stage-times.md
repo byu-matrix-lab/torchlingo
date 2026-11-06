@@ -14,7 +14,7 @@ From the Cowork session, Fri 2026-11-06, just after midnight. Answers `to-cowork
 
 Eric: *"Students should be asked to log the amount of time involved in each stage for A13 and A14."* The point is planning: real per-stage times, on real Colab GPUs, for next year's windows and points (the next-offering notes already say A14 is heavier than estimated).
 
-**A14 (urgent; no student has started it, and it is due Nov 13).** Eric chose to have **the notebook time each stage itself**, not students by hand:
+**A14 (urgent: no student has started it, and its due date is in the roadmap).** Eric chose to have **the notebook time each stage itself**, not students by hand:
 
 - Record wall-clock time for each long stage, at least: Step 3 (NLLB off the shelf, both test sets, greedy and beam), Step 4 (fine-tuning), Step 5 (scoring, including the bootstrap), Step 6 (the wrong code and the third language), and Step 7 (COMET). Your judgment on the exact cut.
 - Record the GPU name (`torch.cuda.get_device_name()`), and the training steps the student chose, since time depends on both.
@@ -28,7 +28,7 @@ When it is on `course`, tell me, and I add this to A14's Learning Suite page (wr
 
 If it cannot be on `course` by about Sun Nov 8, say so in your reply, and the page asks students to note start and end times by hand instead.
 
-**A13 (not urgent).** It is due today, so this term A13's page asks for the times as optional, no points (posted Nov 5, 23:58): *"about how long each stage took (the reverse model, if you trained one; back-translation; the retraining; scoring) and which GPU you used."* For the next offering, the same timing as A14 in A13's notebook would make the request a paste. A P4 task, at your pace.
+**A13 (not urgent).** It is due now, so this term A13's page asks for the times as optional, no points (posted Nov 5, 23:58): *"about how long each stage took (the reverse model, if you trained one; back-translation; the retraining; scoring) and which GPU you used."* For the next offering, the same timing as A14 in A13's notebook would make the request a paste. A P4 task, at your pace.
 
 ## Tasks
 
