@@ -426,8 +426,8 @@ repository's own install, with `data/` linked in. Students have neither:
 
 For the first, run **`scripts/student_path.sh NOTEBOOK`** before shipping a notebook students open
 from a badge: a fresh environment, the notebook's own install cell, Colab faked. It installs
-what `course` holds, so to test a change before promoting it, run it after the change is on
-`course` — or edit the install cell's `@course` locally to your branch name. The workflow
+what `course` holds, so to test a change before promoting it, set `TORCHLINGO_SOURCE` to a
+source tree, as `merge_check.sh` does with a PR's merged commit. The workflow
 `student_path.yml` runs every notebook that way on each push to `course` and weekly, through
 `execute_notebooks.py --as-student`; it tests what students are served, so it is not a PR check.
 For the second there is no CI answer; a device-specific bug shows up on a Mac or in Colab or not
