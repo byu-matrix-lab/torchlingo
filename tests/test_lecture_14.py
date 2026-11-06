@@ -14,7 +14,8 @@ the new process the notebook starts, which ``test_scoring_helpers`` tests and
 ``student_path.sh --colab --install-only`` runs with the real model. What is tested is the path:
 the code table and a borrowed code, the student's tag and both_directions, the training set and
 the test sets, every stop, the three systems per direction with the bootstrap, COMET on every
-translation, the wrong code and the third language, and the write-up from Drive alone.
+translation, the wrong code and the third language, the time of each stage, and the write-up
+from Drive alone.
 """
 
 import contextlib
@@ -367,6 +368,44 @@ class TestLecture14(unittest.TestCase):
         self.assertEqual(rerun["into_english_one_way"], "A13 reverse")
         self.assertEqual(rerun["versions"]["torchlingo"], torchlingo.version_label())
         self.assertIn("sacrebleu", rerun["versions"])
+
+    def test_each_long_stage_is_timed_and_the_last_cell_prints_the_table(self):
+        times = json.loads((self.a8_dir / "a14-times.json").read_text(encoding="utf-8"))
+        self.assertEqual(
+            list(times),
+            [
+                "Step 3: NLLB off the shelf",
+                "Step 4: fine-tuning",
+                "Step 5: translating",
+                "Step 5: bootstrap",
+                "Step 6: wrong code, third language",
+                "Step 7: COMET",
+            ],
+        )
+        self.assertEqual({s["gpus"][0] for s in times.values()}, {"cpu"})
+        table = self.printed.split("=== Timing: paste this")[-1]
+        self.assertIn("Training steps: 6", table)
+        for stage in times:
+            self.assertIn(stage, table)
+        self.assertIn("Total", table)
+        rerun = json.loads((self.a8_dir / "a14-rerun.json").read_text(encoding="utf-8"))
+        self.assertEqual(list(rerun["stage_times"]), list(times))
+
+    def test_a_stage_run_in_a_new_session_adds_to_its_time_and_the_table_survives(self):
+        path = self.a8_dir / "a14-times.json"
+        before = json.loads(path.read_text(encoding="utf-8"))["Step 7: COMET"]
+        cells = cells_with(
+            lecture_14_cells(),
+            SETUP_CELL,
+            NLLB_CELL,
+            "comet_scores_in_new_process(jobs)",
+            WRITE_UP_CELL,
+        )
+        _, printed = run(self.drive, cells)
+        after = json.loads(path.read_text(encoding="utf-8"))["Step 7: COMET"]
+        self.assertEqual(after["runs"], before["runs"] + 1)
+        self.assertGreaterEqual(after["seconds"], before["seconds"])
+        self.assertIn("Step 4: fine-tuning", printed.split("=== Timing")[-1])
 
     def test_an_a9_model_saved_before_settings_were_recorded_decodes_the_same(self):
         """A9 models saved before Oct 14 hold only weights; the notebook's Config builds them."""

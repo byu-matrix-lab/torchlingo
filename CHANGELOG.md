@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`colab.StageTimes(path, device=)`**, with `with times.stage(name):` and `.table()`: how long
+  each long stage of a notebook took, and on which GPU, saved to Drive at its start, each minute
+  while it runs and at its end, so a dropped session keeps the time so far and a stage run again
+  adds to it. A14 times each stage, prints the table in its last cell and records the times in
+  `a14-rerun.json`.
+
 ## [0.2.10] - 2026-11-05
 
 ### Added
