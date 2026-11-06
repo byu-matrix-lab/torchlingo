@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`torchlingo_harness.nllb.NLLBTranslator.between(model, tokenizer, src_lang, tgt_lang, device)`**:
+  a translator for one direction of a model in memory, which sets the source language each time
+  it is called, so translators sharing a tokenizer cannot change each other's direction. And
+  **`nllb_codes(tokenizer)`**, the language codes a tokenizer knows.
 - **`evaluation.comet_scores_in_new_process(jobs)`**: `comet_score` on several jobs in a new
   Python process, for a session that imported transformers before installing COMET. The
   install changes the files on disk while the session still holds the newer version, and

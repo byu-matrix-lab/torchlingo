@@ -87,6 +87,10 @@ class FakeTranslator:
     def __init__(self, model, tokenizer, tgt_lang, device, name):
         self.model, self.tgt_lang = model, tgt_lang
 
+    @classmethod
+    def between(cls, model, tokenizer, src_lang, tgt_lang, device):
+        return cls(model.eval(), tokenizer, tgt_lang, device, "fake-nllb")
+
     def __call__(self, sentences, **options):
         if self.model.trained:
             return [
