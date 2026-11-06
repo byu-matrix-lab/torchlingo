@@ -47,6 +47,43 @@ COMET_MODEL = "Unbabel/wmt22-comet-da"
 # (chrF++, word_order=2) also depend on spaces, which many languages do not write.
 CHRF_WORD_ORDER = 0
 
+
+def bleu_tokenizer(no_spaces: bool) -> str:
+    """The sacreBLEU tokenizer for a language: spBLEU's without spaces, else the default.
+
+    SacreBLEU's default tokenizer splits on spaces, so a language written without them
+    becomes one long "word", and BLEU says little. FLORES-200's tokenizer, spBLEU, does not
+    depend on spaces.
+
+    Args:
+        no_spaces: Whether the language is written without spaces.
+
+    Returns:
+        ``"flores200"`` or ``"13a"``, for the ``tokenize`` argument of :func:`compute_bleu`
+        and :func:`paired_bootstrap`.
+
+    Examples:
+        >>> bleu_tokenizer(True), bleu_tokenizer(False)
+        ('flores200', '13a')
+    """
+    return "flores200" if no_spaces else "13a"
+
+
+def bleu_name(no_spaces: bool) -> str:
+    """How to name the BLEU :func:`bleu_tokenizer` gives, in a report.
+
+    Args:
+        no_spaces: Whether the language is written without spaces.
+
+    Returns:
+        The name.
+
+    Examples:
+        >>> bleu_name(True)
+        'spBLEU (flores200)'
+    """
+    return "spBLEU (flores200)" if no_spaces else "SacreBLEU, default tokenizer"
+
 _COMET_INSTALL = (
     "COMET is not installed. In Colab, install it as the course notebooks do (A14's "
     "COMET cell): its other requirements first, then `%pip install --no-deps "

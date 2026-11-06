@@ -346,6 +346,141 @@ class Notes:
         return notes
 
 
+# What a later assignment needs from the finished A9, as Lecture 9's Part B leaves them.
+BASELINE_FILES = (
+    "train.tsv",
+    "val.tsv",
+    "test.tsv",
+    "spm.model",
+    "a9-settings.json",
+    "best-a9/model_best.pt",
+)
+# A9's model, for a file saved before TorchLingo recorded settings (October 14, 2026).
+BASELINE_SHAPE = {
+    "d_model": 512,
+    "n_heads": 8,
+    "num_encoder_layers": 6,
+    "num_decoder_layers": 6,
+    "d_ff": 2048,
+}
+
+
+@dataclass
+class Baseline:
+    """A finished A9, as a later assignment compares against it. See :func:`load_baseline`.
+
+    Attributes:
+        dir: Its folder on Drive.
+        settings: ``a9-settings.json``, as A9 wrote it.
+        no_spaces: Whether the language is written without spaces.
+        tokenize: The BLEU tokenizer A9 was scored with.
+        bleu_name: That BLEU's name, for a report.
+        vocab: The SentencePiece vocabulary, one for both languages.
+        spm_path: Where that vocabulary's model is, as a string, for ``create_dataloaders``.
+        config: A ``Config`` that builds and trains a model the way A9 did.
+        train, val, test: The split, each a DataFrame of text.
+        device: Where :meth:`load_best` puts a model.
+    """
+
+    dir: Path
+    settings: dict[str, Any]
+    no_spaces: bool
+    tokenize: str
+    bleu_name: str
+    vocab: Any
+    spm_path: str
+    config: Any
+    train: Any
+    val: Any
+    test: Any
+    device: Any
+
+    def load_best(self, best_dir: str = "best-a9") -> Any:
+        """The best model a training kept in a folder here, ready to translate.
+
+        Args:
+            best_dir: The folder under :attr:`dir`, such as ``"best-a13"``.
+
+        Returns:
+            The model, in evaluation mode.
+        """
+        from .checkpoint import load_model
+
+        return load_model(
+            self.dir / best_dir / "model_best.pt",
+            self.device,
+            config=self.config,
+            src_vocab=self.vocab,
+        ).model
+
+
+def load_baseline(
+    env: NotebookEnvironment,
+    *,
+    needs: Iterable[str | Path] = (),
+    folder: str = "assignment8",
+) -> Baseline:
+    """Open a student's finished A9, the baseline A13, A14 and a Final Project change one thing against.
+
+    Those notebooks are about back-translation or multilingual tags, and teach nothing by
+    reloading A9, yet each began with the same thirty lines. The comparison is only fair if
+    everything but the one change is A9's, so this reads what A9 left rather than repeating
+    it: the model's shape comes from A9's own checkpoint, so "the same configuration" cannot
+    drift. A model file too old to record its shape gets A9's, :data:`BASELINE_SHAPE`.
+
+    Args:
+        env: What ``setup(drive=True)`` returned.
+        needs: Files in the folder this notebook needs besides :data:`BASELINE_FILES`.
+        folder: The folder under ``MyDrive/CS479``.
+
+    Returns:
+        A :class:`Baseline`.
+
+    Raises:
+        SystemExit: If a file is missing. The message names each one.
+
+    Examples:
+        >>> baseline = load_baseline(env, needs=["test-a9.hyp"])    # doctest: +SKIP
+        >>> model = baseline.load_best("best-a9")                   # doctest: +SKIP
+    """
+    from .checkpoint import load_checkpoint
+    from .config import Config
+    from .data_processing.vocab import SentencePieceVocab
+    from .evaluation import bleu_name, bleu_tokenizer
+    from .preprocessing import load_data
+
+    directory = course_dir(
+        env.drive_dir,
+        folder,
+        needs=[*BASELINE_FILES, *needs],
+        hint="Lecture 9's Part B writes them; finish A9 first.",
+    )
+    settings = json.loads((directory / "a9-settings.json").read_text(encoding="utf-8"))
+    recorded = load_checkpoint(directory / "best-a9" / "model_best.pt", "cpu")
+    recorded = recorded.get("model_config") or {}
+    shape = {key: recorded.get(key, value) for key, value in BASELINE_SHAPE.items()}
+    spm_path = str(directory / "spm.model")
+    return Baseline(
+        dir=directory,
+        settings=settings,
+        no_spaces=settings["no_spaces"],
+        tokenize=bleu_tokenizer(settings["no_spaces"]),
+        bleu_name=bleu_name(settings["no_spaces"]),
+        vocab=SentencePieceVocab(spm_path),
+        spm_path=spm_path,
+        config=Config(
+            **shape,
+            batch_size=64,
+            num_workers=0,
+            max_decode_length=settings["max_decode_length"],
+        ),
+        train=load_data(directory / "train.tsv"),
+        val=load_data(directory / "val.tsv"),
+        test=load_data(directory / "test.tsv"),
+        device=env.device,
+    )
+
+
 RERUN_PACKAGES = ("torch", "sacrebleu", "transformers")
 
 

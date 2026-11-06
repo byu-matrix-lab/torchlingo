@@ -49,6 +49,7 @@ from torch.nn.utils.rnn import pad_sequence
 from .config import Config, get_default_config
 from .data_processing.vocab import BaseVocab
 from .models.transformer_simple import create_causal_mask
+from .preprocessing.base import read_lines
 
 # Every value decode_strategy accepts. "sample" and "beam+noise" are the two that
 # Edunov et al. (2018) found make better back-translations; see sample_decode and
@@ -1304,9 +1305,7 @@ def translate_lines_to_file(
                 f"Translated {start + len(chunk):,} of {len(sentences):,}.", flush=True
             )
 
-    # Split on "\n" only, the way the lines were counted: splitlines() also breaks on rarer
-    # separators such as U+2028, which can occur inside a translation.
-    return output_path.read_text(encoding="utf-8").split("\n")[:-1]
+    return read_lines(output_path)
 
 
 __all__ = [
