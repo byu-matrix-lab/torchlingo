@@ -35,7 +35,6 @@ from test_lecture_09_part_b import (
     CELL_1,
     CONFIG_CELL,
     SCORING_CELL,
-    TOY_SIZE,
     TRAINING_CELL,
     part_b,
     write_a8_and_part_a,
@@ -85,7 +84,6 @@ def lecture_13_cells(
     return substitute(
         cells,
         {
-            **TOY_SIZE,
             **({READ_EPOCHS: "EPOCHS = 1"} if one_epoch else {}),
             **(ANSWERS if answered else {}),
             **(PREDICTED if predicted else {}),

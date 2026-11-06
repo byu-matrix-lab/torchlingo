@@ -30,7 +30,6 @@ from unittest import mock
 import pandas as pd
 import torch
 from notebook_cells import COURSE, code_cells, colab_faked, run_cells, substitute
-from test_lecture_09_part_b import TOY_SIZE
 from test_lecture_13 import build_drive, lecture_13_cells
 
 import torchlingo.evaluation
@@ -204,7 +203,6 @@ def lecture_14_cells(
     return substitute(
         cells,
         {
-            **TOY_SIZE,
             **(ANSWERS if answered else {}),
             **(DECIDED if decided else {}),
             **(swaps or {}),
