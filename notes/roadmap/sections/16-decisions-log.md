@@ -3,6 +3,10 @@
 Newest first. Each is a decision that changed the schedule, an assignment, or a notebook's
 place, with who made it.
 
+- **Nov 5, later.** One chrF everywhere, sacreBLEU's default, plain chrF (`word_order=0`)
+  (Eric). `compute_chrf` was chrF++ while `paired_bootstrap` was plain chrF, so A14 printed both
+  as "chrF". Lecture 6's notebook and tutorial 2 now teach `word_order=2` as a setting, not the
+  default.
 - **Nov 5.** Lecture 18 gets a notebook (Eric): IBM Model 1 by EM on a dozen English-Spanish
   pairs, set beside a Transformer's attention on the same pair; in class, about 10 minutes, run
   together, no points.

@@ -13,9 +13,9 @@ and TER read 50.00 where the truth was 25.00. Nothing caught it because nothing
 exercised them: neither function appeared in a test, a tutorial, or a docs page.
 
 These tests compare each wrapper against sacreBLEU called directly at matching
-parameters. Getting that comparison right matters as much as the fix -- chrF
-defaults to ``word_order=2`` here and ``0`` in sacreBLEU, so a careless baseline
-makes a correct implementation look broken by 0.45 points.
+parameters. Getting that comparison right matters as much as the fix: when chrF
+defaulted to ``word_order=2`` here and ``0`` in sacreBLEU, a careless baseline made
+a correct implementation look broken by 0.45 points. Both now default to ``0``.
 """
 
 import unittest
@@ -71,11 +71,9 @@ class AgreementWithSacrebleuTests(unittest.TestCase):
         )
 
     def test_chrf_single_reference(self):
-        # word_order must match: compute_chrf defaults to 2 (chrF++),
-        # sacrebleu.corpus_chrf to 0.
         self.assertAlmostEqual(
             compute_chrf(PREDICTIONS, SINGLE_REFS).score,
-            sacrebleu.corpus_chrf(PREDICTIONS, [SINGLE_REFS], word_order=2).score,
+            sacrebleu.corpus_chrf(PREDICTIONS, [SINGLE_REFS]).score,
             places=9,
         )
 
@@ -96,7 +94,7 @@ class AgreementWithSacrebleuTests(unittest.TestCase):
     def test_chrf_multiple_references(self):
         self.assertAlmostEqual(
             compute_chrf(PREDICTIONS, MULTI_REFS).score,
-            sacrebleu.corpus_chrf(PREDICTIONS, MULTI_STREAMS, word_order=2).score,
+            sacrebleu.corpus_chrf(PREDICTIONS, MULTI_STREAMS).score,
             places=9,
         )
 

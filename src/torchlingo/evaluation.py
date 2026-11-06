@@ -42,6 +42,11 @@ from .data_processing.vocab import BaseVocab
 
 COMET_MODEL = "Unbabel/wmt22-comet-da"
 
+# Plain chrF, sacreBLEU's own default: characters only. Every chrF this module reports
+# uses this one value, so two numbers called chrF are always comparable. Word n-grams
+# (chrF++, word_order=2) also depend on spaces, which many languages do not write.
+CHRF_WORD_ORDER = 0
+
 _COMET_INSTALL = (
     "COMET is not installed. In Colab, install it as the course notebooks do (A14's "
     "COMET cell): its other requirements first, then `%pip install --no-deps "
@@ -269,7 +274,7 @@ def compute_bleu(
 def compute_chrf(
     predictions: list[str],
     references: list[str] | list[list[str]],
-    word_order: int = 2,
+    word_order: int = CHRF_WORD_ORDER,
 ) -> sacrebleu.metrics.CHRF:
     """Compute corpus-level chrF score for translations.
 
@@ -280,7 +285,9 @@ def compute_chrf(
     Args:
         predictions: List of predicted translations.
         references: List of reference translations (single or multiple per sample).
-        word_order: Include word n-grams up to this order (0 = character-only, 2 = default).
+        word_order: Include word n-grams up to this order. The default, 0, is
+            plain chrF, characters only, as in sacreBLEU. 2 gives chrF++; a score
+            from it is not comparable with a plain chrF.
 
     Returns:
         CHRF object with ``.score`` (0-100) and a ``.signature`` string recording
@@ -291,12 +298,11 @@ def compute_chrf(
         >>> refs = ["Le chat s'est assis", "Bonjour monde"]
         >>> result = compute_chrf(preds, refs)
         >>> print(f"chrF: {result.score:.2f}")
-        chrF: 57.12
+        chrF: 60.24
 
-        This example used to read ``63.39``, which is what the old
-        reference-shape bug produced -- the wrong number was documented and
-        nothing noticed, because nothing called this function. See
-        :func:`_as_reference_streams`.
+        An old reference-shape bug once made this example read too high: the
+        wrong number was documented and nothing noticed, because nothing called
+        this function. See :func:`_as_reference_streams`.
 
         chrF is the metric to reach for on short text, where BLEU collapses:
 
@@ -308,9 +314,9 @@ def compute_chrf(
         The signature declares ``word_order``, which is the setting most likely to
         make two chrF numbers incomparable:
 
-        >>> "nw:2" in compute_chrf(["Hello world"], ["Hello world"]).signature
+        >>> "nw:0" in compute_chrf(["Hello world"], ["Hello world"]).signature
         True
-        >>> "nw:0" in compute_chrf(["a b"], ["a c"], word_order=0).signature
+        >>> "nw:2" in compute_chrf(["a b"], ["a c"], word_order=2).signature
         True
     """
     # The class API rather than `corpus_chrf`, for the signature. The functional
@@ -321,15 +327,46 @@ def compute_chrf(
         predictions, _as_reference_streams(references)
     )
 
-    # chrF needs its signature MORE than BLEU does, and this is the case that
-    # proves it. `word_order` defaults to 2 here (chrF++) and to 0 in sacreBLEU's
-    # own `corpus_chrf`. That one undeclared parameter caused two separate
-    # confusions in this repository: a correct implementation judged broken by
-    # 0.45 points against the wrong baseline, and a bug note stating the right
-    # value beside a snippet returning the wrong one. The signature says `nw:2`,
-    # so neither can recur silently.
+    # chrF needs its signature MORE than BLEU does. Until Nov 2026 `word_order`
+    # defaulted to 2 here and to 0 in sacreBLEU, and that one undeclared parameter
+    # caused two separate confusions in this repository: a correct implementation
+    # judged broken by 0.45 points against the wrong baseline, and a bug note
+    # stating the right value beside a snippet returning the wrong one. The
+    # signature says `nw:`, so neither can recur silently.
     chrf_result.signature = str(chrf_metric.get_signature())
     return chrf_result
+
+
+def sentence_chrf(predictions: list[str], references: list[str]) -> list[float]:
+    """Score each translation on its own, with the same chrF as :func:`compute_chrf`.
+
+    Use this to rank or compare single sentences. The scores are for one sentence
+    each, so they do not average to the corpus score, which pools the counts.
+
+    Args:
+        predictions: List of predicted translations.
+        references: One reference for each prediction.
+
+    Returns:
+        Each sentence's chrF, 0-100, in order.
+
+    Raises:
+        ValueError: If the two lists differ in length.
+
+    Example:
+        >>> sentence_chrf(["Hello world", "abc"], ["Hello world", "xyz"])
+        [100.0, 0.0]
+    """
+    if len(predictions) != len(references):
+        raise ValueError(
+            f"sentence_chrf needs one reference per translation; got "
+            f"{len(predictions)} translations and {len(references)} references."
+        )
+    metric = sacrebleu.metrics.CHRF(word_order=CHRF_WORD_ORDER)
+    return [
+        metric.sentence_score(prediction, [reference]).score
+        for prediction, reference in zip(predictions, references)
+    ]
 
 
 def compute_ter(
@@ -878,7 +915,10 @@ def paired_bootstrap(
                 "references."
             )
     names = [baseline] + [n for n in systems if n != baseline]
-    metrics = {"BLEU": BLEU(tokenize=tokenize), "chrF": CHRF()}
+    metrics = {
+        "BLEU": BLEU(tokenize=tokenize),
+        "chrF": CHRF(word_order=CHRF_WORD_ORDER),
+    }
     _, result = PairedTest(
         [(n, list(systems[n])) for n in names],
         metrics,
