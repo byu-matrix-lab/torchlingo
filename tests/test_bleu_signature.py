@@ -111,21 +111,21 @@ class EveryMetricCarriesASignatureTests(unittest.TestCase):
     def test_chrf_declares_word_order(self):
         """The case that proves signatures are not cosmetic.
 
-        `compute_chrf` defaults to `word_order=2` (chrF++) where sacreBLEU's own
-        `corpus_chrf` defaults to `0`. That one undeclared parameter caused two separate
-        confusions in this repository: a correct implementation judged broken by 0.45
-        points against the wrong baseline, and a bug note stating the right value beside a
-        snippet returning the wrong one.
+        Until Nov 2026 `compute_chrf` defaulted to `word_order=2` (chrF++) where sacreBLEU
+        defaults to `0`. That one undeclared parameter caused two separate confusions in
+        this repository: a correct implementation judged broken by 0.45 points against the
+        wrong baseline, and a bug note stating the right value beside a snippet returning
+        the wrong one.
         """
-        self.assertIn("nw:2", compute_chrf(PREDICTIONS, REFERENCES).signature)
+        self.assertIn("nw:0", compute_chrf(PREDICTIONS, REFERENCES).signature)
         self.assertIn(
-            "nw:0", compute_chrf(PREDICTIONS, REFERENCES, word_order=0).signature
+            "nw:2", compute_chrf(PREDICTIONS, REFERENCES, word_order=2).signature
         )
 
     def test_word_order_changes_both_the_score_and_the_signature(self):
         """Neither alone is enough: a setting that moves the number must move the label."""
-        plus = compute_chrf(PREDICTIONS, REFERENCES)
-        chars_only = compute_chrf(PREDICTIONS, REFERENCES, word_order=0)
+        plus = compute_chrf(PREDICTIONS, REFERENCES, word_order=2)
+        chars_only = compute_chrf(PREDICTIONS, REFERENCES)
         self.assertNotAlmostEqual(plus.score, chars_only.score, places=4)
         self.assertNotEqual(plus.signature, chars_only.signature)
 
@@ -152,7 +152,7 @@ class EveryMetricCarriesASignatureTests(unittest.TestCase):
         streams = [REFERENCES]
         self.assertAlmostEqual(
             compute_chrf(PREDICTIONS, REFERENCES).score,
-            sacrebleu.corpus_chrf(PREDICTIONS, streams, word_order=2).score,
+            sacrebleu.corpus_chrf(PREDICTIONS, streams).score,
             places=10,
         )
         self.assertAlmostEqual(

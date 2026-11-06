@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   install changes the files on disk while the session still holds the newer version, and
   COMET then fails to import. The model loads once, and each job prints a line as it finishes.
 
+### Changed
+- **`compute_chrf` defaults to plain chrF, `word_order=0`**, sacreBLEU's own default, where it
+  was chrF++ (`word_order=2`). Scores move slightly: 78.40 becomes 76.97 on Lecture 6's Part 1
+  example. `paired_bootstrap` already used plain chrF, so one library reported two different
+  scores as "chrF". Every path now reads `evaluation.CHRF_WORD_ORDER`, and a test holds them
+  together. `word_order=2` still gives chrF++.
+
+### Added
+- **`evaluation.sentence_chrf(predictions, references)`**: each translation's chrF on its own,
+  with the same setting as `compute_chrf`.
+
 ### Fixed
 - **`train_model(device="cpu")`** works: a device given by name is turned into a
   `torch.device`. It raised `AttributeError` at `device.type`.

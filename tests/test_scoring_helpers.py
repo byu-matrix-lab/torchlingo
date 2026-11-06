@@ -17,13 +17,18 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+import sacrebleu
+
 from torchlingo import evaluation
 from torchlingo.evaluation import (
     CometScores,
     comet_score,
     comet_scores_in_new_process,
+    compute_bleu,
+    compute_chrf,
     format_scores,
     paired_bootstrap,
+    sentence_chrf,
 )
 
 REFS = [
@@ -205,6 +210,44 @@ class TestCometScoresInNewProcess(unittest.TestCase):
             comet_scores_in_new_process({"A14": (["s1", "s2"], ["a"], ["a", "b"])})
         popen.assert_not_called()
         self.assertIn("A14", str(refused.exception))
+
+
+class TestOneChrfOneBleu(unittest.TestCase):
+    """Every path that reports a metric reports the same metric.
+
+    `compute_chrf` was chrF++ and `paired_bootstrap` plain chrF until Nov 2026, so A14 printed
+    both under one name.
+    """
+
+    def test_every_chrf_is_sacrebleus_default(self):
+        self.assertEqual(evaluation.CHRF_WORD_ORDER, 0)
+        corpus = compute_chrf(WORSE, REFS).score
+        self.assertAlmostEqual(
+            corpus, sacrebleu.corpus_chrf(WORSE, [REFS]).score, places=9
+        )
+        table = paired_bootstrap({"a": WORSE, "b": REFS}, REFS, n_samples=10)
+        self.assertAlmostEqual(table["a"]["chrf"], corpus, places=3)
+
+    def test_sentence_chrf_is_the_same_chrf_one_sentence_at_a_time(self):
+        scores = sentence_chrf(WORSE[:4], REFS[:4])
+        for score, hypothesis, reference in zip(scores, WORSE, REFS):
+            self.assertAlmostEqual(
+                score, compute_chrf([hypothesis], [reference]).score, places=9
+            )
+            self.assertAlmostEqual(
+                score, sacrebleu.sentence_chrf(hypothesis, [reference]).score, places=9
+            )
+
+    def test_sentence_chrf_needs_one_reference_each(self):
+        with self.assertRaises(ValueError) as refused:
+            sentence_chrf(["a", "b"], ["a"])
+        self.assertIn("2 translations and 1 references", str(refused.exception))
+
+    def test_bleu_is_the_same_in_the_table_and_alone(self):
+        table = paired_bootstrap({"a": WORSE, "b": REFS}, REFS, n_samples=10)
+        self.assertAlmostEqual(
+            table["a"]["bleu"], compute_bleu(WORSE, REFS).score, places=3
+        )
 
 
 class TestPairedBootstrap(unittest.TestCase):

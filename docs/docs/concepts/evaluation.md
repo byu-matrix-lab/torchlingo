@@ -38,7 +38,7 @@ TorchLingo ships three, all from sacreBLEU:
 | Function | Metric | Counts | Direction |
 |---|---|---|---|
 | [`compute_bleu`](../reference/evaluation.md) | BLEU | word n-grams, 1 to 4 | higher is better |
-| [`compute_chrf`](../reference/evaluation.md) | chrF | character n-grams, plus word n-grams | higher is better |
+| [`compute_chrf`](../reference/evaluation.md) | chrF | character n-grams | higher is better |
 | [`compute_ter`](../reference/evaluation.md) | TER | edits per reference word | **lower** is better |
 
 Scored on the same held-out sentences from the
