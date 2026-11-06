@@ -62,6 +62,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import re
 import sys
@@ -639,6 +640,90 @@ def canonical_text(text: str) -> str:
         if not keep_ids:
             cell.pop("id", None)
     return json.dumps(nb, indent=1, ensure_ascii=False) + "\n"
+
+
+def apply_edits(edits: list[dict]) -> dict[Path, list[str]]:
+    """Make exact replacements in notebooks' cells: all of them, or none.
+
+    An editor's notebook tool wants a whole cell retyped after reading the whole notebook,
+    which for three lines of an 80-line cell risks more than it saves. So on 2026-11-05 each
+    change across several notebooks got a one-off script, the same one twice, and the third
+    copy would have been this function. An edit that does not match exactly once is refused,
+    so a stale edit cannot land somewhere it was not meant to.
+
+    Args:
+        edits (list[dict]): Each has ``notebook``, ``old`` and ``new``, and optionally ``cell``,
+            a cell's index, for text that appears in more than one cell. In YAML a block
+            scalar (``|-`` unless the old text ends a line) keeps code readable.
+
+    Returns:
+        dict[Path, list[str]]: For each notebook changed, a unified diff of its cells.
+
+    Raises:
+        ValueError: Listing every edit that cannot be made. Nothing has been written.
+    """
+    notebooks: dict[Path, dict] = {}
+    refused: list[str] = []
+    for number, edit in enumerate(edits, 1):
+        missing = sorted({"notebook", "old", "new"} - set(edit))
+        if missing:
+            refused.append(f"edit {number}: missing {', '.join(missing)}")
+            continue
+        path = Path(edit["notebook"])
+        if not path.exists():
+            refused.append(f"edit {number}: {path} does not exist")
+            continue
+        notebook = notebooks.setdefault(
+            path, json.loads(path.read_text(encoding="utf-8"))
+        )
+        cells = notebook["cells"]
+        where = [edit["cell"]] if edit.get("cell") is not None else range(len(cells))
+        if any(not 0 <= index < len(cells) for index in where):
+            refused.append(f"edit {number}: {path} has no cell {edit['cell']}")
+            continue
+        found = [
+            index
+            for index in where
+            for _ in range(_source(cells[index]).count(edit["old"]))
+        ]
+        if len(found) != 1:
+            refused.append(
+                f"edit {number}: {path}: matched {len(found)} times, in cells "
+                f"{sorted(set(found))}; it must match once. Name a `cell`, or quote more. "
+                f"Text: {edit['old'][:60]!r}"
+            )
+            continue
+        cell = cells[found[0]]
+        cell["source"] = (
+            _source(cell).replace(edit["old"], edit["new"]).splitlines(keepends=True)
+        )
+    if refused:
+        raise ValueError("\n".join(refused))
+
+    diffs: dict[Path, list[str]] = {}
+    for path, notebook in notebooks.items():
+        before = json.loads(path.read_text(encoding="utf-8"))["cells"]
+        diffs[path] = [
+            line.rstrip("\n")
+            for index, (old_cell, new_cell) in enumerate(zip(before, notebook["cells"]))
+            for line in difflib.unified_diff(
+                _source(old_cell).splitlines(keepends=True),
+                _source(new_cell).splitlines(keepends=True),
+                f"{path.name} cell {index}",
+                f"{path.name} cell {index}",
+                n=1,
+            )
+        ]
+        path.write_text(
+            canonical_text(json.dumps(notebook, ensure_ascii=False)), encoding="utf-8"
+        )
+    return diffs
+
+
+def _source(cell: dict) -> str:
+    """A cell's source as one string, however the file stores it."""
+    source = cell.get("source") or ""
+    return source if isinstance(source, str) else "".join(source)
 
 
 def hygiene(path: Path) -> list[str]:
@@ -1327,6 +1412,16 @@ def main(argv: list[str] | None = None) -> int:
             "every purpose cell, regenerate the map and check. With no paths, every notebook"
         ),
     )
+    parser.add_argument(
+        "--apply",
+        type=Path,
+        default=None,
+        metavar="EDITS.yaml",
+        help=(
+            "a list of exact replacements, each with notebook, old, new and optionally cell, "
+            "each required to match once, all or none; prints the diff, then --normalize"
+        ),
+    )
     parser.add_argument("--note", help="with --stamp: prose for a non-obvious pairing")
     parser.add_argument(
         "--leads-to",
@@ -1441,6 +1536,18 @@ def main(argv: list[str] | None = None) -> int:
         if carried:
             print(f"  kept       {', '.join(sorted(carried))} from the existing block")
         args.write = True
+
+    if args.apply is not None:
+        import yaml  # as render_roadmap does; a dependency of the dev install
+
+        try:
+            diffs = apply_edits(yaml.safe_load(args.apply.read_text(encoding="utf-8")))
+        except ValueError as refused:
+            print(f"nothing written:\n{refused}", file=sys.stderr)
+            return 1
+        for lines in diffs.values():
+            print("\n".join(lines))
+        args.normalize = list(diffs)
 
     # After any edit, one command: the canonical form, the purpose cells, the map, the check.
     if args.normalize is not None:
