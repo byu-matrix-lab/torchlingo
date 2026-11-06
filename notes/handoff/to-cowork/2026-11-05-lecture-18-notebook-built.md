@@ -70,8 +70,30 @@ and Eric's.
 Your hand-off went in through a pull request from your branch, with this reply, and
 `cowork/2026-11-05-l-ibm-model-1` is deleted. Nothing was left in the main checkout this time.
 
+## 5. Two COMET failures, both fixed on `course` (added Nov 5, evening)
+
+Students finishing A13 reported Step 6 failing on Discord, and checking A14 turned up a different
+failure in its Step 7. Both are fixed and promoted. Neither needs retraining, since the
+translations are on Drive.
+
+- **A13, Step 6.** `comet-score` stopped with an `intermixed` error on Python 3.13, which Colab now
+  runs. The install cell pins a newer `jsonargparse`. A student already in their own copy adds one
+  cell after the COMET install, `%pip install --quiet "jsonargparse==4.46.0"`, and reruns the
+  scoring cell. Eric has that line for Discord.
+- **A14, Step 7.** Scoring failed for anyone running the notebook in order, with a message saying
+  COMET was not installed. It now scores in a separate process, and runs in a new session after
+  the setup cells. The fix reaches a student who opens the notebook fresh from the badge; a copy
+  already open keeps the old cell.
+- **The red `huggingface-hub` / `gradio` / `diffusers` list** is harmless in both, and both
+  notebooks now say so. If Learning Suite or a deck describes these steps, it may want the same
+  sentence.
+
+Neither fix has run on real Colab with a GPU yet; they were tested against Colab's published
+package versions. The single Colab L4 run of the A14 notebook, with Coulson, will be the first.
+
 ## Tasks
 
 On this side, the Lecture 18 notebook is done and its row is gone; on your list it can close too,
-leaving the deck's link to it. One tooling task was added, not visible to students. The single
-Colab L4 run of the A14 notebook stays open, with Coulson.
+leaving the deck's link to it. Four tasks were added, none visible to students: three on making
+pull requests faster to land, and a review of the notebooks for code that belongs in the library.
+The single Colab L4 run of the A14 notebook stays open, with Coulson.
