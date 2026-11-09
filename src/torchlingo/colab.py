@@ -23,11 +23,14 @@ Example:
 
 from __future__ import annotations
 
+import contextlib
 import importlib.metadata
 import json
 import os
+import threading
+import time
 import urllib.request
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -150,6 +153,11 @@ class NotebookEnvironment:
     files: list[Path] = field(default_factory=list)
 
 
+def _device_name(device: torch.device) -> str:
+    """The GPU's own name, such as ``NVIDIA A100-SXM4-40GB``, or else ``cpu`` or ``mps``."""
+    return torch.cuda.get_device_name(0) if device.type == "cuda" else device.type
+
+
 def setup(
     *,
     gpu: bool = False,
@@ -189,10 +197,9 @@ def setup(
             "then run the notebook again from the top. Training on a CPU would take days."
         )
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    where = torch.cuda.get_device_name(0) if device.type == "cuda" else device.type
     print(
         f"TorchLingo {torchlingo.version_label()} | PyTorch {torch.__version__} | "
-        f"device {where} | {'Colab' if in_colab else 'not in Colab'}"
+        f"device {_device_name(device)} | {'Colab' if in_colab else 'not in Colab'}"
     )
 
     drive_dir = None
@@ -344,6 +351,132 @@ class Notes:
         notes = {**self.load(), **items}
         _write_json(self.path, notes)
         return notes
+
+
+class StageTimes:
+    """How long each long stage of a notebook took, kept on Drive as it runs.
+
+    Real times on real GPUs are how an assignment's next offering gets planned. Timing a
+    cell from start to end would lose the stage that matters most, since a session that
+    drops at hour three never reaches the end of the cell. So a stage's time is saved at
+    its start, every minute while it runs, and at its end, whether it finished or stopped
+    with an error. A stage run again adds to its time, and counts as another run, so a
+    stage a dropped session cut short reads as the whole of its time and how many sessions
+    that took. The GPU of each run is kept too: a new session may get a different one.
+
+    Timing is never worth stopping a student's run for, so a failed save to Drive is
+    skipped, and the next one catches up.
+
+    Args:
+        path (str | Path): The JSON file, such as ``A8_DIR / "a14-times.json"``. It need
+            not exist yet.
+        device (torch.device | str, optional): The device this session runs on, such as
+            ``env.device``. Defaults to ``"cpu"``.
+        every (float, optional): Seconds between saves while a stage runs. Defaults to 60.
+
+    Examples:
+        >>> import tempfile
+        >>> from pathlib import Path
+        >>> with tempfile.TemporaryDirectory() as drive:
+        ...     times = StageTimes(Path(drive) / "a14-times.json")
+        ...     with times.stage("Step 4: fine-tuning"):
+        ...         pass
+        ...     with times.stage("Step 4: fine-tuning"):    # resumed in a new session
+        ...         pass
+        ...     print(times.load()["Step 4: fine-tuning"]["runs"])
+        2
+    """
+
+    def __init__(
+        self,
+        path: str | Path,
+        *,
+        device: torch.device | str = "cpu",
+        every: float = 60.0,
+    ):
+        self.notes = Notes(path)
+        self.gpu = _device_name(torch.device(device))
+        self.every = every
+
+    def load(self) -> dict[str, Any]:
+        """Each stage timed so far, in the order first run: its seconds, runs and GPUs."""
+        return self.notes.load()
+
+    @contextlib.contextmanager
+    def stage(self, name: str) -> Iterator[None]:
+        """Time the block inside this ``with``, adding to any time ``name`` already has.
+
+        Args:
+            name (str): The stage, as the table will show it.
+
+        Yields:
+            None: The block runs, and its time is saved however it ends.
+        """
+        earlier = self.load().get(name, {"seconds": 0.0, "runs": 0, "gpus": []})
+        gpus = earlier["gpus"]
+        record = {
+            "runs": earlier["runs"] + 1,
+            "gpus": gpus if self.gpu in gpus else [*gpus, self.gpu],
+        }
+        started = time.monotonic()
+        stopping = threading.Event()
+
+        def save() -> None:
+            seconds = earlier["seconds"] + time.monotonic() - started
+            with contextlib.suppress(OSError):
+                self.notes.save(**{name: {"seconds": round(seconds, 1), **record}})
+
+        def keep_saving() -> None:
+            while not stopping.wait(self.every):
+                save()
+
+        save()
+        saver = threading.Thread(target=keep_saving, daemon=True)
+        saver.start()
+        try:
+            yield
+        finally:
+            stopping.set()
+            saver.join()  # one writer at a time: both saves write the same partial file
+            save()
+
+    def table(self) -> str:
+        """The stages as a small table to paste, with their total.
+
+        Returns:
+            str: One row per stage, ``h:mm:ss`` wall-clock time, its runs and GPU.
+
+        Examples:
+            >>> import tempfile
+            >>> from pathlib import Path
+            >>> with tempfile.TemporaryDirectory() as drive:
+            ...     times = StageTimes(Path(drive) / "a14-times.json")
+            ...     stage = {"seconds": 3725.0, "runs": 2, "gpus": ["A100"]}
+            ...     _ = times.notes.save(**{"Step 3": stage})
+            ...     print(times.table())
+            Stage   Time     Runs  GPU
+            Step 3  1:02:05  2     A100
+            Total   1:02:05
+        """
+
+        def clock(seconds: float) -> str:
+            minutes, seconds = divmod(round(seconds), 60)
+            return f"{minutes // 60}:{minutes % 60:02d}:{seconds:02d}"
+
+        stages = self.load()
+        if not stages:
+            return "No stage has been timed yet."
+        total = clock(sum(s["seconds"] for s in stages.values()))
+        rows = [
+            (name, clock(s["seconds"]), str(s["runs"]), " + ".join(s["gpus"]))
+            for name, s in stages.items()
+        ]
+        rows = [("Stage", "Time", "Runs", "GPU"), *rows, ("Total", total, "", "")]
+        wide = [max(len(row[i]) for row in rows) for i in range(3)]
+        return "\n".join(
+            f"{a:<{wide[0]}}  {b:<{wide[1]}}  {c:<{wide[2]}}  {d}".rstrip()
+            for a, b, c, d in rows
+        )
 
 
 # What a later assignment needs from the finished A9, as Lecture 9's Part B leaves them.

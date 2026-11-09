@@ -637,7 +637,7 @@ notebooks:
     notebook_does: NLLB off the shelf, the fine-tuning (torchlingo_harness.nllb.fine_tune), each
       direction decoded greedily and with beam 5 against NLLB off the shelf and its one-way model
       (A9; the A13 reverse model), BLEU, chrF, the paired bootstrap, COMET, the wrong-code and
-      third-language outputs, the rerun record and the upload files
+      third-language outputs, the time of each long stage, the rerun record and the upload files
     rating: low
   lecture-18-ibm-model-1:
     purpose: IBM Model 1 by EM on thirteen English-Spanish pairs, its alignment set beside a
