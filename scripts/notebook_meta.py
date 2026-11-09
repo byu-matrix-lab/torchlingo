@@ -1588,7 +1588,20 @@ def main(argv: list[str] | None = None) -> int:
         import yaml  # as render_roadmap does; a dependency of the dev install
 
         try:
-            diffs = apply_edits(yaml.safe_load(args.apply.read_text(encoding="utf-8")))
+            edits = yaml.safe_load(args.apply.read_text(encoding="utf-8"))
+        except yaml.YAMLError as unreadable:
+            # The likeliest cause: a block scalar takes its indentation from its first line,
+            # so code whose first line is indented more than the rest (the middle of a call,
+            # say) fails here. An indentation indicator, `|2` under a list item, fixes it.
+            print(
+                f"{args.apply} is not valid YAML, so nothing was written:\n{unreadable}\n\n"
+                "If an old or new text's first line is indented more than its later lines, "
+                "give its block an indentation indicator: `old: |2` in place of `old: |`.",
+                file=sys.stderr,
+            )
+            return 1
+        try:
+            diffs = apply_edits(edits)
         except ValueError as refused:
             print(f"nothing written:\n{refused}", file=sys.stderr)
             return 1

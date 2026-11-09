@@ -1237,9 +1237,11 @@ Notes on the rows that are not simple:
   against A14, then COMET (wmt22-comet-da through its Python API, last because its install
   pins transformers below 5). Step 6 gives the wrong code both ways and asks for a third
   language the student chooses (zero-shot). Seven write-up questions; the write-up block
-  reads from Drive alone (a14-notes.json) and saves a14-rerun.json; the completed notebook
-  is uploaded. Tutorial 9, after it, asks how much fine-tuning is enough and what it
-  costs. Needs a GPU with more memory than a T4, and Drive, so CI does not execute it;
+  reads from Drive alone (a14-notes.json) and saves a14-rerun.json; each long stage is
+  timed on the student's GPU (colab.StageTimes, a14-times.json, kept through a dropped
+  session), and the last cell prints the table for the write-up; the completed notebook is
+  uploaded. Tutorial 9, after it, asks how much fine-tuning is enough and what it costs.
+  Needs a GPU with more memory than a T4, and Drive, so CI does not execute it;
   tests/test_lecture_14.py runs its cells with NLLB and COMET stubbed.
 - [20] **`lecture-18-ibm-model-1`** — Lecture 18's in-class activity, about ten minutes,
   run together, no points (Eric, Nov 5). IBM Model 1 by EM on thirteen English-Spanish

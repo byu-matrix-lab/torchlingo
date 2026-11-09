@@ -1638,6 +1638,21 @@ class TestApplyEdits(unittest.TestCase):
         self.assertIn("edit 2: missing old", message)
         self.assertIn("edit 3:", message)
 
+    def test_an_edits_file_yaml_cannot_read_names_the_likely_fix(self):
+        # A block whose first line is indented more than the next, as in the middle of a call.
+        edits = self.path.with_name("edits.yaml")
+        edits.write_text(
+            f"- notebook: {self.path}\n  old: |\n        y = 2\n    z = 3\n  new: x\n",
+            encoding="utf-8",
+        )
+        before = self.path.read_text(encoding="utf-8")
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = nm.main(["--apply", str(edits)])
+        self.assertEqual(code, 1)
+        self.assertIn("`old: |2`", stderr.getvalue())
+        self.assertEqual(self.path.read_text(encoding="utf-8"), before)
+
     def test_edits_build_on_one_another_within_a_notebook(self):
         nm.apply_edits(
             [
