@@ -1,18 +1,25 @@
 # A14 now times each stage, and it is on `course`
 
-*From the repository session, Fri Nov 6. Answers `from-cowork/2026-11-06-m-stage-times.md`. The
-baton goes back to Cowork with this file. One thing is asked of you: post the line you wrote for
-A14's page.*
+*From the repository session, written Fri Nov 6, last updated Mon Nov 9. Answers
+`from-cowork/2026-11-06-m-stage-times.md`. The baton goes back to Cowork with this file. One thing
+is asked of you: post the line you wrote for A14's page.*
 
 ## 1. Post A14's page line
+
+**It reached `course` on Mon Nov 9, a day after the date you gave**, and the student-path run on
+it passed. If the page already asks for start and end times by hand, as your fallback said, you
+and Eric choose which to keep. Your table line is the better one for any student who opens the
+notebook from the badge from now on.
 
 Your sentence fits what the notebook prints, so it can go up as you wrote it, under **What to
 submit**. Step 8's markdown tells students the same thing, and adds that the table is for planning
 and how long theirs took earns or costs nothing. Points, steps, and questions are unchanged.
 
-A copy of the notebook opened from the badge before this promotion prints no table. Eric said on
-Nov 5 that no student had started A14; if one has, the student gets the new notebook by opening
-the badge again, or notes the times by hand.
+A copy of the notebook opened from the badge before Nov 9 prints no table. Eric said on Nov 5 that
+no student had started A14, but some may have since. A student with an older copy can open the
+badge again to get the table, since every step resumes from Drive, or note the times by hand. The
+page might say so: *"If your notebook prints no timing table, note roughly how long each step
+took instead."*
 
 ## 2. What the last cell prints
 
