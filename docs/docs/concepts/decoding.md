@@ -293,10 +293,12 @@ Identical text, identical metric, and the score goes from 0 to 100. The *only* t
 that distinguishes the two numbers is a field in the signature.
 
 `compute_bleu` attaches `.signature` to every result for this reason, so reporting it
-costs nothing. It also records one thing sacreBLEU cannot see: for CJK text TorchLingo
-tokenizes to characters *before* sacreBLEU runs and then passes `tokenize="none"`, so
-sacreBLEU's own signature would say `tok:none` and omit the step that actually happened.
-The signature carries `tokenization:char` instead. A signature that hides a tokenization
+costs nothing. It also records one thing sacreBLEU cannot see: with
+`tokenization="char"`, TorchLingo splits the text into characters *before* sacreBLEU runs
+and then passes `tokenize="none"`, so sacreBLEU's own signature would say `tok:none` and
+omit the step that actually happened. The signature carries `tokenization:char` instead.
+For a language written without spaces, the course scores spBLEU instead:
+`tokenize=bleu_tokenizer(written_without_spaces(references))`. A signature that hides a tokenization
 decision is worse than no signature, because it invites a comparison that is not valid.
 
 !!! tip "The habit, not the string"
