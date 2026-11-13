@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   adds to it. A14 times each stage, prints the table in its last cell and records the times in
   `a14-rerun.json`.
 
+### Fixed
+- **Resuming onto a GPU no longer fails on the saved random-number state.** A
+  `TrainingCheckpointer.load` with `map_location` set to the GPU moved the generator states
+  there too, and `torch.set_rng_state` accepts only CPU tensors, so A14's Step 4 raised
+  `TypeError: RNG state must be a torch.ByteTensor` whenever it resumed. The checkpoint on Drive
+  was never touched, so running Step 4 again now picks up where it stopped. Reported by a CS 479
+  student, Nov 13.
+
 ## [0.2.10] - 2026-11-05
 
 ### Added
