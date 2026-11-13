@@ -127,7 +127,9 @@ def _restore_rng(rng: dict[str, Any]) -> None:
     """Put back what :func:`_capture_rng` saved, skipping what this machine lacks."""
     import numpy as np
 
-    torch.set_rng_state(rng["torch"])
+    # Generator states must be CPU tensors, but a load with map_location set to
+    # the GPU, as resuming onto it does, moves them there along with the weights.
+    torch.set_rng_state(rng["torch"].cpu())
     # A checkpoint written on a GPU can resume on a CPU, and the reverse.
     # Only onto the same number of devices; otherwise the states cannot be matched up.
     cuda = rng.get("cuda")
@@ -136,7 +138,7 @@ def _restore_rng(rng: dict[str, Any]) -> None:
         and torch.cuda.is_available()
         and len(cuda) == torch.cuda.device_count()
     ):
-        torch.cuda.set_rng_state_all(cuda)
+        torch.cuda.set_rng_state_all([state.cpu() for state in cuda])
     random.setstate(rng["python"])
     np.random.set_state(rng["numpy"])
 

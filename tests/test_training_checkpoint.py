@@ -20,6 +20,7 @@ from torchlingo.training import train_model
 from torchlingo.training_checkpoint import (
     CheckpointState,
     TrainingCheckpointer,
+    _restore_rng,
     default_checkpoint_dir,
     is_colab,
     mount_drive,
@@ -192,6 +193,47 @@ class TestTrainingCheckpointer(unittest.TestCase):
 
         torch.testing.assert_close(drawn[0], expected[0])
         self.assertEqual(drawn[1:], expected[1:])
+
+    def test_random_generators_restore_when_loaded_onto_the_gpu(self):
+        """map_location=device puts the saved states on the GPU; restoring must still work.
+
+        A14's fine_tune resumes this way, and raised "RNG state must be a
+        torch.ByteTensor" on every resume (Nov 13).
+        """
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            self.skipTest("needs a GPU")
+        self._checkpointer().save(_model())
+        expected = torch.rand(3)
+
+        model = _model()
+        torch.manual_seed(123)
+        self._checkpointer().load(model, map_location=device)
+        torch.testing.assert_close(torch.rand(3), expected)
+
+    def test_rng_states_are_moved_to_the_cpu_before_restoring(self):
+        """The same as the GPU test above, for a machine without one, such as CI."""
+
+        class _OnAnotherDevice:
+            def __init__(self, state):
+                self.state = state
+
+            def cpu(self):
+                return self.state
+
+        self._checkpointer().save(_model())
+        expected = torch.rand(3)
+        payload = torch.load(
+            self._checkpointer().path_for("latest"), weights_only=False
+        )
+        rng = dict(payload["rng"], torch=_OnAnotherDevice(payload["rng"]["torch"]))
+
+        torch.manual_seed(123)
+        _restore_rng(rng)
+        torch.testing.assert_close(torch.rand(3), expected)
 
     def test_restore_rng_false_leaves_the_generators_alone(self):
         self._checkpointer().save(_model())
