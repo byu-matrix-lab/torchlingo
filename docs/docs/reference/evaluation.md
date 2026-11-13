@@ -25,6 +25,26 @@ BLEU is sensitive enough to tokenization that the same translations can score
 several points apart under different settings, so a bare number is not
 comparable to anyone else's. The signature is what makes it reproducible.
 
+## Choosing the tokenizer
+
+`compute_bleu` uses the `tokenize` you pass, and nothing else. For a language
+written without spaces, the default tokenizer finds one long "word" per
+sentence, so choose spBLEU the way the course notebooks do:
+
+```python
+from torchlingo.evaluation import bleu_tokenizer, compute_bleu
+from torchlingo.preprocessing import written_without_spaces
+
+tokenize = bleu_tokenizer(written_without_spaces(references))   # "flores200" or "13a"
+result = compute_bleu(predictions, references, tokenize=tokenize)
+```
+
+Through 0.2.10, `compute_bleu` guessed instead: one Chinese, Japanese, Thai, Lao,
+Khmer or Burmese character in the first ten references switched the whole corpus
+to character BLEU and ignored `tokenize`, so an English test set naming one
+Chinese city scored about 18 points too high. The signature showed it as
+`tokenization:char`; check it on any score from an earlier version.
+
 ## References: the shape that catches everyone
 
 Both of these are accepted:
