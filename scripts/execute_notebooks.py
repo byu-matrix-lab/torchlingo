@@ -54,7 +54,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from notebook_meta import canonical_text, is_redirect, read_meta
+from notebook_meta import canonical_text, is_redirect, notebooks_affected, read_meta
 
 TUTORIALS = Path("docs/docs/tutorials")
 COURSE = Path("docs/docs/course")
@@ -321,6 +321,33 @@ def main_as_student(notebooks: list[Path], options: list[str], jobs: int) -> int
     return 0
 
 
+def here_runnable(
+    notebooks: list[Path], report: bool = True
+) -> tuple[list[Path], list[str]]:
+    """Split notebooks into those this checkout can execute and the names of those it cannot.
+
+    A notebook is skipped when it requires a capability this run lacks, or needs a file that
+    is not here (Git LFS data, in CI). Reads only metadata and the file system, so the
+    workflow can ask before installing anything whether there is a notebook to run.
+    """
+    runnable, skipped = [], []
+    for notebook in notebooks:
+        unavailable = missing_capabilities(notebook)
+        absent = [] if unavailable else missing_requirements(notebook)
+        if unavailable or absent:
+            skipped.append(notebook.name)
+            if report:
+                why = (
+                    f"requires {', '.join(unavailable)}"
+                    if unavailable
+                    else f"needs {', '.join(absent)}"
+                )
+                print(f"  SKIP  {notebook.name} ({why})", flush=True)
+            continue
+        runnable.append(notebook)
+    return runnable, skipped
+
+
 def main() -> int:
     """Execute every tutorial notebook in order and summarize."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -348,6 +375,16 @@ def main() -> int:
         help="run only these notebooks, by file stem (the workflow runs one per job)",
     )
     parser.add_argument(
+        "--changed",
+        nargs="*",
+        default=None,
+        metavar="PATH",
+        help=(
+            "run only the notebooks these changed repository paths could break: those changed, "
+            "those importing changed library code, those needing a changed file (pull requests)"
+        ),
+    )
+    parser.add_argument(
         "--write-outputs",
         action="store_true",
         help="with --only: copy each tutorial's new outputs into it; course notebooks carry none",
@@ -355,7 +392,7 @@ def main() -> int:
     parser.add_argument(
         "--list",
         action="store_true",
-        help="with --as-student: print, as JSON, the stems of the notebooks it would run",
+        help="print, as JSON, the stems of the notebooks it would run, and run none",
     )
     parser.add_argument(
         "--as-student",
@@ -373,8 +410,8 @@ def main() -> int:
         help="with --as-student: run only the install cells, then the notebook's imports",
     )
     args = parser.parse_args()
-    if (args.colab or args.install_only or args.list) and not args.as_student:
-        parser.error("--colab, --install-only and --list go with --as-student")
+    if (args.colab or args.install_only) and not args.as_student:
+        parser.error("--colab and --install-only go with --as-student")
     if args.write_outputs and (args.as_student or not args.only):
         parser.error("--write-outputs goes with --only, and not with --as-student")
 
@@ -400,6 +437,9 @@ def main() -> int:
             return 1
     if args.only:
         notebooks = [path for path in notebooks if path.stem in args.only]
+    if args.changed is not None:
+        affected = {path.stem for path in notebooks_affected(args.changed)}
+        notebooks = [path for path in notebooks if path.stem in affected]
     if args.write_outputs:
         # hygiene() fails a course notebook with outputs: students start from a clean one.
         course = [path.name for path in notebooks if path.parent == args.course]
@@ -408,8 +448,17 @@ def main() -> int:
             return 1
     for path in notebooks:
         if path.stem in args.exclude:
-            print(f"  LEFT OUT  {path.name} (--exclude)", flush=True)
+            # On stderr with --list, whose stdout is JSON for the workflow to read.
+            print(
+                f"  LEFT OUT  {path.name} (--exclude)",
+                file=sys.stderr if args.list else sys.stdout,
+                flush=True,
+            )
     notebooks = [path for path in notebooks if path.stem not in args.exclude]
+    if not notebooks and args.changed is not None:
+        # Not an error: a pull request changing only tests or notes breaks no notebook.
+        print("[]" if args.list else "No notebook is affected by the changed files.")
+        return 0
     if not notebooks:
         print(
             f"No notebooks found under {args.tutorials} or {args.course}",
@@ -417,7 +466,10 @@ def main() -> int:
         )
         return 1
     if args.list:
-        runnable, _ = student_runnable(notebooks, args.install_only, report=False)
+        if args.as_student:
+            runnable, _ = student_runnable(notebooks, args.install_only, report=False)
+        else:
+            runnable, _ = here_runnable(notebooks, report=False)
         print(json.dumps([path.stem for path in runnable]))
         return 0
     if args.as_student:
@@ -425,23 +477,7 @@ def main() -> int:
         return main_as_student(notebooks, options, args.jobs)
 
     failures = []
-    skipped = []
-    runnable = []
-    for notebook in notebooks:
-        unavailable = missing_capabilities(notebook)
-        if unavailable:
-            skipped.append(notebook.name)
-            print(
-                f"  SKIP  {notebook.name} (requires {', '.join(unavailable)})",
-                flush=True,
-            )
-            continue
-        absent = missing_requirements(notebook)
-        if absent:
-            skipped.append(notebook.name)
-            print(f"  SKIP  {notebook.name} (needs {', '.join(absent)})", flush=True)
-            continue
-        runnable.append(notebook)
+    runnable, skipped = here_runnable(notebooks)
 
     def run_alone(notebook: Path) -> tuple[bool, str]:
         # A scratch directory of its own, so notebooks running side by side cannot see

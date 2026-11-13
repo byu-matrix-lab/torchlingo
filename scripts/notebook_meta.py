@@ -62,11 +62,13 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import ast
 import difflib
 import json
 import re
 import sys
 import textwrap
+from collections import defaultdict
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -74,6 +76,7 @@ import render_roadmap as rr
 
 TUTORIALS = Path("docs/docs/tutorials")
 COURSE = Path("docs/docs/course")
+SRC = Path("src")
 
 BEGIN = "<!-- BEGIN generated:notebook-map -->"
 END = "<!-- END generated:notebook-map -->"
@@ -643,38 +646,189 @@ def canonical_text(text: str) -> str:
     return json.dumps(nb, indent=1, ensure_ascii=False) + "\n"
 
 
+def _module_name(path: Path) -> str:
+    """``src/torchlingo/models/__init__.py`` -> ``torchlingo.models``."""
+    parts = path.relative_to(SRC).with_suffix("").parts
+    return ".".join(parts[:-1] if parts[-1] == "__init__" else parts)
+
+
+def _import_time_nodes(node: ast.AST) -> Iterable[ast.AST]:
+    """Every node that runs when a module is imported: all of it but function bodies."""
+    for child in ast.iter_child_nodes(node):
+        yield child
+        if not isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+            yield from _import_time_nodes(child)
+
+
+def library_imports() -> dict[str, set[str]]:
+    """Map each library module under ``src/`` to the library modules it imports on import.
+
+    Only imports that run when the module is imported count, not those inside a function.
+    ``colab`` imports ``checkpoint``, ``evaluation`` and more inside the helpers that need
+    them, so that ``setup()``, which every notebook calls, does not load them; counting them
+    made every library change reach every notebook. A lazily imported module's change can
+    still break a notebook, and the full run on ``main`` catches that. Anything outside
+    ``src/``, such as torch, is left out.
+
+    Returns:
+        dict: Module name to the set of module names it imports.
+    """
+    files = {
+        _module_name(path): path for path in sorted(SRC.glob("torchlingo*/**/*.py"))
+    }
+    graph = {}
+    for name, path in files.items():
+        package = name if path.name == "__init__.py" else name.rpartition(".")[0]
+        imported = set()
+        for node in _import_time_nodes(ast.parse(path.read_text(encoding="utf-8"))):
+            if isinstance(node, ast.Import):
+                targets = [alias.name for alias in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                base = node.module or ""
+                if node.level:
+                    anchor = package.split(".")[
+                        : len(package.split(".")) - node.level + 1
+                    ]
+                    base = ".".join(anchor + ([base] if base else []))
+                # `from . import config` imports the module config; `from .config import
+                # Config` imports the module .config.
+                targets = [
+                    f"{base}.{alias.name}"
+                    for alias in node.names
+                    if f"{base}.{alias.name}" in files
+                ] or [base]
+            else:
+                continue
+            for target in targets:
+                while target and target not in files:
+                    target = target.rpartition(".")[0]
+                if target and target != name:
+                    imported.add(target)
+        graph[name] = imported
+    return graph
+
+
+def modules_reached(changed: Iterable[str]) -> set[str]:
+    """The library modules a change reaches: those changed, and every module importing them.
+
+    A top-level package (``torchlingo``) is never passed through. Its ``__init__`` imports
+    every module, so passing through it would make every change reach everything; a notebook
+    that does nothing but ``import torchlingo`` is not using what the package re-exports.
+
+    Args:
+        changed: Repository paths, such as ``src/torchlingo/evaluation.py``.
+
+    Returns:
+        set: Dotted module names.
+    """
+    start = {
+        _module_name(Path(name))
+        for name in changed
+        if Path(name).suffix == ".py" and Path(name).parts[:1] == ("src",)
+    }
+    importers = defaultdict(set)
+    for module, imported in library_imports().items():
+        for target in imported:
+            importers[target].add(module)
+    reached: set[str] = set()
+    todo = [module for module in start if "." in module]
+    while todo:
+        module = todo.pop()
+        if module not in reached:
+            reached.add(module)
+            todo.extend(m for m in importers[module] if "." in m)
+    return reached
+
+
+_NOTEBOOK_IMPORT = re.compile(
+    r"^\s*(?:from\s+(torchlingo\w*(?:\.\w+)*)\s+import\s+\(?([\w ,]*)"
+    r"|import\s+(torchlingo\w*(?:\.\w+)*))",
+    re.MULTILINE,
+)
+
+
+def notebook_imports(path: Path) -> set[str]:
+    """The library modules a notebook's code cells import by name.
+
+    ``from torchlingo.models import transformer_simple`` names both ``torchlingo.models`` and
+    ``torchlingo.models.transformer_simple``. A bare ``import torchlingo`` names
+    ``torchlingo``, which :func:`modules_reached` never returns.
+    """
+    cells = json.loads(path.read_text(encoding="utf-8"))["cells"]
+    code = "\n".join(_source(c) for c in cells if c["cell_type"] == "code")
+    found = set()
+    for match in _NOTEBOOK_IMPORT.finditer(code):
+        module = match.group(1) or match.group(3)
+        found.add(module)
+        for name in (match.group(2) or "").split(","):
+            if name.strip():
+                found.add(f"{module}.{name.strip()}")
+    return found
+
+
 def notebooks_using(changed: Iterable[str]) -> list[Path]:
-    """The notebooks with an install cell that import a changed library module.
+    """The notebooks with an install cell that a library change reaches.
 
     ``merge_check.sh`` otherwise runs its install check only on notebooks a PR changes, so a
     library-only PR first meets the notebooks that call it on ``course``, after the merge.
+    A notebook is reached when it imports a changed module, or a module importing one, at
+    any remove: a change to ``training_checkpoint`` reaches a notebook importing ``training``.
 
     Args:
-        changed: Repository paths, such as ``src/torchlingo/evaluation.py``. A change to a
-            package's file counts as a change to the package, which is what notebooks import.
-            A top-level ``__init__.py`` names no module, so it selects nothing.
+        changed: Repository paths, such as ``src/torchlingo/evaluation.py``. A top-level
+            ``__init__.py`` reaches nothing through imports; see :func:`modules_reached`.
 
     Returns:
         The notebooks, tutorials first.
     """
-    modules = set()
-    for name in changed:
-        parts = Path(name).with_suffix("").parts
-        if len(parts) >= 3 and parts[0] == "src" and parts[-1] != "__main__":
-            modules.add(".".join(parts[1:3]))
-    modules = {m for m in modules if not m.endswith(".__init__")}
-    if not modules:
+    reached = modules_reached(changed)
+    if not reached:
         return []
-    pattern = re.compile(
-        rf"^\s*(from|import)\s+({'|'.join(map(re.escape, sorted(modules)))})\b", re.M
-    )
-    found = []
-    for path in notebooks():
-        cells = json.loads(path.read_text(encoding="utf-8"))["cells"]
-        code = "\n".join(_source(c) for c in cells if c["cell_type"] == "code")
-        if "pip install" in code and pattern.search(code):
-            found.append(path)
-    return found
+    return [
+        path
+        for path in notebooks()
+        if "pip install" in path.read_text(encoding="utf-8")
+        and notebook_imports(path) & reached
+    ]
+
+
+# A change to one of these can change how any notebook runs, so it runs them all.
+RUN_EVERY_NOTEBOOK = (
+    "pyproject.toml",
+    "src/torchlingo/__init__.py",
+    "scripts/execute_notebooks.py",
+    "scripts/notebook_meta.py",
+    ".github/workflows/tests_and_build.yml",
+)
+
+
+def notebooks_affected(changed: Iterable[str]) -> list[Path]:
+    """The notebooks a set of changed files could break, for CI to execute on a pull request.
+
+    A notebook is affected when it is itself changed, when a library change reaches it (as in
+    :func:`notebooks_using`, with or without an install cell), or when a file it lists in
+    ``needs`` changed. A change to anything in :data:`RUN_EVERY_NOTEBOOK` or under ``data/``
+    affects them all. Anything else, such as a test, a Markdown page or ``notes/``, affects
+    none.
+
+    Args:
+        changed: Repository paths, as ``git diff --name-only`` prints them.
+
+    Returns:
+        The notebooks, tutorials first.
+    """
+    changed = set(changed)
+    every = notebooks()
+    if changed & set(RUN_EVERY_NOTEBOOK) or any(n.startswith("data/") for n in changed):
+        return every
+    reached = modules_reached(changed)
+    return [
+        path
+        for path in every
+        if path.as_posix() in changed
+        or notebook_imports(path) & reached
+        or changed & set(read_meta(path).get("needs", []))
+    ]
 
 
 def apply_edits(edits: list[dict]) -> dict[Path, list[str]]:

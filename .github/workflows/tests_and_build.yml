@@ -156,30 +156,68 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
+    # A pull request is tested on 3.12 alone; main, manual runs and the weekly schedule test
+    # all four (Eric, 2026-11-13: CI was taking too long). A break on one version only is
+    # rare here and is caught on main, a day at most after it merges. The other three jobs
+    # still run on a pull request, skipping every step, because the main ruleset requires a
+    # "Run tests (3.x)" check for each version: a job that never ran would block the merge.
+    env:
+      RUN: ${{ github.event_name != 'pull_request' || matrix.python-version == '3.12' }}
 
     steps:
+      - name: Skipped on pull requests, run on main
+        if: env.RUN != 'true'
+        run: echo "Pull requests test on Python 3.12 only; main tests ${{ matrix.python-version }}."
+
       - name: Checkout
+        if: env.RUN == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Python
+        if: env.RUN == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
           cache-dependency-path: pyproject.toml
 
+      # The install took about a minute of every job, mostly torch. pip's download cache
+      # saves the downloads but not the unpacking, so this caches the installed packages
+      # themselves. The key holds the exact Python install path, so a new patch release
+      # cannot restore packages into a Python that will not see them, and pyproject.toml,
+      # so a changed dependency installs afresh. The weekly run never uses it: it is there
+      # partly to meet new releases of our dependencies, which a cache would hide.
+      - name: Cache the installed packages
+        if: env.RUN == 'true' && github.event_name != 'schedule'
+        id: site
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.pythonLocation }}
+          key: site-${{ env.pythonLocation }}-tests-${{ hashFiles('pyproject.toml') }}
+
+      # On a cache hit only TorchLingo itself is reinstalled. --force-reinstall, because pip
+      # treats the cached copy, with the same version number, as already satisfying it.
       - name: Install project with dev+asian extras
+        if: env.RUN == 'true'
         run: |
-          python -m pip install --upgrade pip
-          pip install --extra-index-url https://download.pytorch.org/whl/cpu ".[dev,asian]"
+          if [[ "${{ steps.site.outputs.cache-hit }}" == "true" ]]; then
+            pip install --no-deps --force-reinstall ".[dev,asian]"
+          else
+            python -m pip install --upgrade pip
+            pip install --extra-index-url https://download.pytorch.org/whl/cpu ".[dev,asian]"
+          fi
 
       - name: Create SentencePiece test models
+        if: env.RUN == 'true'
         run: |
           python scripts/generate_sentencepiece_models.py --example data/example.tsv --n 2000
 
+      # Across both of the runner's cores (pytest-xdist, in the dev extra): 108s serially in
+      # CI on Nov 9. Preflight has run it this way since Task #313.
       - name: Run test suite
+        if: env.RUN == 'true'
         run: |
-          python -m pytest tests/
+          python -m pytest -n auto tests/
 
       # Both documented runners, because they disagreed for a month and only one was
       # watched. `CLAUDE.md` names `python -m unittest discover tests` FIRST, and that is
@@ -197,8 +235,12 @@ jobs:
       # disagreement it guards against is test ORDER, which is the same on every version.
       # That keeps the claim "the tests pass" meaning the same under both runners for ~40s
       # instead of ~160s of runner time (Eric, 2026-10-12: CI was taking too long).
+      #
+      # Not on pull requests (Eric, 2026-11-13): it was 104 of the 3.12 job's 280 seconds on
+      # Nov 9, the longest single step a pull request waited on, and a test that depends
+      # on order is rare enough that finding it on main, after the merge, is the better trade.
       - name: Run test suite under unittest discover
-        if: matrix.python-version == '3.12'
+        if: matrix.python-version == '3.12' && github.event_name != 'pull_request'
         run: |
           python -m unittest discover tests
 
@@ -212,6 +254,7 @@ jobs:
       # `# doctest: +SKIP`. That is a visible decision rather than a silent
       # failure.
       - name: Run docstring examples
+        if: env.RUN == 'true'
         run: |
           python -m pytest --doctest-modules src/torchlingo
 
@@ -222,8 +265,12 @@ jobs:
       contents: read
 
     steps:
+      # Two commits deep: on a pull request HEAD is GitHub's merge of it into main, and
+      # HEAD^1 is main, so the diff between them is what the pull request changes.
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -232,11 +279,45 @@ jobs:
           cache: 'pip'
           cache-dependency-path: pyproject.toml
 
-      - name: Install project and notebook tooling
+      # A pull request runs only the notebooks its changes could break (Eric, 2026-11-13):
+      # a notebook it changes, one importing library code it changes (through the
+      # library's own imports), one needing a data file it changes. Packaging, the
+      # package's __init__, data/ and this tooling run them all; tests, notes and Markdown
+      # pages run none. main, manual runs and the weekly schedule run every notebook. The
+      # rule is notebooks_affected in scripts/notebook_meta.py, tested in
+      # tests/test_notebook_meta.py. It needs only the standard library, so a pull request
+      # with nothing to run skips the install as well.
+      - name: Choose the notebooks
+        id: choose
         run: |
-          python -m pip install --upgrade pip
-          pip install --extra-index-url https://download.pytorch.org/whl/cpu ".[dev]"
-          pip install nbconvert ipykernel
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            mapfile -t changed < <(git diff --name-only HEAD^1 HEAD)
+            notebooks=$(python scripts/execute_notebooks.py --list \
+              --exclude 06-diagnosing-failures --changed "${changed[@]}")
+          else
+            notebooks=$(python scripts/execute_notebooks.py --list)
+          fi
+          echo "Notebooks to run: $notebooks"
+          echo "notebooks=$notebooks" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the installed packages
+        if: steps.choose.outputs.notebooks != '[]' && github.event_name != 'schedule'
+        id: site
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.pythonLocation }}
+          key: site-${{ env.pythonLocation }}-notebooks-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install project and notebook tooling
+        if: steps.choose.outputs.notebooks != '[]'
+        run: |
+          if [[ "${{ steps.site.outputs.cache-hit }}" == "true" ]]; then
+            pip install --no-deps --force-reinstall .
+          else
+            python -m pip install --upgrade pip
+            pip install --extra-index-url https://download.pytorch.org/whl/cpu ".[dev]"
+            pip install nbconvert ipykernel
+          fi
 
       # The docs site does not run these: mkdocs-jupyter is configured with
       # execute: false and allow_errors: true, so a tutorial can rot completely
@@ -260,8 +341,12 @@ jobs:
       # main, manual runs and the weekly schedule run every notebook, so a library change
       # that breaks it is caught after merging, at worst within a week (Eric, 2026-10-13).
       - name: Execute notebooks
+        if: steps.choose.outputs.notebooks != '[]'
+        env:
+          NOTEBOOKS: ${{ steps.choose.outputs.notebooks }}
         run: |
-          python scripts/execute_notebooks.py --jobs 4 ${{ github.event_name == 'pull_request' && '--exclude 06-diagnosing-failures' || '' }}
+          mapfile -t stems < <(jq -r '.[]' <<< "$NOTEBOOKS")
+          python scripts/execute_notebooks.py --jobs 4 --only "${stems[@]}"
 
   docs:
     name: Build docs strictly

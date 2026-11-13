@@ -151,6 +151,13 @@ It runs exactly what CI runs, cheapest gate first, stopping at the first failure
 `notebook_meta.py --check`, the suite under **both** pytest and `unittest discover`,
 `--doctest-modules`, `mkdocs build --strict`, and optionally `execute_notebooks.py`.
 
+**CI on a pull request runs less than that, by design; `main` runs it all** (Eric, Nov 13: CI
+was taking too long). A pull request is tested on Python 3.12 alone, without the `unittest`
+pass, and executes only the notebooks its changes could break (`notebooks_affected` in
+`scripts/notebook_meta.py`); a push to `main`, a manual run and the weekly schedule run all four
+Pythons, both runners and every notebook. So a version-only or order-only failure can first
+appear on `main`; fix it there, rather than widening the pull-request run.
+
 **In a git worktree, run preflight, not the gates by hand.** The venv's editable install points
 at the main checkout, so a bare `python -m pytest` in a worktree tests the main checkout's
 `torchlingo`, not the branch's: on 2026-10-14 a branch's new module failed to import in its own
