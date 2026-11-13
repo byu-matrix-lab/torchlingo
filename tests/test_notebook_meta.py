@@ -1460,6 +1460,48 @@ class TestNotebooksUsing(unittest.TestCase):
         self.assertEqual(self.names("docs/mkdocs.yml", "tests/test_x.py"), [])
         self.assertEqual(self.names(), [])
 
+    def test_a_module_reaches_notebooks_through_what_imports_it(self):
+        """A14 imports training_checkpoint's importer colab, not only training_checkpoint."""
+        reached = nm.modules_reached(["src/torchlingo/training_checkpoint.py"])
+        self.assertIn("torchlingo.training", reached)
+        self.assertIn("torchlingo.colab", reached)
+        self.assertNotIn("torchlingo", reached)
+
+
+class TestNotebooksAffected(unittest.TestCase):
+    """Which notebooks CI executes on a pull request, from the files it changes."""
+
+    def names(self, *changed):
+        return [path.stem for path in nm.notebooks_affected(changed)]
+
+    def test_a_changed_notebook_is_affected_and_no_other(self):
+        self.assertEqual(
+            self.names("docs/docs/tutorials/02-evaluating-translations.ipynb"),
+            ["02-evaluating-translations"],
+        )
+
+    def test_a_library_change_reaches_only_the_notebooks_importing_it(self):
+        found = self.names("src/torchlingo/diagnostics.py")
+        self.assertIn("06-diagnosing-failures", found)
+        self.assertNotIn("01-data-and-vocab", found)
+
+    def test_a_lazy_import_does_not_reach_every_notebook(self):
+        """colab imports evaluation inside a helper; every notebook imports colab."""
+        self.assertNotIn(
+            "01-data-and-vocab", self.names("src/torchlingo/evaluation.py")
+        )
+
+    def test_tests_notes_and_pages_affect_none(self):
+        self.assertEqual(
+            self.names("tests/test_models.py", "notes/TASKS.md", "docs/docs/index.md"),
+            [],
+        )
+
+    def test_packaging_the_init_and_data_affect_all(self):
+        every = [path.stem for path in nm.notebooks()]
+        for changed in ("pyproject.toml", "src/torchlingo/__init__.py", "data/x.tsv"):
+            self.assertEqual(self.names(changed), every, changed)
+
 
 class TestCopyOutputs(unittest.TestCase):
     """execute_notebooks.py --write-outputs: a run's outputs, and nothing else."""
