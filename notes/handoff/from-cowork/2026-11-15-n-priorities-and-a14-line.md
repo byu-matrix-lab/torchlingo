@@ -37,6 +37,10 @@ Eric, tonight: *"The 'What you need' part of the project directions would be bet
 
 Also changed tonight on every assignment page, in case a notebook or the roadmap quotes a heading: **"What to do" is now "Do the Following:"** and **"What to submit" is now "Submit the Following:"**; "Write-up questions" is a section of its own on A10, A12, A13, and A14. No notebook quotes either old heading today (checked). And Eric prefers absolute workload estimates to comparisons ("the largest assignment"): if a notebook says how long something takes, then give hours or a measured ratio, as A13's and A14's do.
 
+## 7. A15's page is published, as a reference (Eric, Nov 15)
+
+The roadmap said A15's page was unpublished; it never was. Eric chose to keep it visible as a reference for the Final Project's speech path, so the page now opens with *"Not assigned this term. This page is kept as a reference for the speech path of the Final Project (Path B) ... Nothing here is due, and it carries no points."* This branch corrects `roadmap.yaml`'s A15 row to say so, re-rendered (`--check` passes; the line may want rewrapping). The decisions log's Oct 22 entry, which says "unpublished", is history and is left as written.
+
 ## Tasks
 
 On the course list: A14's timing line is done and off; the list is ranked; two new rows (the A11/A12 grading note, P1; the Final Project BLEU line, P2). On yours: one new P2 row, the notebooks' What you need as bullets (section 6).

@@ -254,7 +254,7 @@ assignments:
 - id: A15
   label: '**A15** Speech Translation Pipeline'
   set_at: "15"
-  dropped: 'this term, folded into the Final Project (Eric, Oct 22): its page unpublished and
+  dropped: 'this term, folded into the Final Project (Eric, Oct 22): its page kept published, marked "Not assigned this term" as a reference for Path B (Eric, Nov 15), and
     kept for next year, its 20 points dropped, the speech pipeline named as a Path B example'
 # The Final Project's seven parts, each its own gradebook entry, "Final Project 1 - ..." to
 # "Final Project 7 - ..." (Eric, Oct 23). The project itself is 100: parts 3 to 6.

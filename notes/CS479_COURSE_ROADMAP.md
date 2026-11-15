@@ -116,7 +116,7 @@ two.
 | A12 | 12, Mon Oct 26 | **Mon Nov 2** | 7, Mon Oct 26 to Mon Nov 2 (Eric, Oct 26: moved from Fri Oct 30, which had moved from Wed Oct 28 on Oct 22); the A12 page and notebook were open from Oct 21 |
 | A13 | 13, Wed Oct 28 | **Fri Nov 6, 11:59 pm** | 9, Wed Oct 28 to Fri Nov 6, overlapping A12 until Nov 2: start the training run early and let it train while finishing A12 (Eric, Oct 26: due moved from Wed Nov 4, and windows may overlap) |
 | A14 | 14, Mon Nov 2 | **Fri Nov 13, 11:59 pm** | 11, Mon Nov 2 to Fri Nov 13, overlapping A13 until Nov 6 and the first proposal presentations (Nov 11); students start now, and the A13 reverse model, if trained, is one of the comparisons (Eric, Nov 2: due moved from Tue Nov 10, overriding Oct 22's rule that A14 end before the presentations) |
-| A15 | 15, Wed Nov 4 | dropped | this term, folded into the Final Project (Eric, Oct 22): its page unpublished and kept for next year, its 20 points dropped, the speech pipeline named as a Path B example |
+| A15 | 15, Wed Nov 4 | dropped | this term, folded into the Final Project (Eric, Oct 22): its page kept published, marked "Not assigned this term" as a reference for Path B (Eric, Nov 15), and kept for next year, its 20 points dropped, the speech pipeline named as a Path B example |
 
 Costs accepted knowingly: Lecture 16 (dubbing and live interpretation) sits two weeks after
 Lecture 15, after the proposal presentations, and picks up where Lecture 15 stopped; there is
