@@ -322,13 +322,15 @@ def main_as_student(notebooks: list[Path], options: list[str], jobs: int) -> int
 
 
 def here_runnable(
-    notebooks: list[Path], report: bool = True
+    notebooks: list[Path], report: bool = True, stream=None
 ) -> tuple[list[Path], list[str]]:
     """Split notebooks into those this checkout can execute and the names of those it cannot.
 
     A notebook is skipped when it requires a capability this run lacks, or needs a file that
     is not here (Git LFS data, in CI). Reads only metadata and the file system, so the
     workflow can ask before installing anything whether there is a notebook to run.
+    ``report`` prints a SKIP line, with the reason, for each one left out, to ``stream``
+    (standard output by default).
     """
     runnable, skipped = [], []
     for notebook in notebooks:
@@ -342,7 +344,11 @@ def here_runnable(
                     if unavailable
                     else f"needs {', '.join(absent)}"
                 )
-                print(f"  SKIP  {notebook.name} ({why})", flush=True)
+                print(
+                    f"  SKIP  {notebook.name} ({why})",
+                    file=stream or sys.stdout,
+                    flush=True,
+                )
             continue
         runnable.append(notebook)
     return runnable, skipped
@@ -439,7 +445,15 @@ def main() -> int:
         notebooks = [path for path in notebooks if path.stem in args.only]
     if args.changed is not None:
         affected = {path.stem for path in notebooks_affected(args.changed)}
+        unaffected = [path for path in notebooks if path.stem not in affected]
         notebooks = [path for path in notebooks if path.stem in affected]
+        if unaffected:
+            # Counted, not listed: on a typical pull request this is most of them.
+            print(
+                f"  NOT AFFECTED  {len(unaffected)} notebooks the changed files cannot break",
+                file=sys.stderr if args.list else sys.stdout,
+                flush=True,
+            )
     if args.write_outputs:
         # hygiene() fails a course notebook with outputs: students start from a clean one.
         course = [path.name for path in notebooks if path.parent == args.course]
@@ -469,7 +483,9 @@ def main() -> int:
         if args.as_student:
             runnable, _ = student_runnable(notebooks, args.install_only, report=False)
         else:
-            runnable, _ = here_runnable(notebooks, report=False)
+            # Each one left out, and why, on stderr: the workflow puts them in the job's
+            # summary, so a green check says what it did not run.
+            runnable, _ = here_runnable(notebooks, stream=sys.stderr)
         print(json.dumps([path.stem for path in runnable]))
         return 0
     if args.as_student:
@@ -509,10 +525,9 @@ def main() -> int:
     ran = len(notebooks) - len(skipped)
     print(f"{ran - len(failures)}/{ran} notebooks executed cleanly")
     if skipped:
-        print(
-            f"{len(skipped)} skipped for unfetched data: " + ", ".join(skipped),
-            flush=True,
-        )
+        # Not "for unfetched data": most are skipped for what they require (Colab, a GPU,
+        # a student's answers); the SKIP lines above give each one's reason.
+        print(f"{len(skipped)} not run here: " + ", ".join(skipped), flush=True)
     if failures:
         print("failed: " + ", ".join(failures), file=sys.stderr)
         return 1

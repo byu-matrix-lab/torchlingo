@@ -2062,6 +2062,34 @@ class TestTheExecutorSkipsOnCapabilities(unittest.TestCase):
         )
         self.assertEqual(len(everything), len(runnable) + len(skipped))
 
+    def test_the_ci_list_names_every_notebook_it_leaves_out(self):
+        """A green notebook check must say what it did not run (Task #53).
+
+        The workflow runs exactly what --list prints on stdout, so stdout and the SKIP and
+        LEFT OUT lines on stderr together must account for every notebook, each skip with
+        its reason.
+        """
+        result = self.run_executor("--list", "--exclude", "06-diagnosing-failures")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        listed = set(json.loads(result.stdout))
+        left_out = {
+            line.split()[-2 if "LEFT OUT" in line else 1].removesuffix(".ipynb"): line
+            for line in result.stderr.splitlines()
+            if line.strip().startswith(("SKIP ", "LEFT OUT "))
+        }
+        everything = {path.stem for path in nm.notebooks()}
+        self.assertEqual(listed | set(left_out), everything)
+        self.assertFalse(listed & set(left_out))
+        self.assertIn("(--exclude)", left_out["06-diagnosing-failures"])
+        self.assertIn("(requires", left_out["lecture-11-comet-on-a6"])
+
+    def test_a_changed_file_list_counts_what_it_cannot_break(self):
+        result = self.run_executor("--list", "--changed", "notes/TASKS.md")
+        self.assertEqual(result.stdout.strip(), "[]")
+        self.assertRegex(
+            result.stderr, r"NOT AFFECTED  \d+ notebooks the changed files cannot break"
+        )
+
     def test_only_refuses_a_name_that_is_no_notebook(self):
         result = self.run_executor("--as-student", "--only", "no-such-notebook")
         self.assertEqual(result.returncode, 1)

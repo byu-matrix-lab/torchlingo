@@ -34,8 +34,6 @@ work sits in an open pull request says "In review" and keeps its row until the P
 
 | | P | Task | Critical for | State |
 |---|---|---|---|---|
-| #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
-| #341 | **P2** | Check that every `torchlingo` import in `docs/` resolves | **hyg** | Open — review R13 part 4; promoted from P3 (Eric, Nov 15), as a guard on what students read. Nothing executes the 278 Python blocks in `docs/docs/**/*.md`; resolving their imports found Task #339's three wrong names in seconds (method under "How this was checked" in `notes/reports/architecture-review.md`), and on Nov 15 a hand run found `Config(src_file=..., tgt_file=...)` in the multilingual page, which raises `TypeError`, so the gate should check keyword arguments to `Config` as well as imports. Cost S. **Students now: no behavior change** |
 | #291 | **P3** | NLLB plumbing through the accessory | **lib** | Open — A12's cell 21 reloads NLLB and decodes greedily by hand where `load_nllb` does it |
 | #293 | **P3** | Should tutorials 1 to 8 have stopping cells? | **hyg** | Open — none has a prediction, decision or TODO. Eric decides; candidates from the review: tutorial 1's ids, tutorial 2's ship decision, tutorial 3's rebuild prediction, tutorial 4's alignment accuracy, tutorial 6's which check catches the broken corpus |
 | #294 | **P3** | Small duplications across notebooks | **lib** | Open — the tiny phrase model in Lecture 7 and tutorials 3 and 8; per-head capture in 8b and input hooks in 8c (F10); tutorial 7 rebuilds a model by hand where `load_model` works; tutorial 6 repeats one `train_model` call four times. The rest of `NOTEBOOK_LIBRARY_REVIEW.md`, F10 to F17, is here too |
@@ -488,28 +486,6 @@ tree.
 
 **Done when** every page under `docs/docs/` is either in the nav or on a declared exception
 list, and the build fails when one is neither.
-
-**#53 The notebook gate is weaker than its green check implies**
-
-CI checks out without Git LFS on purpose, so `data/example.tsv` is a pointer and
-`execute_notebooks.py` skips what are now tutorials 3, 4, 7 and 8. **The job passes having run two notebooks
-of six**, and the check mark looks identical either way.
-
-Found concretely in #50, which adds an assertion inside tutorial 8 whose whole purpose is to
-fire when the model stops being decisive. It cannot fire in CI, because tutorial 8 does not run
-there.
-
-The skip list only grows as tutorials touch real data. It can go the other way: tutorial 2 uses
-fixed strings, needs no artifact, and runs — a design lever worth knowing, since a tutorial
-whose subject needs no trained model should not acquire one.
-
-Options, cheapest first: **say it in the check** (the job already knows what it skipped, so put
-that in the job summary); **fetch LFS for the notebook job only**, ~28 MB per run, which the
-keep-CI-light decision ruled out on four-version-matrix grounds that do not apply to one job;
-or a **scheduled full run** with LFS.
-
-**Done when** the green check states what it did not run. Same family as #51.
-
 
 **#66 Adopt `nltk.translate.gale_church`; split #29 into two different jobs**
 
