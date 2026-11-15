@@ -106,28 +106,6 @@ _COMET_PROGRESS = "COMET scored "
 _comet_models: dict[str, Any] = {}
 
 
-def _needs_char_tokenization(text_samples: list[str]) -> bool:
-    """Detect if text uses CJK or other non-space-separated scripts.
-
-    Args:
-        text_samples: List of text samples to check.
-
-    Returns:
-        True if character-level tokenization should be used.
-    """
-    import re
-
-    # Check for Chinese, Japanese, Korean, Thai, Burmese, Khmer, Lao
-    cjk_pattern = re.compile(
-        r"[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\u0e00-\u0e7f"
-        r"\u1000-\u109f\u1780-\u17ff\u0e80-\u0eff]"
-    )
-
-    # Sample first 10 texts
-    sample_text = " ".join(text_samples[:10])
-    return bool(cjk_pattern.search(sample_text))
-
-
 def _char_tokenize(text: str) -> str:
     """Tokenize text at character level by inserting spaces.
 
@@ -201,7 +179,7 @@ def compute_bleu(
     references: list[str] | list[list[str]],
     lowercase: bool = False,
     tokenize: str = "13a",
-    tokenization: str = "auto",
+    tokenization: str = "word",
 ) -> sacrebleu.metrics.bleu.BLEUScore:
     """Compute corpus-level BLEU score for translations.
 
@@ -222,13 +200,23 @@ def compute_bleu(
             - List[str]: Single reference per sample
             - List[List[str]]: Multiple references per sample
         lowercase: If True, lowercase both predictions and references before scoring.
-        tokenize: Tokenization method. Options: "13a" (default), "intl", "zh", "ja-mecab", "none".
-        tokenization: Tokenization mode: "auto" (detect from text), "char" (character-level
-            for CJK languages), "word" (space-separated). Default: "auto".
+        tokenize: sacreBLEU's tokenizer: "13a" (default), "flores200" (spBLEU, for a
+            language written without spaces), "intl", "zh", "ja-mecab", "none". Choose it
+            with :func:`bleu_tokenizer`, so it matches the BLEU your other numbers used.
+        tokenization: "word" (default) scores with ``tokenize`` as given. "char" splits
+            every sentence into characters first and scores those, overriding ``tokenize``;
+            the signature then says ``tokenization:char``.
 
     Returns:
         BLEUScore with ``.score`` (0-100), detailed n-gram statistics, and a
         ``.signature`` string recording how the score was produced.
+
+    Raises:
+        ValueError: If ``tokenization`` is not "word" or "char". "auto" was the default
+            through 0.2.10: it switched to characters on finding one Chinese, Japanese, Thai,
+            Lao, Khmer or Burmese character in the first ten references, and then ignored
+            ``tokenize``. One Chinese name in an English test set scored all of it by
+            characters, with no error.
 
     Example:
         >>> preds = ["The cat sat on the mat", "Hello world"]
@@ -264,16 +252,17 @@ def compute_bleu(
         # Single reference: convert to List[List[str]]
         references = [[ref] for ref in references]
 
-    # Determine if character-level tokenization is needed
-    use_char_tokenization = False
-    if tokenization == "char":
-        use_char_tokenization = True
-    elif tokenization == "auto":
-        # Auto-detect from reference text
-        ref_samples = [ref[0] for ref in references[:10] if ref]
-        use_char_tokenization = _needs_char_tokenization(ref_samples)
+    # The caller chooses; nothing here guesses from the text. The guess this replaced
+    # overrode an explicit `tokenize`, breaking the rule that an explicit argument wins.
+    if tokenization not in ("word", "char"):
+        raise ValueError(
+            f'tokenization must be "word" or "char", got {tokenization!r}. For a language '
+            "written without spaces, pass tokenize=bleu_tokenizer(written_without_spaces("
+            "references)) instead, as the course notebooks do."
+        )
+    use_char_tokenization = tokenization == "char"
 
-    # Apply character tokenization if needed
+    # Apply character tokenization if asked for
     if use_char_tokenization:
         predictions = [_char_tokenize(p) for p in predictions]
         references = [
@@ -477,7 +466,8 @@ def evaluate_model(
     lowercase: bool = False,
     compute_chrf_score: bool = True,
     compute_ter_score: bool = False,
-    tokenization: str = "auto",
+    tokenize: str = "13a",
+    tokenization: str = "word",
     src_sentences: list | None = None,
     tgt_sentences: list | None = None,
     batch_size: int = 32,
@@ -510,8 +500,9 @@ def evaluate_model(
         lowercase: If True, lowercase before computing BLEU.
         compute_chrf_score: Whether to compute chrF score (recommended).
         compute_ter_score: Whether to compute TER score (slower).
-        tokenization: Tokenization mode for BLEU: "auto" (detect from text),
-            "char" (character-level for CJK), "word" (space-separated).
+        tokenize: sacreBLEU's tokenizer for BLEU, as in :func:`compute_bleu`; choose it
+            with :func:`bleu_tokenizer`.
+        tokenization: "word" (default) or "char", as in :func:`compute_bleu`.
         src_sentences: List of source sentences (alternative to dataloader).
         tgt_sentences: List of target sentences (alternative to dataloader).
         batch_size: Batch size when using src_sentences/tgt_sentences.
@@ -530,7 +521,7 @@ def evaluate_model(
         >>> scores = evaluate_model(              # doctest: +SKIP
         ...     model, src_sentences=src_texts, tgt_sentences=tgt_texts,
         ...     src_vocab=src_vocab, tgt_vocab=tgt_vocab,
-        ...     tokenization="auto"
+        ...     tokenize=bleu_tokenizer(written_without_spaces(tgt_texts)),
         ... )
         >>> print(f"BLEU: {scores['bleu']:.2f}")  # doctest: +SKIP
     """
@@ -625,17 +616,18 @@ def evaluate_model(
             "Must provide either dataloader or src_sentences+tgt_sentences"
         )
 
-    # Compute metrics with language-aware tokenization
     results = {}
 
     bleu_result = compute_bleu(
-        predictions, references, lowercase=lowercase, tokenization=tokenization
+        predictions,
+        references,
+        lowercase=lowercase,
+        tokenize=tokenize,
+        tokenization=tokenization,
     )
 
-    # Use appropriate metric label based on tokenization
-    if tokenization == "char" or (
-        tokenization == "auto" and _needs_char_tokenization(references)
-    ):
+    # Character BLEU gets its own name, so it is never compared with word BLEU by mistake.
+    if tokenization == "char":
         results["bleu_char"] = bleu_result.score
     else:
         results["bleu"] = bleu_result.score

@@ -66,6 +66,37 @@ class SignatureReflectsSettingsTests(unittest.TestCase):
         self.assertNotIn("tokenization:char", result.signature)
 
 
+class ExplicitTokenizerWinsTests(unittest.TestCase):
+    """The tokenizer a caller passes is the one used, whatever script the text is in.
+
+    Until Nov 13, 2026 the default `tokenization="auto"` switched to characters on finding one
+    Chinese, Japanese, Thai, Lao, Khmer or Burmese character in the first ten references, and
+    then ignored `tokenize`. An English test set naming one Chinese city scored 90.5 against
+    sacreBLEU's 72.9 for the same tokenizer.
+    """
+
+    def test_english_with_a_chinese_name_scores_as_sacrebleu_does(self):
+        import sacrebleu
+
+        hyp = ["We visited Beijing (北京) with Mr. Li last summer"]
+        ref = ["Last summer we visited Beijing (北京) with Mr. Li"]
+        ours = compute_bleu(hyp, ref, tokenize="13a")
+        self.assertAlmostEqual(
+            ours.score, sacrebleu.corpus_bleu(hyp, [ref]).score, places=10
+        )
+        self.assertIn("tok:13a", ours.signature)
+        self.assertNotIn("tokenization:char", ours.signature)
+
+    def test_flores200_on_chinese_is_flores200(self):
+        result = compute_bleu(["我喜欢猫和狗"], ["我喜欢狗和猫"], tokenize="flores200")
+        self.assertIn("tok:flores200", result.signature)
+        self.assertNotIn("tokenization:char", result.signature)
+
+    def test_auto_is_refused_with_the_replacement_named(self):
+        with self.assertRaisesRegex(ValueError, "bleu_tokenizer"):
+            compute_bleu(PREDICTIONS, REFERENCES, tokenization="auto")
+
+
 class SignatureDistinguishesIncomparableScoresTests(unittest.TestCase):
     def test_two_settings_that_change_the_score_also_change_the_signature(self):
         """The property that makes the signature worth reporting.

@@ -22,6 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was never touched, so running Step 4 again now picks up where it stopped. Reported by a CS 479
   student, Nov 13.
 
+### Changed
+- **`compute_bleu` uses the `tokenize` you pass, always.** Its default was
+  `tokenization="auto"`: one Chinese, Japanese, Thai, Lao, Khmer or Burmese character in the
+  first ten references switched the whole corpus to character BLEU and replaced `tokenize` with
+  `"none"`. An explicit `tokenize="flores200"` was ignored, and an English test set naming one
+  Chinese city scored 90.5 where sacreBLEU gives 72.9. The default is now `"word"`;
+  `tokenization="char"` still asks for character BLEU, and `"auto"` raises `ValueError` naming
+  the replacement, `tokenize=bleu_tokenizer(written_without_spaces(references))`.
+  `evaluate_model` takes `tokenize` too. A11 and A12 now score BLEU that way, so their BLEU is
+  the one A9 reported. A score from 0.2.10 or earlier whose signature reads `tokenization:char`
+  was scored by characters.
+
 ## [0.2.10] - 2026-11-05
 
 ### Added
