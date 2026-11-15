@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `a14-rerun.json`.
 
 ### Fixed
+- **Beam search through the fast path decodes an LSTM.** `inference_fast.beam_search_decode`
+  raised `ValueError` on any model without `encode` and `decode`, so
+  `translate_to_file(..., decode_strategy="beam")` failed on a `SimpleSeq2SeqLSTM` while the
+  reference `translate_batch` decoded it, and both docstrings promised the same output for
+  either architecture. Such a model now goes to the reference beam search, so the output is
+  identical by construction.
 - **Resuming onto a GPU no longer fails on the saved random-number state.** A
   `TrainingCheckpointer.load` with `map_location` set to the GPU moved the generator states
   there too, and `torch.set_rng_state` accepts only CPU tensors, so A14's Step 4 raised

@@ -107,10 +107,16 @@ path, must give token-identical output on every fixture in `tests/test_decoding_
 once per process, on a large input, naming `inference_fast.translate_batch`. Batching across
 sentences, KV caching and multi-GPU training were descoped (Eric, Sep 22): each is complex,
 teaches little, and is done better by CTranslate2, Marian or Joey NMT
-(`docs/docs/related-work.md`). The architecture review (`notes/reports/architecture-review.md`)
-weighed two points against this: the reference module imports the fast one in
-`translate_to_file` (R4, Task #330), and Task #272 proposes batching across sentences (R5, Task
-#332).
+(`docs/docs/related-work.md`). Task #272 proposes batching across sentences, against this
+(review R5, Task #332).
+
+**The fast module imports the reference, with one exception.** `inference.translate_to_file`
+calls `inference_fast.translate_batch`, imported inside the function: the bulk file decode is
+the job the fast path exists for, and students know it as an `inference` call (review R4, Nov
+14). Nothing else in `inference.py` may import the fast module. In the other direction, the
+fast beam search hands any model without `encode` and `decode`, an LSTM for instance, to the
+reference beam search, so "same output, faster" holds for both architectures;
+`LSTMEquivalenceTests` checks it.
 
 ## Conventions
 

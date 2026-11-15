@@ -30,7 +30,9 @@ or PyTorch versions.
 
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 from typing import ClassVar
 
 import torch
@@ -38,12 +40,16 @@ from torch import nn
 
 from torchlingo import inference_fast
 from torchlingo.config import get_default_config
+from torchlingo.data_processing.vocab import SimpleVocab
 from torchlingo.inference import (
     _canonical_topk,
     _rank_key,
     beam_search_decode,
     greedy_decode,
+    translate_batch,
+    translate_to_file,
 )
+from torchlingo.models.lstm_simple import SimpleSeq2SeqLSTM
 from torchlingo.models.transformer_simple import SimpleTransformer
 
 D_MEM = 4
@@ -909,6 +915,75 @@ class BatchedBeamSuperiorityTests(BeamSuperiorityContract, unittest.TestCase):
 
 class BatchedTieBreakingTests(TieBreakingContract, unittest.TestCase):
     BEAM_DECODE = staticmethod(inference_fast.beam_search_decode)
+
+
+class LSTMEquivalenceTests(unittest.TestCase):
+    """The fast beam search decodes an LSTM, token for token as the reference does.
+
+    Until Nov 2026 it raised on any model without encode/decode, so
+    ``translate_to_file(..., decode_strategy="beam")`` failed on an LSTM while the
+    reference ``translate_batch`` decoded it (architecture review R4).
+    """
+
+    SOURCES = (
+        [1, 5, 6, 7, 2],
+        [1, 9, 2],
+        [1, 12, 4, 4, 8, 10, 2],
+    )
+
+    def setUp(self):
+        torch.manual_seed(0)
+        self.model = SimpleSeq2SeqLSTM(
+            src_vocab_size=20, tgt_vocab_size=20, emb_dim=8, hidden_dim=8, num_layers=1
+        ).eval()
+
+    def test_fast_beam_matches_reference_beam(self):
+        for tokens in self.SOURCES:
+            src = torch.tensor([tokens])
+            for beam_size in (1, 2, 4):
+                with self.subTest(src=tokens, beam_size=beam_size):
+                    self.assertEqual(
+                        inference_fast.beam_search_decode(
+                            self.model, src, beam_size=beam_size, max_len=12
+                        ),
+                        beam_search_decode(
+                            self.model, src, beam_size=beam_size, max_len=12
+                        ),
+                    )
+
+    def test_translate_to_file_with_beam_matches_the_reference(self):
+        vocab = SimpleVocab(min_freq=1)
+        vocab.build_vocab(["el gato duerme", "the cat sleeps", "un perro corre"])
+        torch.manual_seed(0)
+        model = SimpleSeq2SeqLSTM(
+            src_vocab_size=len(vocab),
+            tgt_vocab_size=len(vocab),
+            emb_dim=8,
+            hidden_dim=8,
+            num_layers=1,
+        ).eval()
+        sentences = ["the cat sleeps", "un perro corre", "el gato"]
+        out = Path(tempfile.mkdtemp()) / "test.hyp"
+        lines = translate_to_file(
+            model,
+            sentences,
+            vocab,
+            vocab,
+            out,
+            decode_strategy="beam",
+            max_len=8,
+            verbose=False,
+        )
+        self.assertEqual(
+            lines,
+            translate_batch(
+                model, sentences, vocab, vocab, decode_strategy="beam", max_len=8
+            ),
+        )
+
+    def test_a_model_with_neither_contract_still_raises(self):
+        with self.assertRaises(ValueError):
+            inference_fast.beam_search_decode(nn.Linear(2, 2), torch.tensor([[1, 2]]))
 
 
 if __name__ == "__main__":
