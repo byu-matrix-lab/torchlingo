@@ -538,9 +538,10 @@ carried the decoders' design decisions and the rules below. The log is git histo
 ## The task list
 
 **The session's task list mirrors the P0 and P1 rows of `notes/TASKS.md`, and nothing else**
-(Eric, 2026-11-14; until then it held tasks for the next two lectures). Re-sync it whenever a
-row enters or leaves P0 or P1, and take a finished task off rather than leaving it marked
-done. `notes/TASKS.md` always has every task; the mirror is a filter over it, not a second copy. Course work (decks,
+(Eric, 2026-11-14; until then it held tasks for the next two lectures). When no P0 or P1 row
+is open, it mirrors the P2 rows instead, rather than sitting empty (Eric, the same day). Re-sync
+it whenever a row enters or leaves the level it mirrors, and take a finished task off rather
+than leaving it marked done. `notes/TASKS.md` always has every task; the mirror is a filter over it, not a second copy. Course work (decks,
 Learning Suite, the assignment pages, anything waiting on Cowork or Eric for a course decision)
 is in `torchlingo-private/notes/course/TASKS.md`, under the same numbers.
 
