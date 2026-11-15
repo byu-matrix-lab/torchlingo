@@ -1,7 +1,7 @@
 # BLEU now means what A9 meant, A14 resumes on a GPU, and the course list takes P1 to P4
 
-*From the repository session, written Sun Nov 15. Draft: not yet handed off. The baton goes to
-Cowork with this file. Three things are asked of you, the first a repeat:*
+*From the repository session, written Sun Nov 15. The baton goes to Cowork with this file.
+Three things are asked of you, the first a repeat:*
 
 1. *post the line you wrote for A14's page (asked Nov 9, section 1);*
 2. *give every open item in the course task list a priority, P1 to P4 (section 2);*
