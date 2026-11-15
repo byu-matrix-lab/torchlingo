@@ -179,24 +179,32 @@ The multilingual pipeline uses these configuration options:
 ## Common Workflow
 
 ```python
-from torchlingo.preprocessing.base import preprocess_base
-from torchlingo.preprocessing.multilingual import preprocess_multilingual
-from torchlingo.config import Config, set_default_config
+from pathlib import Path
 
-# 1. Set up configuration
+from torchlingo.config import Config
+from torchlingo.preprocessing.base import (
+    parallel_txt_to_dataframe,
+    preprocess_base,
+    save_data,
+)
+from torchlingo.preprocessing.multilingual import preprocess_multilingual
+
+# 1. One two-column file of pairs, and a config that names it
+save_data(
+    parallel_txt_to_dataframe("data/english.txt", "data/spanish.txt"),
+    "data/raw.tsv",
+)
 config = Config(
-    src_file="data/english.txt",
-    tgt_file="data/spanish.txt",
+    raw_data_file=Path("data/raw.tsv"),
     lang_tag_en_to_x="<es>",
     lang_tag_x_to_en="<en>",
 )
-set_default_config(config)
 
 # 2. Base preprocessing (creates train/val/test)
-preprocess_base()
+preprocess_base(config=config)
 
 # 3. Multilingual preprocessing (creates bidirectional data)
-preprocess_multilingual()
+preprocess_multilingual(config=config)
 
 # Now you have:
 # - data/multi_train.tsv (bidirectional training)

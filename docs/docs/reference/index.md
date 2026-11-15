@@ -62,6 +62,9 @@ TorchLingo is organized into four main modules:
 | -------- | ----------- |
 | [`get_default_config()`](config.md#torchlingo.config.get_default_config) | Get default configuration |
 | [`load_data()`](preprocessing/base.md#torchlingo.preprocessing.base.load_data) | Load data from file |
+| [`train_model()`](training.md#torchlingo.training.train_model) | Train a model |
+| [`translate_batch()`](inference.md#torchlingo.inference.translate_batch) | Translate sentences |
+| [`translate_to_file()`](inference.md#torchlingo.inference.translate_to_file) | Translate a test set or corpus to a file, resumably |
 | [`collate_fn()`](data_processing/batching.md#torchlingo.data_processing.batching.collate_fn) | Batch collation with padding |
 | [`create_dataloaders()`](data_processing/batching.md#torchlingo.data_processing.batching.create_dataloaders) | Create train/val data loaders |
 

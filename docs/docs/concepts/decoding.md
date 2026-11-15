@@ -637,4 +637,5 @@ as the model.
 
 - [Model Architectures](models.md) — the encoder-decoder these decoders drive
 - [Training Loop](training.md) — where the model comes from
-- API reference for `torchlingo.inference` and `torchlingo.inference_fast`
+- [Decoding API reference](../reference/inference.md) — `torchlingo.inference` and
+  `torchlingo.inference_fast`

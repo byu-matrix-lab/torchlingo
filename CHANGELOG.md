@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   while it runs and at its end, so a dropped session keeps the time so far and a stage run again
   adds to it. A14 times each stage, prints the table in its last cell and records the times in
   `a14-rerun.json`.
+- **API reference pages for training, decoding and the NLLB harness.** `train_model`, both
+  decoder modules and `torchlingo_harness.nllb` had no page; `read_lines`, `write_lines` and
+  `written_without_spaces` join the preprocessing page. The docs no longer name
+  `train_test_split`, `set_default_config` or `SimpleLSTM`, which do not exist, nor build a
+  `Config` with fields it rejects; the examples use `split_exact` and `SimpleSeq2SeqLSTM`.
 
 ### Fixed
 - **Beam search through the fast path decodes an LSTM.** `inference_fast.beam_search_decode`

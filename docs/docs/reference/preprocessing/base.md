@@ -10,8 +10,22 @@ This module provides foundational functions for working with parallel corpora:
 - Convert parallel text files to DataFrames
 - Save processed data
 - Split datasets into train/val/test sets
+- Read and write plain text one sentence per line, and tell whether a language is written
+  without spaces
 
 ## API Reference
+
+::: torchlingo.preprocessing.base.read_lines
+    options:
+      show_source: true
+
+::: torchlingo.preprocessing.base.write_lines
+    options:
+      show_source: true
+
+::: torchlingo.preprocessing.base.written_without_spaces
+    options:
+      show_source: true
 
 ::: torchlingo.preprocessing.base.load_data
     options:
@@ -113,20 +127,23 @@ save_data(df, "output/train.parquet")
 ### Splitting Data
 
 ```python
-from torchlingo.preprocessing import train_test_split
+from torchlingo.preprocessing import split_exact
 
-train_df, val_df, test_df = train_test_split(
+train_df, val_df, test_df = split_exact(
     df,
-    val_ratio=0.1,   # 10% validation
-    test_ratio=0.1,  # 10% test
-    shuffle=True,    # Shuffle before splitting
-    random_state=42, # Reproducibility
+    n_val=2000,   # validation pairs
+    n_test=2000,  # test pairs; everything else is training data
+    seed=479,     # the same seed gives the same test set every time
 )
 
-print(f"Train: {len(train_df)}")  # 80%
-print(f"Val: {len(val_df)}")      # 10%
-print(f"Test: {len(test_df)}")    # 10%
+print(f"Train: {len(train_df)}")  # len(df) - 4000
+print(f"Val: {len(val_df)}")      # 2000
+print(f"Test: {len(test_df)}")    # 2000
 ```
+
+`split_exact` is what the A8 notebook uses: assignments name held-out sets by count. For
+proportions instead, `split_data(df, train_ratio=0.8, val_ratio=0.1, seed=42)` splits by
+ratio, with the rest going to test.
 
 ## Format Details
 

@@ -32,10 +32,18 @@ Example:
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
 import torch
 
 from torchlingo.inference import DECODE_STRATEGIES, add_noise
+
+if TYPE_CHECKING:
+    # For annotations only: transformers is imported when load_nllb runs, never at import.
+    import pandas as pd
+    from transformers import PreTrainedModel, PreTrainedTokenizerBase
+
+    from torchlingo.training_checkpoint import CheckpointState, TrainingCheckpointer
 
 NLLB_MODEL = "facebook/nllb-200-distilled-600M"
 FLORES_200_LIST = (
@@ -58,7 +66,12 @@ class NLLBTranslator:
     """
 
     def __init__(
-        self, model, tokenizer, tgt_lang: str, device: torch.device, name: str
+        self,
+        model: PreTrainedModel,
+        tokenizer: PreTrainedTokenizerBase,
+        tgt_lang: str,
+        device: torch.device,
+        name: str,
     ):
         self.model = model
         self.tokenizer = tokenizer
@@ -71,8 +84,8 @@ class NLLBTranslator:
     @classmethod
     def between(
         cls,
-        model,
-        tokenizer,
+        model: PreTrainedModel,
+        tokenizer: PreTrainedTokenizerBase,
         src_lang: str,
         tgt_lang: str,
         device: torch.device,
@@ -100,7 +113,7 @@ class NLLBTranslator:
         translator.src_lang = src_lang
         return translator
 
-    def settings(self, **decoding) -> dict:
+    def settings(self, **decoding: Any) -> dict:
         """What decides this translator's output, for a resumable job's record.
 
         Args:
@@ -196,7 +209,7 @@ class NLLBTranslator:
         return out
 
 
-def nllb_codes(tokenizer) -> set[str]:
+def nllb_codes(tokenizer: PreTrainedTokenizerBase) -> set[str]:
     """The language codes an NLLB tokenizer knows, such as ``"tel_Telu"``.
 
     Args:
@@ -259,7 +272,12 @@ def load_nllb(
     )
 
 
-def coded_batch(tokenizer, frame, device: torch.device, max_pieces: int = 126) -> dict:
+def coded_batch(
+    tokenizer: PreTrainedTokenizerBase,
+    frame: pd.DataFrame,
+    device: torch.device,
+    max_pieces: int = 126,
+) -> dict:
     """Tokenize pairs whose rows carry their own language codes, as NLLB trains on them.
 
     Each source becomes its code, its pieces and ``</s>``; each target the same with its own
@@ -302,11 +320,11 @@ def coded_batch(tokenizer, frame, device: torch.device, max_pieces: int = 126) -
 
 
 def fine_tune(
-    model,
-    tokenizer,
-    train,
-    val,
-    checkpointer,
+    model: PreTrainedModel,
+    tokenizer: PreTrainedTokenizerBase,
+    train: pd.DataFrame,
+    val: pd.DataFrame,
+    checkpointer: TrainingCheckpointer,
     *,
     steps: int,
     device: torch.device,
@@ -318,7 +336,7 @@ def fine_tune(
     val_pairs: int = 500,
     seed: int = 479,
     space_needed_gb: float = 8.0,
-):
+) -> CheckpointState:
     """Fine-tune NLLB on pairs with their language codes, resumably; keep the best checkpoint.
 
     The loop Tutorial 9 writes out, for notebooks whose lesson is elsewhere: Adafactor, whose

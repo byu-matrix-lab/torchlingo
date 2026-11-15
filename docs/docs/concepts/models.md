@@ -8,7 +8,7 @@ Worth knowing before anything else, because it means the paper you were assigned
 
 **`SimpleTransformer` is the Transformer of Vaswani et al. (2017)** — ["Attention Is All You Need"](https://arxiv.org/abs/1706.03762). Not a variant and not a cut-down teaching model: the same encoder–decoder shape, multi-head scaled dot-product attention, sinusoidal positional encoding, and embeddings scaled by √`d_model`. **"Simple" describes the implementation, not the architecture** — the code is written to be read, and the model it builds is the standard one. Every Marian, OpenNMT or Fairseq tutorial you find online is describing the same family.
 
-`SimpleLSTM` is the earlier encoder–decoder family that the Transformer replaced — Sutskever et al. (2014), with optional Bahdanau-style attention on top.
+`SimpleSeq2SeqLSTM` is the earlier encoder–decoder family that the Transformer replaced — Sutskever et al. (2014), with optional Bahdanau-style attention on top.
 
 ### The two configurations you will meet
 
