@@ -107,8 +107,11 @@ path, must give token-identical output on every fixture in `tests/test_decoding_
 once per process, on a large input, naming `inference_fast.translate_batch`. Batching across
 sentences, KV caching and multi-GPU training were descoped (Eric, Sep 22): each is complex,
 teaches little, and is done better by CTranslate2, Marian or Joey NMT
-(`docs/docs/related-work.md`). Task #272 proposes batching across sentences, against this
-(review R5, Task #332).
+(`docs/docs/related-work.md`). Eric confirmed it for batching across sentences on Nov 14
+(review R5), closing the task that proposed it: no assignment waits on beam, since A13
+back-translates by sampling. Reopen it only if a Final Project needs beam over more than about
+10,000 sentences; the fast beam decodes one sentence at a time, measured Oct 21 at 372 ms a
+sentence against greedy's 7.3 (A9's size, Apple GPU), so 100,000 sentences take about 10 hours.
 
 **The fast module imports the reference, with one exception.** `inference.translate_to_file`
 calls `inference_fast.translate_batch`, imported inside the function: the bulk file decode is
@@ -538,9 +541,10 @@ carried the decoders' design decisions and the rules below. The log is git histo
 ## The task list
 
 **The session's task list mirrors the P0 and P1 rows of `notes/TASKS.md`, and nothing else**
-(Eric, 2026-11-14; until then it held tasks for the next two lectures). Re-sync it whenever a
-row enters or leaves P0 or P1, and take a finished task off rather than leaving it marked
-done. `notes/TASKS.md` always has every task; the mirror is a filter over it, not a second copy. Course work (decks,
+(Eric, 2026-11-14; until then it held tasks for the next two lectures). When no P0 or P1 row
+is open, it mirrors the P2 rows instead, rather than sitting empty (Eric, the same day). Re-sync
+it whenever a row enters or leaves the level it mirrors, and take a finished task off rather
+than leaving it marked done. `notes/TASKS.md` always has every task; the mirror is a filter over it, not a second copy. Course work (decks,
 Learning Suite, the assignment pages, anything waiting on Cowork or Eric for a course decision)
 is in `torchlingo-private/notes/course/TASKS.md`, under the same numbers.
 
