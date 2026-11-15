@@ -51,7 +51,8 @@ delete runtime) and running the notebook again from the badge.
 - **A14's Step 4 failed when it resumed on a GPU** (a student reported it on Discord, Nov 13).
   Resuming raised `TypeError: RNG state must be a torch.ByteTensor`. It is fixed on `course`.
   The checkpoint on Drive was never touched, so running Step 4 again picks up where it stopped.
-  Eric has a message for the students. A14's page and notebook need no change.
+  Eric sent the students a message the day it was fixed. A14's page and notebook need no
+  change.
 - **BLEU in A11 and A12 is now the BLEU A9 reported.** For a language written without spaces,
   A9 scores spBLEU, but the library function A11 and A12 call quietly switched to BLEU over
   single characters whenever it saw one such character, and ignored the tokenizer it was given.
