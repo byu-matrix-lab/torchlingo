@@ -21,6 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `TypeError: RNG state must be a torch.ByteTensor` whenever it resumed. The checkpoint on Drive
   was never touched, so running Step 4 again now picks up where it stopped. Reported by a CS 479
   student, Nov 13.
+- **Decoding raises when a vocabulary and the config disagree on special-token ids.** The
+  decoders start at `config.sos_idx` and stop at `config.eos_idx`, while the vocabulary reads
+  the output with its own ids. When the two differed, every translation ran to `max_len` and
+  came back as plausible-looking text, with no error. `translate_batch` (both modules) and
+  `translate_to_file` now raise a `ValueError` naming each id that differs, and
+  `translate_to_file` does so before creating its output file. Vocabularies built by the
+  library take their ids from the config, so this meets only a vocabulary built some other way.
 
 ### Changed
 - **`compute_bleu` uses the `tokenize` you pass, always.** Its default was

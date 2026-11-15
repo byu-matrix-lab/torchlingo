@@ -347,6 +347,35 @@ def _check_strategy(decode_strategy: str) -> None:
         )
 
 
+_SPECIAL_IDS = ("pad_idx", "sos_idx", "eos_idx")
+
+
+def _check_special_ids(cfg: Config, src_vocab: BaseVocab, tgt_vocab: BaseVocab) -> None:
+    """Raise when a vocabulary's special-token ids differ from the config's.
+
+    The decoders start each translation with ``cfg.sos_idx`` and stop at
+    ``cfg.eos_idx``, while the vocabularies read the output with their own ids.
+    If the two disagree, no translation ever stops: each runs to ``max_len`` and
+    comes back as plausible-looking text, with no error. This raises instead of
+    quietly preferring one side, because only you know which ids the model was
+    trained with.
+    """
+    mismatches = [
+        f"{side}.{name} is {getattr(vocab, name)} but config.{name} is {getattr(cfg, name)}"
+        for side, vocab in (("src_vocab", src_vocab), ("tgt_vocab", tgt_vocab))
+        for name in _SPECIAL_IDS
+        if getattr(vocab, name, None) is not None
+        and getattr(vocab, name) != getattr(cfg, name)
+    ]
+    if mismatches:
+        raise ValueError(
+            "The vocabularies and the config disagree on special-token ids: "
+            + "; ".join(mismatches)
+            + ". Pass the config the model was trained with, or build the vocabularies "
+            "with it (for example SimpleVocab(config=cfg)), so both use the same ids."
+        )
+
+
 def _sentence_seed(seed: int, index: int) -> int:
     """The seed for sentence ``index`` of a job seeded with ``seed``.
 
@@ -951,7 +980,9 @@ def translate_batch(
         List of decoded text strings aligned with input sentences.
 
     Raises:
-        ValueError: If ``decode_strategy`` is not one of :data:`DECODE_STRATEGIES`.
+        ValueError: If ``decode_strategy`` is not one of :data:`DECODE_STRATEGIES`,
+            or if ``src_vocab`` or ``tgt_vocab`` has a ``pad_idx``, ``sos_idx`` or
+            ``eos_idx`` different from the config's.
 
     Warns:
         UserWarning: Once per process, when beam decoding more than
@@ -971,6 +1002,7 @@ def translate_batch(
     device = device if device is not None else next(model.parameters()).device
 
     _check_strategy(decode_strategy)
+    _check_special_ids(cfg, src_vocab, tgt_vocab)
     if decode_strategy in _BEAM_STRATEGIES:
         _warn_if_large_beam_input(len(sentences))
     seeds = _sentence_seeds(seed, len(sentences))
@@ -982,11 +1014,8 @@ def translate_batch(
 
     batch_limit = max(1, cfg.batch_size)
 
-    # Prefer special-token indices carried by the vocabulary (SentencePiece models
-    # often encode these directly) to avoid mismatches with an unrelated config.
-    pad_idx = getattr(tgt_vocab, "pad_idx", cfg.pad_idx)
-    sos_idx = getattr(tgt_vocab, "sos_idx", cfg.sos_idx)
-    eos_idx = getattr(tgt_vocab, "eos_idx", cfg.eos_idx)
+    # _check_special_ids has made sure the vocabularies agree with these.
+    pad_idx, sos_idx, eos_idx = cfg.pad_idx, cfg.sos_idx, cfg.eos_idx
 
     outputs: list[list[int]] = []
 
@@ -1140,8 +1169,9 @@ def translate_to_file(
 
     Raises:
         ValueError: If ``output_path`` holds lines from a different job, or more lines than
-            there are sentences, and ``overwrite`` is False; or if ``decode_strategy`` is
-            not one of :data:`DECODE_STRATEGIES`.
+            there are sentences, and ``overwrite`` is False; if ``decode_strategy`` is
+            not one of :data:`DECODE_STRATEGIES`; or if a vocabulary's ``pad_idx``,
+            ``sos_idx`` or ``eos_idx`` differs from the config's.
 
     Example:
         >>> import tempfile, torch
@@ -1161,6 +1191,8 @@ def translate_to_file(
 
     cfg = config if config is not None else get_default_config()
     _check_strategy(decode_strategy)
+    # Before the output file exists, so a mismatch leaves nothing behind to resume from.
+    _check_special_ids(cfg, src_vocab, tgt_vocab)
     max_len = max_len if max_len is not None else cfg.max_decode_length
     settings = {
         "decode_strategy": decode_strategy,
