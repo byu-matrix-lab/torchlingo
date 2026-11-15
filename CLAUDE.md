@@ -107,8 +107,11 @@ path, must give token-identical output on every fixture in `tests/test_decoding_
 once per process, on a large input, naming `inference_fast.translate_batch`. Batching across
 sentences, KV caching and multi-GPU training were descoped (Eric, Sep 22): each is complex,
 teaches little, and is done better by CTranslate2, Marian or Joey NMT
-(`docs/docs/related-work.md`). Task #272 proposes batching across sentences, against this
-(review R5, Task #332).
+(`docs/docs/related-work.md`). Eric confirmed it for batching across sentences on Nov 14
+(review R5), closing the task that proposed it: no assignment waits on beam, since A13
+back-translates by sampling. Reopen it only if a Final Project needs beam over more than about
+10,000 sentences; the fast beam decodes one sentence at a time, measured Oct 21 at 372 ms a
+sentence against greedy's 7.3 (A9's size, Apple GPU), so 100,000 sentences take about 10 hours.
 
 **The fast module imports the reference, with one exception.** `inference.translate_to_file`
 calls `inference_fast.translate_batch`, imported inside the function: the bulk file decode is
