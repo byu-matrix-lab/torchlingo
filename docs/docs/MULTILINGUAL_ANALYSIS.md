@@ -323,6 +323,7 @@ def translate_multilingual(
 ## Example Usage (After Phase 3)
 
 ```python
+# Proposed API, not in TorchLingo: none of these four names exists.
 from torchlingo.preprocessing import LanguageRegistry
 from torchlingo.data_processing import MultilingualNMTDataset, MultilingualVocab
 from torchlingo.inference import translate_multilingual

@@ -287,18 +287,40 @@ jobs:
       # rule is notebooks_affected in scripts/notebook_meta.py, tested in
       # tests/test_notebook_meta.py. It needs only the standard library, so a pull request
       # with nothing to run skips the install as well.
+      #
+      # A green check must say what it did not run (Task #53): until Nov 15 this job
+      # printed "6/6 notebooks executed cleanly" while tutorials 5 and 7 and every course
+      # notebook went unrun, unmentioned. --list reports each notebook it leaves out, and
+      # why, on stderr; that goes into the job summary and a notice on the check.
       - name: Choose the notebooks
         id: choose
         run: |
+          left_out="$RUNNER_TEMP/left-out.txt"
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             mapfile -t changed < <(git diff --name-only HEAD^1 HEAD)
             notebooks=$(python scripts/execute_notebooks.py --list \
-              --exclude 06-diagnosing-failures --changed "${changed[@]}")
+              --exclude 06-diagnosing-failures --changed "${changed[@]}" 2> "$left_out")
           else
-            notebooks=$(python scripts/execute_notebooks.py --list)
+            notebooks=$(python scripts/execute_notebooks.py --list 2> "$left_out")
           fi
+          cat "$left_out"
           echo "Notebooks to run: $notebooks"
           echo "notebooks=$notebooks" >> "$GITHUB_OUTPUT"
+
+          ran=$(jq length <<< "$notebooks")
+          not_run=$(grep -cE '^ *(SKIP|LEFT OUT) ' "$left_out" || true)
+          {
+            echo "### Notebooks: $ran run, $not_run not run"
+            echo
+            echo "**Run:** $(jq -r 'if length == 0 then "none" else join(", ") end' <<< "$notebooks")"
+            if [[ -s "$left_out" ]]; then
+              echo
+              echo "**Not run here**, and why:"
+              echo
+              sed -E 's/^ *(SKIP|LEFT OUT|NOT AFFECTED) +/- /' "$left_out"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=Notebooks::$ran run, $not_run not run here; the job summary lists each, with why"
 
       - name: Cache the installed packages
         if: steps.choose.outputs.notebooks != '[]' && github.event_name != 'schedule'
