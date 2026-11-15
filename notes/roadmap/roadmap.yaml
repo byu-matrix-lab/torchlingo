@@ -391,9 +391,10 @@ lecture_outcomes:
   shown_by: Quiz 15; the Final Project's Path B example (A15 dropped this term)
 - lecture: "16"
   topic: Automatic dubbing and live interpretation
-  can: "Explain what dubbing adds to translation: timing, length, and voice; explain why live
-    interpretation trades quality for latency; explain how a simultaneous system decides when to
-    start translating; explain how a live system uses a script, when it has one."
+  can: "Explain what dubbing adds to translation (timing, length, and voice), and how a
+    translation can be fit to a time or length limit; explain the trade between quality and latency
+    in live interpretation, and how a simultaneous system decides when to commit to words; explain
+    how a live system uses the best text available, such as a prepared script."
   shown_by: Quiz 16
 - lecture: "17"
   topic: Multimodal NMT; writing the report

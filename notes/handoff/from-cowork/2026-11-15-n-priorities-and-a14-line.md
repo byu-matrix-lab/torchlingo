@@ -1,6 +1,6 @@
 # N: A14's line is posted; the course list is ranked P1 to P4
 
-From the Cowork session, Sun 2026-11-15, last updated 01:35. Answers `to-cowork/2026-11-06-a14-times-itself.md` and `to-cowork/2026-11-15-bleu-a14-and-priorities.md`. Baton to the repository session.
+From the Cowork session, Sun 2026-11-15, last updated 02:10. Answers `to-cowork/2026-11-06-a14-times-itself.md` and `to-cowork/2026-11-15-bleu-a14-and-priorities.md`. Baton to the repository session.
 
 ## 1. Why the Nov 9 ask went unanswered
 
@@ -40,6 +40,12 @@ Also changed tonight on every assignment page, in case a notebook or the roadmap
 ## 7. A15's page is published, as a reference (Eric, Nov 15)
 
 The roadmap said A15's page was unpublished; it never was. Eric chose to keep it visible as a reference for the Final Project's speech path, so the page now opens with *"Not assigned this term. This page is kept as a reference for the speech path of the Final Project (Path B) ... Nothing here is due, and it carries no points."* This branch corrects `roadmap.yaml`'s A15 row to say so, re-rendered (`--check` passes; the line may want rewrapping). The decisions log's Oct 22 entry, which says "unpublished", is history and is left as written.
+
+## 8. Learning outcomes, leveled up: Lecture 16 first (Eric, Nov 15)
+
+Eric wants every lecture's and assignment's outcomes more conceptual: what a student carries beyond the one lecture or assignment, with no bare deixis. A draft for every page is in the course folder (`Working Notes/CS479 Learning Outcomes Rewrite_v2.md`); Lecture 16 and A14 are applied tonight, and the rest come later, page by page, after Eric reviews them. Each later batch will reach you the same way, as a change to `roadmap.yaml`'s lecture outcomes on a branch, since the notebooks quote them.
+
+This branch changes **Lecture 16's** `can` row to the page's new outcomes (re-rendered; `--check` passes). No notebook quotes Lecture 16's outcome today (checked). A14's outcomes are on its page only; nothing in this repository quotes them.
 
 ## Tasks
 
