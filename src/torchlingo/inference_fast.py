@@ -45,6 +45,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.utils.rnn import pad_sequence
 
+from . import inference as reference
 from .config import Config, get_default_config
 from .data_processing.vocab import BaseVocab
 from .inference import _canonical_topk, _rank_key
@@ -76,7 +77,9 @@ def beam_search_decode(
     turns O(max_len * beam_size) calls into O(max_len).
 
     Args:
-        model: Transformer model exposing encode() and decode().
+        model: Seq2seq model. A Transformer exposing encode() and decode() gets
+            the batched search; any other model, an LSTM for instance, is
+            decoded by the reference implementation.
         src: Source tensor with shape (1, src_len). Batch size 1 is assumed;
             batching across *sentences* is a separate change.
         beam_size: Number of beams to maintain.
@@ -91,8 +94,8 @@ def beam_search_decode(
         the reference implementation.
 
     Raises:
-        ValueError: If src has batch size other than 1, or the model does not
-            expose encode/decode.
+        ValueError: If src has batch size other than 1, or the model exposes
+            neither encode/decode nor encode_source/decode_prefix.
 
     Note:
         Tie-breaking follows the rule in the :mod:`torchlingo.inference` module
@@ -125,9 +128,18 @@ def beam_search_decode(
             "inference_fast.beam_search_decode currently expects batch size = 1"
         )
     if not (hasattr(model, "encode") and hasattr(model, "decode")):
-        raise ValueError(
-            "inference_fast.beam_search_decode requires a Transformer-style "
-            "model with encode/decode"
+        # The batched search below is written for encode/decode only. Anything
+        # else, an LSTM for instance, goes to the reference, whose output is by
+        # definition what this function must return. The reference also raises,
+        # naming both contracts, for a model that has neither.
+        return reference.beam_search_decode(
+            model,
+            src,
+            beam_size=beam_size,
+            max_len=max_len,
+            alpha=alpha,
+            device=device,
+            config=cfg,
         )
 
     src = src.to(device)
