@@ -244,13 +244,16 @@ def translate_batch(
         what :func:`torchlingo.inference.translate_batch` would return.
 
     Raises:
-        ValueError: If ``decode_strategy`` is not a known strategy.
+        ValueError: If ``decode_strategy`` is not a known strategy, or if a
+            vocabulary's ``pad_idx``, ``sos_idx`` or ``eos_idx`` differs from the
+            config's.
 
     See Also:
         :func:`torchlingo.inference.translate_batch`: the readable reference.
     """
     from .inference import (
         _BEAM_STRATEGIES,
+        _check_special_ids,
         _check_strategy,
         _noised,
         _sentence_seeds,
@@ -266,6 +269,7 @@ def translate_batch(
     device = device if device is not None else next(model.parameters()).device
 
     _check_strategy(decode_strategy)
+    _check_special_ids(cfg, src_vocab, tgt_vocab)
     seeds = _sentence_seeds(seed, len(sentences))
 
     encoded = [
@@ -275,9 +279,7 @@ def translate_batch(
 
     batch_limit = max(1, cfg.batch_size)
 
-    pad_idx = getattr(tgt_vocab, "pad_idx", cfg.pad_idx)
-    sos_idx = getattr(tgt_vocab, "sos_idx", cfg.sos_idx)
-    eos_idx = getattr(tgt_vocab, "eos_idx", cfg.eos_idx)
+    pad_idx, sos_idx, eos_idx = cfg.pad_idx, cfg.sos_idx, cfg.eos_idx
 
     outputs: list[list[int]] = []
 
