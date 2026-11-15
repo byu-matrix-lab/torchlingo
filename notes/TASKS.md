@@ -36,11 +36,13 @@ work sits in an open pull request says "In review" and keeps its row until the P
 |---|---|---|---|---|
 | #279 | **P1** | A14's setup cells once on real Colab, from the badge | **14+** | Open — Coulson's full run on Colab passed every cell, COMET included (Nov 5), so fine-tuning and Step 7's separate process have run for real. That copy looks older than `load_baseline`, `NLLBTranslator.between` and the `nllb_codes` fix (PRs #392, #394, #397). Open A14 fresh from the badge and run the setup cells and Step 1 with `LANGUAGE` set: a few minutes, no training. The setup cell now also starts A14's stage timing (PR #403), so this covers it. **Delegated to Coulson (Eric, Nov 9)**; his result comes back through Eric. Pass: the setup cell's first line names a `course` commit at or after `2c5d396` and the GPU, the split's sizes print, NLLB loads, and Step 1 prints the language's code |
 | #53 | **P2** | Notebook gate runs 2 of 6 tutorials in CI, and looks green | **hyg** | Open |
-| #243 | **P2** | An architectural review of TorchLingo, pedagogy first | **lib** | Open — the review is written, `notes/reports/architecture-review.md` (Nov 13): findings R1 to R13 and a ranked short list. Eric chooses which to act on; each chosen becomes its own task. R7, the BLEU tokenizer override, was fixed the same day, at Eric's go |
+| #327 | **P2** | Delete the 23 `Config` fields that change nothing | **lib** | Open — review R8 (`notes/reports/architecture-review.md`). `Config(grad_clip=0.5)` or `Config(beam_size=10)` is accepted and ignored. Delete rather than wire, so a stale setting raises `TypeError`; `train_model` then takes `cfg.device`. Cost M. To discuss with Eric |
+| #328 | **P2** | Reference pages for training and decoding; examples on the most-used names | **lib** | Open — review R13. Part 1, pages for `training`, `inference`, `inference_fast` and the harness, and part 3, three names in the docs that do not exist (`train_test_split`, `set_default_config`, `SimpleLSTM`), are S. Part 2, runnable Examples on 15 names, is M; part 4, a check that docs imports resolve, is later. To discuss with Eric |
+| #329 | **P2** | Raise when a vocabulary's special-token ids disagree with `Config` | **lib** | Open — review R10. Today a mismatch decodes to `max_len` with plausible text and no error; a Final Project that brings its own vocabulary meets it. Cost S. To discuss with Eric |
 | #291 | **P3** | NLLB plumbing through the accessory | **lib** | Open — A12's cell 21 reloads NLLB and decodes greedily by hand where `load_nllb` does it |
 | #293 | **P3** | Should tutorials 1 to 8 have stopping cells? | **hyg** | Open — none has a prediction, decision or TODO. Eric decides; candidates from the review: tutorial 1's ids, tutorial 2's ship decision, tutorial 3's rebuild prediction, tutorial 4's alignment accuracy, tutorial 6's which check catches the broken corpus |
 | #294 | **P3** | Small duplications across notebooks | **lib** | Open — the tiny phrase model in Lecture 7 and tutorials 3 and 8; per-head capture in 8b and input hooks in 8c (F10); tutorial 7 rebuilds a model by hand where `load_model` works; tutorial 6 repeats one `train_model` call four times. The rest of `NOTEBOOK_LIBRARY_REVIEW.md`, F10 to F17, is here too |
-| #272 | **P3** | Batch beam search across sentences, not only across beams | **lib** | Open — `inference_fast.beam_search_decode` decodes one sentence at a time: measured Oct 21 at A9's size (d512, 6+6 layers, vocabulary 8,000, Apple GPU, an untrained model running the full 40 tokens), 372 ms a sentence against greedy's 7.3, so beam back-translation of 100,000 sentences is about 10 hours. A13 back-translates by sampling only (Eric, Oct 22), so no student waits on it. Output must stay token-identical (`tests/test_decoding_equivalence.py`) |
+| #272 | **P3** | Batch beam search across sentences, not only across beams | **lib** | Open — `inference_fast.beam_search_decode` decodes one sentence at a time: measured Oct 21 at A9's size (d512, 6+6 layers, vocabulary 8,000, Apple GPU, an untrained model running the full 40 tokens), 372 ms a sentence against greedy's 7.3, so beam back-translation of 100,000 sentences is about 10 hours. A13 back-translates by sampling only (Eric, Oct 22), so no student waits on it. Output must stay token-identical (`tests/test_decoding_equivalence.py`). The architecture review recommends closing it (Task #332) |
 | #171 | **P3** | Document GPU nondeterminism next to the seeding conventions | **L9** | Open — draft wording below; two identical Apple-GPU runs scored BLEU 8.36 and 8.53 |
 | #82 | **P3** | Add an on-target language check to `torchlingo.diagnostics` | **lib** | Open |
 | #167 | **P3** | Prune merged branches and stale worktrees | **hyg** | **Left:** `myles_testing` (ask Myles), `coulson`, and four local branches whose commits are not in `main` |
@@ -70,6 +72,15 @@ work sits in an open pull request says "In review" and keeps its row until the P
 | #249 | **P3** | Roadmap gap: what to do when training goes wrong | **lib** | Open — `concepts/training.md` has the loop, not batch size against learning rate or overfitting on a small corpus |
 | #250 | **P3** | Roadmap gap: model size against latency | **lib** | Open — what a student meets when a Colab session is slow |
 | #251 | **P3** | Roadmap gap: teach the training-budget episode | **lib** | Open — "which lever are you pulling?", from `reports/training-budget.md` |
+| #330 | **P3** | The fast beam search drops the LSTM | **lib** | Open — review R4. `translate_to_file(..., decode_strategy="beam")` raises on `SimpleSeq2SeqLSTM`; hand such a model to the reference beam and add an LSTM equivalence fixture. Also write into `CLAUDE.md` the one place the reference module imports the fast one. Cost S. To discuss with Eric |
+| #331 | **P3** | `train_model` saves only where `save_dir` says | **lib** | Open — review R6. With a `val_loader` and no `save_dir` it silently writes `./checkpoints/model_best.pt` while `TrainResult.best_checkpoint` stays `None`; tutorials 4 and 6 take that path. Cost S. To discuss with Eric |
+| #332 | **P3** | Close Task #272 and keep the Sep 22 descoping | **lib** | Open — review R5: batching beam across sentences serves speed only, and no assignment waits on beam. A decision, Eric's call |
+| #333 | **P3** | `Config` as a dataclass, one line per setting | **lib** | Open — review R9, after Task #327. `config.py` is 3,448 lines saying each setting three times, and its module constants do not feed the defaults as its docstrings say. Cost M. To discuss with Eric |
+| #334 | **P3** | A `train_model` that reads top to bottom | **lib** | Open — review R3. 582 lines; the validation loop is written twice, the best-model dict four times, and patience counts in two places. Extract `_validate` and `_model_state`; keep the loops inline. Cost M. To discuss with Eric |
+| #335 | **P3** | Two `Protocol`s for the model contracts | **lib** | Open — review R11. Decoding tests models five different ways; write `EncoderDecoder` and `RecurrentEncoderDecoder` once and use one `_model_kind` helper. Cost M. To discuss with Eric |
+| #336 | **P3** | Cut the public API nothing on a student's path reaches | **lib** | Open — review R12: five dead names, the multilingual pipeline, the config-file pipelines, MeCab and Jieba out of "Most Used", and `evaluate_model` made the one scoring call or cut. Two or three PRs by group. Cost M. To discuss with Eric |
+| #337 | **P3** | Colab plumbing in `colab.py` alone | **lib** | Open — review R1. `is_colab`, `mount_drive` and `default_checkpoint_dir` live in `training_checkpoint.py`, whose example still shows them. Cost S. To discuss with Eric |
+| #338 | **P3** | Say which of `preprocessing` and `data_processing` is which | **lib** | Open — review R2. One sentence in each package docstring and the reference index; no rename. Cost S. To discuss with Eric |
 | #281 | **P4** | No assignment notebook leaves a lesson to a tutorial: A7 to A11 | **L7** | Open — Eric, Oct 25: tutorials carry no points, so students pressed for time skip them, and the assignment notebooks are load-bearing; Oct 26: tutorials are required reading, with the assignment notebooks as the safety net. Done Oct 25 for A12 to A14, the assignments still to come: A12 relies on no tutorial; A13 and A14 gained a sentence each on beam search and chrF (PR #345). A7 to A11 have run; audit them for the next offering, against the proposals Eric agreed Oct 26 in `torchlingo-private/notes/course/NEXT-OFFERING.md`, "Tutorials into assignments" (fold Tutorial 3 into A8, Tutorial 2 into A6, Tutorial 9 into A14's stretch; merge Tutorials 7 and 8; retire 5; keep 1, 4 and 6). Cowork judged those from the roadmap's notebook entries, so check each against the notebooks themselves |
 | #292 | **P4** | Decisions and named ingredients in the lectures already run | **L5** | Open — stopping cells: Lecture 5 (predict *c*), A8 (predict the duplicate share, then print the most repeated), A9's Part B (the choice its markdown promises), A11 (will COMET confirm A9's BLEU verdict?); name gradient clipping, dropout and the learning rate in Lectures 7, 8a and 9; and Lecture 8c's student code is tensor plumbing, where a `which_head` exercise would be about translation |
 | #247 | **P4** | The A8 kickoff's cap and dedupe become the student's | **L8a** | Open — the roadmap's one notebook rated **high** |
@@ -348,46 +359,6 @@ training longer helped and more data did not, and the first attempt to answer it
 way only a control run caught (`notes/reports/training-budget.md`). The roadmap says the episode
 is worth teaching directly. **Done when** a docs page (or a section of `concepts/training.md`,
 beside #249) tells it to students, with the report's numbers included from its JSON, not typed.
-
-## Code — other gaps
-
-### #243 An architectural review of TorchLingo, pedagogy first
-
-Eric, 2026-10-14: an architectural review of the library, **keeping pedagogy as the foremost
-requirement**. The library grew feature by feature, each change justified alone. This term added
-`colab`, `checkpoint.load_model`, `translate_to_file`, `first_logged_loss` and the diagnostics,
-and nobody has since asked whether the whole still reads as one design a student can follow.
-
-The test for every finding is the one `CLAUDE.md` puts first: does it make the library easier for
-a CS 479 student to read, use and learn from? Speed, generality and third-party use come after,
-and a change that serves them at the cost of readability is a finding against it, not for it.
-
-What to look at:
-
-- **Module boundaries and the data flow.** Does the path from text to `TrainResult` to translation
-  read in the order a student meets it? Is each module's job one sentence?
-- **Two ways to do one thing.** For example `load_checkpoint` beside `load_model`,
-  `translate_batch` beside `translate_to_file`, the reference decoders beside `inference_fast`,
-  and `Config` defaults beside explicit parameters. For each pair, is the reason it exists
-  written where a student would find it? One rule is already broken: the decoders' Aug 26
-  layout said the fast module imports from the reference, never the reverse, and
-  `inference.translate_to_file` has imported `inference_fast.translate_batch` since PR #239
-  (Oct 12). And Task #272 proposes batching beam search across sentences, which Eric
-  descoped on Sep 22 (CLAUDE.md, "Two decoders"); one of the two needs revisiting.
-- **The `Config` pattern.** Is the rule that explicit parameters always win applied everywhere,
-  and is it something a student can predict?
-- **Interfaces detected with `hasattr`** (Transformer against LSTM; vocabularies) against an
-  explicit protocol. Which one teaches the contract better?
-- **What the notebooks actually use**, from the long-cell survey of 2026-10-14 and the course
-  notebooks' imports. Public API nobody calls is a candidate to cut, and plumbing every notebook
-  repeats is a candidate to add.
-- **Docstrings and docs as the student's first reading**: the Examples that run, and the names
-  that say what they do.
-
-**Done when** a report in `notes/reports/` lists the findings, each with the student-facing
-reason, a recommendation and a cost, and Eric has chosen which to act on. Each one chosen
-becomes its own task. No code changes before then, as with the long-cell survey: review
-precedes implementation.
 
 ## Evaluation / tooling
 

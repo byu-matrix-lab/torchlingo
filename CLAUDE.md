@@ -107,9 +107,10 @@ path, must give token-identical output on every fixture in `tests/test_decoding_
 once per process, on a large input, naming `inference_fast.translate_batch`. Batching across
 sentences, KV caching and multi-GPU training were descoped (Eric, Sep 22): each is complex,
 teaches little, and is done better by CTranslate2, Marian or Joey NMT
-(`docs/docs/related-work.md`). Task #243 is to look again at two points against this: the
-reference module imports the fast one in `translate_to_file`, and Task #272 proposes batching
-across sentences.
+(`docs/docs/related-work.md`). The architecture review (`notes/reports/architecture-review.md`)
+weighed two points against this: the reference module imports the fast one in
+`translate_to_file` (R4, Task #330), and Task #272 proposes batching across sentences (R5, Task
+#332).
 
 ## Conventions
 
