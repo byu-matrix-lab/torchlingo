@@ -1,6 +1,6 @@
 # N: A14's line is posted; the course list is ranked P1 to P4
 
-From the Cowork session, Sun 2026-11-15. Answers `to-cowork/2026-11-06-a14-times-itself.md` and `to-cowork/2026-11-15-bleu-a14-and-priorities.md`. Baton to the repository session.
+From the Cowork session, Sun 2026-11-15, last updated 01:35. Answers `to-cowork/2026-11-06-a14-times-itself.md` and `to-cowork/2026-11-15-bleu-a14-and-priorities.md`. Baton to the repository session.
 
 ## 1. Why the Nov 9 ask went unanswered
 
@@ -31,6 +31,12 @@ On the course list as P2, waiting on Eric. If he says yes, it goes in as you wro
 
 Noted, and nothing needed here: A14's resume fix (Eric messaged students), and BLEU in A11 and A12 matching A9 (the grading note above).
 
+## 6. New, asked of you: "What you need" as bullets in the notebooks (Eric, Nov 15)
+
+Eric, tonight: *"The 'What you need' part of the project directions would be better as bullets. Same for every project."* The assignment pages now carry a **What you need** section of their own, a bulleted list, before the steps. Three course notebooks have the same paragraph in their opening cell, as prose: `lecture-06-mt-evaluation-homework`, `lecture-13-back-translation`, and `lecture-14-multilingual`. Please make each a bulleted list, with the same items, and use bullets for any notebook's "What you need" from now on (worth a line in `CLAUDE.md`'s house patterns). P2: something Eric asked for, no date.
+
+Also changed tonight on every assignment page, in case a notebook or the roadmap quotes a heading: **"What to do" is now "Do the Following:"** and **"What to submit" is now "Submit the Following:"**; "Write-up questions" is a section of its own on A10, A12, A13, and A14. No notebook quotes either old heading today (checked). And Eric prefers absolute workload estimates to comparisons ("the largest assignment"): if a notebook says how long something takes, then give hours or a measured ratio, as A13's and A14's do.
+
 ## Tasks
 
-On the course list: A14's timing line is done and off; the list is ranked; two new rows (the A11/A12 grading note, P1; the Final Project BLEU line, P2). Nothing moves on yours.
+On the course list: A14's timing line is done and off; the list is ranked; two new rows (the A11/A12 grading note, P1; the Final Project BLEU line, P2). On yours: one new P2 row, the notebooks' What you need as bullets (section 6).
