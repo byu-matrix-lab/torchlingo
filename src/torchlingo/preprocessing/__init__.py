@@ -1,4 +1,10 @@
-"""Preprocessing utilities available under torchlingo.preprocessing."""
+"""Files and DataFrames of text: reading, writing, splitting and aligning corpora.
+
+Nothing here makes a tensor. Everything works on sentences as text, before a vocabulary exists:
+loading parallel files into a DataFrame, splitting it, checking that its sides line up, tagging
+pairs for a multilingual model, and training a SentencePiece model. Vocabularies, datasets and batches are the next step, in
+:mod:`torchlingo.data_processing`.
+"""
 
 from .alignment import (
     AlignmentReport,

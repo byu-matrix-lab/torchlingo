@@ -1,7 +1,9 @@
-"""Data processing subpackage (vocab, dataset, batching helpers).
+"""Vocabularies, datasets and batches: text becomes tensors here.
 
-This mirrors the top-level `data_processing` module in the repo and exposes
-Vocab, NMTDataset, and batching helpers under the package namespace.
+The line between this package and :mod:`torchlingo.preprocessing` is the tensor. Preprocessing
+works with files and DataFrames of text; this package turns that text into token ids
+(``SimpleVocab``, ``SentencePieceVocab`` and the rest), wraps the pairs in an ``NMTDataset``,
+and pads them into batches (``collate_fn``, ``create_dataloaders``) for training.
 """
 
 from .batching import BucketBatchSampler, collate_fn, create_dataloaders

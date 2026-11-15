@@ -4,7 +4,12 @@ Welcome to the TorchLingo API reference. This section documents all public class
 
 ## Module Overview
 
-TorchLingo is organized into four main modules:
+The modules follow the path text takes, in the order you meet them. `preprocessing` works
+with files and DataFrames of text, before any vocabulary exists; `data_processing` turns that
+text into vocabularies, tensors and batches. Then `models` builds the network,
+[`training`](training.md) trains it, [`inference`](inference.md) decodes with it, and
+[`evaluation`](evaluation.md) scores the result. The navigation lists every page; these four
+are where most journeys start:
 
 <div class="grid cards" markdown>
 
