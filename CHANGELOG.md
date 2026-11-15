@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.11] - 2026-11-15
+
+**Upgrading from 0.2.10:** `compute_bleu` no longer guesses its tokenizer from the text (see
+Changed). If you score a language written without spaces, pass
+`tokenize=bleu_tokenizer(written_without_spaces(references))`; an explicit
+`tokenization="auto"` now raises `ValueError` saying so. Decoding also raises, rather than
+returning text that never stopped, when a vocabulary's special-token ids differ from the
+config's (see Fixed).
+
 ### Added
 - **`colab.StageTimes(path, device=)`**, with `with times.stage(name):` and `.table()`: how long
   each long stage of a notebook took, and on which GPU, saved to Drive at its start, each minute
