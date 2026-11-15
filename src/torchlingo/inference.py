@@ -1079,7 +1079,7 @@ def translate_batch(
 
 # A bulk decode is resumable because its output file is its own progress record: one
 # translation per line, appended a chunk at a time. Rerunning the same call counts the complete
-# lines already there and decodes only the rest. Task #102, 2026-10-12: Assignment 13
+# lines already there and decodes only the rest. Assignment 13
 # back-translates 100,000 sentences or more, and a decode that dies at hour two used to start
 # again from zero, which is the failure training's checkpointer already prevents one level up.
 #

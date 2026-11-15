@@ -76,7 +76,7 @@ class TrainResult:
 
 def _resolve_device(device: torch.device | str | None) -> torch.device:
     # A string such as "cpu" becomes a torch.device: train_model reads device.type, which a
-    # string lacks, so train_model(device="cpu") raised AttributeError (Task #278).
+    # string lacks, so train_model(device="cpu") raised AttributeError.
     if device is None:
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(device)

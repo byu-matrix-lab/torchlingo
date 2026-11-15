@@ -1,8 +1,16 @@
-"""Top-level package for TorchLingo.
+"""TorchLingo: neural machine translation in PyTorch, written to be read.
 
-This package exposes the core modules (config, models, data_processing,
-preprocessing) so codebases/tests can import `torchlingo` rather than top-level
-module names. It mirrors the project layout used in the repository.
+The modules follow the path text takes, in the order you meet them:
+
+- ``preprocessing``: files and DataFrames of text, before any vocabulary.
+- ``data_processing``: vocabularies, datasets and batches; text becomes tensors.
+- ``models``: the Transformer and the LSTM encoder-decoder.
+- ``training``: ``train_model``; ``checkpoint`` and ``training_checkpoint`` save its work.
+- ``inference``: decoding; ``inference_fast`` gives the same output, faster.
+- ``evaluation``: BLEU, chrF, TER and COMET.
+
+``config`` holds the settings they share, ``diagnostics`` checks for the usual failures, and
+``colab`` prepares a notebook.
 """
 
 import json

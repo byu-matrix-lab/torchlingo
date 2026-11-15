@@ -4,7 +4,12 @@ Welcome to the TorchLingo API reference. This section documents all public class
 
 ## Module Overview
 
-TorchLingo is organized into four main modules:
+The modules follow the path text takes, in the order you meet them. `preprocessing` works
+with files and DataFrames of text, before any vocabulary exists; `data_processing` turns that
+text into vocabularies, tensors and batches. Then `models` builds the network,
+[`training`](training.md) trains it, [`inference`](inference.md) decodes with it, and
+[`evaluation`](evaluation.md) scores the result. The navigation lists every page; these four
+are where most journeys start:
 
 <div class="grid cards" markdown>
 
@@ -62,6 +67,9 @@ TorchLingo is organized into four main modules:
 | -------- | ----------- |
 | [`get_default_config()`](config.md#torchlingo.config.get_default_config) | Get default configuration |
 | [`load_data()`](preprocessing/base.md#torchlingo.preprocessing.base.load_data) | Load data from file |
+| [`train_model()`](training.md#torchlingo.training.train_model) | Train a model |
+| [`translate_batch()`](inference.md#torchlingo.inference.translate_batch) | Translate sentences |
+| [`translate_to_file()`](inference.md#torchlingo.inference.translate_to_file) | Translate a test set or corpus to a file, resumably |
 | [`collate_fn()`](data_processing/batching.md#torchlingo.data_processing.batching.collate_fn) | Batch collation with padding |
 | [`create_dataloaders()`](data_processing/batching.md#torchlingo.data_processing.batching.create_dataloaders) | Create train/val data loaders |
 

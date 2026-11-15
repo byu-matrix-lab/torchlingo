@@ -1,6 +1,7 @@
 # Training Loop
 
 This page explains how to train NMT models effectively, from basic training loops to advanced techniques.
+For `train_model`'s arguments and what it returns, see the [Training API reference](../reference/training.md).
 
 ## The Training Process
 

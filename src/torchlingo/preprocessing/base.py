@@ -6,6 +6,7 @@ datasets into train/val/test splits. It serves as the foundational layer for
 all downstream preprocessing operations.
 """
 
+from collections.abc import Iterable
 from pathlib import Path
 
 import numpy as np
@@ -56,7 +57,7 @@ def write_lines(path: Path | str, lines: list[str]) -> None:
     path.write_text("".join(f"{line}\n" for line in lines), encoding="utf-8")
 
 
-def written_without_spaces(sentences) -> bool:
+def written_without_spaces(sentences: Iterable[str]) -> bool:
     """Guess whether a language is written without spaces, from its sentences.
 
     On text without spaces, a whole sentence reads as one or two "words". Such a language

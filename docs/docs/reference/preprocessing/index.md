@@ -49,7 +49,7 @@ from torchlingo.preprocessing import (
     load_data,
     save_data,
     parallel_txt_to_dataframe,
-    train_test_split,
+    split_exact,
 )
 
 # Load from TSV
@@ -61,8 +61,8 @@ df = parallel_txt_to_dataframe("en.txt", "es.txt")
 # Save processed data
 save_data(df, "data/processed.tsv")
 
-# Split data
-train_df, val_df, test_df = train_test_split(df, val_ratio=0.1, test_ratio=0.1)
+# Split data: 2,000 validation and 2,000 test pairs, the rest for training
+train_df, val_df, test_df = split_exact(df, n_val=2000, n_test=2000, seed=479)
 ```
 
 ## Key Functions
@@ -72,7 +72,7 @@ train_df, val_df, test_df = train_test_split(df, val_ratio=0.1, test_ratio=0.1)
 | [`load_data()`](base.md#torchlingo.preprocessing.base.load_data) | Load data from file |
 | [`save_data()`](base.md#torchlingo.preprocessing.base.save_data) | Save DataFrame to file |
 | [`parallel_txt_to_dataframe()`](base.md#torchlingo.preprocessing.base.parallel_txt_to_dataframe) | Convert .txt pair to DataFrame |
-| [`train_test_split()`](base.md#torchlingo.preprocessing.base.split_data) | Split data into sets |
+| [`split_exact()`](base.md#torchlingo.preprocessing.base.split_exact) | Split into train, validation and test sets of exact sizes |
 
 ## Supported Formats
 
@@ -102,7 +102,7 @@ Good morning	Buenos días
 flowchart LR
     A[Raw Files] --> B[parallel_txt_to_dataframe]
     B --> C[DataFrame]
-    C --> D[train_test_split]
+    C --> D[split_exact]
     D --> E[save_data]
     E --> F[Train/Val/Test Files]
 ```
@@ -112,7 +112,7 @@ flowchart LR
 ```python
 from torchlingo.preprocessing import (
     parallel_txt_to_dataframe,
-    train_test_split,
+    split_exact,
     save_data,
 )
 from pathlib import Path
@@ -123,13 +123,8 @@ df = parallel_txt_to_dataframe(
     "raw_data/spanish.txt",
 )
 
-# Split
-train_df, val_df, test_df = train_test_split(
-    df, 
-    val_ratio=0.1, 
-    test_ratio=0.1,
-    shuffle=True,
-)
+# Split: a seeded shuffle, so the same seed gives the same test set every time
+train_df, val_df, test_df = split_exact(df, n_val=2000, n_test=2000, seed=479)
 
 # Save
 data_dir = Path("data")
