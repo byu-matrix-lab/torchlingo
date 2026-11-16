@@ -374,8 +374,10 @@ lecture_outcomes:
   shown_by: A9 comparison
 - lecture: "10"
   topic: Quality estimation
-  can: Distinguish evaluation from estimation; say what COMET and COMET-QE score and what the
-    number means; explain greedy against beam search and why a comparison must pin decoding.
+  can: "Explain how greedy and beam search differ, and why a fair comparison of two systems decodes
+    both the same way; explain how evaluation (with a reference) differs from estimation (without
+    one), and when only estimation is possible; explain how a learned metric such as COMET is
+    trained to predict human judgments, and so when to trust its score."
   shown_by: A10; Quiz 10
 - lecture: "11"
   topic: Neural QE and toolkits
