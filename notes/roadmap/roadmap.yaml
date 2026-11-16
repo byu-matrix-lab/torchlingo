@@ -305,9 +305,11 @@ lecture_outcomes:
   shown_by: A2
 - lecture: "3"
   topic: Word embeddings
-  can: Explain the distributional idea behind word2vec, GloVe and contextual embeddings; test
-    whether a multilingual space lines up for their language pair and read a similarity matrix
-    row by row.
+  can: "Explain the distributional idea, why words that share contexts end up with similar vectors,
+    and how syntagmatic and paradigmatic relationships between words differ; explain how
+    count-based methods (LSA, PMI, GloVe) and predictive methods (word2vec) build embeddings, and
+    how contextual embeddings differ from these static embeddings; explain how a multilingual
+    model puts languages in one space, and how to test whether two languages' spaces line up."
   shown_by: A3 heat map and analysis
 - lecture: "4"
   topic: Data preparation
