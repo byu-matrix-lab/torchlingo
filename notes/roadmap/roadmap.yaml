@@ -320,8 +320,10 @@ lecture_outcomes:
   shown_by: 'A4: extraction plus three steps'
 - lecture: "5"
   topic: Data preparation, part 2
-  can: Run a full cleaning pipeline to a sentence-aligned corpus; explain Gale-Church (length
-    correlation, link types, the cost model, c and s²) and where length-based alignment fails.
+  can: "Explain when parallel data needs sentence alignment, and what misalignment does to a model
+    trained on it; explain how the Gale-Church algorithm uses the correlation of sentence lengths
+    across languages to align sentences, and where length-based alignment breaks down; explain how
+    to debug a data pipeline: find what broke, and fix the pipeline rather than the data."
   shown_by: A5, the corpus everything else consumes
 - lecture: "6"
   topic: Evaluation
