@@ -359,10 +359,10 @@ lecture_outcomes:
   shown_by: Quiz 8b
 - lecture: "8c"
   topic: Finishing the Transformer
-  can: Describe multi-head attention, the encoder block and residual stream, and the decoder's
-    masked self-attention and cross-attention; say how order gets into a model with no recurrence;
-    place their own A8 BLEU on the measured capacity curve and say what capacity buys and when;
-    weigh NMT's strengths against its deployment costs.
+  can: "Explain how multi-head attention, residual connections, and position encodings make up the
+    full Transformer, and how word order gets into a model with no recurrence; explain what a
+    larger model buys, and when more data stops helping a model of a given size; explain the
+    strengths of neural MT, and what it costs to deploy."
   shown_by: A8 report back; Quiz 8c
 - lecture: "9"
   topic: Morphology, subwords, terminology
