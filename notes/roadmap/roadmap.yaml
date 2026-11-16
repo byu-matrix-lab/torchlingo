@@ -366,9 +366,11 @@ lecture_outcomes:
   shown_by: A8 report back; Quiz 8c
 - lecture: "9"
   topic: Morphology, subwords, terminology
-  can: Explain the fixed-vocabulary problem and how morphology makes vocabularies explode;
-    segment a sentence with BPE by hand; measure `<unk>` before and after SentencePiece; retrain
-    with one variable changed and attribute the BLEU difference to it.
+  can: "Explain what a fixed vocabulary costs a system, starting with `<unk>`, and why rich
+    morphology makes vocabularies explode; explain how byte-pair encoding and SentencePiece build
+    subwords, and how to choose a vocabulary size for a language you have not worked with; explain
+    how to make a system use required terminology, and what forcing terms into the output can
+    cost."
   shown_by: A9 comparison
 - lecture: "10"
   topic: Quality estimation
