@@ -343,10 +343,10 @@ lecture_outcomes:
   shown_by: A7 report; paper reviews
 - lecture: "8a"
   topic: Encoder-decoder and attention
-  can: Describe the encoder-decoder and its bottleneck; explain attention as a learned soft
-    alignment and read an alignment matrix; split and verify a corpus and say why the dedupe
-    is source-side; read training against validation loss; start, checkpoint and resume a long
-    run.
+  can: "Explain how an encoder-decoder translates, and why encoding a whole sentence into one
+    fixed-size vector becomes a bottleneck; explain attention as a learned soft alignment between
+    source and target words, and how it removes the fixed-size bottleneck; explain why sentence
+    length acts as a memory budget when training any sequence model."
   shown_by: A8
 - lecture: "8b"
   topic: The Transformer
