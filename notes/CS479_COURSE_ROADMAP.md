@@ -172,7 +172,7 @@ the scope notes below carry the content, this carries the point.
 
 | # | Lecture | A student who did the work can | Shown by |
 |---|---|---|---|
-| 1 | Course overview, history | Place Weaver, Georgetown, ALPAC, SMT and NMT in order and say what each promised and delivered; state the course's rules on quizzes, late work and AI. | A1, Quiz 1 |
+| 1 | Course overview, history | Explain what each era of MT (rules, statistics, neural networks, LLMs) promised, what it delivered, and why; explain how to tell a credible MT claim from hype, using Weaver, Georgetown-IBM, and ALPAC as cases; explain why MT for low-resource languages matters, and what makes it hard. | A1, Quiz 1 |
 | 2 | Translation challenges | Name the kinds of difficulty (lexical and structural ambiguity, word order, morphology, reference, world knowledge) and rank them for their own language with real examples. | A2 |
 | 3 | Word embeddings | Explain the distributional idea behind word2vec, GloVe and contextual embeddings; test whether a multilingual space lines up for their language pair and read a similarity matrix row by row. | A3 heat map and analysis |
 | 4 | Data preparation | Read a TMX file through `repr`, find a planted problem with code rather than by eye, write a cleaning step as one function, and say which of the 16 steps fixes which problem. | A4: extraction plus three steps |

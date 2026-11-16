@@ -289,8 +289,10 @@ assignments:
 lecture_outcomes:
 - lecture: "1"
   topic: Course overview, history
-  can: Place Weaver, Georgetown, ALPAC, SMT and NMT in order and say what each promised and
-    delivered; state the course's rules on quizzes, late work and AI.
+  can: "Explain what each era of MT (rules, statistics, neural networks, LLMs) promised, what it
+    delivered, and why; explain how to tell a credible MT claim from hype, using Weaver,
+    Georgetown-IBM, and ALPAC as cases; explain why MT for low-resource languages matters, and what
+    makes it hard."
   shown_by: A1, Quiz 1
 - lecture: "2"
   topic: Translation challenges
