@@ -313,8 +313,10 @@ lecture_outcomes:
   shown_by: A3 heat map and analysis
 - lecture: "4"
   topic: Data preparation
-  can: Read a TMX file through `repr`, find a planted problem with code rather than by eye,
-    write a cleaning step as one function, and say which of the 16 steps fixes which problem.
+  can: "Explain where parallel data comes from (translation memories and TMX files), and what can go
+    wrong in parallel data; explain why cleaning steps must run in a particular order, and how to
+    design a cleaning pipeline for data you have not seen; explain how to find a data problem with
+    code rather than by eye."
   shown_by: 'A4: extraction plus three steps'
 - lecture: "5"
   topic: Data preparation, part 2
