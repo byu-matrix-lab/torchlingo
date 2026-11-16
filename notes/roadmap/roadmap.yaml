@@ -296,8 +296,12 @@ lecture_outcomes:
   shown_by: A1, Quiz 1
 - lecture: "2"
   topic: Translation challenges
-  can: Name the kinds of difficulty (lexical and structural ambiguity, word order, morphology,
-    reference, world knowledge) and rank them for their own language with real examples.
+  can: "Explain why fully automatic high-quality translation is hard, and argue where it is and is
+    not within reach; explain how lexical ambiguity, structural ambiguity, and long-distance
+    dependencies make translation hard, and find examples of each in any language pair; explain
+    how word order, reference, world knowledge, and morphology trip up MT, and predict which will
+    matter most for a language you have not studied; explain why context decides so many
+    translations."
   shown_by: A2
 - lecture: "3"
   topic: Word embeddings
