@@ -336,9 +336,10 @@ lecture_outcomes:
   shown_by: A6
 - lecture: "7"
   topic: Paper reviews; neural networks
-  can: Review a paper to the course template; explain neuron, activation, forward pass, loss
-    and gradient; read a loss curve against ln V; tell memorisation from translation with a
-    held-out item.
+  can: "Explain why a model is judged on data it never trained on, and how separate training,
+    validation, and test sets keep that judgment honest; explain how a neural network learns:
+    neurons, layers, activation functions, a cost function, and gradient descent; explain how to
+    read a research paper and judge what its evidence supports."
   shown_by: A7 report; paper reviews
 - lecture: "8a"
   topic: Encoder-decoder and attention
