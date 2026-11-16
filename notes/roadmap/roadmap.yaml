@@ -350,9 +350,12 @@ lecture_outcomes:
   shown_by: A8
 - lecture: "8b"
   topic: The Transformer
-  can: Describe self-attention (query, key, value, scaled dot product, softmax) and compute
-    one step by hand; say why there are three attentions and what each is for; read a tensor
-    shape.
+  can: "Explain what question each of a Transformer's three attentions answers (encoder
+    self-attention, decoder self-attention, and cross-attention), and recognize query-key-value
+    attention in models beyond translation; explain how attention turns query-key scores into
+    weights with softmax and mixes the values, and compute one step by hand; explain how
+    self-attention lets every word attend to every other word at once, and what attending to every
+    pair of words costs as sentences grow longer."
   shown_by: Quiz 8b
 - lecture: "8c"
   topic: Finishing the Transformer
