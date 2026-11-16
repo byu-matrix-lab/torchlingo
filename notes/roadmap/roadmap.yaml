@@ -327,8 +327,12 @@ lecture_outcomes:
   shown_by: A5, the corpus everything else consumes
 - lecture: "6"
   topic: Evaluation
-  can: Rank translations by hand before seeing a score; compute BLEU from its parts and explain
-    a zero; use chrF; say where a metric and a human disagree and what the metric was rewarding.
+  can: "Explain why and for whom we evaluate MT, and how human methods (ranking, adequacy and
+    fluency, MQM) differ; explain how BLEU is computed from n-gram precisions and a brevity
+    penalty, and why BLEU scores compare only under the same tokenization and settings; explain
+    what chrF rewards that BLEU misses, and when matching characters works better than matching
+    words; explain where an automatic metric and a human judge disagree, and what the metric was
+    rewarding."
   shown_by: A6
 - lecture: "7"
   topic: Paper reviews; neural networks
