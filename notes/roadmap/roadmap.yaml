@@ -422,9 +422,9 @@ lecture_outcomes:
   shown_by: Quiz 16
 - lecture: "17"
   topic: Multimodal NMT; writing the report
-  can: Explain when an image helps translation, and how to test that it did; explain what an ablation
-    with the wrong image, or none, shows; explain what each section of the ACL-style report must
-    show.
+  can: "Explain when an image helps translation, and when the text alone is enough; explain how an
+    ablation (the wrong image, or none) tests whether an input helped; explain what each section
+    of a research report must show a reader."
   shown_by: Quiz 17; the Final Project's written report
 - lecture: "18"
   topic: Research, open problems and earlier methods
