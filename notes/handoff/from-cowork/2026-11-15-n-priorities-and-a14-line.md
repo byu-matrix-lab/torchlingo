@@ -47,6 +47,21 @@ Eric wants every lecture's and assignment's outcomes more conceptual: what a stu
 
 This branch changes **Lecture 16's** `can` row to the page's new outcomes (re-rendered; `--check` passes). No notebook quotes Lecture 16's outcome today (checked). A14's outcomes are on its page only; nothing in this repository quotes them.
 
+## 9. New, asked of you: a tutorial on IBM Model 2, predict then reveal (Eric, Nov 25)
+
+Eric wants a **tutorial** (not an extension of the course notebook) on IBM Model 2, and a node for it in the tutorial map (`charts.tutorials` in `roadmap.yaml`). Not tied to Wednesday's class: it is reading, with no points.
+
+- **Its own purpose.** Model 2 adds what Model 1 ignores, word position: a learned table of how likely a source position is to align to a target position, which mostly favors the diagonal. The lesson: a fixed preference for word order helps where two languages keep the same order and misleads where they reorder, and attention avoids the trap by weighing content as well as position.
+- **Predict, then reveal** (Eric). Before running Model 2, the student predicts whether position will help or hurt on a pair that reorders, such as an adjective and its noun, and why. The reveal shows the diagonal pulling the alignment the wrong way where the order flips, and helping where it does not.
+- **Not a look-alike** (CLAUDE.md: students skip what looks like a repeat). The Lecture 18 notebook uses thirteen English-Spanish noun phrases; this tutorial needs different data and a different opening, though it may assume the Lecture 18 notebook (tutorials may assume course notebooks). Tutorial 4 measures attention as alignment in a trained model; this one is about word order before attention, so the two stay distinct.
+- **The map.** Suggested: tutorial 10, read after the Lecture 18 notebook, leading to the Final Project ("word order in your language pair"). Your call on number, title, and arrow, by the map's rules.
+
+## 10. Outcomes: Lectures 11 and 18 on this branch (Eric, Nov 25)
+
+This branch now also changes **Lecture 11's** and **Lecture 18's** `can` rows to their pages' new outcomes, and Lecture 18's schedule title to *Open Problems, and What Earlier MT Methods Teach* (Eric: no lab research segment), with its scope note (re-rendered; `--check` passes). Two notebooks are affected:
+- `lecture-11-comet-on-a6` quotes Lecture 11's old outcome. It's stale now and goes into your one pass over the notebooks' outcome quotes.
+- `lecture-18-ibm-model-1`: its outcome quote is unchanged, but its generated purpose cell carries the old title, so `notebook_meta.py --normalize` refreshes it.
+
 ## Tasks
 
-On the course list: A14's timing line is done and off; the list is ranked; two new rows (the A11/A12 grading note, P1; the Final Project BLEU line, P2). On yours: one new P2 row, the notebooks' What you need as bullets (section 6).
+On the course list: A14's timing line is done and off; the list is ranked; two new rows (the A11/A12 grading note, P1; the Final Project BLEU line, P2). On yours: one new P2 row, the notebooks' What you need as bullets (section 6). Also new on yours (P2): the IBM Model 2 tutorial and its map node (section 9); the purpose cell refresh for `lecture-18-ibm-model-1` (section 10).

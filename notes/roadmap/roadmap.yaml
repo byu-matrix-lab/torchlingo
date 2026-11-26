@@ -111,8 +111,9 @@ lectures:
   deck: F2025, trimmed, plus the writing slides of last year's Lecture 21
 - ids: ["18"]
   date: 2026-12-02
-  title: Research in the MATRIX Lab, Open Problems, and What Earlier MT Methods Teach
-  deck: F2025, from last year's Lectures 21 and 23, with word alignment and earlier methods condensed
+  title: Open Problems, and What Earlier MT Methods Teach
+  deck: F2026, built Nov 25 from last year's Lectures 19 and 20, condensed, with open problems from
+    the WMT25 preliminary ranking
 - ids: ["19"]
   date: 2026-12-07
   title: 'MT in Use: Applications, Jobs and Post-Editing'
@@ -381,9 +382,10 @@ lecture_outcomes:
   shown_by: A10; Quiz 10
 - lecture: "11"
   topic: Neural QE and toolkits
-  can: Run COMET and COMETKiwi on their own A6 data and on their own A8 and A9 test output;
-    reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and
-    its system- against segment-level caveat.
+  can: Explain why a prompted LLM judge is itself a metric, with a metric's limits; explain why
+    ranking systems well differs from judging single sentences well, and how test data can flatter
+    a metric; explain how error spans (xCOMET, AutoMQM) show where a translation fails, not just
+    how badly.
   shown_by: A11
 - lecture: "12"
   topic: LLMs for MT; context
@@ -427,10 +429,10 @@ lecture_outcomes:
     of a research report must show a reader."
   shown_by: Quiz 17; the Final Project's written report
 - lecture: "18"
-  topic: Research, open problems and earlier methods
-  can: Explain an open problem in MT and the kind of work it needs; explain how one MATRIX Lab project
-    frames and tests its question; explain how word alignments relate to attention in NMT; explain
-    what NMT replaced from earlier methods, and what it kept.
+  topic: Open problems and earlier methods
+  can: Explain what NMT replaced from earlier methods, and what it kept; explain how word
+    alignments relate to attention in NMT; explain an open problem in MT and the kind of work it
+    needs.
   shown_by: Quiz 18
 - lecture: "19"
   topic: MT in use
