@@ -411,8 +411,10 @@ lecture_outcomes:
   shown_by: A14
 - lecture: "15"
   topic: Speech translation
-  can: Explain how spoken language differs from the text MT is trained on; explain when to choose among
-    four speech translation designs; explain how a learned codebook turns sound into tokens.
+  can: Explain how spoken language differs from the text MT is trained on, and what the
+    difference means for any speech system; explain how to choose a speech translation design
+    for a given language, data, and use; explain how a learned codebook turns a continuous
+    signal, such as sound, into tokens a model can use.
   shown_by: Quiz 15; the Final Project's Path B example (A15 dropped this term)
 - lecture: "16"
   topic: Automatic dubbing and live interpretation
