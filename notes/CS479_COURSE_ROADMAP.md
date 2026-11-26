@@ -230,6 +230,7 @@ steps.
 | `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help; how much of a change came from the data and how much from decoding; a difference tested, not only measured | extract monolingual text from their Church TM's unused segments, topped up from public text if short; choose their own reverse model or NLLB as back-translator, which back-translates by sampling (one retrain, Eric, Oct 22); write reverse and combine (the method, checked against known answers and the contamination check); state an "If ..., then ..." hypothesis and a prediction before retraining; say why sampling, from two of their own back-translated sentences; add Google back-translations to two helped and two hurt examples; upload the completed notebook | the reverse training (none with NLLB), the sampled back-translation with five greedy ones beside it, one retraining, A9 and A13 decoded greedily and with beam 5, BLEU, chrF, the paired bootstrap, COMET, the rerun record and the upload files | low |
 | `lecture-14-multilingual` | a language code tells one model which way to translate, and why that makes zero-shot possible; whether one shared model matches two one-way models, decoding held fixed and the difference tested; what fine-tuning a pretrained model buys over the same model off the shelf and over a model trained from scratch | choose their language's code (borrowing one, with a reason, if NLLB does not cover it); write tag and both_directions (checked on a known case, for intermingling, and by the contamination check in both languages); state an "If ..., then ..." hypothesis and a prediction, and set a step budget, before training; choose a third language for the zero-shot test; explain the code from the model's output under the wrong one; upload the completed notebook | NLLB off the shelf, the fine-tuning (torchlingo_harness.nllb.fine_tune), each direction decoded greedily and with beam 5 against NLLB off the shelf and its one-way model (A9; the A13 reverse model), BLEU, chrF, the paired bootstrap, COMET, the wrong-code and third-language outputs, the time of each long stage, the rerun record and the upload files | low |
 | `lecture-18-ibm-model-1` | how EM learns word alignments from sentence pairs alone; where attention agrees with such an alignment, where it differs, and why it needs no EM | predict what `house` translates to after one round of EM and why it is not yet sure; compare the two alignments row by row and say why they differ; if time, add a pair and see what moves | EM, written out as the lesson; the attention, teacher-forced through Lecture 8b's model and grouped from pieces to words | low |
+| `lecture-19-post-editing` | how an edit rate measures post-editing effort; why TER counts a move as one edit; why two correct post-edits score differently; what an edit rate cannot weigh | post-edit five outputs with as few changes as they can; predict their highest edit rate; find their own most and least important edits and compare what each cost | the edit distance, written out as the lesson; TER through sacrebleu; the professional post-edits and two one-word edits from MLQE-PE | low |
 
 ### Where the line is crossed
 
@@ -536,6 +537,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-14-multilingual` | 14 | homework | A14 | NLLB-200 fine-tuned both ways on A9's split, against NLLB off the shelf and the student's own one-way models | no: colab, exercises |
 | `09-fine-tuning-nllb` | 14 | reading | FP | how much fine-tuning is enough and what it costs, on the student's A8 split, after A14 | no: colab, download, exercises |
 | `lecture-18-ibm-model-1` | 18 | activity | | IBM Model 1 by EM on thirteen English-Spanish pairs, its alignment set beside a Transformer's attention on the same pair | no: exercises |
+| `lecture-19-post-editing` | 19 | activity | | Post-editing five Estonian-English MT outputs, measured by edit distance and TER beside a professional's post-edits of the same outputs | no: exercises |
 
 **Tutorial numbers** are in course order: 01 data, 02 evaluating, 03 checkpoints, 04 attention,
 05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search, 09 fine-tuning.
@@ -1046,7 +1048,7 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 16 | Automatic Dubbing and Live Interpretation | — | — |
 | 17 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | — | — |
 | 18 | Open Problems, and What Earlier MT Methods Teach | `lecture-18-ibm-model-1` (activity) [20] | — |
-| 19 | MT in Use: Applications, Jobs and Post-Editing | — | — |
+| 19 | MT in Use: Applications, Jobs and Post-Editing | `lecture-19-post-editing` (activity) [21] | — |
 
 Notes on the rows that are not simple:
 
@@ -1261,6 +1263,17 @@ Notes on the rows that are not simple:
   alignment, weights differentiable and trained by the translation loss. An optional last
   step adds a pair (the boy / el niño) and reruns. tests/test_lecture_18.py runs it with
   the prediction written in.
+- [21] **`lecture-19-post-editing`** — Lecture 19's in-class activity, about 15 minutes in
+  pairs, no points, CPU only (Cowork's hand-off N, Eric, Nov 25). Five Estonian-English MT
+  outputs from MLQE-PE (CC0), each shown with an independent human translation for its
+  meaning, so students who read no Estonian can post-edit. POST_EDITS starts as the MT
+  outputs, edited in place; it and PREDICTION stop the notebook until written. Word-level
+  edit distance is written out as the lesson, then sacrebleu's TER over the same
+  lowercased words, which reproduces the published HTER of the professional post-edits.
+  The professional's post-edits show a moved date (edit rate 0.71, TER 0.21) and a
+  reordering of an output that needed none (0.60); two one-word post-edits, a dropped
+  article and a restored 'not' (Nepali-English), get the same 0.07.
+  tests/test_lecture_19.py runs it with post-edits and a prediction written in.
 
 <!-- END generated:notebook-map -->
 

@@ -683,6 +683,16 @@ notebooks:
     notebook_does: EM, written out as the lesson; the attention, teacher-forced through Lecture
       8b's model and grouped from pieces to words
     rating: low
+  lecture-19-post-editing:
+    purpose: Post-editing five Estonian-English MT outputs, measured by edit distance and TER
+      beside a professional's post-edits of the same outputs
+    lesson: how an edit rate measures post-editing effort; why TER counts a move as one edit; why
+      two correct post-edits score differently; what an edit rate cannot weigh
+    student_must: post-edit five outputs with as few changes as they can; predict their highest
+      edit rate; find their own most and least important edits and compare what each cost
+    notebook_does: the edit distance, written out as the lesson; TER through sacrebleu; the
+      professional post-edits and two one-word edits from MLQE-PE
+    rating: low
 
 # The "Tooling the semester depends on" table.
 tooling:
