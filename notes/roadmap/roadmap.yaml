@@ -404,9 +404,10 @@ lecture_outcomes:
   shown_by: A13
 - lecture: "14"
   topic: Multilingual and zero-shot
-  can: Explain how a tag tells one model which language to write; explain why a tagged model can translate pairs it never trained on; explain how a low-resource language borrows
-    from related ones in one model; explain when fine-tuning a pretrained model beats training from
-    scratch; explain how Assignment 14 compares one two-way and two one-way models.
+  can: Explain how one model translates many directions from a language tag, and why it can
+    translate pairs it never trained on; explain how a low-resource language borrows from
+    related languages in one model, and when sharing one model across languages hurts; explain
+    when fine-tuning a pretrained model beats training from scratch.
   shown_by: A14
 - lecture: "15"
   topic: Speech translation
