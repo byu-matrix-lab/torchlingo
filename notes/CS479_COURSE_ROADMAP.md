@@ -192,7 +192,7 @@ the scope notes below carry the content, this carries the point.
 | 16 | Automatic dubbing and live interpretation | Explain what dubbing adds to translation (timing, length, and voice), and how a translation can be fit to a time or length limit; explain the trade between quality and latency in live interpretation, and how a simultaneous system decides when to commit to words; explain how a live system uses the best text available, such as a prepared script. | Quiz 16 |
 | 17 | Multimodal NMT; writing the report | Explain when an image helps translation, and when the text alone is enough; explain how an ablation (the wrong image, or none) tests whether an input helped; explain what each section of a research report must show a reader. | Quiz 17; the Final Project's written report |
 | 18 | Open problems and earlier methods | Explain what NMT replaced from earlier methods, and what it kept; explain how word alignments relate to attention in NMT; explain an open problem in MT and the kind of work it needs. | Quiz 18 |
-| 19 | MT in use | Explain where MT is used and what work it creates; explain how edit distance measures post-editing effort; explain when post-editing helps a translator, and when it does not. | class discussion; edit distance available as a Final Project measure |
+| 19 | MT in use | Explain where MT is used, and what work it creates and changes; explain how edit distance measures post-editing effort, and what it misses; explain when post-editing helps a translator, and when it does not. | class discussion; edit distance available as a Final Project measure |
 
 ### Notebook outcomes, and who does the work
 

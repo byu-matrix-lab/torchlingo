@@ -437,8 +437,9 @@ lecture_outcomes:
   shown_by: Quiz 18
 - lecture: "19"
   topic: MT in use
-  can: Explain where MT is used and what work it creates; explain how edit distance measures
-    post-editing effort; explain when post-editing helps a translator, and when it does not.
+  can: Explain where MT is used, and what work it creates and changes; explain how edit distance
+    measures post-editing effort, and what it misses; explain when post-editing helps a
+    translator, and when it does not.
   shown_by: class discussion; edit distance available as a Final Project measure
 
 # One entry per notebook, keyed by file stem.
