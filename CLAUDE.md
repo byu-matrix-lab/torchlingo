@@ -386,6 +386,10 @@ no course notebook used them.
   cell, just before "By the end you will be able to:", word for word from the assignment's
   Learning Suite page. Cowork owns the wording; a new notebook asks for it in the hand-off.
   Reading and skills assignments (A1, A4, A5, the Paper Review) have none (Eric).
+- **"What you need" is a bulleted list** under a `**What you need:**` line, one item a bullet,
+  as on the assignment pages (Eric, 2026-11-15). Not a paragraph.
+- **Workload is stated absolutely** (Eric, 2026-11-25): hours, or a measured ratio, as A13's and
+  A14's notebooks give it; not a comparison such as "the largest assignment".
 - **Instructions to the student live in markdown**, not only in code comments, which a student
   running cells does not read.
 - **A prediction gets its own code cell, before the reveal or the long run it predicts, and stops
