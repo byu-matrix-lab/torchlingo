@@ -1,4 +1,4 @@
-# N: A14's line is posted; the course list is ranked P1 to P4
+# N: A14's line is posted; the course list is ranked P1 to P4; outcomes done; two notebooks asked
 
 From the Cowork session, Sun 2026-11-15, last updated 02:10. Answers `to-cowork/2026-11-06-a14-times-itself.md` and `to-cowork/2026-11-15-bleu-a14-and-priorities.md`. Baton to the repository session.
 
@@ -41,11 +41,19 @@ Also changed tonight on every assignment page, in case a notebook or the roadmap
 
 The roadmap said A15's page was unpublished; it never was. Eric chose to keep it visible as a reference for the Final Project's speech path, so the page now opens with *"Not assigned this term. This page is kept as a reference for the speech path of the Final Project (Path B) ... Nothing here is due, and it carries no points."* This branch corrects `roadmap.yaml`'s A15 row to say so, re-rendered (`--check` passes; the line may want rewrapping). The decisions log's Oct 22 entry, which says "unpublished", is history and is left as written.
 
-## 8. Learning outcomes, leveled up: Lecture 16 first (Eric, Nov 15)
+## 8. Learning outcomes, leveled up: every page done (Eric, Nov 15 to 25)
 
-Eric wants every lecture's and assignment's outcomes more conceptual: what a student carries beyond the one lecture or assignment, with no bare deixis. A draft for every page is in the course folder (`Working Notes/CS479 Learning Outcomes Rewrite_v2.md`); Lecture 16 and A14 are applied tonight, and the rest come later, page by page, after Eric reviews them. Each later batch will reach you the same way, as a change to `roadmap.yaml`'s lecture outcomes on a branch, since the notebooks quote them.
+Eric wanted every lecture's and assignment's outcomes more conceptual: what a student carries beyond the one lecture or assignment, with no bare deixis. **The review is complete** (Nov 25): every lecture and assignment page on Learning Suite carries its new outcomes. The record, with each page's old and new lists, is `Working Notes/CS479 Learning Outcomes Rewrite_v36.md` in the course folder (and `torchlingo-private/notes/course/`).
 
-This branch changes **Lecture 16's** `can` row to the page's new outcomes (re-rendered; `--check` passes). No notebook quotes Lecture 16's outcome today (checked). A14's outcomes are on its page only; nothing in this repository quotes them.
+On this branch, every lecture's `can` row now matches its page: Lectures 1 to 19, one commit per lecture (re-rendered; `--check` passes). Two rules Eric added along the way, for anything you write that quotes them: name the technique (A13: "back-translated data", not "synthetic data"), and no bare deixis ("when sharing one model across languages hurts", not "when that sharing hurts").
+
+**Asked of you, P1, in one pass: the notebooks' outcome quotes.** 26 notebooks quote a lecture outcome that has changed (checked by matching each `These serve Lecture X's outcome` quote against the new `can` rows):
+
+- Course notebooks, Lectures 3 to 14: `lecture-03-word-embeddings`, `lecture-04-regex-refresher`, `lecture-04-tmx-cleaning`, `lecture-05-sentence-alignment`, `lecture-06-mt-evaluation`, `lecture-06-mt-evaluation-homework`, `lecture-07-toy-model`, `lecture-08a-a8-kickoff`, `lecture-08b-cross-attention`, `lecture-08c-attention-heads`, `lecture-09-subword-tokenization`, `lecture-10-comet-install`, `lecture-11-comet-on-a6`, `lecture-12-llm-context` and `lecture-13-back-translation` (these two paraphrase rather than quote; check them), `lecture-14-multilingual`.
+- Tutorials 1 to 9, each quoting one outcome of Lecture 6, 8a, 8b, 9, 10, or 14.
+- Only `lecture-18-ibm-model-1` still matches.
+
+Where a notebook quoted an outcome that no longer exists in that form (tutorial 3's "start, checkpoint and resume a long run", for instance), quote the new outcome it serves, or say in your reply that none fits, and we'll take it to Eric.
 
 ## 9. New, asked of you: a tutorial on IBM Model 2, predict then reveal (Eric, Nov 25)
 
@@ -78,4 +86,4 @@ Eric wants a course notebook for Lecture 19 (Mon Dec 7), the in-class activity f
 
 ## Tasks
 
-On the course list: A14's timing line is done and off; the list is ranked; two new rows (the A11/A12 grading note, P1; the Final Project BLEU line, P2). On yours: one new P2 row, the notebooks' What you need as bullets (section 6). Also new on yours (P2): the IBM Model 2 tutorial and its map node (section 9); the purpose cell refresh for `lecture-18-ibm-model-1` (section 10). And one P1, for Lecture 19: the edit distance notebook, landed and promoted by Thursday Dec 3 (section 11).
+On the course list: A14's timing line is done and off; the list is ranked; two new rows (the A11/A12 grading note, P1; the Final Project BLEU line, P2). On yours: one new P2 row, the notebooks' What you need as bullets (section 6). Also new on yours (P2): the IBM Model 2 tutorial and its map node (section 9); the purpose cell refresh for `lecture-18-ibm-model-1` (section 10). And one P1, for Lecture 19: the edit distance notebook, landed and promoted by Thursday Dec 3 (section 11). And the P1 one-pass update of the notebooks' outcome quotes (section 8).
