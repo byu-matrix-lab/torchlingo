@@ -228,5 +228,6 @@ two paths: **investigate a question** (a hypothesis, and one change against a na
 - **where it helped and where it hurt;**
 - **reproducibility:** versions, seeds and decoding settings named.
 
-All project work is due Thu Dec 10 at 11:59 pm; the presentations take the last class meeting, Wed Dec 9, and the final
-exam slot, Wed Dec 16, 11:00 to 14:00.
+The written report and the submission are due Wed Dec 9 at 10:00 am, before anyone presents (Eric, Nov 25;
+until then Thu Dec 10 at 11:59 pm). The presentations take the last class meeting, Wed Dec 9, and the final
+exam slot, Wed Dec 16, 11:00 to 14:00; attendance is required on both days, with peer feedback on every talk.

@@ -270,13 +270,14 @@ assignments:
 - label: '**Paper review assignment**'
   points: 15
   stretch_points: 3
+  due: 2026-12-07
+  due_time: 10:00 am
+- label: '**Final Project 4** written report (40, ACL template), before anyone presents'
   due: 2026-12-09
-- label: '**Final Project 4** written report (40, ACL template)'
-  due: 2026-12-10
-  due_time: 11:59 pm
+  due_time: 10:00 am
 - label: '**Final Project 5** submission (35)'
-  due: 2026-12-10
-  due_time: 11:59 pm
+  due: 2026-12-09
+  due_time: 10:00 am
 - label: '**Final Project 6** presentation (20; a 10-minute slot: 7 to talk, 2 for questions, 1 to
     hand off), Dec 9 or the exam slot'
   due: 2026-12-16

@@ -14,9 +14,10 @@ lecture became 17, and research and open problems merged with a condensed 19 and
 Lecture quizzes run through Lecture 18, and 8a and 8b each have their own.
 
 **Paper reviews** run alongside: 24 papers on the sign-up sheet (Google Sheet "CS 479 Fall
-2026", tab "Reading Report"), presented Oct 5 through Dec 2 at one or two per session, each
+2026", tab "Reading Report"), presented Oct 5 through Dec 7 at one or two per session (the presentation is the Paper Review, due by
+the last one; Eric, Nov 25), each
 placed next to the lecture its topic belongs with, and the sheet's LECTURE TOPIC ALIGNMENT
 column says which. From Oct 12 on, that column is one lecture off from the schedule (the QE
 papers of Oct 12 land on Lecture 9, COMET on Lecture 10); the unassigned Och and Ney slot on
-Nov 23 belongs on Dec 2, the merged alignment session, since no class meets on Nov 23. Dec 7 is an open slot if a
-student has to move; Dec 9 is final project presentations.
+Nov 23 belongs on Dec 2, the merged alignment session, since no class meets on Nov 23. Dec 7 now holds the last
+reading report; Dec 9 is final project presentations.

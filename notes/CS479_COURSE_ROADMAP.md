@@ -57,9 +57,9 @@ against its notebook once that lands. A13's was rewritten against its notebook o
 | — | Wed Nov 25 | **No class**, Thanksgiving Eve | | |
 | 17 | Mon Nov 30 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | | F2025, trimmed, plus the writing slides of last year's Lecture 21 |
 | 18 | Wed Dec 2 | Open Problems, and What Earlier MT Methods Teach | | F2026, built Nov 25 from last year's Lectures 19 and 20, condensed, with open problems from the WMT25 preliminary ranking |
-| 19 | Mon Dec 7 | MT in Use: Applications, Jobs and Post-Editing | | F2025, from last year's Lecture 22, with Lecture 18's post-editing |
-| — | Wed Dec 9 | Final project presentations, day 1 of 2 (Steve Richardson and Eric, Oct 26) | **Paper review assignment** | |
-| — | Thu Dec 10 | Last day of class | **Final Project 4** written report (40, ACL template) (due 11:59 pm) · **Final Project 5** submission (35) (due 11:59 pm) | |
+| 19 | Mon Dec 7 | MT in Use: Applications, Jobs and Post-Editing | **Paper review assignment** (due 10:00 am) | F2025, from last year's Lecture 22, with Lecture 18's post-editing |
+| — | Wed Dec 9 | Final project presentations, day 1 of 2 (Steve Richardson and Eric, Oct 26) | **Final Project 4** written report (40, ACL template), before anyone presents (due 10:00 am) · **Final Project 5** submission (35) (due 10:00 am) | |
+| — | Thu Dec 10 | Last day of class | | |
 | — | Wed Dec 16 | Final exam slot, 11:00 to 14:00; final project presentations, day 2 of 2 | **Final Project 6** presentation (20; a 10-minute slot: 7 to talk, 2 for questions, 1 to hand off), Dec 9 or the exam slot (due 2:00 pm) · **Final Project 7** peer feedback (5), a form on every other presentation (due 2:00 pm) | |
 
 An assignment appears on the row of the day it is **due**, which is how Learning Suite lists
@@ -78,12 +78,13 @@ lecture became 17, and research and open problems merged with a condensed 19 and
 Lecture quizzes run through Lecture 18, and 8a and 8b each have their own.
 
 **Paper reviews** run alongside: 24 papers on the sign-up sheet (Google Sheet "CS 479 Fall
-2026", tab "Reading Report"), presented Oct 5 through Dec 2 at one or two per session, each
+2026", tab "Reading Report"), presented Oct 5 through Dec 7 at one or two per session (the presentation is the Paper Review, due by
+the last one; Eric, Nov 25), each
 placed next to the lecture its topic belongs with, and the sheet's LECTURE TOPIC ALIGNMENT
 column says which. From Oct 12 on, that column is one lecture off from the schedule (the QE
 papers of Oct 12 land on Lecture 9, COMET on Lecture 10); the unassigned Och and Ney slot on
-Nov 23 belongs on Dec 2, the merged alignment session, since no class meets on Nov 23. Dec 7 is an open slot if a
-student has to move; Dec 9 is final project presentations.
+Nov 23 belongs on Dec 2, the merged alignment session, since no class meets on Nov 23. Dec 7 now holds the last
+reading report; Dec 9 is final project presentations.
 
 ---
 
@@ -495,8 +496,9 @@ two paths: **investigate a question** (a hypothesis, and one change against a na
 - **where it helped and where it hurt;**
 - **reproducibility:** versions, seeds and decoding settings named.
 
-All project work is due Thu Dec 10 at 11:59 pm; the presentations take the last class meeting, Wed Dec 9, and the final
-exam slot, Wed Dec 16, 11:00 to 14:00.
+The written report and the submission are due Wed Dec 9 at 10:00 am, before anyone presents (Eric, Nov 25;
+until then Thu Dec 10 at 11:59 pm). The presentations take the last class meeting, Wed Dec 9, and the final
+exam slot, Wed Dec 16, 11:00 to 14:00; attendance is required on both days, with peer feedback on every talk.
 
 ---
 
