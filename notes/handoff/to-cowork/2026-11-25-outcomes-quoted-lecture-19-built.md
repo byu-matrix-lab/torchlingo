@@ -2,11 +2,11 @@
 
 *From the repository session, written Wed Nov 25, late. Answers
 `from-cowork/2026-11-15-n-priorities-and-a14-line.md`. Your branch is reviewed and carried, with
-this reply, in one pull request. Three things are asked of you:*
+this reply, in one pull request. Two things are asked of you:*
 
-1. *two outcome questions for Eric, from the quote pass (section 1);*
-2. *one wording point in Lecture 13's outcome (section 1);*
-3. *link Lecture 19's notebook from the deck and the page once it is promoted (section 3).*
+1. *carry two outcome changes Eric made on Nov 26, to Lectures 8a and 13, wherever the course
+   side shows the outcomes (section 1);*
+2. *link Lecture 19's notebook from the deck and the page once it is promoted (section 3).*
 
 ## 1. The notebooks' outcome quotes: done, and now checked
 
@@ -21,28 +21,31 @@ an outcome is caught where you caught this one by hand. It found one slip of min
 
 Where the new outcome changed what a notebook can claim:
 
-- **Lecture 8a's notebook (the A8 kickoff) quotes only** *explain why sentence length acts as a
-  memory budget when training any sequence model*. Its old quote also named splitting and
-  verifying a corpus, reading training against validation loss, and checkpointing and resuming a
-  long run, which the notebook still teaches and the new outcome no longer names.
-- **Tutorial 3, what a checkpoint holds, has no outcome to quote.** Its old quote was Lecture
-  8a's *start, checkpoint and resume a long run*. It now says it serves the A8 notebook's reload
-  step, and that no lecture's outcome names what a checkpoint holds.
-- **Tutorial 6, diagnosing failures**, moved from Lecture 8a's *read training against validation
-  loss* to Lecture 7's held-out clause, *why a model is judged on data it never trained on*.
+- **Lecture 8a's new outcome, as you wrote it, named only the memory budget** among the things
+  the A8 notebook teaches; reading training against validation loss, and checkpointing and
+  resuming a long run, had dropped out, and with them tutorial 3's only outcome. Eric restored
+  both (below).
+- **Tutorial 6, diagnosing failures**, now also quotes Lecture 7's held-out clause, *why a model
+  is judged on data it never trained on*.
 - **Lecture 7's notebook** quotes the held-out and how-a-network-learns clauses, not the paper
   review, which it does not do; **Lecture 11's** quotes the LLM judge and the ranking clauses, not
   error spans, which it only mentions.
 
-**Asked, for Eric:** (a) Is it intended that no Lecture 8a outcome names reading training against
-validation loss, or checkpointing a run? Students do both in A8. (b) Should tutorial 3 serve an
-outcome, or stand as the A8 notebook's support? Either answer needs no work from you beyond
-carrying it; I will change the quotes.
+**Two outcome changes, Eric's, Nov 26.** I asked Eric about the two gaps above, and one wording
+point, and he settled all three; the roadmap rows are changed in this pull request.
 
-**One wording point, yours to raise or fix:** Lecture 13's outcome reads *"when synthetic data
-helps or hurts"*. Your rule from the outcomes review is to name the technique (*back-translated
-data*, not *synthetic data*). The A13 notebook quotes the outcome as it stands; change the row
-and I will follow.
+- **Lecture 8a gains two clauses**, since students do both in A8: *explain how to read training
+  against validation loss to tell when a model stops improving; explain what a long run must save
+  so that it can be resumed, or reloaded as the model you trained*. The A8 notebook now quotes
+  all three of its clauses again.
+- **Tutorial 3 serves an outcome again**, the second of those clauses, which Eric asked for: what
+  a checkpoint leaves out (the vocabulary) is what a reload must restore. **Tutorial 6** quotes
+  the first, beside Lecture 7's held-out clause.
+- **Lecture 13's outcome names the technique**, per your rule: *when back-translated data helps or
+  hurts*, not *synthetic data*. The A13 notebook quotes it.
+
+**Asked of you:** carry both rows wherever the course side shows the outcomes (the decks'
+outcome slides, the Learning Suite pages, the syllabus), word for word from the roadmap.
 
 ## 2. "What you need" as bullets: done
 

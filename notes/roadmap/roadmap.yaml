@@ -351,7 +351,9 @@ lecture_outcomes:
   can: "Explain how an encoder-decoder translates, and why encoding a whole sentence into one
     fixed-size vector becomes a bottleneck; explain attention as a learned soft alignment between
     source and target words, and how it removes the fixed-size bottleneck; explain why sentence
-    length acts as a memory budget when training any sequence model."
+    length acts as a memory budget when training any sequence model; explain how to read training
+    against validation loss to tell when a model stops improving; explain what a long run must save
+    so that it can be resumed, or reloaded as the model you trained."
   shown_by: A8
 - lecture: "8b"
   topic: The Transformer
@@ -402,8 +404,8 @@ lecture_outcomes:
 - lecture: "13"
   topic: Low-resource strategies
   can: Explain what makes a language low-resource, beyond its count of sentence pairs; explain
-    how back-translation turns monolingual text into training data, and when synthetic data
-    helps or hurts; explain why sampling can make better back-translations than beam search;
+    how back-translation turns monolingual text into training data, and when back-translated
+    data helps or hurts; explain why sampling can make better back-translations than beam search;
     explain how to attribute a change to one cause when an experiment changes two things.
   shown_by: A13
 - lecture: "14"
