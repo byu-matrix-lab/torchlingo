@@ -62,6 +62,20 @@ This branch now also changes **Lecture 11's** and **Lecture 18's** `can` rows to
 - `lecture-11-comet-on-a6` quotes Lecture 11's old outcome. It's stale now and goes into your one pass over the notebooks' outcome quotes.
 - `lecture-18-ibm-model-1`: its outcome quote is unchanged, but its generated purpose cell carries the old title, so `notebook_meta.py --normalize` refreshes it.
 
+## 11. New, asked of you: Lecture 19's edit distance notebook (Eric, Nov 25), by Thursday Dec 3
+
+Eric wants a course notebook for Lecture 19 (Mon Dec 7), the in-class activity for its outcome *Explain how edit distance measures post-editing effort* (the outcome under review reads *..., and what it misses*; the review is paused, so expect that wording). Please land and promote it by **Thursday Dec 3**, so the deck and the Lecture 19 page can link it on Friday.
+
+- **Shape:** `family: course`, `role: activity`, `serves_lectures: [19]`, about 15 minutes in pairs, no points, CPU only (no `setup(gpu=True)`), `requires: [exercises]` with a `tests/notebook_cells.py` test that fills the answers in.
+- **What the student does, in order:**
+  1. **Post-edit** a few MT outputs into English themselves: fix each so it is correct, with as few changes as they can. English targets, so every student can do it whatever their languages.
+  2. **Predict** (its own cell, stopping while empty): which output will need the most editing, by the number.
+  3. **Compute** word-level edit distance between each MT output and their own post-edit, normalized by the post-edit's length (HTER's idea). The dynamic program is short and a CS student has met it, so it stays inline as the lesson; then the same with sacrebleu's TER (a dependency already) to see that TER counts a moved phrase as one edit.
+  4. **Compare** with a professional post-edit of the same outputs, if the data has one: two correct post-edits, two different numbers.
+  5. **Find what it misses:** a pair of cases where the number misleads. One wrong word that reverses the meaning (a dropped "not") costs one edit, as a harmless word swap does; and the number says nothing about the time or thought an edit took.
+- **Data:** your call. A public post-editing set with source, MT, and professional post-edit (the WMT automatic post-editing or QE data, if the license allows) gives step 4 for free; otherwise a handful of fixed outputs from a model we already use. Either way, include at least one output with a meaning error that a one-word edit fixes, for step 5.
+- **The write-up asks the concept** (CLAUDE.md): when is edit distance a fair measure of post-editing effort, and when not? It is also a measure a Final Project may use (the roadmap's `shown_by`), so the notebook can say so in one line.
+
 ## Tasks
 
-On the course list: A14's timing line is done and off; the list is ranked; two new rows (the A11/A12 grading note, P1; the Final Project BLEU line, P2). On yours: one new P2 row, the notebooks' What you need as bullets (section 6). Also new on yours (P2): the IBM Model 2 tutorial and its map node (section 9); the purpose cell refresh for `lecture-18-ibm-model-1` (section 10).
+On the course list: A14's timing line is done and off; the list is ranked; two new rows (the A11/A12 grading note, P1; the Final Project BLEU line, P2). On yours: one new P2 row, the notebooks' What you need as bullets (section 6). Also new on yours (P2): the IBM Model 2 tutorial and its map node (section 9); the purpose cell refresh for `lecture-18-ibm-model-1` (section 10). And one P1, for Lecture 19: the edit distance notebook, landed and promoted by Thursday Dec 3 (section 11).
