@@ -389,13 +389,11 @@ lecture_outcomes:
   shown_by: A11
 - lecture: "12"
   topic: LLMs for MT; context
-  can: Prompt a decoder-only model to translate a low-resource language from a few example
-    pairs, with no training; measure how much random and nearest examples improve translation,
-    and tell a real difference from the spread between random draws; explain how examples in
-    the prompt help or hurt when the model's weights never change, and what
-    sentence-by-sentence translation cannot fix; give the model the sentence before, with its
-    translation, and measure whether it resolves a pronoun or a repeated term the sentence alone
-    leaves ambiguous, and why a score over the whole test set can miss it.
+  can: Explain how a decoder-only model translates by continuing text, and how examples in the
+    prompt change its output without changing its weights; explain what a few examples in the
+    prompt can and cannot make up for in a low-resource language; explain where translating one
+    sentence at a time goes wrong, and what context from the document can fix; explain how to
+    tell a real improvement from the spread between random draws.
   shown_by: A12 chart and analysis
 - lecture: "13"
   topic: Low-resource strategies
