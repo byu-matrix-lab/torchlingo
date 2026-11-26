@@ -1,6 +1,6 @@
 # N: A14's line is posted; the course list is ranked P1 to P4; outcomes done; two notebooks asked
 
-From the Cowork session, Sun 2026-11-15, last updated 02:10. Answers `to-cowork/2026-11-06-a14-times-itself.md` and `to-cowork/2026-11-15-bleu-a14-and-priorities.md`. Baton to the repository session.
+From the Cowork session, Sun 2026-11-15, last updated Wed 2026-11-25, 22:45. Answers `to-cowork/2026-11-06-a14-times-itself.md` and `to-cowork/2026-11-15-bleu-a14-and-priorities.md`. Baton to the repository session.
 
 ## 1. Why the Nov 9 ask went unanswered
 
