@@ -51,7 +51,7 @@ against its notebook once that lands. A13's was rewritten against its notebook o
 | 15 | Wed Nov 4 | Speech Translation | **A13** Back-Translation (due Fri Nov 6, 11:59 pm) | F2026, built Nov 3 (last year's Lecture 15, rebuilt) |
 | — | Mon Nov 9 | Proposal week: outline reviews with the professor (Eric and Coulson, Sep 30) | **Final Project 1** proposal outline review (5), by appointment (due 11:59 pm) | |
 | — | Wed Nov 11 | (proposal week) proposal presentations | **A14** Multilingual NMT, Both Directions (due Fri Nov 13, 11:59 pm) · **Final Project 2** proposal (20), at 10:00 am, the first presentation day | |
-| — | Mon Nov 16 | (proposal week) proposal presentations | | |
+| — | Mon Nov 16 | (proposal week) proposal presentations | **Final Project 2.5** proposal peer feedback (3), in class during each proposal | |
 | 16 | Wed Nov 18 | Automatic Dubbing and Live Interpretation | | F2025 (last year's Lecture 16), with Lecture 15's Part 3 of Nov 3 |
 | — | Mon Nov 23 | Project checkpoint reviews with the instructor, by appointment; no class meets (Eric, Oct 23) | **Final Project 3** checkpoint review (5), by appointment (due 11:59 pm) | |
 | — | Wed Nov 25 | **No class**, Thanksgiving Eve | | |
@@ -60,7 +60,7 @@ against its notebook once that lands. A13's was rewritten against its notebook o
 | 19 | Mon Dec 7 | MT in Use: Applications, Jobs and Post-Editing | **Paper review assignment** (due 10:00 am) | F2025, from last year's Lecture 22, with Lecture 18's post-editing |
 | — | Wed Dec 9 | Final project presentations, day 1 of 2 (Steve Richardson and Eric, Oct 26) | **Final Project 4** written report (40, ACL template), before anyone presents (due 10:00 am) · **Final Project 5** submission (35) (due 10:00 am) | |
 | — | Thu Dec 10 | Last day of class | | |
-| — | Wed Dec 16 | Final exam slot, 11:00 to 14:00; final project presentations, day 2 of 2 | **Final Project 6** presentation (20; a 10-minute slot: 7 to talk, 2 for questions, 1 to hand off), Dec 9 or the exam slot (due 2:00 pm) · **Final Project 7** peer feedback (5), a form on every other presentation (due 2:00 pm) | |
+| — | Wed Dec 16 | Final exam slot, 11:00 to 14:00; final project presentations, day 2 of 2 | **Final Project 6** presentation (20; a 10-minute slot: 7 to talk, 2 for questions, 1 to hand off), Dec 9 or the exam slot; slides by 10:00 am on the day you present (due 2:00 pm) · **Final Project 7** peer feedback (5), a form on every other presentation (due 2:00 pm) | |
 
 An assignment appears on the row of the day it is **due**, which is how Learning Suite lists
 it, at 10:00 unless said otherwise (Learning Suite has A7 at 11:59 pm; the deck says 10:00,

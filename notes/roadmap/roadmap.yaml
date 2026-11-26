@@ -264,6 +264,8 @@ assignments:
   due_time: 11:59 pm
 - label: '**Final Project 2** proposal (20), at 10:00 am, the first presentation day'
   due: 2026-11-11
+- label: '**Final Project 2.5** proposal peer feedback (3), in class during each proposal'
+  due: 2026-11-16
 - label: '**Final Project 3** checkpoint review (5), by appointment'
   due: 2026-11-23
   due_time: 11:59 pm
@@ -279,7 +281,7 @@ assignments:
   due: 2026-12-09
   due_time: 10:00 am
 - label: '**Final Project 6** presentation (20; a 10-minute slot: 7 to talk, 2 for questions, 1 to
-    hand off), Dec 9 or the exam slot'
+    hand off), Dec 9 or the exam slot; slides by 10:00 am on the day you present'
   due: 2026-12-16
   due_time: 2:00 pm
 - label: '**Final Project 7** peer feedback (5), a form on every other presentation'

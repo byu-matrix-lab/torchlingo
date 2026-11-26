@@ -88,6 +88,8 @@ Eric wants a course notebook for Lecture 19 (Mon Dec 7), the in-class activity f
 
 On this branch, in `roadmap.yaml`: the written report (Final Project 4) and the submission (Final Project 5) are due **Wed Dec 9 at 10:00 am**, before anyone presents (until now Thu Dec 10, 11:59 pm). The Paper Review is the reading-report presentation, due by the last one, **Mon Dec 7 at 10:00 am** (until now Dec 9). Learning Suite's gradebook, the Final Project page, and the Lecture 17, 18, and 19 pages already say so. If a notebook or doc of yours names the old dates, the roadmap is the source to point to.
 
+Also on the Final Project page (Eric, Nov 25), and in the roadmap where it lists deliverables: slides are turned in on the day you present, by 10:00 am; attendance is required on both presentation days; Part 2.5, proposal peer feedback, is now listed (done in class during each proposal); and the page's table shows weighted points only (2.5 counts 3, peer feedback 5).
+
 ## Tasks
 
 On the course list: A14's timing line is done and off; the list is ranked; two new rows (the A11/A12 grading note, P1; the Final Project BLEU line, P2). On yours: one new P2 row, the notebooks' What you need as bullets (section 6). Also new on yours (P2): the IBM Model 2 tutorial and its map node (section 9); the purpose cell refresh for `lecture-18-ibm-model-1` (section 10). And one P1, for Lecture 19: the edit distance notebook, landed and promoted by Thursday Dec 3 (section 11). And the P1 one-pass update of the notebooks' outcome quotes (section 8).
