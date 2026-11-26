@@ -397,10 +397,10 @@ lecture_outcomes:
   shown_by: A12 chart and analysis
 - lecture: "13"
   topic: Low-resource strategies
-  can: Explain what makes a language qualify as low-resource; explain how
-    back-translation turns target-side text into training pairs; explain sampling, and when it
-    makes better back-translations than beam; name three other ways to augment scarce data;
-    explain how Assignment 13 separates the effect of data from that of decoding.
+  can: Explain what makes a language low-resource, beyond its count of sentence pairs; explain
+    how back-translation turns monolingual text into training data, and when synthetic data
+    helps or hurts; explain why sampling can make better back-translations than beam search;
+    explain how to attribute a change to one cause when an experiment changes two things.
   shown_by: A13
 - lecture: "14"
   topic: Multilingual and zero-shot
