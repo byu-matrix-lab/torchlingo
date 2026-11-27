@@ -167,12 +167,9 @@ students to turn off.
   and costs the time of each. That is why slides 17 and 18 turn it off: the comparison is then
   of translation alone.
 
-**A forward pointer, Eric's to keep or cut:** his research measures how wide that one arrow is.
-Chain of thought passes one symbol a step; Coconut (continuous thought) passes the whole last
-vector back as the next input; a format can also write several symbols a step. On a
-pointer-chasing task with four chains of four hops, one symbol a step needed 12 steps, two
-needed 6, and four needed 3, roughly the work divided by the width. The handicap of chain of
-thought there is the width of the arrow, not the choice of one token.
+No pointer to outside research, per Eric's decision of Nov 17 on your course task for recurrence
+against attention in the 8a to 8c decks; sections 5 and 6 are the framing and placement that
+task was waiting on from this side.
 
 ## Tasks
 
