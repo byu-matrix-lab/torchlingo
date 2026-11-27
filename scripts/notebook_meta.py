@@ -64,6 +64,7 @@ from __future__ import annotations
 import argparse
 import ast
 import difflib
+import functools
 import json
 import re
 import sys
@@ -536,6 +537,63 @@ DISCONNECT = "Disconnect and delete runtime"
 # notebook may put a badge or a note ahead of it.
 OUTCOME_ABILITIES = re.compile(r"^By the end you will be able to:\s*\n\s*1\. ", re.M)
 OUTCOME_SERVES = re.compile(r"^These serve Lecture \w+", re.M)
+
+# The "These serve" paragraph quotes the roadmap's outcomes in italics, each quote after the
+# lecture it belongs to ("Lecture 8a's outcome *...*, and Lecture 8b's *...*"). A quote is a
+# copy of `can` in roadmap.yaml, and copies drift: when the outcomes were rewritten on Nov 25,
+# 25 of 26 notebooks were found quoting an outcome that no longer existed, by hand.
+OUTCOME_PARAGRAPH = re.compile(
+    r"^These serve Lecture .*?(?=\n\s*\n|\Z)", re.MULTILINE | re.DOTALL
+)
+OUTCOME_QUOTE_PART = re.compile(r"Lecture (\w+)'s|\*([^*]+)\*")
+
+
+@functools.cache
+def lecture_outcomes() -> dict[str, str]:
+    """Return each lecture's outcome, the roadmap's ``can``, by lecture identifier.
+
+    Cached: `hygiene` asks once per notebook, and the roadmap does not change during a run.
+
+    Returns:
+        dict[str, str]: Outcome text with its whitespace collapsed, keyed as `lecture_id`.
+    """
+    rows = rr.load().get("lecture_outcomes") or []
+    return {
+        lecture_id(row["lecture"]): " ".join(str(row["can"]).split())
+        for row in rows
+        if isinstance(row, dict) and "lecture" in row and "can" in row
+    }
+
+
+def stale_outcome_quotes(head: str, outcomes: dict[str, str]) -> list[str]:
+    """Find the quotes in an opening's "These serve" line that its lecture's outcome lacks.
+
+    A quote may be the whole outcome or any stretch of it, compared without regard to case,
+    since a stretch from mid-outcome starts lowercase.
+
+    Args:
+        head (str): The notebook's opening Markdown.
+        outcomes (dict[str, str]): As `lecture_outcomes` returns.
+
+    Returns:
+        list[str]: One message per quote not found in its lecture's outcome.
+    """
+    stale: list[str] = []
+    paragraph = OUTCOME_PARAGRAPH.search(head)
+    if not paragraph:
+        return stale
+    lecture = None
+    for match in OUTCOME_QUOTE_PART.finditer(paragraph.group(0)):
+        if match.group(1):
+            lecture = lecture_id(match.group(1))
+            continue
+        quote = " ".join(match.group(2).split())
+        outcome = outcomes.get(lecture or "")
+        if outcome is None:
+            stale.append(f"quotes Lecture {lecture}, which has no outcome in the roadmap")
+        elif quote.casefold() not in outcome.casefold():
+            stale.append(f"Lecture {lecture}'s outcome does not contain *{quote[:60]}...*")
+    return stale
 
 # A prediction is a code-cell assignment to PREDICTION, or to a name ending in it
 # (MY_PREDICTION, BLEU_PREDICTION). CLAUDE.md's house pattern: it ships empty and is followed
@@ -1069,6 +1127,8 @@ def hygiene(path: Path) -> list[str]:
                 "able to:' and a numbered list, then 'These serve Lecture X's outcome ...' -- "
                 "in the Markdown before the first code cell (copy tutorial 8's first cell)"
             )
+        for problem in stale_outcome_quotes(head, lecture_outcomes()):
+            found.append(f"{path}: {problem} (notes/roadmap/roadmap.yaml, `can`)")
 
     # A prediction written after the result is not a prediction, so it ships empty and an
     # assert stops the notebook until it is written -- in its own cell or opening the next.

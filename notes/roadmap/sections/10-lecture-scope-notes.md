@@ -199,20 +199,22 @@ reports belong here, if their presenters move from Nov 18. Last year's logistics
 out. Then 15 minutes on writing, while students start their reports: Overleaf, the ACL template,
 and what each section must show for the rubric, with the lab paper as the worked example.
 
-### 18. Research in the MATRIX Lab, Open Problems, and What Earlier MT Methods Teach (F2025 Lectures 21, 23, 19 and 20, condensed; Wed Dec 2)
-The lab research half of last year's Lecture 21 (Lawry Sorenson's CTC forced alignment, Ammon
-Shurtz's phonetic transliteration for Thai, Lao and Khmer) and last year's Lecture 23, open
-problems; then, condensed, word alignment and how it relates to attention, and what NMT replaced
-from rule-based, example-based and phrase-based MT. A standalone earlier-methods lecture gave way
-to Lecture 16 (Eric, Nov 3). The Och and Ney and the phrase-based reading reports belong here.
-The in-class notebook runs IBM Model 1 and sets its alignment beside attention (Eric, Nov 5).
+### 18. Open Problems, and What Earlier MT Methods Teach (F2025 Lectures 19 and 20, condensed; Wed Dec 2)
+No lab research segment: Eric, Nov 25, leave out the lab's current topics, so last year's Lecture 21
+talks and the lab outcome go. Before neural MT (the five methods, the Vauquois triangle, transfer
+rules, statistical MT, a phrase table); word alignment learned by counting, with the in-class
+notebook running IBM Model 1 and setting its alignment beside attention (Eric, Nov 5); then what NMT
+replaced and kept, and three open problems from the WMT25 preliminary ranking (little data, measures
+we can trust, beyond the paragraph). The Och and Ney and the phrase-based reading reports belong
+here. Last year's Lecture 23 closing material moves to Lecture 19 (Eric, Nov 25).
 
 ### 19. MT in Use: Applications, Jobs and Post-Editing (F2025 Lecture 22, with Lecture 18's post-editing; Mon Dec 7)
 Where MT is used, the industry and jobs; about 10 minutes from last year's Lecture 18 on
 post-editing as how translators now work, and normalized edit distance as a measure a project
 can use. The post-editing reading report belongs here. Last year's Lecture 18 (HAMT vs. MAHT,
 interactive and adaptive MT, the in-class activity) is not taught this term (Eric, Oct 26).
-Final project presentations close the semester, Dec 9 and the exam slot.
+It closes with last year's Lecture 23: graduate school, careers, the prophetic statements on
+translation, and student ratings (Eric, Nov 25). Final project presentations close the semester, Dec 9 and the exam slot.
 
 **The final project** is one Learning Suite page, "Final Project", in four sections (Proposal,
 Presentation, Write-up, Submission), each linked from its gradebook entry. A student takes one of
@@ -226,5 +228,6 @@ two paths: **investigate a question** (a hypothesis, and one change against a na
 - **where it helped and where it hurt;**
 - **reproducibility:** versions, seeds and decoding settings named.
 
-All project work is due Thu Dec 10 at 11:59 pm; the presentations take the last class meeting, Wed Dec 9, and the final
-exam slot, Wed Dec 16, 11:00 to 14:00.
+The written report and the submission are due Wed Dec 9 at 10:00 am, before anyone presents (Eric, Nov 25;
+until then Thu Dec 10 at 11:59 pm). The presentations take the last class meeting, Wed Dec 9, and the final
+exam slot, Wed Dec 16, 11:00 to 14:00; attendance is required on both days, with peer feedback on every talk.

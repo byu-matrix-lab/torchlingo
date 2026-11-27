@@ -51,16 +51,16 @@ against its notebook once that lands. A13's was rewritten against its notebook o
 | 15 | Wed Nov 4 | Speech Translation | **A13** Back-Translation (due Fri Nov 6, 11:59 pm) | F2026, built Nov 3 (last year's Lecture 15, rebuilt) |
 | — | Mon Nov 9 | Proposal week: outline reviews with the professor (Eric and Coulson, Sep 30) | **Final Project 1** proposal outline review (5), by appointment (due 11:59 pm) | |
 | — | Wed Nov 11 | (proposal week) proposal presentations | **A14** Multilingual NMT, Both Directions (due Fri Nov 13, 11:59 pm) · **Final Project 2** proposal (20), at 10:00 am, the first presentation day | |
-| — | Mon Nov 16 | (proposal week) proposal presentations | | |
+| — | Mon Nov 16 | (proposal week) proposal presentations | **Final Project 2.5** proposal peer feedback (3), in class during each proposal | |
 | 16 | Wed Nov 18 | Automatic Dubbing and Live Interpretation | | F2025 (last year's Lecture 16), with Lecture 15's Part 3 of Nov 3 |
 | — | Mon Nov 23 | Project checkpoint reviews with the instructor, by appointment; no class meets (Eric, Oct 23) | **Final Project 3** checkpoint review (5), by appointment (due 11:59 pm) | |
 | — | Wed Nov 25 | **No class**, Thanksgiving Eve | | |
 | 17 | Mon Nov 30 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | | F2025, trimmed, plus the writing slides of last year's Lecture 21 |
-| 18 | Wed Dec 2 | Research in the MATRIX Lab, Open Problems, and What Earlier MT Methods Teach | | F2025, from last year's Lectures 21 and 23, with word alignment and earlier methods condensed |
-| 19 | Mon Dec 7 | MT in Use: Applications, Jobs and Post-Editing | | F2025, from last year's Lecture 22, with Lecture 18's post-editing |
-| — | Wed Dec 9 | Final project presentations, day 1 of 2 (Steve Richardson and Eric, Oct 26) | **Paper review assignment** | |
-| — | Thu Dec 10 | Last day of class | **Final Project 4** written report (40, ACL template) (due 11:59 pm) · **Final Project 5** submission (35) (due 11:59 pm) | |
-| — | Wed Dec 16 | Final exam slot, 11:00 to 14:00; final project presentations, day 2 of 2 | **Final Project 6** presentation (20; a 10-minute slot: 7 to talk, 2 for questions, 1 to hand off), Dec 9 or the exam slot (due 2:00 pm) · **Final Project 7** peer feedback (5), a form on every other presentation (due 2:00 pm) | |
+| 18 | Wed Dec 2 | Open Problems, and What Earlier MT Methods Teach | | F2026, built Nov 25 from last year's Lectures 19 and 20, condensed, with open problems from the WMT25 preliminary ranking |
+| 19 | Mon Dec 7 | MT in Use: Applications, Jobs and Post-Editing | **Paper review assignment** (due 10:00 am) | F2025, from last year's Lecture 22, with Lecture 18's post-editing |
+| — | Wed Dec 9 | Final project presentations, day 1 of 2 (Steve Richardson and Eric, Oct 26) | **Final Project 4** written report (40, ACL template), before anyone presents (due 10:00 am) · **Final Project 5** submission (35) (due 10:00 am) | |
+| — | Thu Dec 10 | Last day of class | | |
+| — | Wed Dec 16 | Final exam slot, 11:00 to 14:00; final project presentations, day 2 of 2 | **Final Project 6** presentation (20; a 10-minute slot: 7 to talk, 2 for questions, 1 to hand off), Dec 9 or the exam slot; slides by 10:00 am on the day you present (due 2:00 pm) · **Final Project 7** peer feedback (5), a form on every other presentation (due 2:00 pm) | |
 
 An assignment appears on the row of the day it is **due**, which is how Learning Suite lists
 it, at 10:00 unless said otherwise (Learning Suite has A7 at 11:59 pm; the deck says 10:00,
@@ -78,12 +78,13 @@ lecture became 17, and research and open problems merged with a condensed 19 and
 Lecture quizzes run through Lecture 18, and 8a and 8b each have their own.
 
 **Paper reviews** run alongside: 24 papers on the sign-up sheet (Google Sheet "CS 479 Fall
-2026", tab "Reading Report"), presented Oct 5 through Dec 2 at one or two per session, each
+2026", tab "Reading Report"), presented Oct 5 through Dec 7 at one or two per session (the presentation is the Paper Review, due by
+the last one; Eric, Nov 25), each
 placed next to the lecture its topic belongs with, and the sheet's LECTURE TOPIC ALIGNMENT
 column says which. From Oct 12 on, that column is one lecture off from the schedule (the QE
 papers of Oct 12 land on Lecture 9, COMET on Lecture 10); the unassigned Och and Ney slot on
-Nov 23 belongs on Dec 2, the merged alignment session, since no class meets on Nov 23. Dec 7 is an open slot if a
-student has to move; Dec 9 is final project presentations.
+Nov 23 belongs on Dec 2, the merged alignment session, since no class meets on Nov 23. Dec 7 now holds the last
+reading report; Dec 9 is final project presentations.
 
 ---
 
@@ -116,7 +117,7 @@ two.
 | A12 | 12, Mon Oct 26 | **Mon Nov 2** | 7, Mon Oct 26 to Mon Nov 2 (Eric, Oct 26: moved from Fri Oct 30, which had moved from Wed Oct 28 on Oct 22); the A12 page and notebook were open from Oct 21 |
 | A13 | 13, Wed Oct 28 | **Fri Nov 6, 11:59 pm** | 9, Wed Oct 28 to Fri Nov 6, overlapping A12 until Nov 2: start the training run early and let it train while finishing A12 (Eric, Oct 26: due moved from Wed Nov 4, and windows may overlap) |
 | A14 | 14, Mon Nov 2 | **Fri Nov 13, 11:59 pm** | 11, Mon Nov 2 to Fri Nov 13, overlapping A13 until Nov 6 and the first proposal presentations (Nov 11); students start now, and the A13 reverse model, if trained, is one of the comparisons (Eric, Nov 2: due moved from Tue Nov 10, overriding Oct 22's rule that A14 end before the presentations) |
-| A15 | 15, Wed Nov 4 | dropped | this term, folded into the Final Project (Eric, Oct 22): its page unpublished and kept for next year, its 20 points dropped, the speech pipeline named as a Path B example |
+| A15 | 15, Wed Nov 4 | dropped | this term, folded into the Final Project (Eric, Oct 22): its page kept published, marked "Not assigned this term" as a reference for Path B (Eric, Nov 15), and kept for next year, its 20 points dropped, the speech pipeline named as a Path B example |
 
 Costs accepted knowingly: Lecture 16 (dubbing and live interpretation) sits two weeks after
 Lecture 15, after the proposal presentations, and picks up where Lecture 15 stopped; there is
@@ -172,27 +173,27 @@ the scope notes below carry the content, this carries the point.
 
 | # | Lecture | A student who did the work can | Shown by |
 |---|---|---|---|
-| 1 | Course overview, history | Place Weaver, Georgetown, ALPAC, SMT and NMT in order and say what each promised and delivered; state the course's rules on quizzes, late work and AI. | A1, Quiz 1 |
-| 2 | Translation challenges | Name the kinds of difficulty (lexical and structural ambiguity, word order, morphology, reference, world knowledge) and rank them for their own language with real examples. | A2 |
-| 3 | Word embeddings | Explain the distributional idea behind word2vec, GloVe and contextual embeddings; test whether a multilingual space lines up for their language pair and read a similarity matrix row by row. | A3 heat map and analysis |
-| 4 | Data preparation | Read a TMX file through `repr`, find a planted problem with code rather than by eye, write a cleaning step as one function, and say which of the 16 steps fixes which problem. | A4: extraction plus three steps |
-| 5 | Data preparation, part 2 | Run a full cleaning pipeline to a sentence-aligned corpus; explain Gale-Church (length correlation, link types, the cost model, c and s²) and where length-based alignment fails. | A5, the corpus everything else consumes |
-| 6 | Evaluation | Rank translations by hand before seeing a score; compute BLEU from its parts and explain a zero; use chrF; say where a metric and a human disagree and what the metric was rewarding. | A6 |
-| 7 | Paper reviews; neural networks | Review a paper to the course template; explain neuron, activation, forward pass, loss and gradient; read a loss curve against ln V; tell memorisation from translation with a held-out item. | A7 report; paper reviews |
-| 8a | Encoder-decoder and attention | Describe the encoder-decoder and its bottleneck; explain attention as a learned soft alignment and read an alignment matrix; split and verify a corpus and say why the dedupe is source-side; read training against validation loss; start, checkpoint and resume a long run. | A8 |
-| 8b | The Transformer | Describe self-attention (query, key, value, scaled dot product, softmax) and compute one step by hand; say why there are three attentions and what each is for; read a tensor shape. | Quiz 8b |
-| 8c | Finishing the Transformer | Describe multi-head attention, the encoder block and residual stream, and the decoder's masked self-attention and cross-attention; say how order gets into a model with no recurrence; place their own A8 BLEU on the measured capacity curve and say what capacity buys and when; weigh NMT's strengths against its deployment costs. | A8 report back; Quiz 8c |
-| 9 | Morphology, subwords, terminology | Explain the fixed-vocabulary problem and how morphology makes vocabularies explode; segment a sentence with BPE by hand; measure `<unk>` before and after SentencePiece; retrain with one variable changed and attribute the BLEU difference to it. | A9 comparison |
-| 10 | Quality estimation | Distinguish evaluation from estimation; say what COMET and COMET-QE score and what the number means; explain greedy against beam search and why a comparison must pin decoding. | A10; Quiz 10 |
-| 11 | Neural QE and toolkits | Run COMET and COMETKiwi on their own A6 data and on their own A8 and A9 test output; reconcile them with BLEU, chrF and their human ranking; state what LLM-as-judge scores and its system- against segment-level caveat. | A11 |
-| 12 | LLMs for MT; context | Prompt a decoder-only model to translate a low-resource language from a few example pairs, with no training; measure how much random and nearest examples improve translation, and tell a real difference from the spread between random draws; explain how examples in the prompt help or hurt when the model's weights never change, and what sentence-by-sentence translation cannot fix; give the model the sentence before, with its translation, and measure whether it resolves a pronoun or a repeated term the sentence alone leaves ambiguous, and why a score over the whole test set can miss it. | A12 chart and analysis |
-| 13 | Low-resource strategies | Explain what makes a language qualify as low-resource; explain how back-translation turns target-side text into training pairs; explain sampling, and when it makes better back-translations than beam; name three other ways to augment scarce data; explain how Assignment 13 separates the effect of data from that of decoding. | A13 |
-| 14 | Multilingual and zero-shot | Explain how a tag tells one model which language to write; explain why a tagged model can translate pairs it never trained on; explain how a low-resource language borrows from related ones in one model; explain when fine-tuning a pretrained model beats training from scratch; explain how Assignment 14 compares one two-way and two one-way models. | A14 |
-| 15 | Speech translation | Explain how spoken language differs from the text MT is trained on; explain when to choose among four speech translation designs; explain how a learned codebook turns sound into tokens. | Quiz 15; the Final Project's Path B example (A15 dropped this term) |
-| 16 | Automatic dubbing and live interpretation | Explain what dubbing adds to translation: timing, length, and voice; explain why live interpretation trades quality for latency; explain how a simultaneous system decides when to start translating; explain how a live system uses a script, when it has one. | Quiz 16 |
-| 17 | Multimodal NMT; writing the report | Explain when an image helps translation, and how to test that it did; explain what an ablation with the wrong image, or none, shows; explain what each section of the ACL-style report must show. | Quiz 17; the Final Project's written report |
-| 18 | Research, open problems and earlier methods | Explain an open problem in MT and the kind of work it needs; explain how one MATRIX Lab project frames and tests its question; explain how word alignments relate to attention in NMT; explain what NMT replaced from earlier methods, and what it kept. | Quiz 18 |
-| 19 | MT in use | Explain where MT is used and what work it creates; explain how edit distance measures post-editing effort; explain when post-editing helps a translator, and when it does not. | class discussion; edit distance available as a Final Project measure |
+| 1 | Course overview, history | Explain what each era of MT (rules, statistics, neural networks, LLMs) promised, what it delivered, and why; explain how to tell a credible MT claim from hype, using Weaver, Georgetown-IBM, and ALPAC as cases; explain why MT for low-resource languages matters, and what makes it hard. | A1, Quiz 1 |
+| 2 | Translation challenges | Explain why fully automatic high-quality translation is hard, and argue where it is and is not within reach; explain how lexical ambiguity, structural ambiguity, and long-distance dependencies make translation hard, and find examples of each in any language pair; explain how word order, reference, world knowledge, and morphology trip up MT, and predict which will matter most for a language you have not studied; explain why context decides so many translations. | A2 |
+| 3 | Word embeddings | Explain the distributional idea, why words that share contexts end up with similar vectors, and how syntagmatic and paradigmatic relationships between words differ; explain how count-based methods (LSA, PMI, GloVe) and predictive methods (word2vec) build embeddings, and how contextual embeddings differ from these static embeddings; explain how a multilingual model puts languages in one space, and how to test whether two languages' spaces line up. | A3 heat map and analysis |
+| 4 | Data preparation | Explain where parallel data comes from (translation memories and TMX files), and what can go wrong in parallel data; explain why cleaning steps must run in a particular order, and how to design a cleaning pipeline for data you have not seen; explain how to find a data problem with code rather than by eye. | A4: extraction plus three steps |
+| 5 | Data preparation, part 2 | Explain when parallel data needs sentence alignment, and what misalignment does to a model trained on it; explain how the Gale-Church algorithm uses the correlation of sentence lengths across languages to align sentences, and where length-based alignment breaks down; explain how to debug a data pipeline: find what broke, and fix the pipeline rather than the data. | A5, the corpus everything else consumes |
+| 6 | Evaluation | Explain why and for whom we evaluate MT, and how human methods (ranking, adequacy and fluency, MQM) differ; explain how BLEU is computed from n-gram precisions and a brevity penalty, and why BLEU scores compare only under the same tokenization and settings; explain what chrF rewards that BLEU misses, and when matching characters works better than matching words; explain where an automatic metric and a human judge disagree, and what the metric was rewarding. | A6 |
+| 7 | Paper reviews; neural networks | Explain why a model is judged on data it never trained on, and how separate training, validation, and test sets keep that judgment honest; explain how a neural network learns: neurons, layers, activation functions, a cost function, and gradient descent; explain how to read a research paper and judge what its evidence supports. | A7 report; paper reviews |
+| 8a | Encoder-decoder and attention | Explain how an encoder-decoder translates, and why encoding a whole sentence into one fixed-size vector becomes a bottleneck; explain attention as a learned soft alignment between source and target words, and how it removes the fixed-size bottleneck; explain why sentence length acts as a memory budget when training any sequence model; explain how to read training against validation loss to tell when a model stops improving; explain what a long run must save so that it can be resumed, or reloaded as the model you trained. | A8 |
+| 8b | The Transformer | Explain what question each of a Transformer's three attentions answers (encoder self-attention, decoder self-attention, and cross-attention), and recognize query-key-value attention in models beyond translation; explain how attention turns query-key scores into weights with softmax and mixes the values, and compute one step by hand; explain how self-attention lets every word attend to every other word at once, and what attending to every pair of words costs as sentences grow longer. | Quiz 8b |
+| 8c | Finishing the Transformer | Explain how multi-head attention, residual connections, and position encodings make up the full Transformer, and how word order gets into a model with no recurrence; explain what a larger model buys, and when more data stops helping a model of a given size; explain the strengths of neural MT, and what it costs to deploy. | A8 report back; Quiz 8c |
+| 9 | Morphology, subwords, terminology | Explain what a fixed vocabulary costs a system, starting with `<unk>`, and why rich morphology makes vocabularies explode; explain how byte-pair encoding and SentencePiece build subwords, and how to choose a vocabulary size for a language you have not worked with; explain how to make a system use required terminology, and what forcing terms into the output can cost. | A9 comparison |
+| 10 | Quality estimation | Explain how greedy and beam search differ, and why a fair comparison of two systems decodes both the same way; explain how evaluation (with a reference) differs from estimation (without one), and when only estimation is possible; explain how a learned metric such as COMET is trained to predict human judgments, and so when to trust its score. | A10; Quiz 10 |
+| 11 | Neural QE and toolkits | Explain why a prompted LLM judge is itself a metric, with a metric's limits; explain why ranking systems well differs from judging single sentences well, and how test data can flatter a metric; explain how error spans (xCOMET, AutoMQM) show where a translation fails, not just how badly. | A11 |
+| 12 | LLMs for MT; context | Explain how a decoder-only model translates by continuing text, and how examples in the prompt change its output without changing its weights; explain what a few examples in the prompt can and cannot make up for in a low-resource language; explain where translating one sentence at a time goes wrong, and what context from the document can fix; explain how to tell a real improvement from the spread between random draws. | A12 chart and analysis |
+| 13 | Low-resource strategies | Explain what makes a language low-resource, beyond its count of sentence pairs; explain how back-translation turns monolingual text into training data, and when back-translated data helps or hurts; explain why sampling can make better back-translations than beam search; explain how to attribute a change to one cause when an experiment changes two things. | A13 |
+| 14 | Multilingual and zero-shot | Explain how one model translates many directions from a language tag, and why it can translate pairs it never trained on; explain how a low-resource language borrows from related languages in one model, and when sharing one model across languages hurts; explain when fine-tuning a pretrained model beats training from scratch. | A14 |
+| 15 | Speech translation | Explain how spoken language differs from the text MT is trained on, and what the difference means for any speech system; explain how to choose a speech translation design for a given language, data, and use; explain how a learned codebook turns a continuous signal, such as sound, into tokens a model can use. | Quiz 15; the Final Project's Path B example (A15 dropped this term) |
+| 16 | Automatic dubbing and live interpretation | Explain what dubbing adds to translation (timing, length, and voice), and how a translation can be fit to a time or length limit; explain the trade between quality and latency in live interpretation, and how a simultaneous system decides when to commit to words; explain how a live system uses the best text available, such as a prepared script. | Quiz 16 |
+| 17 | Multimodal NMT; writing the report | Explain when an image helps translation, and when the text alone is enough; explain how an ablation (the wrong image, or none) tests whether an input helped; explain what each section of a research report must show a reader. | Quiz 17; the Final Project's written report |
+| 18 | Open problems and earlier methods | Explain what NMT replaced from earlier methods, and what it kept; explain how word alignments relate to attention in NMT; explain an open problem in MT and the kind of work it needs. | Quiz 18 |
+| 19 | MT in use | Explain where MT is used, and what work it creates and changes; explain how edit distance measures post-editing effort, and what it misses; explain when post-editing helps a translator, and when it does not. | class discussion; edit distance available as a Final Project measure |
 
 ### Notebook outcomes, and who does the work
 
@@ -229,6 +230,7 @@ steps.
 | `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help; how much of a change came from the data and how much from decoding; a difference tested, not only measured | extract monolingual text from their Church TM's unused segments, topped up from public text if short; choose their own reverse model or NLLB as back-translator, which back-translates by sampling (one retrain, Eric, Oct 22); write reverse and combine (the method, checked against known answers and the contamination check); state an "If ..., then ..." hypothesis and a prediction before retraining; say why sampling, from two of their own back-translated sentences; add Google back-translations to two helped and two hurt examples; upload the completed notebook | the reverse training (none with NLLB), the sampled back-translation with five greedy ones beside it, one retraining, A9 and A13 decoded greedily and with beam 5, BLEU, chrF, the paired bootstrap, COMET, the rerun record and the upload files | low |
 | `lecture-14-multilingual` | a language code tells one model which way to translate, and why that makes zero-shot possible; whether one shared model matches two one-way models, decoding held fixed and the difference tested; what fine-tuning a pretrained model buys over the same model off the shelf and over a model trained from scratch | choose their language's code (borrowing one, with a reason, if NLLB does not cover it); write tag and both_directions (checked on a known case, for intermingling, and by the contamination check in both languages); state an "If ..., then ..." hypothesis and a prediction, and set a step budget, before training; choose a third language for the zero-shot test; explain the code from the model's output under the wrong one; upload the completed notebook | NLLB off the shelf, the fine-tuning (torchlingo_harness.nllb.fine_tune), each direction decoded greedily and with beam 5 against NLLB off the shelf and its one-way model (A9; the A13 reverse model), BLEU, chrF, the paired bootstrap, COMET, the wrong-code and third-language outputs, the time of each long stage, the rerun record and the upload files | low |
 | `lecture-18-ibm-model-1` | how EM learns word alignments from sentence pairs alone; where attention agrees with such an alignment, where it differs, and why it needs no EM | predict what `house` translates to after one round of EM and why it is not yet sure; compare the two alignments row by row and say why they differ; if time, add a pair and see what moves | EM, written out as the lesson; the attention, teacher-forced through Lecture 8b's model and grouped from pieces to words | low |
+| `lecture-19-post-editing` | how an edit rate measures post-editing effort; why TER counts a move as one edit; why two correct post-edits score differently; what an edit rate cannot weigh | post-edit five outputs with as few changes as they can; predict their highest edit rate; find their own most and least important edits and compare what each cost | the edit distance, written out as the lesson; TER through sacrebleu; the professional post-edits and two one-word edits from MLQE-PE | low |
 
 ### Where the line is crossed
 
@@ -466,20 +468,22 @@ reports belong here, if their presenters move from Nov 18. Last year's logistics
 out. Then 15 minutes on writing, while students start their reports: Overleaf, the ACL template,
 and what each section must show for the rubric, with the lab paper as the worked example.
 
-### 18. Research in the MATRIX Lab, Open Problems, and What Earlier MT Methods Teach (F2025 Lectures 21, 23, 19 and 20, condensed; Wed Dec 2)
-The lab research half of last year's Lecture 21 (Lawry Sorenson's CTC forced alignment, Ammon
-Shurtz's phonetic transliteration for Thai, Lao and Khmer) and last year's Lecture 23, open
-problems; then, condensed, word alignment and how it relates to attention, and what NMT replaced
-from rule-based, example-based and phrase-based MT. A standalone earlier-methods lecture gave way
-to Lecture 16 (Eric, Nov 3). The Och and Ney and the phrase-based reading reports belong here.
-The in-class notebook runs IBM Model 1 and sets its alignment beside attention (Eric, Nov 5).
+### 18. Open Problems, and What Earlier MT Methods Teach (F2025 Lectures 19 and 20, condensed; Wed Dec 2)
+No lab research segment: Eric, Nov 25, leave out the lab's current topics, so last year's Lecture 21
+talks and the lab outcome go. Before neural MT (the five methods, the Vauquois triangle, transfer
+rules, statistical MT, a phrase table); word alignment learned by counting, with the in-class
+notebook running IBM Model 1 and setting its alignment beside attention (Eric, Nov 5); then what NMT
+replaced and kept, and three open problems from the WMT25 preliminary ranking (little data, measures
+we can trust, beyond the paragraph). The Och and Ney and the phrase-based reading reports belong
+here. Last year's Lecture 23 closing material moves to Lecture 19 (Eric, Nov 25).
 
 ### 19. MT in Use: Applications, Jobs and Post-Editing (F2025 Lecture 22, with Lecture 18's post-editing; Mon Dec 7)
 Where MT is used, the industry and jobs; about 10 minutes from last year's Lecture 18 on
 post-editing as how translators now work, and normalized edit distance as a measure a project
 can use. The post-editing reading report belongs here. Last year's Lecture 18 (HAMT vs. MAHT,
 interactive and adaptive MT, the in-class activity) is not taught this term (Eric, Oct 26).
-Final project presentations close the semester, Dec 9 and the exam slot.
+It closes with last year's Lecture 23: graduate school, careers, the prophetic statements on
+translation, and student ratings (Eric, Nov 25). Final project presentations close the semester, Dec 9 and the exam slot.
 
 **The final project** is one Learning Suite page, "Final Project", in four sections (Proposal,
 Presentation, Write-up, Submission), each linked from its gradebook entry. A student takes one of
@@ -493,8 +497,9 @@ two paths: **investigate a question** (a hypothesis, and one change against a na
 - **where it helped and where it hurt;**
 - **reproducibility:** versions, seeds and decoding settings named.
 
-All project work is due Thu Dec 10 at 11:59 pm; the presentations take the last class meeting, Wed Dec 9, and the final
-exam slot, Wed Dec 16, 11:00 to 14:00.
+The written report and the submission are due Wed Dec 9 at 10:00 am, before anyone presents (Eric, Nov 25;
+until then Thu Dec 10 at 11:59 pm). The presentations take the last class meeting, Wed Dec 9, and the final
+exam slot, Wed Dec 16, 11:00 to 14:00; attendance is required on both days, with peer feedback on every talk.
 
 ---
 
@@ -532,6 +537,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-14-multilingual` | 14 | homework | A14 | NLLB-200 fine-tuned both ways on A9's split, against NLLB off the shelf and the student's own one-way models | no: colab, exercises |
 | `09-fine-tuning-nllb` | 14 | reading | FP | how much fine-tuning is enough and what it costs, on the student's A8 split, after A14 | no: colab, download, exercises |
 | `lecture-18-ibm-model-1` | 18 | activity | | IBM Model 1 by EM on thirteen English-Spanish pairs, its alignment set beside a Transformer's attention on the same pair | no: exercises |
+| `lecture-19-post-editing` | 19 | activity | | Post-editing five Estonian-English MT outputs, measured by edit distance and TER beside a professional's post-edits of the same outputs | no: exercises |
 
 **Tutorial numbers** are in course order: 01 data, 02 evaluating, 03 checkpoints, 04 attention,
 05 transformer-attention, 06 diagnosing, 07 real-translations, 08 beam search, 09 fine-tuning.
@@ -1041,8 +1047,8 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 15 | Speech Translation | — | — |
 | 16 | Automatic Dubbing and Live Interpretation | — | — |
 | 17 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | — | — |
-| 18 | Research in the MATRIX Lab, Open Problems, and What Earlier MT Methods Teach | `lecture-18-ibm-model-1` (activity) [20] | — |
-| 19 | MT in Use: Applications, Jobs and Post-Editing | — | — |
+| 18 | Open Problems, and What Earlier MT Methods Teach | `lecture-18-ibm-model-1` (activity) [20] | — |
+| 19 | MT in Use: Applications, Jobs and Post-Editing | `lecture-19-post-editing` (activity) [21] | — |
 
 Notes on the rows that are not simple:
 
@@ -1257,6 +1263,17 @@ Notes on the rows that are not simple:
   alignment, weights differentiable and trained by the translation loss. An optional last
   step adds a pair (the boy / el niño) and reruns. tests/test_lecture_18.py runs it with
   the prediction written in.
+- [21] **`lecture-19-post-editing`** — Lecture 19's in-class activity, about 15 minutes in
+  pairs, no points, CPU only (Cowork's hand-off N, Eric, Nov 25). Five Estonian-English MT
+  outputs from MLQE-PE (CC0), each shown with an independent human translation for its
+  meaning, so students who read no Estonian can post-edit. POST_EDITS starts as the MT
+  outputs, edited in place; it and PREDICTION stop the notebook until written. Word-level
+  edit distance is written out as the lesson, then sacrebleu's TER over the same
+  lowercased words, which reproduces the published HTER of the professional post-edits.
+  The professional's post-edits show a moved date (edit rate 0.71, TER 0.21) and a
+  reordering of an output that needed none (0.60); two one-word post-edits, a dropped
+  article and a restored 'not' (Nepali-English), get the same 0.07.
+  tests/test_lecture_19.py runs it with post-edits and a prediction written in.
 
 <!-- END generated:notebook-map -->
 

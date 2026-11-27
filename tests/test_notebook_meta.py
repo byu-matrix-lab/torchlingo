@@ -20,6 +20,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import ClassVar
 
 import yaml
 
@@ -1274,6 +1275,41 @@ class TestNotebookHygiene(unittest.TestCase):
         )
         complaints = self.check(nb)
         self.assertTrue(any("outcome block" in c for c in complaints), complaints)
+
+    OUTCOMES: ClassVar[dict[str, str]] = {
+        "8a": "Explain how an encoder-decoder translates; explain attention as a learned "
+        "soft alignment between source and target words.",
+        "8b": "Explain what question each attention answers.",
+    }
+
+    def test_quotes_from_the_outcome_pass_whatever_their_first_letter(self):
+        head = (
+            "These serve Lecture 8a's outcome *explain attention as a learned soft\n"
+            "alignment*, and Lecture 8b's *Explain what question each attention answers*."
+        )
+        self.assertEqual(nm.stale_outcome_quotes(head, self.OUTCOMES), [])
+
+    def test_a_quote_the_outcome_no_longer_holds_is_named_with_its_lecture(self):
+        """The Nov 25 rewrite left 25 notebooks quoting outcomes that had changed."""
+        head = "These serve Lecture 8a's outcome *start, checkpoint and resume a long run*."
+        stale = nm.stale_outcome_quotes(head, self.OUTCOMES)
+        self.assertEqual(len(stale), 1, stale)
+        self.assertIn("Lecture 8a", stale[0])
+
+    def test_two_clauses_that_are_not_adjacent_are_not_one_quote(self):
+        head = (
+            "These serve Lecture 8a's outcome *Explain how an encoder-decoder translates;"
+            " explain attention as a learned soft alignment*."
+        )
+        self.assertEqual(nm.stale_outcome_quotes(head, self.OUTCOMES), [])
+        skipping = "These serve Lecture 8a's outcome *Explain how; explain attention*."
+        self.assertEqual(len(nm.stale_outcome_quotes(skipping, self.OUTCOMES)), 1)
+
+    def test_a_lecture_without_an_outcome_is_named(self):
+        head = "These serve Lecture 99's outcome *anything*."
+        stale = nm.stale_outcome_quotes(head, self.OUTCOMES)
+        self.assertEqual(len(stale), 1, stale)
+        self.assertIn("no outcome", stale[0])
 
     def with_code_cells(self, *sources):
         """Append code cells, in the 4.0 shape the fixture uses (no id)."""
