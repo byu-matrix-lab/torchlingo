@@ -230,7 +230,7 @@ steps.
 | `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help; how much of a change came from the data and how much from decoding; a difference tested, not only measured | extract monolingual text from their Church TM's unused segments, topped up from public text if short; choose their own reverse model or NLLB as back-translator, which back-translates by sampling (one retrain, Eric, Oct 22); write reverse and combine (the method, checked against known answers and the contamination check); state an "If ..., then ..." hypothesis and a prediction before retraining; say why sampling, from two of their own back-translated sentences; add Google back-translations to two helped and two hurt examples; upload the completed notebook | the reverse training (none with NLLB), the sampled back-translation with five greedy ones beside it, one retraining, A9 and A13 decoded greedily and with beam 5, BLEU, chrF, the paired bootstrap, COMET, the rerun record and the upload files | low |
 | `lecture-14-multilingual` | a language code tells one model which way to translate, and why that makes zero-shot possible; whether one shared model matches two one-way models, decoding held fixed and the difference tested; what fine-tuning a pretrained model buys over the same model off the shelf and over a model trained from scratch | choose their language's code (borrowing one, with a reason, if NLLB does not cover it); write tag and both_directions (checked on a known case, for intermingling, and by the contamination check in both languages); state an "If ..., then ..." hypothesis and a prediction, and set a step budget, before training; choose a third language for the zero-shot test; explain the code from the model's output under the wrong one; upload the completed notebook | NLLB off the shelf, the fine-tuning (torchlingo_harness.nllb.fine_tune), each direction decoded greedily and with beam 5 against NLLB off the shelf and its one-way model (A9; the A13 reverse model), BLEU, chrF, the paired bootstrap, COMET, the wrong-code and third-language outputs, the time of each long stage, the rerun record and the upload files | low |
 | `lecture-18-ibm-model-1` | how EM learns word alignments from sentence pairs alone; where attention agrees with such an alignment, where it differs, and why it needs no EM | predict what `house` translates to after one round of EM and why it is not yet sure; compare the two alignments row by row and say why they differ; if time, add a pair and see what moves | EM, written out as the lesson; the attention, teacher-forced through Lecture 8b's model and grouped from pieces to words | low |
-| `10-ibm-model-2` (reading) | a learned diagonal settles what counting cannot where two languages keep word order, and misleads where they reorder, even overruling the words; attention weighs position with content instead | predict whether Model 2 aligns a reordered adjective and noun correctly, and why; read the reveal | Model 1, condensed; Model 2's EM, written out as the lesson; the tables of positions, the alignments, and a retraining with two more pairs | low, as reading |
+| `10-ibm-model-2` (reading) | a learned diagonal settles what counting cannot where two languages keep word order, and misleads where they reorder, even overruling the words; attention weighs position with content instead | predict whether Model 2 aligns a reordered adjective and noun correctly, and why; predict which model two more sentences fix; read each reveal against the prediction | Model 1, condensed; Model 2's EM, written out as the lesson; the tables of positions, the alignments, and a retraining with two more pairs | low, as reading |
 | `lecture-19-post-editing` | how an edit rate measures post-editing effort; why TER counts a move as one edit; why two correct post-edits score differently; what an edit rate cannot weigh | post-edit five outputs with as few changes as they can; predict their highest edit rate; find their own most and least important edits and compare what each cost | the edit distance, written out as the lesson; TER through sacrebleu; the professional post-edits and two one-word edits from MLQE-PE | low |
 
 ### Where the line is crossed
@@ -1092,13 +1092,14 @@ Notes on the rows that are not simple:
   written out, since it is the lesson. Two six-word pairs each hold an adjective and a
   noun found nowhere else: the young fox keeps English order, the grey owl reverses it.
   Model 1 splits both fifty-fifty; Model 2's learned diagonal settles the fox and gets the
-  owl wrong, which the student predicts first, stopping the notebook while empty. Two more
-  owl pairs fix Model 1 and not Model 2, whose near-certain table of positions outvotes
-  the words; fast_align's relative diagonal, attention's positional encoding weighed with
-  content, and awesome-align close it, toward a Final Project that aligns words. The
-  four-word table learns a swap, and the optional last step adds a four-word pair in
-  English order. CPU, seconds. tests/test_tutorial_10.py runs it with the prediction
-  written in and checks every claim its markdown makes.
+  owl wrong, which the student predicts first. Two more owl pairs fix Model 1 and not
+  Model 2, which the student predicts too, each prediction stopping the notebook while
+  empty. Model 2's near-certain table of positions outvotes the words; fast_align's
+  relative diagonal, attention's positional encoding weighed with content, and
+  awesome-align close it, toward a Final Project that aligns words. The four-word table
+  learns a swap, and the optional last step adds a four-word pair in English order. CPU,
+  seconds. tests/test_tutorial_10.py runs it with both predictions written in and checks
+  every claim its markdown makes.
 - [7] **`lecture-04-regex-refresher`** — A twenty-minute tour of Python regular
   expressions, which the sixteen cleaning steps are written in, ending with re.sub for
   collapsing whitespace and stripping tags. Lecture 4's deck links it and Learning Suite

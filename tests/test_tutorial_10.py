@@ -1,8 +1,8 @@
 """Tutorial 10, executed from the notebook: IBM Model 2 against Model 1.
 
 The notebook declares ``exercises``, so CI's notebook run skips it: as shipped it stops at the
-prediction until a student writes one. These tests run its cells from the notebook file itself
-with a prediction written in, and check what its markdown says of the results, so the prose
+first prediction until a student writes one, and then at the second. These tests run its cells
+from the notebook file itself with both predictions written in, and check what its markdown says of the results, so the prose
 cannot drift from them: Model 1 cannot tell the two ``le`` apart and splits the fox and the owl
 evenly; Model 2 learns a diagonal for six-word pairs and a swap for four-word ones, settles the
 fox and gets the owl wrong, by learning that *chouette* means *grey*; and two more owls fix
@@ -28,14 +28,21 @@ SKIPPED = ("%pip install",)
 PREDICTED = {
     'PREDICTION = ""': 'PREDICTION = "No: the diagonal puts chouette on grey."'
 }
+PREDICTED_MORE = {
+    'PREDICTION_MORE = ""': 'PREDICTION_MORE = "Model 1 only: the positions are certain."'
+}
 
 FOX = ("the young fox sees the cat", "le jeune renard voit le chat")
 OWL = ("the grey owl sees the cat", "la chouette grise voit le chat")
 
 
-def tutorial_10_cells(predicted: bool = True):
+def tutorial_10_cells(predicted: bool = True, predicted_more: bool = True):
     cells = [c for c in code_cells(NOTEBOOK) if not any(m in c[1] for m in SKIPPED)]
-    return substitute(cells, PREDICTED) if predicted else cells
+    if predicted:
+        cells = substitute(cells, PREDICTED)
+    if predicted_more:
+        cells = substitute(cells, PREDICTED_MORE)
+    return cells
 
 
 class TestTutorial10(unittest.TestCase):
@@ -57,7 +64,14 @@ class TestTutorial10(unittest.TestCase):
     def test_as_shipped_it_stops_at_the_prediction(self):
         with self.assertRaises(AssertionError) as stopped:
             run_cells(tutorial_10_cells(predicted=False))
-        self.assertIn("Write your prediction", str(stopped.exception))
+        self.assertIn("Write your prediction in PREDICTION,", str(stopped.exception))
+
+    def test_then_it_stops_before_the_two_more_owls(self):
+        with self.assertRaises(AssertionError) as stopped:
+            run_cells(tutorial_10_cells(predicted_more=False))
+        self.assertIn(
+            "Write your prediction in PREDICTION_MORE", str(stopped.exception)
+        )
 
     def test_fifteen_pairs_five_of_six_words_four_in_english_order(self):
         """Step 3: 'Of the five six-word pairs, four keep English order'."""
@@ -123,9 +137,12 @@ class TestTutorial10(unittest.TestCase):
         self.assertGreater(t2["chouette", "owl"], t2["chouette", "grey"])
         self.assertGreater(a2[1, 1, 6, 6], 0.99)
 
-    def test_the_prediction_is_printed_back(self):
+    def test_both_predictions_are_printed_back(self):
         self.assertIn(
             "You predicted: No: the diagonal puts chouette on grey.", self.printed
+        )
+        self.assertIn(
+            "You predicted: Model 1 only: the positions are certain.", self.printed
         )
 
 

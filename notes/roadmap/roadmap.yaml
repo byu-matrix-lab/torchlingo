@@ -693,7 +693,7 @@ notebooks:
       and misleads where they reorder, even overruling the words; attention weighs position with
       content instead
     student_must: predict whether Model 2 aligns a reordered adjective and noun correctly, and
-      why; read the reveal
+      why; predict which model two more sentences fix; read each reveal against the prediction
     notebook_does: Model 1, condensed; Model 2's EM, written out as the lesson; the tables of
       positions, the alignments, and a retraining with two more pairs
     rating: low, as reading
