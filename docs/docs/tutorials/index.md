@@ -16,6 +16,8 @@ The easiest way to run these tutorials is in **Google Colab**—no installation 
 | **6. Diagnosing Failures** | Break a model on purpose; watch each check fire | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/06-diagnosing-failures.ipynb) |
 | **7. Translating Unseen Sentences** | A real model on text it never saw | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/07-real-translations.ipynb) |
 | **8. Inference and Beam Search** | Generate translations | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/08-inference-and-beamsearch.ipynb) |
+| **9. How Much Fine-Tuning Is Enough?** | Fine-tune NLLB at three budgets; measure what it forgets | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/09-fine-tuning-nllb.ipynb) |
+| **10. Does Word Position Help? IBM Model 2** | Align words by position; watch it fail where French reorders | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/byu-matrix-lab/torchlingo/blob/main/docs/docs/tutorials/10-ibm-model-2.ipynb) |
 
 !!! tip "Enable GPU in Colab"
     For faster training, enable GPU: **Runtime → Change runtime type → GPU**
@@ -91,6 +93,22 @@ Follow these tutorials in order for the best learning experience:
     Generate translations using greedy and beam search decoding strategies.
 
     [:octicons-arrow-right-24: Start Tutorial](08-inference-and-beamsearch.ipynb)
+
+-   :material-numeric-9-circle:{ .lg .middle } **How Much Fine-Tuning Is Enough?**
+
+    ---
+
+    Fine-tune a pretrained model on your own pairs at three budgets, and measure what it forgets.
+
+    [:octicons-arrow-right-24: Start Tutorial](09-fine-tuning-nllb.ipynb)
+
+-   :material-numeric-10-circle:{ .lg .middle } **Does Word Position Help? IBM Model 2**
+
+    ---
+
+    Add word position to IBM Model 1, and watch it settle one alignment and get another confidently wrong.
+
+    [:octicons-arrow-right-24: Start Tutorial](10-ibm-model-2.ipynb)
 
 </div>
 
@@ -252,6 +270,32 @@ You'll learn:
 - Scoring with `torchlingo.evaluation`, signature included
 
 **Key concepts**: decoding algorithms, decoding settings, fair comparison
+
+### Tutorial 9: How Much Fine-Tuning Is Enough, and What Does It Cost?
+
+**Time**: ~30 minutes, plus about 15 minutes of training on a GPU with more memory than a T4
+
+Read after A14. You'll learn:
+
+- Reading a learning curve, and where more fine-tuning steps stop paying for themselves
+- What fine-tuning one direction does to the other direction, and to a third language
+- What a learning rate set too high looks like, in the losses and in the translations
+
+**Key functions covered**: `torchlingo_harness.nllb.fine_tune`
+
+### Tutorial 10: Does Word Position Help? IBM Model 2
+
+**Time**: ~25 minutes; it runs on a CPU in seconds
+
+Read after Lecture 18's IBM Model 1 notebook. You'll learn:
+
+- What Model 2 adds to Model 1, a table of positions, and how the same EM learns it
+- Why position settles an alignment where two languages keep word order, and misleads where
+  they reorder
+- How attention uses position without a table of positions, and what that means for choosing
+  a word aligner
+
+**Key concepts**: IBM Model 2, EM, absolute position, fast_align, attention
 
 ## Tips for Success
 

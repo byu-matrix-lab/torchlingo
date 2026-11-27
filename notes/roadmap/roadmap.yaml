@@ -685,6 +685,18 @@ notebooks:
     notebook_does: EM, written out as the lesson; the attention, teacher-forced through Lecture
       8b's model and grouped from pieces to words
     rating: low
+  10-ibm-model-2:
+    purpose: IBM Model 2 beside Model 1 on fifteen English-French pairs, after Lecture 18's
+      notebook; word position, and when it helps an alignment
+    aside: (reading)
+    lesson: a learned diagonal settles what counting cannot where two languages keep word order,
+      and misleads where they reorder, even overruling the words; attention weighs position with
+      content instead
+    student_must: predict whether Model 2 aligns a reordered adjective and noun correctly, and
+      why; read the reveal
+    notebook_does: Model 1, condensed; Model 2's EM, written out as the lesson; the tables of
+      positions, the alignments, and a retraining with two more pairs
+    rating: low, as reading
   lecture-19-post-editing:
     purpose: Post-editing five Estonian-English MT outputs, measured by edit distance and TER
       beside a professional's post-edits of the same outputs
@@ -802,6 +814,8 @@ charts:
       title: How Much Fine-Tuning Is Enough?
       read_after: A14
       labels: {FP: sufficiency and budget}
+    10-ibm-model-2:
+      labels: {FP: aligning words}
 
 # The document, in order, pieces joined by a blank line:
 #   rule            a --- line
