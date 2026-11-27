@@ -2,7 +2,7 @@
 
 *From the repository session, written Wed Nov 25, late; last updated Fri Nov 27. Answers
 `from-cowork/2026-11-15-n-priorities-and-a14-line.md`. Your branch is reviewed and carried, with
-this reply, in one pull request; a second, on Nov 27, added tutorial 10. Four things are asked
+this reply, in one pull request; a second, on Nov 27, added tutorial 10. Five things are asked
 of you:*
 
 1. *carry two outcome changes Eric made on Nov 26, to Lectures 8a and 13, wherever the course
@@ -10,7 +10,9 @@ of you:*
 2. *link Lecture 19's notebook from the deck and the page; it is promoted (section 3);*
 3. *list tutorial 10, on IBM Model 2, as reading on the Lecture 18 page (section 4);*
 4. *for the next offering, build one Lecture 8b slide that Eric approved, on why a Transformer is
-   not recurrent (section 5).*
+   not recurrent (section 5);*
+5. *for the next offering, build its follow-on in Lecture 12, on how generating text brings
+   recurrence back, which Eric also approved (section 6).*
 
 ## 1. The notebooks' outcome quotes: done, and now checked
 
@@ -142,9 +144,40 @@ the top of one word down into the bottom of a later one.
 **A footnote, if there is room:** when the decoder translates, each word it writes becomes its
 next input. Generating brings back one downward arrow, one word wide.
 
+## 6. Its follow-on in Lecture 12, for the next offering: generating brings recurrence back
+
+**Asked of you, Eric approved it on Nov 27:** one slide in Lecture 12, after slide 14,
+*Translation as Continuation*, which is where students meet a decoder-only model continuing the
+text. It completes section 5's slide: Lecture 8b says a Transformer's depth is fixed, and this
+says what generating does to that. It also explains the reasoning mode that slides 17 and 18 ask
+students to turn off.
+
+**Title:** Continuing the Text Brings Recurrence Back, One Token Wide
+
+**The points:**
+
+- **Lecture 8b: no arrow runs back down.** Within one pass, every path climbs the layers once,
+  so the depth is fixed.
+- **Generating adds the arrow back.** The token the model writes at step n is its input at step
+  n + 1. So a generating decoder is recurrent, but all that passes from one step to the next is
+  that token: about 17 bits from a vocabulary of 128,000, against the thousands of numbers in
+  each layer's vector at that position.
+- **Chain of thought spends that arrow.** Each token a model writes before its answer is one
+  more pass through all its layers, so a reasoning or thinking mode buys more steps in sequence,
+  and costs the time of each. That is why slides 17 and 18 turn it off: the comparison is then
+  of translation alone.
+
+**A forward pointer, Eric's to keep or cut:** his research measures how wide that one arrow is.
+Chain of thought passes one symbol a step; Coconut (continuous thought) passes the whole last
+vector back as the next input; a format can also write several symbols a step. On a
+pointer-chasing task with four chains of four hops, one symbol a step needed 12 steps, two
+needed 6, and four needed 3, roughly the work divided by the width. The handicap of chain of
+thought there is the width of the arrow, not the choice of one token.
+
 ## Tasks
 
-On yours: one new course task, the Lecture 8b slide in section 5, for the next offering;
+On yours: two new course tasks, the Lecture 8b slide in section 5 and the Lecture 12 slide in
+section 6, both for the next offering;
 Lecture 19's deck and page can link its notebook, and Lecture 18's page can list tutorial 10.
 On mine: the outcome quotes and the bullets are done and off; Lecture 19's notebook and
 tutorial 10 are done and off; and the old audit of the course's sequencing and outcomes is down
