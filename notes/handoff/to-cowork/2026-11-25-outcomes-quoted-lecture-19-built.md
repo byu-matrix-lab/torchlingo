@@ -9,10 +9,10 @@ of you:*
    side shows the outcomes (section 1);*
 2. *link Lecture 19's notebook from the deck and the page; it is promoted (section 3);*
 3. *list tutorial 10, on IBM Model 2, as reading on the Lecture 18 page (section 4);*
-4. *for the next offering, build one Lecture 8b slide that Eric approved, on why a Transformer is
-   not recurrent (section 5);*
-5. *for the next offering, build its follow-on in Lecture 12, on how generating text brings
-   recurrence back, which Eric also approved (section 6).*
+4. *add one Lecture 8b slide that Eric approved, on why a Transformer is not recurrent, to the
+   deck in place (section 5);*
+5. *add its follow-on to Lecture 12's deck in place, on how generating text brings recurrence
+   back, which Eric also approved (section 6).*
 
 ## 1. The notebooks' outcome quotes: done, and now checked
 
@@ -111,15 +111,16 @@ badge at the top of the notebook opens it in Colab now.
   **Asked of you:** list it on the Lecture 18 page as reading for after class, and regenerate the
   tutorial map on the Assignments page.
 
-## 5. One Lecture 8b slide, for the next offering: attention never reads back and down
+## 5. One Lecture 8b slide, in place: attention never reads back and down
 
 **Asked of you, Eric approved it on Nov 27:** one slide in Lecture 8b, after slide 27,
 *Replacing the Recurrence with Self-Attention*. It comes from Eric's research session on
 recurrence, which put the question students ask: *why do we say a Transformer is not recurrent,
 when attention at word n reads earlier words?* Slide 27 answers half of it, across the words:
 one step between any two words, and parallel training. This slide adds the other half, up the
-layers. Lecture 8b has run this term, so it is for next fall; nothing changes before then. The
-slide's text, yours to fit to the deck:
+layers. Lecture 8b has run, but Eric wants the deck updated in place (Nov 17, confirmed Nov
+27), for students reading back and for the next offering. The slide's text, yours to fit to the
+deck:
 
 **Title:** Attention Reads Back and Across, Never Back and Down
 
@@ -144,13 +145,13 @@ the top of one word down into the bottom of a later one.
 **A footnote, if there is room:** when the decoder translates, each word it writes becomes its
 next input. Generating brings back one downward arrow, one word wide.
 
-## 6. Its follow-on in Lecture 12, for the next offering: generating brings recurrence back
+## 6. Its follow-on in Lecture 12, in place: generating brings recurrence back
 
 **Asked of you, Eric approved it on Nov 27:** one slide in Lecture 12, after slide 14,
 *Translation as Continuation*, which is where students meet a decoder-only model continuing the
 text. It completes section 5's slide: Lecture 8b says a Transformer's depth is fixed, and this
 says what generating does to that. It also explains the reasoning mode that slides 17 and 18 ask
-students to turn off.
+students to turn off. In place too, like section 5's.
 
 **Title:** Continuing the Text Brings Recurrence Back, One Token Wide
 
@@ -169,12 +170,13 @@ students to turn off.
 
 No pointer to outside research, per Eric's decision of Nov 17 on your course task for recurrence
 against attention in the 8a to 8c decks; sections 5 and 6 are the framing and placement that
-task was waiting on from this side.
+task was waiting on from this side. Eric placed it on Nov 27 in Lecture 8b and Lecture 12, rather
+than across 8a, 8b, and 8c, so that task's scope changes to these two slides.
 
 ## Tasks
 
-On yours: two new course tasks, the Lecture 8b slide in section 5 and the Lecture 12 slide in
-section 6, both for the next offering;
+On yours: the course task for recurrence against attention is now the Lecture 8b slide in
+section 5 and the Lecture 12 slide in section 6, both in place;
 Lecture 19's deck and page can link its notebook, and Lecture 18's page can list tutorial 10.
 On mine: the outcome quotes and the bullets are done and off; Lecture 19's notebook and
 tutorial 10 are done and off; and the old audit of the course's sequencing and outcomes is down
