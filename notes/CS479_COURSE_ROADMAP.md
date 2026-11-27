@@ -230,6 +230,7 @@ steps.
 | `lecture-13-back-translation` | synthetic pairs whose target side is real, and whether they help; how much of a change came from the data and how much from decoding; a difference tested, not only measured | extract monolingual text from their Church TM's unused segments, topped up from public text if short; choose their own reverse model or NLLB as back-translator, which back-translates by sampling (one retrain, Eric, Oct 22); write reverse and combine (the method, checked against known answers and the contamination check); state an "If ..., then ..." hypothesis and a prediction before retraining; say why sampling, from two of their own back-translated sentences; add Google back-translations to two helped and two hurt examples; upload the completed notebook | the reverse training (none with NLLB), the sampled back-translation with five greedy ones beside it, one retraining, A9 and A13 decoded greedily and with beam 5, BLEU, chrF, the paired bootstrap, COMET, the rerun record and the upload files | low |
 | `lecture-14-multilingual` | a language code tells one model which way to translate, and why that makes zero-shot possible; whether one shared model matches two one-way models, decoding held fixed and the difference tested; what fine-tuning a pretrained model buys over the same model off the shelf and over a model trained from scratch | choose their language's code (borrowing one, with a reason, if NLLB does not cover it); write tag and both_directions (checked on a known case, for intermingling, and by the contamination check in both languages); state an "If ..., then ..." hypothesis and a prediction, and set a step budget, before training; choose a third language for the zero-shot test; explain the code from the model's output under the wrong one; upload the completed notebook | NLLB off the shelf, the fine-tuning (torchlingo_harness.nllb.fine_tune), each direction decoded greedily and with beam 5 against NLLB off the shelf and its one-way model (A9; the A13 reverse model), BLEU, chrF, the paired bootstrap, COMET, the wrong-code and third-language outputs, the time of each long stage, the rerun record and the upload files | low |
 | `lecture-18-ibm-model-1` | how EM learns word alignments from sentence pairs alone; where attention agrees with such an alignment, where it differs, and why it needs no EM | predict what `house` translates to after one round of EM and why it is not yet sure; compare the two alignments row by row and say why they differ; if time, add a pair and see what moves | EM, written out as the lesson; the attention, teacher-forced through Lecture 8b's model and grouped from pieces to words | low |
+| `10-ibm-model-2` (reading) | a learned diagonal settles what counting cannot where two languages keep word order, and misleads where they reorder, even overruling the words; attention weighs position with content instead | predict whether Model 2 aligns a reordered adjective and noun correctly, and why; predict which model two more sentences fix; read each reveal against the prediction | Model 1, condensed; Model 2's EM, written out as the lesson; the tables of positions, the alignments, and a retraining with two more pairs | low, as reading |
 | `lecture-19-post-editing` | how an edit rate measures post-editing effort; why TER counts a move as one edit; why two correct post-edits score differently; what an edit rate cannot weigh | post-edit five outputs with as few changes as they can; predict their highest edit rate; find their own most and least important edits and compare what each cost | the edit distance, written out as the lesson; TER through sacrebleu; the professional post-edits and two one-word edits from MLQE-PE | low |
 
 ### Where the line is crossed
@@ -537,6 +538,7 @@ role, assignment and CI columns come from each notebook's own metadata, and the 
 | `lecture-14-multilingual` | 14 | homework | A14 | NLLB-200 fine-tuned both ways on A9's split, against NLLB off the shelf and the student's own one-way models | no: colab, exercises |
 | `09-fine-tuning-nllb` | 14 | reading | FP | how much fine-tuning is enough and what it costs, on the student's A8 split, after A14 | no: colab, download, exercises |
 | `lecture-18-ibm-model-1` | 18 | activity | | IBM Model 1 by EM on thirteen English-Spanish pairs, its alignment set beside a Transformer's attention on the same pair | no: exercises |
+| `10-ibm-model-2` | 18 | reading | FP | IBM Model 2 beside Model 1 on fifteen English-French pairs, after Lecture 18's notebook; word position, and when it helps an alignment | no: exercises |
 | `lecture-19-post-editing` | 19 | activity | | Post-editing five Estonian-English MT outputs, measured by edit distance and TER beside a professional's post-edits of the same outputs | no: exercises |
 
 **Tutorial numbers** are in course order: 01 data, 02 evaluating, 03 checkpoints, 04 attention,
@@ -1031,24 +1033,24 @@ run `python scripts/notebook_meta.py --write`. CI fails if the two disagree.
 | 1 | Course Overview and History of MT | — | — |
 | 2 | Translation Challenges for MT | — | — |
 | 3 | Introduction to Word Embeddings | `lecture-03-word-embeddings` (activity) | — |
-| 4 | Data Preparation for MT Training | `lecture-04-regex-refresher` (reference) [6], `lecture-04-tmx-cleaning` (activity) [7] | `01-data-and-vocab` (reference) [1] |
+| 4 | Data Preparation for MT Training | `lecture-04-regex-refresher` (reference) [7], `lecture-04-tmx-cleaning` (activity) [8] | `01-data-and-vocab` (reference) [1] |
 | 5 | Data Preparation for MT Training, Part 2 | `lecture-05-sentence-alignment` (activity) | — |
-| 6 | Automatic and Human MT Evaluation | `lecture-06-mt-evaluation-homework` (homework) [8], `lecture-06-mt-evaluation` (activity) [9] | `02-evaluating-translations` (reading) [2] |
-| 7 | Research Paper Reviews; Intro to Neural Networks | `lecture-07-toy-model` (activity) [10] | `03-train-tiny-model` (reading) [3] |
-| 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | `lecture-08a-a8-kickoff` (activity) [11] | `04-attention-and-alignment` (reading) |
-| 8b | Neural MT: The Transformer | `lecture-08b-cross-attention` (activity) [12] | `04-attention-and-alignment` (reading), `05-transformer-attention` (reference) |
-| 8c | Finishing the Transformer, the A8 Debrief, and the Subword Activity | `lecture-08c-attention-heads` (activity) [13] | `05-transformer-attention` (reference), `06-diagnosing-failures` (reading) |
-| 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [14] | `01-data-and-vocab` (reference) [1] |
-| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [15] | `07-real-translations` (reading) [4], `08-inference-and-beamsearch` (reading) |
-| 11 | LLM Judges, Sentences and Spans | `lecture-11-comet-on-a6` (homework) [16] | — |
-| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [17] | — |
-| 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [18] | — |
-| 14 | Multilingual NMT and "Zero-shot" NMT | `lecture-14-multilingual` (homework) [19] | `09-fine-tuning-nllb` (reading) [5] |
+| 6 | Automatic and Human MT Evaluation | `lecture-06-mt-evaluation-homework` (homework) [9], `lecture-06-mt-evaluation` (activity) [10] | `02-evaluating-translations` (reading) [2] |
+| 7 | Research Paper Reviews; Intro to Neural Networks | `lecture-07-toy-model` (activity) [11] | `03-train-tiny-model` (reading) [3] |
+| 8a | Neural MT: Encoder-Decoder, and Why Attention Was Invented | `lecture-08a-a8-kickoff` (activity) [12] | `04-attention-and-alignment` (reading) |
+| 8b | Neural MT: The Transformer | `lecture-08b-cross-attention` (activity) [13] | `04-attention-and-alignment` (reading), `05-transformer-attention` (reference) |
+| 8c | Finishing the Transformer, the A8 Debrief, and the Subword Activity | `lecture-08c-attention-heads` (activity) [14] | `05-transformer-attention` (reference), `06-diagnosing-failures` (reading) |
+| 9 | Handling Morphology and Terminology in NMT | `lecture-09-subword-tokenization` (activity) [15] | `01-data-and-vocab` (reference) [1] |
+| 10 | Overview of MT Quality Estimation | `lecture-10-comet-install` (homework) [16] | `07-real-translations` (reading) [4], `08-inference-and-beamsearch` (reading) |
+| 11 | LLM Judges, Sentences and Spans | `lecture-11-comet-on-a6` (homework) [17] | — |
+| 12 | Using LLMs for MT; Expanding Context Awareness | `lecture-12-llm-context` (homework) [18] | — |
+| 13 | Strategies for NMT of Low-Resource Languages | `lecture-13-back-translation` (homework) [19] | — |
+| 14 | Multilingual NMT and "Zero-shot" NMT | `lecture-14-multilingual` (homework) [20] | `09-fine-tuning-nllb` (reading) [5] |
 | 15 | Speech Translation | — | — |
 | 16 | Automatic Dubbing and Live Interpretation | — | — |
 | 17 | Multimodal NMT; then Writing the Final Project Report (15 minutes) | — | — |
-| 18 | Open Problems, and What Earlier MT Methods Teach | `lecture-18-ibm-model-1` (activity) [20] | — |
-| 19 | MT in Use: Applications, Jobs and Post-Editing | `lecture-19-post-editing` (activity) [21] | — |
+| 18 | Open Problems, and What Earlier MT Methods Teach | `lecture-18-ibm-model-1` (activity) [21] | `10-ibm-model-2` (reading) [6] |
+| 19 | MT in Use: Applications, Jobs and Post-Editing | `lecture-19-post-editing` (activity) [22] | — |
 
 Notes on the rows that are not simple:
 
@@ -1081,26 +1083,43 @@ Notes on the rows that are not simple:
   Final Project that fine-tunes, so it leads to FP, the Final Project. Needs a GPU with
   more memory than a T4, and Drive, so CI does not execute it; tests/test_tutorial_09.py
   runs its cells with NLLB stubbed.
-- [6] **`lecture-04-regex-refresher`** — A twenty-minute tour of Python regular
+- [6] **`10-ibm-model-2`** — IBM Model 2 against Model 1 on fifteen English-French
+  sentence pairs (Eric, Nov 25: word position as Model 1 ignores it; the learned diagonal
+  helps where two languages keep word order and misleads where they reorder, which
+  attention avoids by weighing content). Different data and opening from Lecture 18's
+  thirteen English-Spanish noun phrases, which it assumes; distinct from tutorial 4, which
+  measures attention against alignments. Model 1 is condensed; Model 2's EM round is
+  written out, since it is the lesson. Two six-word pairs each hold an adjective and a
+  noun found nowhere else: the young fox keeps English order, the grey owl reverses it.
+  Model 1 splits both fifty-fifty; Model 2's learned diagonal settles the fox and gets the
+  owl wrong, which the student predicts first. Two more owl pairs fix Model 1 and not
+  Model 2, which the student predicts too, each prediction stopping the notebook while
+  empty. Model 2's near-certain table of positions outvotes the words; fast_align's
+  relative diagonal, attention's positional encoding weighed with content, and
+  awesome-align close it, toward a Final Project that aligns words. The four-word table
+  learns a swap, and the optional last step adds a four-word pair in English order. CPU,
+  seconds. tests/test_tutorial_10.py runs it with both predictions written in and checks
+  every claim its markdown makes.
+- [7] **`lecture-04-regex-refresher`** — A twenty-minute tour of Python regular
   expressions, which the sixteen cleaning steps are written in, ending with re.sub for
   collapsing whitespace and stripping tags. Lecture 4's deck links it and Learning Suite
   posts it on the Lecture 3 tab, so it is offered ahead of Lecture 4 rather than used
   inside it. Each exercise stops until its pattern is written, then checks it;
   tests/test_lecture_04.py runs it with answers in.
-- [7] **`lecture-04-tmx-cleaning`** — In-class dry run of A4 on a ten-unit TMX sample with
+- [8] **`lecture-04-tmx-cleaning`** — In-class dry run of A4 on a ten-unit TMX sample with
   planted problems. It stops at a line-count prediction and at the line-break PATTERN
   until the student writes them; then a checker names the remaining problems by cleaning
   step and the student writes two string cleaners. Installs Translate Toolkit, so CI does
   not execute it; tests/test_lecture_04.py runs its cells with answers written in and the
   parser stubbed by xml.etree.
-- [8] **`lecture-06-mt-evaluation-homework`** — The A6 homework: ten sentences from the
+- [9] **`lecture-06-mt-evaluation-homework`** — The A6 homework: ten sentences from the
   student's own Assignment 5 corpus, uploaded through the Colab file picker, translated by
   a web MT system and pasted in, ranked by hand into MY_RANKING (which stops the notebook
   while empty) before any score prints, then scored with BLEU, chrF and TER, with
   sentence-level chrF set beside the ranking. Needs the Colab picker, so CI does not
   execute it; tests/test_lecture_06.py runs its cells with the upload skipped and files,
   translations and a ranking written in.
-- [9] **`lecture-06-mt-evaluation`** — Lecture 6's in-class activity on supplied data:
+- [10] **`lecture-06-mt-evaluation`** — Lecture 6's in-class activity on supplied data:
   BLEU's zero on two short sentences, then the student writes bleu_from_parts (BLEU from
   bleu.precisions and bleu.bp, checked on a case worked on paper, on a brevity penalty and
   on Part 1's zero, then against BLEU's own score on both Part 2 systems); reads five
@@ -1109,17 +1128,17 @@ Notes on the rows that are not simple:
   prediction stops the notebook while empty. The homework on the student's own data is
   lecture-06-mt-evaluation-homework. CI does not execute it as shipped;
   tests/test_lecture_06.py runs its cells with an answer and predictions written in.
-- [10] **`lecture-07-toy-model`** — Lecture 7's three-part exercise: Part A in class
+- [11] **`lecture-07-toy-model`** — Lecture 7's three-part exercise: Part A in class
   (install, train the toy model, read the loss curve against ln(V)), Part B outside class
   (hold out a phrase of the student's choice, predict, run a contrast phrase, score seen
   against unseen; watch a run resume after a faked disconnect), Part C the report handed
   in as A7. Part B stops while HELD_OUT is unset or the prediction is empty, so CI does
   not execute it; tests/test_lecture_07.py runs its cells with both filled in.
-- [11] **`lecture-08a-a8-kickoff`** — The in-class start of Assignment 8: from the
+- [12] **`lecture-08a-a8-kickoff`** — The in-class start of Assignment 8: from the
   student's Assignment 5 corpus to a training run already going when class ends. The
   handout is the authority; this is the executable path through it, and every threshold is
   quoted from the handout in one cell. Cannot run in CI: it mounts Drive and needs a GPU.
-- [12] **`lecture-08b-cross-attention`** — Lecture 8b's activity, the cross-attention half
+- [13] **`lecture-08b-cross-attention`** — Lecture 8b's activity, the cross-attention half
   of what was tutorial 5. The student writes attention, one scaled dot-product step,
   checked on a case worked on paper (one that also catches a missing √d_k) and then
   against the trained model's own weights in all four heads of the last decoder layer's
@@ -1128,7 +1147,7 @@ Notes on the rows that are not simple:
   reads the averaged map against the translation (the right words found, the wrong Spanish
   written) and records which prediction missed. tests/test_lecture_08b.py runs it with an
   answer written in.
-- [13] **`lecture-08c-attention-heads`** — Lecture 8c's activity, the self-attention half
+- [14] **`lecture-08c-attention-heads`** — Lecture 8c's activity, the self-attention half
   of what was tutorial 5, on the same model and sentence as Lecture 8b's, with Lecture
   8b's attention step given. The student writes split_heads, checked on numbers readable
   by eye and then against the model's own weights in every encoder layer, and sharpness,
@@ -1136,7 +1155,7 @@ Notes on the rows that are not simple:
   first layer head by head, measures how averaging and depth blur attention, and records
   which part of the prediction missed. tests/test_lecture_08c.py runs it with answers
   written in.
-- [14] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity and, in Part
+- [15] **`lecture-09-subword-tokenization`** — Lecture 9's in-class activity and, in Part
   B, Assignment 9 itself. Part A (CPU, in class): SentencePiece fit on the student's A8
   training split; the student's own unknown_rate counter, checked on three cases, under
   words and under pieces; a round trip; a vocabulary size chosen with a reason; A8's BLEU
@@ -1147,7 +1166,7 @@ Notes on the rows that are not simple:
   translations as test-a8-again.hyp, which A11 scores with COMET; prints the write-up
   numbers; says to disconnect the GPU. Reads the A8 split from Drive, so it cannot run in
   CI; tests/test_lecture_09_part_a.py and _part_b.py run it.
-- [15] **`lecture-10-comet-install`** — A10: installs COMET; the student writes
+- [16] **`lecture-10-comet-install`** — A10: installs COMET; the student writes
   comet_inputs, the records COMET scores (reused in A11 on the A6 sentences), checked on
   known cases, and a prediction, which stops the run while empty; then the reference-based
   model and COMETKiwi (whose license the student accepts on Hugging Face, then logs in
@@ -1155,7 +1174,7 @@ Notes on the rows that are not simple:
   A10 grades, followed by three write-up questions: the prediction against the result,
   what a COMET score means, and evaluation against estimation. tests/test_lecture_10.py
   runs its cells with COMET stubbed.
-- [16] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMETKiwi, the
+- [17] **`lecture-11-comet-on-a6`** — A11: COMET (reference-based) and COMETKiwi, the
   estimator from A10, on the student's A6 sentences beside BLEU and chrF, then on their
   own A8 and A9 systems. Step 1 reads the student's MTEval results file from A6 (a header
   naming the two systems, a rank per system per ranked sentence, ties allowed), joins it
@@ -1177,7 +1196,7 @@ Notes on the rows that are not simple:
   disagreements. Five summary questions follow, the fourth on LLM-as-judge and system-
   against segment-level agreement, the fifth on the student's own systems.
   tests/test_lecture_11.py runs its cells with COMET stubbed.
-- [17] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
+- [18] **`lecture-12-llm-context`** — Assignment 12, runnable end to end. Runs on a
   built-in English-Spanish sample from data/example.tsv until the student sets LANGUAGE
   and DATA_DIR, together. The student writes split_pool_and_test (checked on the alphabet,
   including that a different seed gives a different split, then by check_contamination on
@@ -1203,7 +1222,7 @@ Notes on the rows that are not simple:
   whether it settled a pronoun or term in two of the student's own test sentences; the
   completed notebook is uploaded with it. Needs a GPU and Drive, so CI does not execute
   it; tests/test_lecture_12.py runs its cells with both models stubbed.
-- [18] **`lecture-13-back-translation`** — Assignment 13 end to end, as a small Path A,
+- [19] **`lecture-13-back-translation`** — Assignment 13 end to end, as a small Path A,
   starting from what Lecture 9's Part B leaves on Drive (A9's split, spm.model, best-a9/,
   test-a9.hyp, and A9's training checkpoint, from which every training takes its epoch
   count) plus the student's monolingual text: mono-tm.txt from their Church TM's unused
@@ -1225,7 +1244,7 @@ Notes on the rows that are not simple:
   where back-translation helped most and two where it hurt, and saves a13-rerun.json; the
   completed notebook is uploaded. Needs a GPU and Drive, so CI does not execute it;
   tests/test_lecture_13.py runs its cells at toy size, with NLLB stubbed.
-- [19] **`lecture-14-multilingual`** — Assignment 14, rebuilt on fine-tuning NLLB-200
+- [20] **`lecture-14-multilingual`** — Assignment 14, rebuilt on fine-tuning NLLB-200
   (Eric, Oct 25: go), starting from what Lecture 9's Part B leaves on Drive (A9's split,
   spm.model, a9-settings.json, best-a9/) and, for the comparison into English, A13's
   best-a13-reverse/ when present. The student sets LANGUAGE (its NLLB code from a table
@@ -1249,7 +1268,7 @@ Notes on the rows that are not simple:
   uploaded. Tutorial 9, after it, asks how much fine-tuning is enough and what it costs.
   Needs a GPU with more memory than a T4, and Drive, so CI does not execute it;
   tests/test_lecture_14.py runs its cells with NLLB and COMET stubbed.
-- [20] **`lecture-18-ibm-model-1`** — Lecture 18's in-class activity, about ten minutes,
+- [21] **`lecture-18-ibm-model-1`** — Lecture 18's in-class activity, about ten minutes,
   run together, no points (Eric, Nov 5). IBM Model 1 by EM on thirteen English-Spanish
   noun phrases chosen so that counting has something to resolve: house co-occurs with la
   nearly as often as with casa, and la also appears with door. The EM round is written
@@ -1263,7 +1282,7 @@ Notes on the rows that are not simple:
   alignment, weights differentiable and trained by the translation loss. An optional last
   step adds a pair (the boy / el niño) and reruns. tests/test_lecture_18.py runs it with
   the prediction written in.
-- [21] **`lecture-19-post-editing`** — Lecture 19's in-class activity, about 15 minutes in
+- [22] **`lecture-19-post-editing`** — Lecture 19's in-class activity, about 15 minutes in
   pairs, no points, CPU only (Cowork's hand-off N, Eric, Nov 25). Five Estonian-English MT
   outputs from MLQE-PE (CC0), each shown with an independent human translation for its
   meaning, so students who read no Estonian can post-edit. POST_EDITS starts as the MT

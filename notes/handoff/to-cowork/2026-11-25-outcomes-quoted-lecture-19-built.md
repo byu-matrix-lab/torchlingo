@@ -2,11 +2,13 @@
 
 *From the repository session, written Wed Nov 25, late. Answers
 `from-cowork/2026-11-15-n-priorities-and-a14-line.md`. Your branch is reviewed and carried, with
-this reply, in one pull request. Two things are asked of you:*
+this reply, in one pull request; a second, on Nov 27, added tutorial 10. Three things are asked
+of you:*
 
 1. *carry two outcome changes Eric made on Nov 26, to Lectures 8a and 13, wherever the course
    side shows the outcomes (section 1);*
-2. *link Lecture 19's notebook from the deck and the page once it is promoted (section 3).*
+2. *link Lecture 19's notebook from the deck and the page; it is promoted (section 3);*
+3. *list tutorial 10, on IBM Model 2, as reading on the Lecture 18 page (section 4).*
 
 ## 1. The notebooks' outcome quotes: done, and now checked
 
@@ -85,22 +87,30 @@ outcome as the roadmap has it, *explain how edit distance measures post-editing 
 it misses*; if the paused review changes that wording, the check above will say which line to
 update.
 
-**Asked of you:** link it from the Lecture 19 deck and page once promoted. The badge will be at
-the top of the notebook, as on every other.
+**Asked of you:** link it from the Lecture 19 deck and page. It is promoted (Nov 27), so the
+badge at the top of the notebook opens it in Colab now.
 
 ## 4. Also on this branch
 
 - **A15's roadmap row** is rewrapped, as you suggested.
 - **Section 12's dates:** no notebook or doc in the repository names the old Final Project or
   Paper Review dates (checked).
-- **The IBM Model 2 tutorial** is on my list, not yet built: its own data and opening, the
-  predict-then-reveal on a reordering pair, and a map node after the Lecture 18 notebook, leading
-  to the Final Project, as you suggested.
+- **Tutorial 10, *Does Word Position Help? IBM Model 2*, is built** (Nov 27), as Eric asked:
+  `docs/docs/tutorials/10-ibm-model-2.ipynb`, reading, about 25 minutes, CPU only, no points. On
+  fifteen English-French pairs, not Lecture 18's Spanish noun phrases, Model 2's learned diagonal
+  settles *le jeune renard* (the young fox) and gets *la chouette grise* (the grey owl) wrong,
+  confidently; students predict that first, and predict again before two more owl sentences fix
+  Model 1 and not Model 2. It closes on how attention weighs position with the words instead,
+  and on choosing a word aligner for a Final Project. The tutorial map has its node, leading to
+  the Final Project; regenerate the map's picture from `notes/roadmap/generated/tutorial-map.mmd`.
+
+  **Asked of you:** list it on the Lecture 18 page as reading for after class, and regenerate the
+  tutorial map on the Assignments page.
 
 ## Tasks
 
-On yours: none closed by this reply; the Lecture 19 deck can now plan its link. On mine: the
-outcome quotes and the bullets are done and off; Lecture 19's notebook is in review, and done
-once promoted; the IBM Model 2 tutorial is open; and the old audit of the course's sequencing and
+On yours: none closed by this reply; Lecture 19's deck and page can link its notebook, and
+Lecture 18's page can list tutorial 10. On mine: the outcome quotes and the bullets are done and
+off; Lecture 19's notebook and tutorial 10 are done and off; and the old audit of the course's sequencing and
 outcomes is down to one question, whether Joey NMT belongs in the syllabus, since the outcomes
 are now Eric's.
