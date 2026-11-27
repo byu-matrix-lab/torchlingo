@@ -1,14 +1,16 @@
 # Outcomes quoted, and checked; Lecture 19's notebook is built
 
-*From the repository session, written Wed Nov 25, late. Answers
+*From the repository session, written Wed Nov 25, late; last updated Fri Nov 27. Answers
 `from-cowork/2026-11-15-n-priorities-and-a14-line.md`. Your branch is reviewed and carried, with
-this reply, in one pull request; a second, on Nov 27, added tutorial 10. Three things are asked
+this reply, in one pull request; a second, on Nov 27, added tutorial 10. Four things are asked
 of you:*
 
 1. *carry two outcome changes Eric made on Nov 26, to Lectures 8a and 13, wherever the course
    side shows the outcomes (section 1);*
 2. *link Lecture 19's notebook from the deck and the page; it is promoted (section 3);*
-3. *list tutorial 10, on IBM Model 2, as reading on the Lecture 18 page (section 4).*
+3. *list tutorial 10, on IBM Model 2, as reading on the Lecture 18 page (section 4);*
+4. *for the next offering, build one Lecture 8b slide that Eric approved, on why a Transformer is
+   not recurrent (section 5).*
 
 ## 1. The notebooks' outcome quotes: done, and now checked
 
@@ -107,10 +109,43 @@ badge at the top of the notebook opens it in Colab now.
   **Asked of you:** list it on the Lecture 18 page as reading for after class, and regenerate the
   tutorial map on the Assignments page.
 
+## 5. One Lecture 8b slide, for the next offering: attention never reads back and down
+
+**Asked of you, Eric approved it on Nov 27:** one slide in Lecture 8b, after slide 27,
+*Replacing the Recurrence with Self-Attention*. It comes from Eric's research session on
+recurrence, which put the question students ask: *why do we say a Transformer is not recurrent,
+when attention at word n reads earlier words?* Slide 27 answers half of it, across the words:
+one step between any two words, and parallel training. This slide adds the other half, up the
+layers. Lecture 8b has run this term, so it is for next fall; nothing changes before then. The
+slide's text, yours to fit to the deck:
+
+**Title:** Attention Reads Back and Across, Never Back and Down
+
+**The picture:** a grid, layers going up (input, layer 1, layer 2) and words going right (x1 to
+x4). Every arrow goes up one layer, either straight up or up and to the right. None goes from
+the top of one word down into the bottom of a later one.
+
+**The points:**
+
+- **An RNN has that downward arrow.** Step t's output is step t+1's input, so the chain of
+  steps grows with the sentence: training waits for each step in turn, and the gradient runs
+  back through all of them, which is where it vanishes or explodes.
+- **A Transformer layer reads only the layer below.** At word n, attention reads the previous
+  layer's vectors (in the decoder, at words up to n; in the encoder, at every word), and never
+  a later layer's output at an earlier word.
+- **So the depth is fixed.** Any path through the model climbs at most its number of layers,
+  however long the sentence. In our encoder-decoder, cross-attention reads the encoder's top
+  layer, so the longest path is the encoder's layers plus the decoder's: fixed all the same.
+- **The trade:** a fixed number of steps in sequence, in exchange for training every word at
+  once, and one step between any two words.
+
+**A footnote, if there is room:** when the decoder translates, each word it writes becomes its
+next input. Generating brings back one downward arrow, one word wide.
+
 ## Tasks
 
-On yours: none closed by this reply; Lecture 19's deck and page can link its notebook, and
-Lecture 18's page can list tutorial 10. On mine: the outcome quotes and the bullets are done and
-off; Lecture 19's notebook and tutorial 10 are done and off; and the old audit of the course's sequencing and
-outcomes is down to one question, whether Joey NMT belongs in the syllabus, since the outcomes
-are now Eric's.
+On yours: one new course task, the Lecture 8b slide in section 5, for the next offering;
+Lecture 19's deck and page can link its notebook, and Lecture 18's page can list tutorial 10.
+On mine: the outcome quotes and the bullets are done and off; Lecture 19's notebook and
+tutorial 10 are done and off; and the old audit of the course's sequencing and outcomes is down
+to one question, whether Joey NMT belongs in the syllabus, since the outcomes are now Eric's.
