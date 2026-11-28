@@ -14,8 +14,8 @@ excellent**. Read that section first.
 ### Joey NMT
 
 [Joey NMT](https://aclanthology.org/D19-3019/) (Kreutzer, Bastings & Riezler, EMNLP 2019)
-is a minimalist PyTorch NMT toolkit written explicitly for novices. It is actively
-maintained, and it covers most of what a course needs: RNN and Transformer encoders and
+is a minimalist PyTorch NMT toolkit written explicitly for novices. Its latest release,
+2.3.0, and its latest commit are from January 2024. It covers most of what a course needs: RNN and Transformer encoders and
 decoders, several attention variants, beam search with length penalty, attention
 visualization, learning-curve plots, word/BPE/character tokenization, and multilingual
 training with language tags.
@@ -63,12 +63,21 @@ current PyTorch the shipped toy config raises `TypeError` before the first step.
 `scheduling: "plateau"` is what that config uses, the quickstart does not run
 out of the box.
 
-None of this says the project is unmaintained; it says a tutorial that is not executed
-automatically will eventually stop working, whoever wrote it. That is the exact failure
+**Its documented tutorial fails the same way.** In November 2026 we ran the tutorial in
+its documentation, command by command, in fresh environments on Python 3.10 to 3.14. On
+every version it stopped at the training step, and it needed three fixes to reach a
+translation. Only one of the three is Joey NMT's own: the tutorial trains
+`configs/reverse.yaml`, which the repository does not contain. The other two arrived with
+newer packages: an `importlib_metadata` import the package never declared, which older
+packages used to install for it, and the `verbose` argument above. Installing every package
+as it stood on Joey NMT's release day leaves only the missing config, though that install
+works only on Python 3.10 and 3.11, the newest that PyTorch then supported.
+
+So most of the breakage is drift: the code stood still while PyTorch and its neighbours
+moved. A tutorial that is not executed automatically will eventually stop working, whoever
+wrote it. That is the failure
 [our notebook gate](https://github.com/byu-matrix-lab/torchlingo/blob/main/scripts/execute_notebooks.py)
-exists to prevent, and finding it here is the strongest argument we have for keeping that
-gate — and for the fact that it currently
-[skips most of our own tutorials in CI](concepts/when-it-fails.md).
+exists to prevent, on every push to `main` and every week.
 
 ### OpenNMT-py and Eole
 
@@ -156,9 +165,10 @@ library whose examples have rotted is worse than none, because a student cannot 
 - Joey NMT is the only project here we have actually run. Everything said about the
   others is from documentation and published papers, and claims about a project's
   *behaviour* deserve hands-on verification before they inform a syllabus.
-- The Joey NMT findings above are from one toy task on one CPU machine. They are enough
-  to say the quickstart needs fixing on current PyTorch; they are not a judgement of the
-  toolkit's quality, which on the evidence of that run is high.
+- The Joey NMT findings above are from its two shipped toy tasks on one CPU machine, a
+  Mac. They are enough to say the quickstart and the tutorial need fixing on current
+  PyTorch; they are not a judgement of the toolkit's quality, which on the evidence of
+  those runs is high.
 - The gap described above is a gap in what we *found*. Absence of evidence is weak
   evidence, particularly across course materials that are not indexed as software.
 - Joey NMT's user study is real evidence about teaching effectiveness. TorchLingo has no
